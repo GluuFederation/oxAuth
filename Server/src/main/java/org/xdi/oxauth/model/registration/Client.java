@@ -149,9 +149,6 @@ public class Client {
     @LdapAttribute(name = "oxAuthFederationMetadataURI")
     private String federationURI;
 
-    @LdapAttribute(name = "oxAuthSubjectIdentifier")
-    private String subjectIdentifier;
-
     @LdapAttributesList(name = "name", value = "values", sortByName = true)
     private List<CustomAttribute> customAttributes = new ArrayList<CustomAttribute>();
 
@@ -894,14 +891,6 @@ public class Client {
 
     public void setFederationURI(String p_federationURI) {
         federationURI = p_federationURI;
-    }
-
-    public String getSubjectIdentifier() {
-        return subjectIdentifier;
-    }
-
-    public void setSubjectIdentifier(String subjectIdentifier) {
-        this.subjectIdentifier = subjectIdentifier;
     }
 
     public List<CustomAttribute> getCustomAttributes() {
