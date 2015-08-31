@@ -31,7 +31,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toJSONArray;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
- * @version June 3, 2015
+ * @version August 31, 2015
  */
 public class RegisterRequest extends BaseRequest {
 
@@ -1030,7 +1030,7 @@ public class RegisterRequest extends BaseRequest {
             parameters.put(JWKS_URI.toString(), jwksUri);
         }
         if (StringUtils.isNotBlank(jwks)) {
-            parameters.put(JWKS_URI.toString(), jwks);
+            parameters.put(JWKS.toString(), jwks);
         }
         if (StringUtils.isNotBlank(sectorIdentifierUri)) {
             parameters.put(SECTOR_IDENTIFIER_URI.toString(), sectorIdentifierUri);

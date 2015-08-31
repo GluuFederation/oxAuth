@@ -648,4 +648,25 @@
         </classes>
     </test>
 
+    <!-- OpenID Connect Certification Tests -->
+    <test name="OP Config Profile" enabled="true">
+        <classes>
+            <class name="org.xdi.oxauth.oiccert.opconfig.OPDiscoveryClaimsSupported"/>
+            <class name="org.xdi.oxauth.oiccert.opconfig.OPDiscoveryConfig"/>
+            <class name="org.xdi.oxauth.oiccert.opconfig.OPDiscoveryJwks"/>
+            <class name="org.xdi.oxauth.oiccert.opconfig.OPDiscoveryJwksUri"/>
+        </classes>
+    </test>
+    <test name="OP Dynamic Profile" enabled="true">
+        <classes>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationDynamic"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationEndpoint"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationJwks"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationJwksUri"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationLogoUri"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationPolicyUri"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationSectorBad"/>
+            <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationTosUri"/>
+        </classes>
+    </test>
 </suite>
