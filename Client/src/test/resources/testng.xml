@@ -669,4 +669,68 @@
             <class name="org.xdi.oxauth.oiccert.opdynamic.OPRegistrationTosUri"/>
         </classes>
     </test>
+    <test name="OP Basic Profile (code)" enabled="true">
+        <classes>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPClaimsEssential"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPClientAuthBasicDynamic"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPClientAuthSecretPostDynamic"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDiscoveryClaimsSupported"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDiscoveryConfig"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDiscoveryJwks"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDiscoveryJwksUri"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDisplayPage"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPDisplayPopup"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPIDTokenKid"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPIDTokenNone"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPIDTokenRS256"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPNonceCode"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPNonceNoReqCode"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPOAuth2nd"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPOAuth2nd30s"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPOAuth2ndRevokes"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPPromptLogin"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPPromptNoneLoggedIn"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPPromptNoneNotLoggedIn"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriMissing"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriNotReg"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriQueryAdded"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriQueryMismatch"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriQueryOK"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRedirectUriRegFrag"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationDynamic"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationEndpoint"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationJwks"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationJwksUri"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationLogoUri"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationPolicyUri"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationSectorBad"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRegistrationTosUri"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqAcrValues"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqClaimsLocales"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqIdTokenHint"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqLoginHint"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqMaxAge1"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqMaxAge10000"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqNotUnderstood"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRequestUnsigned"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRequestUriSig"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRequestUriSupport"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRequestUriUnsignedDynamic"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPReqUiLocales"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPResponseCode"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPResponseMissing"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRotationOPEnc"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRotationOPSig"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPRotationRPSig"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPScopeAddress"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPScopeAll"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPScopeEmail"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPScopePhone"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPScopeProfile"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPUserInfoBody"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPUserInfoEndpoint"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPUserInfoHeader"/>
+            <class name="org.xdi.oxauth.oiccert.opbasic.code.OPUserInfoRS256"/>
+        </classes>
+    </test>
 </suite>
