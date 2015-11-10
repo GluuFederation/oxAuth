@@ -62,7 +62,7 @@ public class SessionId implements Serializable {
     @LdapJsonObject
     @LdapAttribute(name = "oxAuthSessionAttribute")
     private Map<String, String> sessionAttributes;
-    
+
     @Transient
     private transient boolean persisted;
 
@@ -134,10 +134,7 @@ public class SessionId implements Serializable {
     }
 
     public Boolean isPermissionGrantedForClient(String clientId) {
-        if (permissionGrantedMap != null) {
-            return permissionGrantedMap.get(clientId);
-        }
-        return false;
+        return permissionGrantedMap != null && permissionGrantedMap.get(clientId);
     }
 
     public void addPermission(String clientId, Boolean granted) {
@@ -174,9 +171,7 @@ public class SessionId implements Serializable {
 
         SessionId id1 = (SessionId) o;
 
-        if (id != null ? !id.equals(id1.id) : id1.id != null) return false;
-
-        return true;
+        return !(id != null ? !id.equals(id1.id) : id1.id != null);
     }
 
     @Override
@@ -185,13 +180,20 @@ public class SessionId implements Serializable {
     }
 
     @Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("SessionId [dn=").append(dn).append(", id=").append(id).append(", lastUsedAt=").append(lastUsedAt)
-				.append(", userDn=").append(userDn).append(", authenticationTime=").append(authenticationTime).append(", state=")
-				.append(state).append(", permissionGranted=").append(permissionGranted).append(", permissionGrantedMap=")
-				.append(permissionGrantedMap).append(", sessionAttributes=").append(sessionAttributes).append("]");
-		return builder.toString();
-	}
-
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SessionId");
+        sb.append(", dn='").append(dn).append('\'');
+        sb.append(", id='").append(id).append('\'');
+        sb.append(", lastUsedAt=").append(lastUsedAt);
+        sb.append(", userDn='").append(userDn).append('\'');
+        sb.append(", authenticationTime=").append(authenticationTime);
+        sb.append(", state=").append(state);
+        sb.append(", permissionGranted=").append(permissionGranted);
+        sb.append(", permissionGrantedMap=").append(permissionGrantedMap);
+        sb.append(", sessionAttributes=").append(sessionAttributes);
+        sb.append(", persisted=").append(persisted);
+        sb.append('}');
+        return sb.toString();
+    }
 }

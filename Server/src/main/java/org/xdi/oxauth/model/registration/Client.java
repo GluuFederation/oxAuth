@@ -41,6 +41,12 @@ public class Client {
     @LdapAttribute(name = "oxAuthClientSecret")
     private String encodedClientSecret;
 
+    @LdapAttribute(name = "oxAuthLogoutURI")
+    private String logoutUri;
+
+    @LdapAttribute(name = "oxAuthLogoutSessionRequired")
+    private Boolean logoutSessionRequired;
+
     @LdapAttribute(name = "oxAuthRegistrationAccessToken")
     private String registrationAccessToken;
 
@@ -174,6 +180,42 @@ public class Client {
 
     public void setDn(String dn) {
         this.dn = dn;
+    }
+
+    /**
+     * Gets logout session required.
+     *
+     * @return logout session required
+     */
+    public Boolean getLogoutSessionRequired() {
+        return logoutSessionRequired;
+    }
+
+    /**
+     * Sets logout session required.
+     *
+     * @param logoutSessionRequired logout session required
+     */
+    public void setLogoutSessionRequired(Boolean logoutSessionRequired) {
+        this.logoutSessionRequired = logoutSessionRequired;
+    }
+
+    /**
+     * Gets logout uri
+     *
+     * @return logout uri
+     */
+    public String getLogoutUri() {
+        return logoutUri;
+    }
+
+    /**
+     * Sets logout uri.
+     *
+     * @param logoutUri logout uri
+     */
+    public void setLogoutUri(String logoutUri) {
+        this.logoutUri = logoutUri;
     }
 
     /**

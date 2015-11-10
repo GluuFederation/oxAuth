@@ -6,11 +6,8 @@
 
 package org.xdi.oxauth.service;
 
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.TimeZone;
-
+import com.google.common.collect.Sets;
+import com.unboundid.ldap.sdk.Filter;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
@@ -24,6 +21,7 @@ import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.contexts.Contexts;
 import org.jboss.seam.contexts.Lifecycle;
 import org.jboss.seam.log.Log;
+import org.python.jline.internal.Preconditions;
 import org.xdi.ldap.model.CustomAttribute;
 import org.xdi.ldap.model.CustomEntry;
 import org.xdi.model.SimpleProperty;
@@ -34,7 +32,12 @@ import org.xdi.service.CacheService;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
-import com.unboundid.ldap.sdk.Filter;
+import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * Provides operations with clients.
@@ -107,6 +110,20 @@ public class ClientService {
         return authenticated;
     }
 
+    public Set<Client> getClient(Collection<String> clientIds, boolean silent) {
+        Set<Client> set = Sets.newHashSet();
+        for (String clientId : clientIds) {
+            try {
+                set.add(getClient(clientId));
+            } catch (RuntimeException e) {
+                if (!silent) {
+                    throw e;
+                }
+            }
+        }
+        return set;
+    }
+
     public Client getClient(String clientId) {
         if (clientId != null && !clientId.isEmpty()) {
             if (Boolean.TRUE.equals(ConfigurationFactory.instance().getConfiguration().getClientAuthenticationFiltersEnabled())) {
@@ -151,6 +168,27 @@ public class ClientService {
         }
 
         return null;
+    }
+
+    public Set<Client> getClientsByDns(Collection<String> dnList) {
+        return getClientsByDns(dnList, true);
+    }
+
+
+    public Set<Client> getClientsByDns(Collection<String> dnList, boolean silently) {
+        Preconditions.checkNotNull(dnList);
+
+        final Set<Client> result = Sets.newHashSet();
+        for (String clientDn : dnList) {
+            try {
+                result.add(getClientByDn(clientDn));
+            } catch (RuntimeException e) {
+                if (!silently) {
+                    throw e;
+                }
+            }
+        }
+        return result;
     }
 
     /**

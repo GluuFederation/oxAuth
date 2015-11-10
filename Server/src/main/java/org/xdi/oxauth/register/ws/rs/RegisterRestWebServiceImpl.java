@@ -110,8 +110,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 r.setIdTokenSignedResponseAlg(SignatureAlgorithm.fromName(ConfigurationFactory.instance().getConfiguration().getDefaultSignatureAlgorithm()));
             }
 
-            log.debug("Attempting to register client: applicationType = {0}, clientName = {1}, redirectUris = {2}, isSecure = {3}, sectorIdentifierUri = {4}",
-                    r.getApplicationType(), r.getClientName(), r.getRedirectUris(), securityContext.isSecure(), r.getSectorIdentifierUri());
+            log.debug("Attempting to register client: applicationType = {0}, clientName = {1}, redirectUris = {2}, isSecure = {3}, sectorIdentifierUri = {4}, params = {5}",
+                    r.getApplicationType(), r.getClientName(), r.getRedirectUris(), securityContext.isSecure(), r.getSectorIdentifierUri(), requestParams);
 
             if (ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationEnabled()) {
 
@@ -122,6 +122,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                         builder = Response.status(Response.Status.BAD_REQUEST.getStatusCode());
                         builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_REDIRECT_URI));
                     } else {
+                        RegisterParamsValidator.validateLogoutUri(r.getLogoutUri(), r.getRedirectUris(), errorResponseFactory);
+
                         String clientsBaseDN = ConfigurationFactory.instance().getBaseDn().getClients();
 
                         String inum = inumService.generateClientInum();
@@ -172,8 +174,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                         client.setLastAccessTime(currentTime);
                         client.setLastLogonTime(currentTime);
 
-                        boolean persistClientAuthorizations = ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationPersistClientAuthorizations();
-                        client.setPersistClientAuthorizations(persistClientAuthorizations);
+                        Boolean persistClientAuthorizations = ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationPersistClientAuthorizations();
+                        client.setPersistClientAuthorizations(persistClientAuthorizations != null ? persistClientAuthorizations : false);
 
                         clientService.persist(client);
 
@@ -186,6 +188,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                             entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
                 }
             } else {
+                log.debug("Dynamic client registration is disabled.");
                 builder = Response.status(Response.Status.BAD_REQUEST).
                         entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.ACCESS_DENIED));
             }
@@ -212,114 +215,117 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
     // yuriyz - ATTENTION : this method is used for both registration and update client metadata cases, therefore any logic here
     // will be applied for both cases.
-    public static void updateClientFromRequestObject(Client p_client, RegisterRequest p_request) throws JSONException {
-        List<String> redirectUris = p_request.getRedirectUris();
+    public static void updateClientFromRequestObject(Client p_client, RegisterRequest requestObject) throws JSONException {
+        List<String> redirectUris = requestObject.getRedirectUris();
         if (redirectUris != null && !redirectUris.isEmpty()) {
             redirectUris = new ArrayList<String>(new HashSet<String>(redirectUris)); // Remove repeated elements
             p_client.setRedirectUris(redirectUris.toArray(new String[redirectUris.size()]));
         }
-        if (p_request.getApplicationType() != null) {
-            p_client.setApplicationType(p_request.getApplicationType().toString());
+        if (requestObject.getApplicationType() != null) {
+            p_client.setApplicationType(requestObject.getApplicationType().toString());
         }
-        if (StringUtils.isNotBlank(p_request.getClientName())) {
-            p_client.setClientName(p_request.getClientName());
+        if (StringUtils.isNotBlank(requestObject.getClientName())) {
+            p_client.setClientName(requestObject.getClientName());
         }
-        if (StringUtils.isNotBlank(p_request.getSectorIdentifierUri())) {
-            p_client.setSectorIdentifierUri(p_request.getSectorIdentifierUri());
+        if (StringUtils.isNotBlank(requestObject.getSectorIdentifierUri())) {
+            p_client.setSectorIdentifierUri(requestObject.getSectorIdentifierUri());
         }
-        List<ResponseType> responseTypes = p_request.getResponseTypes();
+        List<ResponseType> responseTypes = requestObject.getResponseTypes();
         if (responseTypes != null && !responseTypes.isEmpty()) {
             responseTypes = new ArrayList<ResponseType>(new HashSet<ResponseType>(responseTypes)); // Remove repeated elements
             p_client.setResponseTypes(responseTypes.toArray(new ResponseType[responseTypes.size()]));
         }
 
-        List<String> contacts = p_request.getContacts();
+        List<String> contacts = requestObject.getContacts();
         if (contacts != null && !contacts.isEmpty()) {
             contacts = new ArrayList<String>(new HashSet<String>(contacts)); // Remove repeated elements
             p_client.setContacts(contacts.toArray(new String[contacts.size()]));
         }
-        if (StringUtils.isNotBlank(p_request.getLogoUri())) {
-            p_client.setLogoUri(p_request.getLogoUri());
+        if (StringUtils.isNotBlank(requestObject.getLogoUri())) {
+            p_client.setLogoUri(requestObject.getLogoUri());
         }
-        if (StringUtils.isNotBlank(p_request.getClientUri())) {
-            p_client.setClientUri(p_request.getClientUri());
+        if (StringUtils.isNotBlank(requestObject.getClientUri())) {
+            p_client.setClientUri(requestObject.getClientUri());
         }
-        if (p_request.getTokenEndpointAuthMethod() != null) {
-            p_client.setTokenEndpointAuthMethod(p_request.getTokenEndpointAuthMethod().toString());
+        if (requestObject.getTokenEndpointAuthMethod() != null) {
+            p_client.setTokenEndpointAuthMethod(requestObject.getTokenEndpointAuthMethod().toString());
         }
-        if (StringUtils.isNotBlank(p_request.getPolicyUri())) {
-            p_client.setPolicyUri(p_request.getPolicyUri());
+        if (StringUtils.isNotBlank(requestObject.getPolicyUri())) {
+            p_client.setPolicyUri(requestObject.getPolicyUri());
         }
-        if (StringUtils.isNotBlank(p_request.getTosUri())) {
-            p_client.setTosUri(p_request.getTosUri());
+        if (StringUtils.isNotBlank(requestObject.getTosUri())) {
+            p_client.setTosUri(requestObject.getTosUri());
         }
-        if (StringUtils.isNotBlank(p_request.getJwksUri())) {
-            p_client.setJwksUri(p_request.getJwksUri());
+        if (StringUtils.isNotBlank(requestObject.getJwksUri())) {
+            p_client.setJwksUri(requestObject.getJwksUri());
         }
-        if (StringUtils.isNotBlank(p_request.getJwks())) {
-            p_client.setJwks(p_request.getJwks());
+        if (StringUtils.isNotBlank(requestObject.getJwks())) {
+            p_client.setJwks(requestObject.getJwks());
         }
-        if (p_request.getSubjectType() != null) {
-            p_client.setSubjectType(p_request.getSubjectType().toString());
+        if (requestObject.getSubjectType() != null) {
+            p_client.setSubjectType(requestObject.getSubjectType().toString());
         }
-        if (p_request.getRequestObjectSigningAlg() != null) {
-            p_client.setRequestObjectSigningAlg(p_request.getRequestObjectSigningAlg().toString());
+        if (requestObject.getRequestObjectSigningAlg() != null) {
+            p_client.setRequestObjectSigningAlg(requestObject.getRequestObjectSigningAlg().toString());
         }
-        if (p_request.getUserInfoSignedResponseAlg() != null) {
-            p_client.setUserInfoSignedResponseAlg(p_request.getUserInfoSignedResponseAlg().toString());
+        if (requestObject.getUserInfoSignedResponseAlg() != null) {
+            p_client.setUserInfoSignedResponseAlg(requestObject.getUserInfoSignedResponseAlg().toString());
         }
-        if (p_request.getUserInfoEncryptedResponseAlg() != null) {
-            p_client.setUserInfoEncryptedResponseAlg(p_request.getUserInfoEncryptedResponseAlg().toString());
+        if (requestObject.getUserInfoEncryptedResponseAlg() != null) {
+            p_client.setUserInfoEncryptedResponseAlg(requestObject.getUserInfoEncryptedResponseAlg().toString());
         }
-        if (p_request.getUserInfoEncryptedResponseEnc() != null) {
-            p_client.setUserInfoEncryptedResponseEnc(p_request.getUserInfoEncryptedResponseEnc().toString());
+        if (requestObject.getUserInfoEncryptedResponseEnc() != null) {
+            p_client.setUserInfoEncryptedResponseEnc(requestObject.getUserInfoEncryptedResponseEnc().toString());
         }
-        if (p_request.getIdTokenSignedResponseAlg() != null) {
-            p_client.setIdTokenSignedResponseAlg(p_request.getIdTokenSignedResponseAlg().toString());
+        if (requestObject.getIdTokenSignedResponseAlg() != null) {
+            p_client.setIdTokenSignedResponseAlg(requestObject.getIdTokenSignedResponseAlg().toString());
         }
-        if (p_request.getIdTokenEncryptedResponseAlg() != null) {
-            p_client.setIdTokenEncryptedResponseAlg(p_request.getIdTokenEncryptedResponseAlg().toString());
+        if (requestObject.getIdTokenEncryptedResponseAlg() != null) {
+            p_client.setIdTokenEncryptedResponseAlg(requestObject.getIdTokenEncryptedResponseAlg().toString());
         }
-        if (p_request.getIdTokenEncryptedResponseEnc() != null) {
-            p_client.setIdTokenEncryptedResponseEnc(p_request.getIdTokenEncryptedResponseEnc().toString());
+        if (requestObject.getIdTokenEncryptedResponseEnc() != null) {
+            p_client.setIdTokenEncryptedResponseEnc(requestObject.getIdTokenEncryptedResponseEnc().toString());
         }
-        if (p_request.getDefaultMaxAge() != null) {
-            p_client.setDefaultMaxAge(p_request.getDefaultMaxAge());
+        if (requestObject.getDefaultMaxAge() != null) {
+            p_client.setDefaultMaxAge(requestObject.getDefaultMaxAge());
         }
-        if (p_request.getRequireAuthTime() != null) {
-            p_client.setRequireAuthTime(p_request.getRequireAuthTime());
+        if (requestObject.getRequireAuthTime() != null) {
+            p_client.setRequireAuthTime(requestObject.getRequireAuthTime());
         }
-        List<String> defaultAcrValues = p_request.getDefaultAcrValues();
+        List<String> defaultAcrValues = requestObject.getDefaultAcrValues();
         if (defaultAcrValues != null && !defaultAcrValues.isEmpty()) {
             defaultAcrValues = new ArrayList<String>(new HashSet<String>(defaultAcrValues)); // Remove repeated elements
             p_client.setDefaultAcrValues(defaultAcrValues.toArray(new String[defaultAcrValues.size()]));
         }
-        if (StringUtils.isNotBlank(p_request.getInitiateLoginUri())) {
-            p_client.setInitiateLoginUri(p_request.getInitiateLoginUri());
+        if (StringUtils.isNotBlank(requestObject.getInitiateLoginUri())) {
+            p_client.setInitiateLoginUri(requestObject.getInitiateLoginUri());
         }
-        List<String> postLogoutRedirectUris = p_request.getPostLogoutRedirectUris();
+        List<String> postLogoutRedirectUris = requestObject.getPostLogoutRedirectUris();
         if (postLogoutRedirectUris != null && !postLogoutRedirectUris.isEmpty()) {
             postLogoutRedirectUris = new ArrayList<String>(new HashSet<String>(postLogoutRedirectUris)); // Remove repeated elements
             p_client.setPostLogoutRedirectUris(postLogoutRedirectUris.toArray(new String[postLogoutRedirectUris.size()]));
         }
 
-        List<String> requestUris = p_request.getRequestUris();
+        p_client.setLogoutUri(requestObject.getLogoutUri());
+        p_client.setLogoutSessionRequired(requestObject.getLogoutSessionRequired());
+
+        List<String> requestUris = requestObject.getRequestUris();
         if (requestUris != null && !requestUris.isEmpty()) {
             requestUris = new ArrayList<String>(new HashSet<String>(requestUris)); // Remove repeated elements
             p_client.setRequestUris(requestUris.toArray(new String[requestUris.size()]));
         }
 
         // Federation params
-        if (StringUtils.isNotBlank(p_request.getFederationUrl())) {
-            p_client.setFederationURI(p_request.getFederationUrl());
+        if (StringUtils.isNotBlank(requestObject.getFederationUrl())) {
+            p_client.setFederationURI(requestObject.getFederationUrl());
         }
-        if (StringUtils.isNotBlank(p_request.getFederationId())) {
-            p_client.setFederationId(p_request.getFederationId());
+        if (StringUtils.isNotBlank(requestObject.getFederationId())) {
+            p_client.setFederationId(requestObject.getFederationId());
         }
 
-        if (p_request.getJsonObject() != null) {
+        if (requestObject.getJsonObject() != null) {
             // Custom params
-            putCustomStuffIntoObject(p_client, p_request.getJsonObject());
+            putCustomStuffIntoObject(p_client, requestObject.getJsonObject());
         }
     }
 
@@ -454,6 +460,10 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         Util.addToJSONObjectIfNotNull(responseJsonObject, INITIATE_LOGIN_URI.toString(), client.getInitiateLoginUri());
         Util.addToJSONObjectIfNotNull(responseJsonObject, POST_LOGOUT_REDIRECT_URIS.toString(), client.getPostLogoutRedirectUris());
         Util.addToJSONObjectIfNotNull(responseJsonObject, REQUEST_URIS.toString(), client.getRequestUris());
+
+        // Logout params
+        Util.addToJSONObjectIfNotNull(responseJsonObject, LOGOUT_URI.toString(), client.getLogoutUri());
+        Util.addToJSONObjectIfNotNull(responseJsonObject, LOGOUT_SESSION_REQUIRED.toString(), client.getLogoutSessionRequired());
 
         // Federation Params
         Util.addToJSONObjectIfNotNull(responseJsonObject, FEDERATION_METADATA_URL.toString(), client.getFederationURI());
