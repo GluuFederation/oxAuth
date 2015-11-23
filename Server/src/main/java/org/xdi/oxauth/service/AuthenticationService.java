@@ -386,10 +386,14 @@ public class AuthenticationService {
 		Contexts.getEventContext().set("sessionUser", sessionId);
 	}
 
-    public void configureSessionClient(Context context) {
+	public void configureSessionClient(Context context) {
+        Client client = clientService.getClient(credentials.getUsername());
+        configureSessionClient(context, client);
+    }
+
+    public void configureSessionClient(Context context, Client client) {
         identity.addRole("client");
 
-        Client client = clientService.getClient(credentials.getUsername());
         SessionClient sessionClient = new SessionClient();
         sessionClient.setClient(client);
 

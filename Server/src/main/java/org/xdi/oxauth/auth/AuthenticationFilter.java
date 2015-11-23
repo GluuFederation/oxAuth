@@ -6,17 +6,6 @@
 
 package org.xdi.oxauth.auth;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
@@ -33,6 +22,7 @@ import org.jboss.seam.servlet.ContextualHttpServletRequest;
 import org.jboss.seam.util.Base64;
 import org.jboss.seam.web.AbstractFilter;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
+import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
 import org.xdi.oxauth.model.registration.Client;
@@ -44,8 +34,19 @@ import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.util.StringHelper;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
 /**
- * @author Javier Rojas Blum Date: 03.26.2012
+ * @author Javier Rojas Blum
+ * @version November 16, 2015
  */
 @Scope(ScopeType.APPLICATION)
 @Name("org.jboss.seam.web.authenticationFilter")
@@ -71,12 +72,16 @@ public class AuthenticationFilter extends AbstractFilter {
             @Override
             public void process() {
                 try {
-                    if (httpRequest.getParameter("client_assertion") != null
-                            && httpRequest.getParameter("client_assertion_type") != null) {
-                        processJwtAuth(httpRequest, httpResponse, filterChain);
-                    } else if (httpRequest.getParameter("client_id") != null
-                            && httpRequest.getParameter("client_secret") != null) {
-                        processPostAuth(httpRequest, httpResponse, filterChain);
+                    final String requestUrl = httpRequest.getRequestURL().toString();
+                    if (requestUrl.equals(ConfigurationFactory.instance().getConfiguration().getTokenEndpoint()) || isLocalEmbeddedTest(requestUrl)) {
+                        if (httpRequest.getParameter("client_assertion") != null
+                                && httpRequest.getParameter("client_assertion_type") != null) {
+                            processJwtAuth(httpRequest, httpResponse, filterChain);
+                        } else if (httpRequest.getHeader("Authorization") != null && httpRequest.getHeader("Authorization").startsWith("Basic ")) {
+                            processBasicAuth(httpRequest, httpResponse, filterChain);
+                        } else {
+                            processPostAuth(httpRequest, httpResponse, filterChain);
+                        }
                     } else if (httpRequest.getHeader("Authorization") != null) {
                         String header = httpRequest.getHeader("Authorization");
                         if (header.startsWith("Bearer ")) {
@@ -89,7 +94,7 @@ public class AuthenticationFilter extends AbstractFilter {
                             httpResponse.sendError(401, "Not authorized");
                         }
                     } else {
-                    	SessionIdService sessionIdService = SessionIdService.instance();
+                        SessionIdService sessionIdService = SessionIdService.instance();
                         String sessionId = httpRequest.getParameter("session_id");
                         if (StringUtils.isBlank(sessionId)) {
                             // OXAUTH-297 : check whether session_id is present in cookie
@@ -110,8 +115,13 @@ public class AuthenticationFilter extends AbstractFilter {
         }.run();
     }
 
+    private boolean isLocalEmbeddedTest(String requestUrl) {
+        return Boolean.parseBoolean(System.getProperty("seam.local.test")) &&
+                requestUrl.equals("http://localhost:80/seam/resource/restv1/oxauth/token");
+    }
+
     private void processSessionAuth(String p_sessionId, SessionIdService sessionIdService, HttpServletRequest p_httpRequest, HttpServletResponse p_httpResponse, FilterChain p_filterChain) throws IOException, ServletException {
-    	boolean requireAuth;
+        boolean requireAuth;
 
         requireAuth = !getAuthenticator().authenticateBySessionId(p_sessionId);
         log.trace("Process Session Auth, sessionId = {0}, requireAuth = {1}", p_sessionId, requireAuth);
@@ -242,6 +252,8 @@ public class AuthenticationFilter extends AbstractFilter {
                             identity.getCredentials().setPassword(clientSecret);
 
                             requireAuth = !getAuthenticator().authenticateWebService();
+                        } else {
+                        	getAuthenticator().configureSessionClient(client);
                         }
                     }
                 }
@@ -293,7 +305,7 @@ public class AuthenticationFilter extends AbstractFilter {
                         identity.getCredentials().setUsername(username);
                         identity.getCredentials().setPassword(password);
 
-                        getAuthenticator().authenticateWebService();
+                        getAuthenticator().authenticateWebService(true);
                         authorized = true;
                     }
                 }

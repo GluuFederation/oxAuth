@@ -41,7 +41,7 @@ import java.util.List;
  * Provides interface for token REST web services
  *
  * @author Javier Rojas Blum
- * @version 0.9 April 27, 2015
+ * @version November 16, 2015
  */
 @Name("requestTokenRestWebService")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
@@ -63,9 +63,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     @In
     private UserService userService;
-
-    @In
-    private ClientService clientService;
 
     @In
     private AuthenticationFilterService authenticationFilterService;
@@ -98,12 +95,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                 Client client = sessionClient.getClient();
 
-                if (client == null) {
-                    client = clientService.getClient(clientId);
-                    sessionClient.setClient(client);
-                    clientService.updatAccessTime(client, false);
-                }
-
                 if (ConfigurationFactory.instance().getConfiguration().getFederationEnabled()) {
                     if (!federationDataService.hasAnyActiveTrust(client)) {
                         log.debug("Forbid token issuing. Client is not in any trust relationship however federation is enabled for server. Client id: {0}, redirectUris: {1}",
@@ -113,7 +104,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 }
 
                 if (gt == GrantType.AUTHORIZATION_CODE) {
-                    GrantService grantService = GrantService.instance();
+    				if (client == null) {
+    					return sendResponse(error(400, TokenErrorResponseType.INVALID_GRANT));
+    				}
+
+    				GrantService grantService = GrantService.instance();
                     AuthorizationCodeGrant authorizationCodeGrant = authorizationGrantList.getAuthorizationCodeGrant(client.getClientId(), code);
 
                     if (authorizationCodeGrant != null) {
@@ -156,6 +151,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         builder = error(400, TokenErrorResponseType.INVALID_GRANT);
                     }
                 } else if (gt == GrantType.REFRESH_TOKEN) {
+    				if (client == null) {
+    					return sendResponse(error(401, TokenErrorResponseType.INVALID_GRANT));
+    				}
+
                     AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByRefreshToken(client.getClientId(), refreshToken);
 
                     if (authorizationGrant != null) {
@@ -183,6 +182,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         builder = error(401, TokenErrorResponseType.INVALID_GRANT);
                     }
                 } else if (gt == GrantType.CLIENT_CREDENTIALS) {
+    				if (client == null) {
+    					return sendResponse(error(401, TokenErrorResponseType.INVALID_GRANT));
+    				}
+
                     ClientCredentialsGrant clientCredentialsGrant = authorizationGrantList.createClientCredentialsGrant(new User(), client); // TODO: fix the user arg
 
                     AccessToken accessToken = clientCredentialsGrant.createAccessToken();
@@ -204,6 +207,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             scope,
                             idToken));
                 } else if (gt == GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS) {
+    				if (client == null) {
+    					return sendResponse(error(401, TokenErrorResponseType.INVALID_CLIENT));
+    				}
+
                     User user = null;
                     if (authenticationFilterService.isEnabled()) {
                         String userDn = authenticationFilterService.processAuthenticationFilters(request.getParameterMap());
@@ -297,13 +304,17 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             log.error(e.getMessage(), e);
         }
 
-        CacheControl cacheControl = new CacheControl();
+        return sendResponse(builder);
+    }
+
+	private Response sendResponse(ResponseBuilder builder) {
+		CacheControl cacheControl = new CacheControl();
         cacheControl.setNoTransform(false);
         cacheControl.setNoStore(true);
         builder.cacheControl(cacheControl);
         builder.header("Pragma", "no-cache");
         return builder.build();
-    }
+	}
 
     private ResponseBuilder error(int p_status, TokenErrorResponseType p_type) {
         return Response.status(p_status).entity(errorResponseFactory.getErrorAsJson(p_type));

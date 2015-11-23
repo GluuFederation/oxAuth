@@ -30,6 +30,7 @@ import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
+import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.session.OAuthCredentials;
 import org.xdi.oxauth.service.AuthenticationService;
 import org.xdi.oxauth.service.ClientService;
@@ -95,7 +96,7 @@ public class Authenticator implements Serializable {
      * @return Returns <code>true</code> if the authentication succeed
      */
     public boolean authenticate() {
-        if (!authenticateImpl(Contexts.getEventContext(), true)) {
+        if (!authenticateImpl(Contexts.getEventContext(), true, false)) {
             return authenticationFailed();
         } else {
             return true;
@@ -103,7 +104,7 @@ public class Authenticator implements Serializable {
     }
 
     public String authenticateWithOutcome() {
-        boolean result = authenticateImpl(Contexts.getEventContext(), true);
+        boolean result = authenticateImpl(Contexts.getEventContext(), true, false);
         if (result) {
             return Constants.RESULT_SUCCESS;
         } else {
@@ -112,20 +113,24 @@ public class Authenticator implements Serializable {
 
     }
 
+    public boolean authenticateWebService(boolean skipPassword) {
+        return authenticateImpl(getWebServiceContext(), false, skipPassword);
+    }
+
     public boolean authenticateWebService() {
-        return authenticateImpl(getWebServiceContext(), false);
+        return authenticateImpl(getWebServiceContext(), false, false);
     }
 
     public Context getWebServiceContext() {
         return Contexts.getEventContext();
     }
 
-    public boolean authenticateImpl(Context context, boolean interactive) {
+    public boolean authenticateImpl(Context context, boolean interactive, boolean skipPassword) {
         boolean authenticated = false;
         try {
-            if (StringHelper.isNotEmpty(credentials.getUsername()) && StringHelper.isNotEmpty(credentials.getPassword())
+            if (StringHelper.isNotEmpty(credentials.getUsername()) && (skipPassword || StringHelper.isNotEmpty(credentials.getPassword()))
                     && credentials.getUsername().startsWith("@!")) {
-            	authenticated = clientAuthentication(context, interactive); 
+            	authenticated = clientAuthentication(context, interactive, skipPassword); 
             } else {
                 if (interactive) {
                 	authenticated = userAuthenticationInteractive();
@@ -146,7 +151,7 @@ public class Authenticator implements Serializable {
         return false;
     }
 
-    private boolean clientAuthentication(Context context, boolean interactive) {
+    private boolean clientAuthentication(Context context, boolean interactive, boolean skipPassword) {
         boolean isServiceUsesExternalAuthenticator = !interactive && externalAuthenticationService.isEnabled(AuthenticationScriptUsageType.SERVICE);
         if (isServiceUsesExternalAuthenticator) {
         	CustomScriptConfiguration customScriptConfiguration = externalAuthenticationService
@@ -169,7 +174,10 @@ public class Authenticator implements Serializable {
             }
         }
 
-        boolean loggedIn = clientService.authenticate(credentials.getUsername(), credentials.getPassword());
+        boolean loggedIn = skipPassword;
+        if (!loggedIn) {
+        	loggedIn = clientService.authenticate(credentials.getUsername(), credentials.getPassword());
+        }
         if (loggedIn) {
         	authenticationService.configureSessionClient(context);
 
@@ -524,6 +532,10 @@ public class Authenticator implements Serializable {
 		}
 
 		return true;
+	}
+
+	public void configureSessionClient(Client client) {
+       	authenticationService.configureSessionClient(getWebServiceContext(), client);
 	}
 
 }
