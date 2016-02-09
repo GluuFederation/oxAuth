@@ -124,10 +124,9 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
                 clientRequest.formParameter("access_token", getRequest().getAccessToken());
             }
-        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-            if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                clientRequest.queryParameter("access_token", getRequest().getAccessToken());
-            }
+        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER 
+                    && StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            clientRequest.queryParameter("access_token", getRequest().getAccessToken());
         }
 
         // Call REST Service and handle response

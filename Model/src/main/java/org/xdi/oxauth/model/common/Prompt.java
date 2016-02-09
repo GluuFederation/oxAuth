@@ -89,10 +89,8 @@ public enum Prompt implements HasParamName {
             String[] params = paramList.split(separator);
             for (String param : params) {
                 for (Prompt p : Prompt.values()) {
-                    if (param.equals(p.paramName)) {
-                        if (!prompts.contains(p)) {
-                            prompts.add(p);
-                        }
+                    if (param.equals(p.paramName) && !prompts.contains(p)) {
+                        prompts.add(p);
                     }
                 }
             }

@@ -108,19 +108,16 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
         clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         clientRequest.setHttpMethod(getHttpMethod());
 
-        if (getRequest().getAuthorizationMethod() == null
-                || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
-            if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                clientRequest.header("Authorization", "Bearer " + getRequest().getAccessToken());
-            }
-        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
-            if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                clientRequest.formParameter("access_token", getRequest().getAccessToken());
-            }
-        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-            if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                clientRequest.queryParameter("access_token", getRequest().getAccessToken());
-            }
+        if ((getRequest().getAuthorizationMethod() == null
+                || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD)
+                && StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            clientRequest.header("Authorization", "Bearer " + getRequest().getAccessToken());
+        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
+                    && StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            clientRequest.formParameter("access_token", getRequest().getAccessToken());
+        } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER
+                    && StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            clientRequest.queryParameter("access_token", getRequest().getAccessToken());
         }
 
         // Call REST Service and handle response
