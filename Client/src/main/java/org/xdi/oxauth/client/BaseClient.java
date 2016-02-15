@@ -128,21 +128,15 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
                         sb.append("X-Gluu-NoRedirect: true");
                     }
                 }
-                if (request.getAuthorizationMethod() == null) {
-                    if (request.getAuthenticationMethod() == null
-                            || request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC) {
-                        if (request.hasCredentials()) {
-                            String encodedCredentials = request.getEncodedCredentials();
-                            sb.append("\n");
-                            sb.append("Authorization: Basic ").append(encodedCredentials);
-                        }
-                    }
-                } else if (request.getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
-                    if (request instanceof UserInfoRequest) {
-                        String accessToken = ((UserInfoRequest) request).getAccessToken();
-                        sb.append("\n");
-                        sb.append("Authorization: Bearer ").append(accessToken);
-                    }
+                if (request.getAuthorizationMethod() == null && (request.getAuthenticationMethod() == null
+                        || request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC) && request.hasCredentials()) {
+                    String encodedCredentials = request.getEncodedCredentials();
+                    sb.append("\n");
+                    sb.append("Authorization: Basic ").append(encodedCredentials);
+                } else if (request.getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD && request instanceof UserInfoRequest) {
+                     String accessToken = ((UserInfoRequest) request).getAccessToken();
+                     sb.append("\n");
+                     sb.append("Authorization: Bearer ").append(accessToken);
                 }
 
                 sb.append("\n");
@@ -175,12 +169,10 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
                         sb.append("\n");
                         sb.append("Authorization: Bearer ").append(registrationAccessToken);
                     }
-                } else if (request.getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
-                    if (request instanceof UserInfoRequest) {
-                        String accessToken = ((UserInfoRequest) request).getAccessToken();
-                        sb.append("\n");
-                        sb.append("Authorization: Bearer ").append(accessToken);
-                    }
+                } else if (request.getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD && request instanceof UserInfoRequest) {
+                    String accessToken = ((UserInfoRequest) request).getAccessToken();
+                    sb.append("\n");
+                    sb.append("Authorization: Bearer ").append(accessToken);
                 }
             }
         } catch (MalformedURLException e) {

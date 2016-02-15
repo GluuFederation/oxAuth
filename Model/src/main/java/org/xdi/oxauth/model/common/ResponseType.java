@@ -107,10 +107,8 @@ public enum ResponseType implements HasParamName, LdapEnum {
             String[] params = paramList.split(separator);
             for (String param : params) {
                 for (ResponseType rt : ResponseType.values()) {
-                    if (param.equals(rt.value)) {
-                        if (!responseTypes.contains(rt)) {
-                            responseTypes.add(rt);
-                        }
+                    if (param.equals(rt.value) && !responseTypes.contains(rt)) {
+                        responseTypes.add(rt);
                     }
                 }
             }

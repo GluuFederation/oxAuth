@@ -74,23 +74,21 @@ public class JwkResponse extends BaseResponse {
         PublicKey publicKey = null;
         JSONWebKey JSONWebKey = getKeyValue(keyId);
 
-        if (JSONWebKey != null) {
-            if (JSONWebKey.getPublicKey() != null) {
-                switch (JSONWebKey.getKeyType()) {
-                    case RSA:
-                        publicKey = new RSAPublicKey(
-                                JSONWebKey.getPublicKey().getModulus(),
-                                JSONWebKey.getPublicKey().getExponent());
-                        break;
-                    case EC:
-                        publicKey = new ECDSAPublicKey(
-                                SignatureAlgorithm.fromName(JSONWebKey.getCurve()),
-                                JSONWebKey.getPublicKey().getX(),
-                                JSONWebKey.getPublicKey().getY());
-                        break;
-                    default:
-                        break;
-                }
+        if (JSONWebKey != null && JSONWebKey.getPublicKey() != null) {
+            switch (JSONWebKey.getKeyType()) {
+                case RSA:
+                    publicKey = new RSAPublicKey(
+                            JSONWebKey.getPublicKey().getModulus(),
+                            JSONWebKey.getPublicKey().getExponent());
+                    break;
+                case EC:
+                    publicKey = new ECDSAPublicKey(
+                            SignatureAlgorithm.fromName(JSONWebKey.getCurve()),
+                            JSONWebKey.getPublicKey().getX(),
+                            JSONWebKey.getPublicKey().getY());
+                    break;
+                default:
+                    break;
             }
         }
 

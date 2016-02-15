@@ -78,11 +78,10 @@ public class UserInfoRequest extends BaseRequest {
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
 
-        if (accessToken != null && !accessToken.isEmpty()) {
-            if (getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
+        if (accessToken != null && !accessToken.isEmpty()
+                && getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
                     || getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-                parameters.put("access_token", accessToken);
-            }
+            parameters.put("access_token", accessToken);
         }
 
         return parameters;

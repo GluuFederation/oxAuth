@@ -58,11 +58,10 @@ public class ClientInfoRequest extends BaseRequest {
     public String getQueryString() {
         StringBuilder queryStringBuilder = new StringBuilder();
 
-        if (accessToken != null && !accessToken.isEmpty()) {
-            if (getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
-                    || getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-                queryStringBuilder.append("access_token=").append(accessToken);
-            }
+        if (accessToken != null && !accessToken.isEmpty() 
+                && (getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
+                    || getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER)) {
+            queryStringBuilder.append("access_token=").append(accessToken);
         }
 
         return queryStringBuilder.toString();
@@ -77,11 +76,10 @@ public class ClientInfoRequest extends BaseRequest {
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
 
-        if (accessToken != null && !accessToken.isEmpty()) {
-            if (getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
-                    || getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-                parameters.put("access_token", accessToken);
-            }
+        if (accessToken != null && !accessToken.isEmpty() 
+                && (getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER
+                    || getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) ) {
+            parameters.put("access_token", accessToken);
         }
 
         return parameters;
