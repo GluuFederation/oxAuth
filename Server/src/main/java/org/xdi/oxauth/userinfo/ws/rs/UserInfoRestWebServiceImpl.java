@@ -59,6 +59,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.*;
 
@@ -66,7 +68,7 @@ import java.util.*;
  * Provides interface for User Info REST web services
  *
  * @author Javier Rojas Blum
- * @version December 17, 2015
+ * @version February 15, 2015
  */
 @Name("requestUserInfoRestWebService")
 public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
@@ -194,7 +196,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
     }
 
     public String getJwtResponse(SignatureAlgorithm signatureAlgorithm, User user, AuthorizationGrant authorizationGrant,
-                                 Collection<String> scopes) throws StringEncrypter.EncryptionException, InvalidJwtException, InvalidClaimException, SignatureException {
+                                 Collection<String> scopes) throws StringEncrypter.EncryptionException, InvalidJwtException, InvalidClaimException, SignatureException, NoSuchAlgorithmException, InvalidKeyException {
         Jwt jwt = new Jwt();
         JSONWebKeySet jwks = ConfigurationFactory.instance().getWebKeys();
 
@@ -222,7 +224,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                     String claimName = gluuAttribute.getOxAuthClaimName();
                     String ldapName = gluuAttribute.getName();
-                    String attributeValue = null;
+                    String attributeValue;
 
                     if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                         if (ldapName.equals("uid")) {
@@ -269,7 +271,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
         // Check for Subject Identifier Type
         if (authorizationGrant.getClient().getSubjectType() != null &&
                 SubjectType.fromString(authorizationGrant.getClient().getSubjectType()).equals(SubjectType.PAIRWISE)) {
-            String sectorIdentifier = null;
+            String sectorIdentifier;
             if (StringUtils.isNotBlank(authorizationGrant.getClient().getSectorIdentifierUri())) {
                 sectorIdentifier = authorizationGrant.getClient().getSectorIdentifierUri();
             } else {
@@ -298,7 +300,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
         }
 
         // Signature
-        JSONWebKey jwk = null;
+        JSONWebKey jwk;
         switch (signatureAlgorithm) {
             case HS256:
             case HS384:
@@ -335,7 +337,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
     public String getJweResponse(KeyEncryptionAlgorithm keyEncryptionAlgorithm, BlockEncryptionAlgorithm blockEncryptionAlgorithm,
                                  User user, AuthorizationGrant authorizationGrant, Collection<String> scopes)
-            throws InvalidClaimException, InvalidJweException {
+            throws InvalidClaimException, InvalidJweException, NoSuchAlgorithmException, InvalidKeyException {
         Jwe jwe = new Jwe();
 
         // Header
@@ -358,7 +360,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                     String claimName = gluuAttribute.getOxAuthClaimName();
                     String ldapName = gluuAttribute.getName();
-                    String attributeValue = null;
+                    String attributeValue;
 
                     if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                         if (ldapName.equals("uid")) {
@@ -405,7 +407,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
         // Check for Subject Identifier Type
         if (authorizationGrant.getClient().getSubjectType() != null &&
                 SubjectType.fromString(authorizationGrant.getClient().getSubjectType()).equals(SubjectType.PAIRWISE)) {
-            String sectorIdentifier = null;
+            String sectorIdentifier;
             if (StringUtils.isNotBlank(authorizationGrant.getClient().getSectorIdentifierUri())) {
                 sectorIdentifier = authorizationGrant.getClient().getSectorIdentifierUri();
             } else {
@@ -465,7 +467,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
      * Builds a JSon String with the response parameters.
      */
     public String getJSonResponse(User user, AuthorizationGrant authorizationGrant, Collection<String> scopes)
-            throws JSONException, InvalidClaimException {
+            throws JSONException, InvalidClaimException, NoSuchAlgorithmException, InvalidKeyException {
         JsonWebResponse jsonWebResponse = new JsonWebResponse();
 
         // Claims
@@ -543,7 +545,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
         // Check for Subject Identifier Type
         if (authorizationGrant.getClient().getSubjectType() != null &&
                 SubjectType.fromString(authorizationGrant.getClient().getSubjectType()).equals(SubjectType.PAIRWISE)) {
-            String sectorIdentifier = null;
+            String sectorIdentifier;
             if (StringUtils.isNotBlank(authorizationGrant.getClient().getSectorIdentifierUri())) {
                 sectorIdentifier = authorizationGrant.getClient().getSectorIdentifierUri();
             } else {
@@ -583,7 +585,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                 String claimName = gluuAttribute.getOxAuthClaimName();
                 String ldapName = gluuAttribute.getName();
-                Object attribute = null;
+                Object attribute;
 
                 if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                     if (ldapName.equals("uid")) {
