@@ -5,7 +5,6 @@
     <title>
         oxAuth - OP iFrame
     </title>
-    <script type="text/javascript" src="//crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
     <script>
         //<![CDATA[
         window.addEventListener("message", receiveMessage, false);
@@ -15,12 +14,9 @@
             var client_id = message.split(' ')[0];
             var session_state = message.split(' ')[1];
 
-            var salt = session_state.split('.')[1];
             var opbs = getCookie("opbs");
 
-            var ss = CryptoJS.SHA256(client_id + ' ' + e.origin + ' ' + opbs + ' ' + salt) + "." + salt;
-
-            if (session_state == ss) {
+            if (session_state == opbs) {
                 stat = "unchanged";
             } else {
                 stat = "changed";
