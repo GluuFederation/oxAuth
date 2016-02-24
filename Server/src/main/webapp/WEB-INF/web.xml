@@ -128,12 +128,6 @@
 
     <session-config>
         <session-timeout>30</session-timeout>
-        <cookie-config>
-            <name>session_state</name>
-            <path>/</path>
-            <http-only>false</http-only>
-            <secure>false</secure>
-        </cookie-config>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
     <!--
