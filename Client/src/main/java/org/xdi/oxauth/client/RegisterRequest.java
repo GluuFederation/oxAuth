@@ -6,7 +6,7 @@
 
 package org.xdi.oxauth.client;
 
-import com.google.common.base.Strings;
+import org.xdi.oxauth.model.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -922,7 +922,7 @@ public class RegisterRequest extends BaseRequest {
         if (postLogoutRedirectUris != null && !postLogoutRedirectUris.isEmpty()) {
             parameters.put(POST_LOGOUT_REDIRECT_URIS.toString(), toJSONArray(postLogoutRedirectUris).toString());
         }
-        if (!Strings.isNullOrEmpty(logoutUri)) {
+        if (!Util.isNullOrEmpty(logoutUri)) {
             parameters.put(LOGOUT_URI.toString(), logoutUri);
         }
         if (logoutSessionRequired != null) {
@@ -1206,7 +1206,7 @@ public class RegisterRequest extends BaseRequest {
         if (postLogoutRedirectUris != null && !postLogoutRedirectUris.isEmpty()) {
             parameters.put(POST_LOGOUT_REDIRECT_URIS.toString(), toJSONArray(postLogoutRedirectUris));
         }
-        if (!Strings.isNullOrEmpty(logoutUri)) {
+        if (!Util.isNullOrEmpty(logoutUri)) {
             parameters.put(LOGOUT_URI.toString(), logoutUri);
         }
         if (logoutSessionRequired != null) {

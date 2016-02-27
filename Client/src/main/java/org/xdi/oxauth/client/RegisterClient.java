@@ -6,7 +6,7 @@
 
 package org.xdi.oxauth.client;
 
-import com.google.common.base.Strings;
+import org.xdi.oxauth.model.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
