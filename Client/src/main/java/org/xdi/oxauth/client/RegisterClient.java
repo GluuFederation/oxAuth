@@ -217,7 +217,7 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                 if (getRequest().getPostLogoutRedirectUris() != null && !getRequest().getPostLogoutRedirectUris().isEmpty()) {
                     requestBody.put(POST_LOGOUT_REDIRECT_URIS.toString(), getRequest().getPostLogoutRedirectUris());
                 }
-                if (!Strings.isNullOrEmpty(getRequest().getLogoutUri())) {
+                if (!Util.isNullOrEmpty(getRequest().getLogoutUri())) {
                     requestBody.put(LOGOUT_URI.getName(), getRequest().getLogoutUri());
                 }
                 if (getRequest().getLogoutSessionRequired() != null) {
