@@ -195,10 +195,8 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         assertNotNull(responseLogoUri.equals(logoUriNewValue));
 
         long diff = response.getClientSecretExpiresAt().getTime() / 10000 - clientSecretExpiresAt.getTime() / 10000; // check after division on 1000 because of internal server conversion
-        System.out.println("#######################################################");
-        System.out.println("Register clientSecretExpiresAt: " + clientSecretExpiresAt);
-        System.out.println("Response clientSecretExpiresAt: " + response.getClientSecretExpiresAt());
-        System.out.println("#######################################################");
+        System.out.println("Diff: " + diff + ", respTime: " + response.getClientSecretExpiresAt().getTime() + ", expAt: " + clientSecretExpiresAt.getTime());
+
         assertTrue(Math.abs(diff) < 2);
     }
 
