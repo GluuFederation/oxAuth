@@ -263,10 +263,6 @@ public class AuthorizeAction {
                         permissionGranted(session);
                         return;
                     }
-
-                    if (prompts.contains(Prompt.CONSENT)){
-                        consentRequired();
-                    }
                 } else {
                     invalidRequest();
                 }
