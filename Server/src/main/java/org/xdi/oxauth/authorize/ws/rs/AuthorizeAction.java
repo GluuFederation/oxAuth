@@ -41,7 +41,6 @@ import org.xdi.oxauth.model.util.LocaleUtil;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.*;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
-import org.xdi.service.net.NetworkService;
 import org.xdi.util.StringHelper;
 
 import javax.faces.context.ExternalContext;

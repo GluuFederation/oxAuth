@@ -69,7 +69,7 @@ public class SessionStateService {
     // 2) acr change -> throw acr change exception
     // 3) client_id change -> do nothing
     // https://github.com/GluuFederation/oxAuth/issues/34
-    public SessionState assertAuthenticatedSessionCorrespondsToNewRequest(SessionState session, String redirectUri, String acrValuesStr) throws AcrChangedException {
+    public SessionState assertAuthenticatedSessionCorrespondsToNewRequest(SessionState session, String acrValuesStr) throws AcrChangedException {
         if (session != null && !session.getSessionAttributes().isEmpty() && session.getState() == SessionIdState.AUTHENTICATED) {
 
             final Map<String, String> sessionAttributes = session.getSessionAttributes();
@@ -79,15 +79,15 @@ public class SessionStateService {
                 throw new AcrChangedException();
             }
 
-            reinitLogin(session);
+            reinitLogin(session, false);
         }
         return session;
     }
 
-    public void reinitLogin(SessionState session) {
+    public void reinitLogin(SessionState session, boolean force) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
         final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
-        if (!currentSessionAttributes.equals(sessionAttributes)) {
+        if (force || !currentSessionAttributes.equals(sessionAttributes)) {
             sessionAttributes.putAll(currentSessionAttributes);
 
             // Reinit login
