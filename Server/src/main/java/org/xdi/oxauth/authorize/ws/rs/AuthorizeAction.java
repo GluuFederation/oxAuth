@@ -274,7 +274,6 @@ public class AuthorizeAction {
                         }
                     }
 
-
                     if (client.getPersistClientAuthorizations()) {
 	                    ClientAuthorizations clientAuthorizations = clientAuthorizationsService.findClientAuthorizations(user.getAttribute("inum"), client.getClientId());
 	                    if (clientAuthorizations != null && clientAuthorizations.getScopes() != null &&

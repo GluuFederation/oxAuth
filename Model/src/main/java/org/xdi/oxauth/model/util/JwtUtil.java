@@ -618,10 +618,14 @@ public class JwtUtil {
                 JSONArray certChain = jsonKeyValue.getJSONArray(CERTIFICATE_CHAIN);
                 String certificateString = BEGIN + "\n" + certChain.getString(0) + "\n" + END;
                 StringReader sr = new StringReader(certificateString);
-                PEMReader pemReader = new PEMReader(sr);
-                X509Certificate cert = (X509CertificateObject) pemReader.readObject();
-                Certificate certificate = new Certificate(signatureAlgorithm, cert);
-                publicKey.setCertificate(certificate);
+	            PEMParser pemReader = new PEMParser(sr);
+                try {
+					X509Certificate cert = (X509CertificateObject) pemReader.readObject();
+					Certificate certificate = new Certificate(signatureAlgorithm, cert);
+					publicKey.setCertificate(certificate);
+				} finally {
+					pemReader.close();
+				}
             }
             if (publicKey != null) {
                 publicKey.setKeyId(resultKeyId);
