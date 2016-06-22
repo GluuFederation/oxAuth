@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.xdi</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>2.4.3-SNAPSHOT</version>
+		<version>2.4.4-SNAPSHOT</version>
 	</parent>
 
 	<prerequisites>
@@ -138,8 +138,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk16</artifactId>
-			<scope>provided</scope>
+			<artifactId>bcprov-jdk15on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
