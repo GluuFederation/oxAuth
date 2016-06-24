@@ -7,8 +7,8 @@
 package org.xdi.oxauth.model.crypto.signature;
 
 import org.apache.commons.lang.StringUtils;
-import org.bouncycastle.jce.provider.JCERSAPrivateCrtKey;
-import org.bouncycastle.jce.provider.JCERSAPublicKey;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
 import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.xdi.oxauth.model.crypto.Certificate;
 import org.xdi.oxauth.model.crypto.KeyFactory;
@@ -27,14 +27,16 @@ import java.util.Random;
  * Factory to create asymmetric Public and Private Keys for the RSA algorithm
  *
  * @author Javier Rojas Blum
- * @version February 17, 2016
+ * @version June 15, 2016
  */
+@Deprecated
 public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
     private RSAPrivateKey rsaPrivateKey;
     private RSAPublicKey rsaPublicKey;
     private Certificate certificate;
 
+    @Deprecated
     public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
             throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
             InvalidKeyException, CertificateEncodingException {
@@ -47,8 +49,8 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
         KeyPair keyPair = keyGen.generateKeyPair();
 
-        JCERSAPrivateCrtKey jcersaPrivateCrtKey = (JCERSAPrivateCrtKey) keyPair.getPrivate();
-        JCERSAPublicKey jcersaPublicKey = (JCERSAPublicKey) keyPair.getPublic();
+        BCRSAPrivateCrtKey jcersaPrivateCrtKey = (BCRSAPrivateCrtKey) keyPair.getPrivate();
+        BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) keyPair.getPublic();
 
         rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
                 jcersaPrivateCrtKey.getPrivateExponent());
@@ -79,17 +81,18 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
         }
     }
 
+    @Deprecated
     public RSAKeyFactory(JSONWebKey p_key) {
         if (p_key == null) {
             throw new IllegalArgumentException("Key value must not be null.");
         }
 
         rsaPrivateKey = new RSAPrivateKey(
-                p_key.getPrivateKey().getN(),
-                p_key.getPrivateKey().getE());
+                p_key.getN(),
+                p_key.getE());
         rsaPublicKey = new RSAPublicKey(
-                p_key.getPublicKey().getN(),
-                p_key.getPublicKey().getE());
+                p_key.getN(),
+                p_key.getE());
         certificate = null;
     }
 
