@@ -143,6 +143,8 @@ public class Configuration {
     private String oxElevenVerifySignatureEndpoint;
     private String oxElevenDeleteKeyEndpoint;
 
+    private Boolean endSessionWithAccessToken;
+
     @XmlElement(name = "uma-rpt-as-jwt")
     public Boolean getUmaRptAsJwt() {
         return umaRptAsJwt;
@@ -1237,4 +1239,14 @@ public class Configuration {
     public void setOxElevenDeleteKeyEndpoint(String oxElevenDeleteKeyEndpoint) {
         this.oxElevenDeleteKeyEndpoint = oxElevenDeleteKeyEndpoint;
     }
+
+	public Boolean getEndSessionWithAccessToken() {
+		return endSessionWithAccessToken;
+	}
+
+	public void setEndSessionWithAccessToken(Boolean endSessionWithAccessToken) {
+		this.endSessionWithAccessToken = endSessionWithAccessToken;
+	}
+    
+    
 }
