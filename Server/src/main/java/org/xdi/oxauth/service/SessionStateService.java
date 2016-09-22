@@ -520,7 +520,8 @@ public class SessionStateService {
     public List<SessionState> getUnauthenticatedIdsOlderThan(int p_intervalInSeconds) {
         try {
             final long dateInPast = new Date().getTime() - TimeUnit.SECONDS.toMillis(p_intervalInSeconds);
-            final Filter filter = Filter.create(String.format("&(lastModifiedTime<=%s)(oxState=unauthenticated)", StaticUtils.encodeGeneralizedTime(new Date(dateInPast))));
+            String dateInPastString = StaticUtils.encodeGeneralizedTime(new Date(dateInPast));
+            final Filter filter = Filter.create(String.format("&(oxLastAccessTime<=%s)(oxState=unauthenticated)", dateInPastString, dateInPastString));
             return ldapEntryManager.findEntries(getBaseDn(), SessionState.class, filter);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -532,7 +533,8 @@ public class SessionStateService {
     public List<SessionState> getIdsOlderThan(int p_intervalInSeconds) {
         try {
             final long dateInPast = new Date().getTime() - TimeUnit.SECONDS.toMillis(p_intervalInSeconds);
-            final Filter filter = Filter.create(String.format("(lastModifiedTime<=%s)", StaticUtils.encodeGeneralizedTime(new Date(dateInPast))));
+            String dateInPastString = StaticUtils.encodeGeneralizedTime(new Date(dateInPast));
+            final Filter filter = Filter.create(String.format("(oxLastAccessTime<=%s)", dateInPastString, dateInPastString));
             return ldapEntryManager.findEntries(getBaseDn(), SessionState.class, filter);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
