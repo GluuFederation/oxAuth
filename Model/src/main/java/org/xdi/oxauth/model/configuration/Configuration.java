@@ -21,7 +21,7 @@ import java.util.Map;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version June 15, 2016
+ * @version October 7, 2016
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {
@@ -143,6 +143,10 @@ public class Configuration {
     private String oxElevenDeleteKeyEndpoint;
 
     private Boolean endSessionWithAccessToken;
+
+    private List<String> clientWhiteList;
+    private List<String> clientBlackList;
+    private Boolean legacyIdTokenClaims;
 
     @XmlElement(name = "uma-rpt-as-jwt")
     public Boolean getUmaRptAsJwt() {
@@ -1228,5 +1232,19 @@ public class Configuration {
 		this.endSessionWithAccessToken = endSessionWithAccessToken;
 	}
     
-    
+    public List<String> getClientBlackList() {
+        return clientBlackList;
+    }
+
+    public void setClientBlackList(List<String> clientBlackList) {
+        this.clientBlackList = clientBlackList;
+    }
+
+    public Boolean getLegacyIdTokenClaims() {
+        return legacyIdTokenClaims;
+    }
+
+    public void setLegacyIdTokenClaims(Boolean legacyIdTokenClaims) {
+        this.legacyIdTokenClaims = legacyIdTokenClaims;
+    }
 }
