@@ -356,41 +356,49 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             log.debug("Attempting to UPDATE client, client_id: {0}, requestParams = {1}, isSecure = {3}",
                     clientId, requestParams, securityContext.isSecure());
             final String accessToken = tokenService.getTokenFromAuthorizationParameter(authorization);
-            if (StringUtils.isNotBlank(accessToken) && StringUtils.isNotBlank(clientId) && StringUtils.isNotBlank(requestParams)) {
-                final RegisterRequest request = RegisterRequest.fromJson(requestParams);
-                if (request != null) {
-                    boolean redirectUrisValidated = true;
-                    if (request.getRedirectUris() != null && !request.getRedirectUris().isEmpty()) {
-                        redirectUrisValidated = RegisterParamsValidator.validateRedirectUris(request.getApplicationType(), request.getSubjectType(),
-                                request.getRedirectUris(), request.getSectorIdentifierUri());
-                    }
-
-                    if (redirectUrisValidated) {
-                        if (request.getSubjectType() != null
-                                && !ConfigurationFactory.instance().getConfiguration().getSubjectTypesSupported().contains(request.getSubjectType())) {
-                            log.debug("Client UPDATE : parameter subject_type is invalid. Returns BAD_REQUEST response.");
-                            return Response.status(Response.Status.BAD_REQUEST).
-                                    entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA)).build();
+            if (ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationEnabled()) {
+                if (StringUtils.isNotBlank(accessToken) && StringUtils.isNotBlank(clientId) && StringUtils.isNotBlank(requestParams)) {
+                    final RegisterRequest request = RegisterRequest.fromJson(requestParams);
+                    if (request != null) {
+                        boolean redirectUrisValidated = true;
+                        if (request.getRedirectUris() != null && !request.getRedirectUris().isEmpty()) {
+                            redirectUrisValidated = RegisterParamsValidator.validateRedirectUris(request.getApplicationType(), request.getSubjectType(),
+                                    request.getRedirectUris(), request.getSectorIdentifierUri());
                         }
 
-                        final Client client = clientService.getClient(clientId, accessToken);
-                        if (client != null) {
-                            updateClientFromRequestObject(client, request);
-                            clientService.merge(client);
-                            return Response.status(Response.Status.OK).entity(clientAsEntity(client)).build();
+                        if (redirectUrisValidated) {
+                            if (request.getSubjectType() != null
+                                    && !ConfigurationFactory.instance().getConfiguration().getSubjectTypesSupported().contains(request.getSubjectType())) {
+                                log.debug("Client UPDATE : parameter subject_type is invalid. Returns BAD_REQUEST response.");
+                                return Response.status(Response.Status.BAD_REQUEST).
+                                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA)).build();
+                            }
+
+                            final Client client = clientService.getClient(clientId, accessToken);
+                            if (client != null) {
+                                updateClientFromRequestObject(client, request);
+                                clientService.merge(client);
+                                return Response.status(Response.Status.OK).entity(clientAsEntity(client)).build();
+                            } else {
+                                log.trace("The Access Token is not valid for the Client ID, returns invalid_token error.");
+                                return Response.status(Response.Status.UNAUTHORIZED).
+                                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_TOKEN)).build();
+                            }
                         } else {
-                            log.trace("The Access Token is not valid for the Client ID, returns invalid_token error.");
                             return Response.status(Response.Status.BAD_REQUEST).
-                                    entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_TOKEN)).build();
+                                    entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_REDIRECT_URI)).build();
                         }
                     }
                 }
+
+                log.debug("Client UPDATE : parameters are invalid. Returns BAD_REQUEST response.");
+                return Response.status(Response.Status.BAD_REQUEST).
+                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA)).build();
             }
-
-            log.debug("Client UPDATE : parameters are invalid. Returns BAD_REQUEST response.");
-            return Response.status(Response.Status.BAD_REQUEST).
-                    entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA)).build();
-
+            else{
+                return Response.status(Response.Status.FORBIDDEN).
+                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.ACCESS_DENIED)).build();
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -413,16 +421,16 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                         builder.entity(clientAsEntity(client));
                     } else {
                         log.trace("The Access Token is not valid for the Client ID, returns invalid_token error.");
-                        builder = Response.status(Response.Status.BAD_REQUEST.getStatusCode());
+                        builder = Response.status(Response.Status.UNAUTHORIZED.getStatusCode());
                         builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_TOKEN));
                     }
                 } else {
                     log.trace("Client parameters are invalid.");
-                    builder = Response.status(Response.Status.BAD_REQUEST);
+                    builder = Response.status(Response.Status.UNAUTHORIZED);
                     builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
                 }
             } else {
-                builder = Response.status(Response.Status.BAD_REQUEST);
+                builder = Response.status(Response.Status.FORBIDDEN);
                 builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.ACCESS_DENIED));
             }
         } catch (JSONException e) {
@@ -471,7 +479,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         } else {
             builder = Response.status(Response.Status.FORBIDDEN);
-            builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.NOT_ALLOWED));
+            builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.ACCESS_DENIED));
         }
 
         CacheControl cacheControl = new CacheControl();

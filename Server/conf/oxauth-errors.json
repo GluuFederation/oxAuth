@@ -124,11 +124,6 @@
             "id":"access_denied",
             "description":"The authorization server denied the request.",
             "uri":null
-        },
-        {
-            "id":"not_allowed",
-            "description":"The authorization server does not allow this operation",
-            "uri":null
         }
     ],
     "token":[

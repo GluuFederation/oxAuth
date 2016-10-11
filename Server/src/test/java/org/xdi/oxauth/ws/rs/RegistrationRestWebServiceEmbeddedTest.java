@@ -20,7 +20,6 @@ import org.xdi.oxauth.client.RegisterResponse;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.common.SubjectType;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.register.RegisterResponseParam;
@@ -164,6 +163,12 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
     @Test(dependsOnMethods = "requestClientAssociate1")
     public void requestClientRead(final String registerPath) throws Exception {
 
+        passInvalidToken(ResourceRequestEnvironment.Method.GET, registerPath, null);
+
+        passInvalidClientId(ResourceRequestEnvironment.Method.GET, registerPath, null);
+
+        testForbiddenResponse(ResourceRequestEnvironment.Method.GET, registerPath, null);
+
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
                 ResourceRequestEnvironment.Method.GET, registerPath) {
 
@@ -213,6 +218,19 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         final String contactEmailNewValue = contactEmail2;
         final String logoUriNewValue = "http://www.gluu.org/test/yuriy/logo.png";
         final String clientUriNewValue = "http://www.gluu.org/company/yuriy";
+
+        final RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setContacts(Arrays.asList(contactEmail1, contactEmailNewValue));
+        registerRequest.setLogoUri(logoUriNewValue);
+        registerRequest.setClientUri(clientUriNewValue);
+
+        passInvalidToken(ResourceRequestEnvironment.Method.PUT, registerPath, registerRequest);
+
+        passInvalidClientId(ResourceRequestEnvironment.Method.PUT, registerPath, registerRequest);
+
+        testForbiddenResponse(ResourceRequestEnvironment.Method.PUT, registerPath, registerRequest);
+
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
                 ResourceRequestEnvironment.Method.PUT, registerPath) {
 
@@ -220,14 +238,6 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
                 super.prepareRequest(request);
                 try {
-
-                    final RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
-                            StringUtils.spaceSeparatedToList(redirectUris));
-
-                    registerRequest.setContacts(Arrays.asList(contactEmail1, contactEmailNewValue));
-                    registerRequest.setLogoUri(logoUriNewValue);
-                    registerRequest.setClientUri(clientUriNewValue);
-
                     final String registerRequestContent = registerRequest.getJSONParameters().toString(4);
                     request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
                     request.setContentType(MediaType.APPLICATION_JSON);
@@ -265,24 +275,11 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
     @Test(dependsOnMethods = {"requestClientUpdate", "requestClientRead"})
     public void requestClientDelete(final String registerPath) throws Exception {
 
-        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
-                ResourceRequestEnvironment.Method.DELETE, registerPath) {
+        passInvalidToken(ResourceRequestEnvironment.Method.DELETE, registerPath, null);
 
-            @Override
-            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
+        passInvalidClientId(ResourceRequestEnvironment.Method.DELETE, registerPath, null);
 
-                request.addHeader("Authorization", "Bearer " + registrationAccessToken1 + "0");
-                request.setContentType(MediaType.APPLICATION_JSON);
-                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
-            }
-
-            @Override
-            protected void onResponse(EnhancedMockHttpServletResponse response) {
-                super.onResponse(response);
-                assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
-            }
-        }.run();
+        testForbiddenResponse(ResourceRequestEnvironment.Method.DELETE, registerPath, null);
 
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
                 ResourceRequestEnvironment.Method.DELETE, registerPath) {
@@ -321,30 +318,6 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
                 assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
             }
         }.run();
-
-        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
-                ResourceRequestEnvironment.Method.DELETE, registerPath) {
-
-            @Override
-            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-
-                ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(false);
-
-                request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
-                request.setContentType(MediaType.APPLICATION_JSON);
-                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
-            }
-
-            @Override
-            protected void onResponse(EnhancedMockHttpServletResponse response) {
-                super.onResponse(response);
-                ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(true);
-                assertEquals(response.getStatus(), Response.Status.FORBIDDEN.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
-            }
-        }.run();
-
-
     }
 
     @Parameters({"registerPath"})
@@ -446,6 +419,100 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 400, "Unexpected response code. " + response.getContentAsString());
                 TestUtil.assertErrorResponse(response.getContentAsString());
+            }
+        }.run();
+    }
+
+
+
+    private void passInvalidClientId(ResourceRequestEnvironment.Method method, String registerPath, final RegisterRequest registerRequest ) throws Exception{
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                method, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                try {
+                    super.prepareRequest(request);
+
+                    request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
+                    request.setContentType(MediaType.APPLICATION_JSON);
+                    request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1) + "invalid_client_id");
+
+                    if (registerRequest != null) {
+                        String registerRequestContent = registerRequest.getJSONParameters().toString(4);
+                        request.setContent(registerRequestContent.getBytes(Util.UTF8));
+                    }
+                }catch (Exception e){
+
+                }
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+    }
+
+    private void passInvalidToken(ResourceRequestEnvironment.Method method, String registerPath, final RegisterRequest registerRequest ) throws Exception{
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                method, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                try {
+                    super.prepareRequest(request);
+
+                    request.addHeader("Authorization", "Bearer " + registrationAccessToken1 + "invalid_access_token");
+                    request.setContentType(MediaType.APPLICATION_JSON);
+                    request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+
+                    if(registerRequest != null) {
+                        String registerRequestContent = registerRequest.getJSONParameters().toString(4);
+                        request.setContent(registerRequestContent.getBytes(Util.UTF8));
+                    }
+                }catch (Exception e ){
+
+                }
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+    }
+
+    private void testForbiddenResponse(ResourceRequestEnvironment.Method method, String registerPath, final RegisterRequest registerRequest ) throws Exception{
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                method, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                try {
+                    super.prepareRequest(request);
+
+                    ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(false);
+
+                    request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
+                    request.setContentType(MediaType.APPLICATION_JSON);
+                    request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+                    if (registerRequest != null) {
+                        String registerRequestContent = registerRequest.getJSONParameters().toString(4);
+                        request.setContent(registerRequestContent.getBytes(Util.UTF8));
+                    }
+                }catch (Exception e){
+
+                }
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(true);
+                assertEquals(response.getStatus(), Response.Status.FORBIDDEN.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
             }
         }.run();
     }

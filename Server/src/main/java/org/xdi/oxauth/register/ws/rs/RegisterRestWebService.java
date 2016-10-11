@@ -74,7 +74,24 @@ public interface RegisterRestWebService {
      * @param authorization   Access Token that is used at the Client Configuration Endpoint
      * @param httpRequest     http request object
      * @param securityContext An injectable interface that provides access to security related information.
-     * @return response
+     * @return
+     *
+     *  Upon successful update, the authorization server responds with an
+     * HTTP 200 OK message with content type "application/json" and a
+     * payload.
+     *
+     *  If the registration access token used to make this request is not
+     * valid, the server responds with HTTP 401 Unauthorized.
+     *
+     *  If the client does not exist on this server, the server responds
+     * with HTTP 401 Unauthorized.
+     *
+     *  If the client is not allowed to update its records, the server
+     * responds with HTTP 403 Forbidden.
+     *
+     * If the client attempts to set an invalid metadata field and the
+     * authorization server does not set a default value, the authorization
+     * server responds with HTTP 400 Bad Request.
      */
 
     @PUT
@@ -93,8 +110,12 @@ public interface RegisterRestWebService {
                     "The value of one or more redirect_uris is invalid. "),
             @ApiResponse(code = 400, message = "invalid_client_metadata\n" +
                     "The value of one of the Client Metadata fields is invalid and the server has rejected this request. Note that an Authorization Server MAY choose to substitute a valid value for any requested parameter of a Client's Metadata."),
-            @ApiResponse(code = 302, message = "access_denies\n" +
-                    "The authorization server denied the request.")
+            @ApiResponse(code = 401, message = "invalid_token\n" +
+                    "The registration access token used to make this request is not valid"),
+            @ApiResponse(code = 401, message = "invalid_client_id\n" +
+                    "The client does not exist on this server"),
+            @ApiResponse(code = 403, message = "not_allowed\n" +
+                    "The client is not allowed to update its records")
     })
     Response requestClientUpdate(
             @ApiParam(value = "Request parameters as JSON object with data described by Connect Client Registration Specification. ", required = true)
@@ -111,7 +132,20 @@ public interface RegisterRestWebService {
      *
      * @param clientId        Unique Client identifier.
      * @param securityContext An injectable interface that provides access to security related information.
-     * @return response
+     * @return
+     *
+     *  Upon successful read of the information for a currently active
+     * client, the authorization server responds with an HTTP 200 OK with
+     * content type of "application/json" and a payload.
+     *
+     *  If the registration access token used to make this request is not
+     * valid, the server responds with HTTP 401 Unauthorized.
+     *
+     * If the client does not exist on this server, the server responds
+     * with HTTP 401 Unauthorized.
+     *
+     * If the client does not have permission to read its record, the server
+     * returns an HTTP 403 Forbidden.
      */
     @GET
     @Path("/register")
@@ -123,14 +157,12 @@ public interface RegisterRestWebService {
             responseContainer = "JSON"
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "invalid_request\n" +
-                    "The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.  The resource server SHOULD respond with the HTTP 400 (Bad Request) status code."),
-            @ApiResponse(code = 400, message = "invalid_redirect_uri\n" +
-                    "The value of one or more redirect_uris is invalid. "),
-            @ApiResponse(code = 400, message = "invalid_client_metadata\n" +
-                    "The value of one of the Client Metadata fields is invalid and the server has rejected this request. Note that an Authorization Server MAY choose to substitute a valid value for any requested parameter of a Client's Metadata."),
-            @ApiResponse(code = 302, message = "access_denies\n" +
-                    "The authorization server denied the request.")
+            @ApiResponse(code = 401, message = "invalid_token\n" +
+                    "The registration access token used to make this request is not valid"),
+            @ApiResponse(code = 401, message = "invalid_client_id\n" +
+                    "The client does not exist on this server"),
+            @ApiResponse(code = 403, message = "not_allowed\n" +
+                    "The client does not have permission to read its record")
     })
     Response requestClientRead(
             @QueryParam("client_id")
@@ -145,7 +177,19 @@ public interface RegisterRestWebService {
      *
      * @param clientId        Unique Client identifier.
      * @param securityContext An injectable interface that provides access to security related information.
-     * @return response
+     * @return
+     *
+     *  If a client has been successfully deprovisioned, the authorization
+     * server responds with an HTTP 204 No Content message.
+     *
+     *  If the registration access token used to make this request is not
+     * valid, the server responds with HTTP 401 Unauthorized.
+     *
+     *  If the client does not exist on this server, the server responds
+     * with HTTP 401 Unauthorized.
+     *
+     *  If the client is not allowed to delete itself, the server
+     * responds with HTTP 403 Forbidden.
      */
     @DELETE
     @Path("/register")
