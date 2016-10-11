@@ -19,6 +19,8 @@ import org.xdi.oxauth.client.RegisterRequest;
 import org.xdi.oxauth.client.RegisterResponse;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.common.SubjectType;
+import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.Configuration;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.register.RegisterResponseParam;
@@ -27,6 +29,7 @@ import org.xdi.oxauth.model.util.StringUtils;
 import org.xdi.util.Util;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
@@ -256,6 +259,92 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
                 }
             }
         }.run();
+    }
+
+    @Parameters({"registerPath"})
+    @Test(dependsOnMethods = {"requestClientUpdate", "requestClientRead"})
+    public void requestClientDelete(final String registerPath) throws Exception {
+
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                ResourceRequestEnvironment.Method.DELETE, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                super.prepareRequest(request);
+
+                request.addHeader("Authorization", "Bearer " + registrationAccessToken1 + "0");
+                request.setContentType(MediaType.APPLICATION_JSON);
+                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                ResourceRequestEnvironment.Method.DELETE, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                super.prepareRequest(request);
+
+                request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
+                request.setContentType(MediaType.APPLICATION_JSON);
+                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                ResourceRequestEnvironment.Method.DELETE, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                super.prepareRequest(request);
+
+                request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
+                request.setContentType(MediaType.APPLICATION_JSON);
+                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+
+        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
+                ResourceRequestEnvironment.Method.DELETE, registerPath) {
+
+            @Override
+            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
+                super.prepareRequest(request);
+
+                ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(false);
+
+                request.addHeader("Authorization", "Bearer " + registrationAccessToken1);
+                request.setContentType(MediaType.APPLICATION_JSON);
+                request.setQueryString(registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+            }
+
+            @Override
+            protected void onResponse(EnhancedMockHttpServletResponse response) {
+                super.onResponse(response);
+                ConfigurationFactory.instance().getConfiguration().setDynamicRegistrationEnabled(true);
+                assertEquals(response.getStatus(), Response.Status.FORBIDDEN.getStatusCode(), "Unexpected response code. " + response.getContentAsString());
+            }
+        }.run();
+
+
     }
 
     @Parameters({"registerPath"})

@@ -39,7 +39,12 @@ public enum RegisterErrorResponseType implements IErrorType {
     /**
      * The authorization server denied the request.
      */
-    ACCESS_DENIED("access_denied");
+    ACCESS_DENIED("access_denied"),
+
+    /**
+     * The authorization server does not allow this operation.
+     */
+    NOT_ALLOWED("not_allowed");
 
     private final String paramName;
 

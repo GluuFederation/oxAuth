@@ -23,6 +23,7 @@ import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.common.Scope;
 import org.xdi.oxauth.model.common.SubjectType;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.Configuration;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.register.RegisterErrorResponseType;
@@ -437,6 +438,46 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         CacheControl cacheControl = new CacheControl();
         cacheControl.setNoTransform(false);
         cacheControl.setNoStore(true);
+        builder.cacheControl(cacheControl);
+        builder.header("Pragma", "no-cache");
+        return builder.build();
+    }
+
+    @Override
+    public Response requestClientDelete(String clientId, String authorization, HttpServletRequest httpRequest, SecurityContext securityContext) {
+
+        String accessToken = tokenService.getTokenFromAuthorizationParameter(authorization);
+
+        log.debug("Attempting to read client: clientId = {0}, registrationAccessToken = {1} isSecure = {2}",
+                clientId, accessToken, securityContext.isSecure());
+
+        Response.ResponseBuilder builder = Response.status(Response.Status.NO_CONTENT);
+        ConfigurationFactory configurationFactory = ConfigurationFactory.instance();
+        Configuration configuration = configurationFactory.getConfiguration();
+
+        if (configuration.getDynamicRegistrationEnabled()) {
+            if (RegisterParamsValidator.validateParamsClientRead(clientId, accessToken)) {
+                Client client = clientService.getClient(clientId, accessToken);
+                if (client != null) {
+                    clientService.remove(client);
+                } else {
+                    builder = Response.status(Response.Status.UNAUTHORIZED);
+                    builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_TOKEN));
+                }
+            } else {
+                log.trace("Client parameters are invalid.");
+                builder = Response.status(Response.Status.UNAUTHORIZED);
+                builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
+            }
+        } else {
+            builder = Response.status(Response.Status.FORBIDDEN);
+            builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.NOT_ALLOWED));
+        }
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setNoTransform(false);
+        cacheControl.setNoStore(true);
+
         builder.cacheControl(cacheControl);
         builder.header("Pragma", "no-cache");
         return builder.build();
