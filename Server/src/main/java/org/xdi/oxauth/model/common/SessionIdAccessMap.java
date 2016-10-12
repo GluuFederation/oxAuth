@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,11 @@ public class SessionIdAccessMap implements Serializable {
 
     public void setPermissionGranted(Map<String, Boolean> permissionGranted) {
         this.permissionGranted = permissionGranted;
+    }
+
+    @XmlTransient
+    public Set<String> clientIds() {
+        return Sets.newHashSet(permissionGranted.keySet());
     }
 
     public Set<String> getClientIds(boolean granted) {
