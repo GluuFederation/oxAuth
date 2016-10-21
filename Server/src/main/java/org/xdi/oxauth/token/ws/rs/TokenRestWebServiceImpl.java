@@ -163,9 +163,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         IdToken idToken = null;
                         if (authorizationGrant.getScopes().contains("openid")) {
+                            boolean includeIdTokenClaims = Boolean.TRUE.equals(
+                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
                             idToken = authorizationGrant.createIdToken(
                                     null, null, null,
-                                    authorizationGrant);
+                                    authorizationGrant, includeIdTokenClaims);
                         }
 
                         builder.entity(getJSonResponse(accToken,
