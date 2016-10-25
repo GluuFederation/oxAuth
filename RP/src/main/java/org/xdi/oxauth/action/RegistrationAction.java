@@ -129,7 +129,7 @@ public class RegistrationAction {
             client.setRequest(request);
             RegisterResponse response = client.exec();
 
-            if (response.getStatus() == 200) {
+            if (response.getStatus() >= 200 && response.getStatus() <= 299) {
                 registrationClientUri = response.getRegistrationClientUri();
                 registrationAccessToken = response.getRegistrationAccessToken();
                 authorizationAction.setClientId(response.getClientId());

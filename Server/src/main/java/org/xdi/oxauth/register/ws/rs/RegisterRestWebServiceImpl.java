@@ -95,7 +95,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     }
 
     private Response registerClientImpl(String requestParams, SecurityContext securityContext) {
-        Response.ResponseBuilder builder = Response.ok();
+        Response.ResponseBuilder builder = Response.status(Response.Status.CREATED);
 
         try {
             if (ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationEnabled()) {
