@@ -412,10 +412,6 @@ public class SessionStateService {
     }
 
     public boolean updateSessionState(final SessionState sessionState, boolean updateLastUsedAt, boolean forceUpdate) {
-        if (sessionState == null) {
-            return false;
-        }
-
         List<Prompt> prompts = getPromptsFromSessionState(sessionState);
 
         try {
