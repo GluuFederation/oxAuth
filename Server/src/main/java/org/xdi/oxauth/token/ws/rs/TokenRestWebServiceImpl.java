@@ -40,7 +40,7 @@ import java.security.SignatureException;
  * Provides interface for token REST web services
  *
  * @author Javier Rojas Blum
- * @version November 16, 2015
+ * @version October 7, 2016
  */
 @Name("requestTokenRestWebService")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
@@ -68,6 +68,9 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     @In
     private AuthenticationService authenticationService;
+
+    @In
+    private ConfigurationFactory configurationFactory;
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -124,8 +127,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         IdToken idToken = null;
                         if (authorizationCodeGrant.getScopes().contains("openid")) {
                             String nonce = authorizationCodeGrant.getNonce();
+                            boolean includeIdTokenClaims = Boolean.TRUE.equals(
+                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
                             idToken = authorizationCodeGrant.createIdToken(
-                                    nonce, null, accToken, authorizationCodeGrant);
+                                    nonce, null, accToken, authorizationCodeGrant, includeIdTokenClaims);
                         }
 
                         builder.entity(getJSonResponse(accToken,
@@ -158,9 +163,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         IdToken idToken = null;
                         if (authorizationGrant.getScopes().contains("openid")) {
+                            boolean includeIdTokenClaims = Boolean.TRUE.equals(
+                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
                             idToken = authorizationGrant.createIdToken(
                                     null, null, null,
-                                    authorizationGrant);
+                                    authorizationGrant, includeIdTokenClaims);
                         }
 
                         builder.entity(getJSonResponse(accToken,
@@ -187,8 +194,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                     IdToken idToken = null;
                     if (clientCredentialsGrant.getScopes().contains("openid")) {
+                        boolean includeIdTokenClaims = Boolean.TRUE.equals(
+                                configurationFactory.getConfiguration().getLegacyIdTokenClaims());
                         idToken = clientCredentialsGrant.createIdToken(
-                                null, null, null, clientCredentialsGrant);
+                                null, null, null, clientCredentialsGrant, includeIdTokenClaims);
                     }
 
                     builder.entity(getJSonResponse(accessToken,
@@ -230,8 +239,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         IdToken idToken = null;
                         if (resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
+                            boolean includeIdTokenClaims = Boolean.TRUE.equals(
+                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
                             idToken = resourceOwnerPasswordCredentialsGrant.createIdToken(
-                                    null, null, null, resourceOwnerPasswordCredentialsGrant);
+                                    null, null, null, resourceOwnerPasswordCredentialsGrant, includeIdTokenClaims);
                         }
 
                         builder.entity(getJSonResponse(accessToken,

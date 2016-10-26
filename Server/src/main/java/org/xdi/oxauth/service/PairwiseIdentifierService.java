@@ -93,6 +93,7 @@ public class PairwiseIdentifierService {
 
     public void addPairwiseIdentifier(String userInum, PairwiseIdentifier pairwiseIdentifier) {
         prepareBranch(userInum);
+        userService.addUserAttributeByUserInum(userInum, "oxPPID", pairwiseIdentifier.getId());
 
         ldapEntryManager.persist(pairwiseIdentifier);
     }

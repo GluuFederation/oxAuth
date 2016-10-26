@@ -218,15 +218,53 @@ public class UserService {
         }
     }
 
-    public User addUserAttribute(String userId, String attributeName, String attributeValue) {
-        log.debug("Getting user information from LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
+    public User getUserBySample(User user, int limit) {
+        log.debug("Getting user by sample");
 
-        User user = getUser(userId);
+        List<User> entries = ldapEntryManager.findEntries(user, limit, limit);
+        log.debug("Found '{0}' entries", entries.size());
+
+        return (User) entries;
+    }
+
+    public User addUserAttributeByUserInum(String userInum, String attributeName, String attributeValue) {
+    	log.debug("Add user attribute by user inum  to LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
+
+        User user = getUserByInum(userInum);
         if (user == null) {
         	return null;
         }
         
-        CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+        boolean result = addUserAttribute(user, attributeName, attributeValue);
+        if (!result) {
+        	// We uses this result in Person Authentication Scripts
+        	addUserAttribute(user, attributeName, attributeValue);
+        }
+
+        return updateUser(user);
+    	
+    }
+    
+    public User addUserAttribute(String userId, String attributeName, String attributeValue) {
+        log.debug("Add user attribute to LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
+
+        User user = getUser(userId);
+        if (user == null) {
+        	// We uses this result in Person Authentication Scripts
+        	return null;
+        }
+        
+        boolean result = addUserAttribute(user, attributeName, attributeValue);
+        if (!result) {
+        	// We uses this result in Person Authentication Scripts
+        	return null;
+        }
+
+        return updateUser(user);
+    }
+
+    public boolean addUserAttribute(User user, String attributeName, String attributeValue) {
+		CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
         if (customAttribute == null) {
         	customAttribute = new CustomAttribute(attributeName, attributeValue);
             user.getCustomAttributes().add(customAttribute);
@@ -235,19 +273,21 @@ public class UserService {
 
         	List<String> newAttributeValues = new ArrayList<String>();
         	newAttributeValues.addAll(currentAttributeValues);
-        	
-        	customAttribute.setValues(newAttributeValues);
 
-        	if (!newAttributeValues.contains(attributeValue)) {
+        	if (newAttributeValues.contains(attributeValue)) {
+        		return false;
+        	} else {
         		newAttributeValues.add(attributeValue);
         	}
+        	
+        	customAttribute.setValues(newAttributeValues);
         }
-
-        return updateUser(user);
-    }
+        
+        return true;
+	}
 
     public User removeUserAttribute(String userId, String attributeName, String attributeValue) {
-        log.debug("Getting user information from LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
+        log.debug("Remove user attribute from LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
 
         User user = getUser(userId);
         if (user == null) {
@@ -261,15 +301,45 @@ public class UserService {
 
         		List<String> newAttributeValues = new ArrayList<String>();
             	newAttributeValues.addAll(currentAttributeValues);
-        		newAttributeValues.remove(attributeValue);
+        		if (currentAttributeValues.contains(attributeValue)) {
+            		newAttributeValues.remove(attributeValue);
+            	} else {
+            		return null;
+            	}
 
         		customAttribute.setValues(newAttributeValues);
-
-        		return updateUser(user);
         	}
         }
 
-        return null;
+		return updateUser(user);
+    }
+
+    public User replaceUserAttribute(String userId, String attributeName, String oldAttributeValue, String newAttributeValue) {
+        log.debug("Replace user attribute in LDAP: attributeName = '{0}', oldAttributeValue = '{1}', newAttributeValue = '{2}'", attributeName, oldAttributeValue, newAttributeValue);
+
+        User user = getUser(userId);
+        if (user == null) {
+        	return null;
+        }
+        
+        CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+        if (customAttribute != null) {
+        	List<String> currentAttributeValues = customAttribute.getValues();
+    		List<String> newAttributeValues = new ArrayList<String>();
+        	newAttributeValues.addAll(currentAttributeValues);
+
+    		if (currentAttributeValues.contains(oldAttributeValue)) {
+        		newAttributeValues.remove(oldAttributeValue);
+        	}
+
+        	if (!newAttributeValues.contains(newAttributeValue)) {
+        		newAttributeValues.add(newAttributeValue);
+        	}
+
+        	customAttribute.setValues(newAttributeValues);
+        }
+
+		return updateUser(user);
     }
 
 	public CustomAttribute getCustomAttribute(User user, String attributeName) {
