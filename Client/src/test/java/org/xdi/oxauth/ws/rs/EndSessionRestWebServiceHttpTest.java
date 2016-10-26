@@ -125,21 +125,4 @@ public class EndSessionRestWebServiceHttpTest extends BaseTest {
         assertNotNull(response.getErrorType(), "The error type is null");
         assertNotNull(response.getErrorDescription(), "The error description is null");
     }
-
-    @Parameters({"postLogoutRedirectUri"})
-    @Test
-    public void requestEndSessionFail2(final String postLogoutRedirectUri) throws Exception {
-        showTitle("requestEndSessionFail2");
-
-        String state = UUID.randomUUID().toString();
-
-        EndSessionClient endSessionClient = new EndSessionClient(endSessionEndpoint);
-        EndSessionResponse response = endSessionClient.execEndSession("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, state);
-
-        showClient(endSessionClient);
-        assertEquals(response.getStatus(), 401, "Unexpected response code. Entity: " + response.getEntity());
-        assertNotNull(response.getEntity(), "The entity is null");
-        assertNotNull(response.getErrorType(), "The error type is null");
-        assertNotNull(response.getErrorDescription(), "The error description is null");
-    }
 }
