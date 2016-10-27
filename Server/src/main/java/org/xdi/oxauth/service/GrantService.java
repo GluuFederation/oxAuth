@@ -180,8 +180,12 @@ public class GrantService {
     }
 
     public List<TokenLdap> getGrantsBySessionDn(String sessionDn) {
+    	return getGrantsBySessionDn(sessionDn, 0);
+    }
+
+    public List<TokenLdap> getGrantsBySessionDn(String sessionDn, int searchLimit) {
         try {
-            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthSessionDn=%s", sessionDn)));
+            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthSessionDn=%s", sessionDn)), searchLimit, searchLimit);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -190,6 +194,12 @@ public class GrantService {
 
     public void removeAllTokensBySession(String sessionDn) {
         removeSilently(getGrantsBySessionDn(sessionDn));
+    }
+
+    public boolean hasGrantsBySession(String sessionDn) {
+    	boolean isEmpty = getGrantsBySessionDn(sessionDn, 1).isEmpty();
+
+    	return !isEmpty;
     }
 
     /**
