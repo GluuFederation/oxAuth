@@ -132,7 +132,7 @@ public class LogoutAction {
 			return ExternalLogoutResult.SUCCESS;
         }
 
-		String authMode = SessionStateService.getAcr(sessionState);
+		String authMode = sessionStateService.getAcr(sessionState);
 
 		boolean isExternalAuthenticatorLogoutPresent = StringHelper.isNotEmpty(authMode);
 		if (isExternalAuthenticatorLogoutPresent) {
