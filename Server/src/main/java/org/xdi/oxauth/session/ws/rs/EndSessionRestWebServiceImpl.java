@@ -18,6 +18,7 @@ import org.xdi.oxauth.model.common.SessionState;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
+import org.xdi.oxauth.model.session.EndSessionParamsValidator;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.GrantService;
@@ -93,11 +94,13 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
 
     private Optional<SessionState> endSession(String sessionState, HttpServletRequest httpRequest,
                                     HttpServletResponse httpResponse) {
-
     	// Check if we cleaned up session already
     	if (StringHelper.isEmpty(sessionState)) {
     		sessionState = sessionStateService.getSessionStateFromCookie();
     	}
+
+    	EndSessionParamsValidator.validateParams(sessionState, errorResponseFactory);
+    	
     	SessionState sessionStateLdap = sessionStateService.getSessionState(sessionState);
 		if ((sessionStateLdap == null) || !grantService.hasGrantsBySession(sessionStateLdap.getDn())) {
 			log.info("Failed to find out authorization grant for sessionState '{0}'", sessionState);

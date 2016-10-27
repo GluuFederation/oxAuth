@@ -16,8 +16,8 @@ import org.xdi.oxauth.model.error.ErrorResponseFactory;
  */
 public class EndSessionParamsValidator {
 
-    public static boolean isValidParams(String idTokenHint) {
-        return idTokenHint != null && !idTokenHint.isEmpty();
+    public static boolean isValidParams(String param) {
+        return param != null && !param.isEmpty();
     }
 
     public static void validateParams(String idTokenHint, String postLogoutUrl, ErrorResponseFactory errorFactory) {
@@ -26,8 +26,8 @@ public class EndSessionParamsValidator {
         }
     }
 
-    public static void validateParams(String idTokenHint, ErrorResponseFactory errorFactory) {
-        if (!isValidParams(idTokenHint)) {
+    public static void validateParams(String sessionState, ErrorResponseFactory errorFactory) {
+        if (!isValidParams(sessionState)) {
             errorFactory.throwBadRequestException(EndSessionErrorResponseType.INVALID_REQUEST);
         }
     }
