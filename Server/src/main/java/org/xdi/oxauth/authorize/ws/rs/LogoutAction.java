@@ -21,9 +21,11 @@ import org.jboss.seam.log.Log;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.oxauth.model.common.AuthorizationGrantList;
 import org.xdi.oxauth.model.common.SessionState;
+import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
 import org.xdi.oxauth.model.session.EndSessionRequestParam;
 import org.xdi.oxauth.model.util.Base64Util;
 import org.xdi.oxauth.model.util.Util;
+import org.xdi.oxauth.service.GrantService;
 import org.xdi.oxauth.service.SessionStateService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
 import org.xdi.service.JsonService;
@@ -60,6 +62,9 @@ public class LogoutAction {
 
     @In
     private JsonService jsonService;
+
+    @In
+    private GrantService grantService;
 
     private String idTokenHint;
     private String postLogoutRedirectUri;
@@ -131,6 +136,10 @@ public class LogoutAction {
 			log.debug("Detected callback from external system. Resuming logout.");
 			return ExternalLogoutResult.SUCCESS;
         }
+    	// Check if we cleaned up session already
+		if (!grantService.hasGrantsBySession(sessionState.getDn())) {
+			return ExternalLogoutResult.FAILURE;
+		}
 
 		String authMode = sessionStateService.getAcr(sessionState);
 

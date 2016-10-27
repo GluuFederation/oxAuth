@@ -94,7 +94,17 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     private Optional<SessionState> endSession(String sessionState, HttpServletRequest httpRequest,
                                     HttpServletResponse httpResponse) {
 
-        boolean isExternalLogoutPresent;
+    	// Check if we cleaned up session already
+    	if (StringHelper.isEmpty(sessionState)) {
+    		sessionState = sessionStateService.getSessionStateFromCookie();
+    	}
+    	SessionState sessionStateLdap = sessionStateService.getSessionState(sessionState);
+		if ((sessionStateLdap == null) || !grantService.hasGrantsBySession(sessionStateLdap.getDn())) {
+			log.info("Failed to find out authorization grant for sessionState '{0}'", sessionState);
+			errorResponseFactory.throwUnauthorizedException(EndSessionErrorResponseType.INVALID_GRANT);
+		}
+    	
+    	boolean isExternalLogoutPresent;
         boolean externalLogoutResult = false;
         Optional<SessionState> ldapSessionState = removeSessionState(sessionState, httpRequest, httpResponse);
 
