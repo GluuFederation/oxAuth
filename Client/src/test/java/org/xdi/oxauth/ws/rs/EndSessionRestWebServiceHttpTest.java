@@ -132,9 +132,14 @@ public class EndSessionRestWebServiceHttpTest extends BaseTest {
         showTitle("requestEndSessionFail2");
 
         String state = UUID.randomUUID().toString();
+        String endSessionState = UUID.randomUUID().toString();
 
         EndSessionClient endSessionClient = new EndSessionClient(endSessionEndpoint);
-        EndSessionResponse response = endSessionClient.execEndSession("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, state);
+        EndSessionRequest endSessionRequest = new EndSessionRequest("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, state);
+        endSessionRequest.setSessionState(endSessionState);
+
+        endSessionClient.setRequest(endSessionRequest);
+        EndSessionResponse response = endSessionClient.exec();
 
         showClient(endSessionClient);
         assertEquals(response.getStatus(), 401, "Unexpected response code. Entity: " + response.getEntity());
