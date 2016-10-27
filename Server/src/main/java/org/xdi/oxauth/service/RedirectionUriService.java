@@ -104,6 +104,34 @@ public class RedirectionUriService {
         return null;
     }
 
+    public String validatePostLogoutRedirectUri(Optional<SessionState> sessionState, String postLogoutRedirectUri) {
+        if (Strings.isNullOrEmpty(postLogoutRedirectUri) || !sessionState.isPresent()) {
+            return "";
+        }
+
+        final Set<Client> clientsByDns = sessionState.get().getPermissionGrantedMap() != null ?
+                clientService.getClient(sessionState.get().getPermissionGrantedMap().keySet(), true) :
+                Sets.<Client>newHashSet();
+
+        log.trace("Validating post logout redirect URI: postLogoutRedirectUri = {0}", postLogoutRedirectUri);
+
+        for (Client client : clientsByDns) {
+            String[] postLogoutRedirectUris = client.getPostLogoutRedirectUris();
+            if (postLogoutRedirectUris == null) {
+                continue;
+            }
+
+            for (String uri : postLogoutRedirectUris) {
+                log.debug("Comparing {0} == {1}, clientId: {2}", uri, postLogoutRedirectUri, client.getClientId());
+                if (uri.equals(postLogoutRedirectUri)) {
+                    return postLogoutRedirectUri;
+                }
+            }
+        }
+        log.trace("Unable to find postLogoutRedirectUri = {0}", postLogoutRedirectUri);
+        return "";
+    }
+
     public String validatePostLogoutRedirectUri(String clientId, String postLogoutRedirectUri) {
 
         boolean isBlank = Util.isNullOrEmpty(postLogoutRedirectUri);
