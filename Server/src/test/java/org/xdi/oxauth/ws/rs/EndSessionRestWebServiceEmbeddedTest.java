@@ -267,8 +267,10 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                 super.prepareRequest(request);
                 request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
+                String endState = UUID.randomUUID().toString();
                 String endSessionState = UUID.randomUUID().toString();
-                EndSessionRequest endSessionRequest = new EndSessionRequest("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, endSessionState);
+                EndSessionRequest endSessionRequest = new EndSessionRequest("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, endState);
+                endSessionRequest.setSessionState(endSessionState);
 
                 request.setQueryString(endSessionRequest.getQueryString());
             }
