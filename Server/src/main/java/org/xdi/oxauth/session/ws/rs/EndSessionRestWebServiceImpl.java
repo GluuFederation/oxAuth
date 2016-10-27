@@ -57,6 +57,10 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     private SessionStateService sessionStateService;
     @In
     private ClientService clientService;
+
+    @In
+    private GrantService grantService;
+
     @In(required = false)
     private Identity identity;
 
@@ -106,7 +110,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         }
 
         if (ldapSessionState.isPresent()) {
-            GrantService.instance().removeAllTokensBySession(ldapSessionState.get().getDn());
+        	grantService.removeAllTokensBySession(ldapSessionState.get().getDn());
         }
 
         if (identity != null) {
