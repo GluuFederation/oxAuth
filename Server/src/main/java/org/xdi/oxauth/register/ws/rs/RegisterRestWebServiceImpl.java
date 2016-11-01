@@ -59,7 +59,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toList;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version July 15, 2016
+ * @version October 31, 2016
  */
 @Name("registerRestWebService")
 public class RegisterRestWebServiceImpl implements RegisterRestWebService {
@@ -333,6 +333,25 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         if (requestUris != null && !requestUris.isEmpty()) {
             requestUris = new ArrayList<String>(new HashSet<String>(requestUris)); // Remove repeated elements
             p_client.setRequestUris(requestUris.toArray(new String[requestUris.size()]));
+        }
+
+        List<String> scopes = requestObject.getScopes();
+        List<String> scopesDn;
+        if (scopes != null && !scopes.isEmpty()
+                && ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationScopesParamEnabled() != null
+                && ConfigurationFactory.instance().getConfiguration().getDynamicRegistrationScopesParamEnabled()) {
+            List<String> defaultScopes = scopeService.getDefaultScopesDn();
+            List<String> requestedScopes = scopeService.getScopesDn(scopes);
+            if (defaultScopes.containsAll(requestedScopes)) {
+                scopesDn = requestedScopes;
+                p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
+            } else {
+                scopesDn = defaultScopes;
+                p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
+            }
+        } else {
+            scopesDn = scopeService.getDefaultScopesDn();
+            p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
         }
 
         Date clientSecretExpiresAt = requestObject.getClientSecretExpiresAt();
