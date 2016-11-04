@@ -221,7 +221,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
     // yuriyz - ATTENTION : this method is used for both registration and update client metadata cases, therefore any logic here
     // will be applied for both cases.
-    public static void updateClientFromRequestObject(Client p_client, RegisterRequest requestObject) throws JSONException {
+    public void updateClientFromRequestObject(Client p_client, RegisterRequest requestObject) throws JSONException {
         List<String> redirectUris = requestObject.getRedirectUris();
         if (redirectUris != null && !redirectUris.isEmpty()) {
             redirectUris = new ArrayList<String>(new HashSet<String>(redirectUris)); // Remove repeated elements
