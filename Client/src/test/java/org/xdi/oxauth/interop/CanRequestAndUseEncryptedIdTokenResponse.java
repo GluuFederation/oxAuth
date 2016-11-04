@@ -20,6 +20,7 @@ import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.util.StringUtils;
 import org.xdi.oxauth.model.util.Util;
 
+import java.security.PrivateKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -90,7 +91,7 @@ public class CanRequestAndUseEncryptedIdTokenResponse extends BaseTest {
         String idToken = authorizationResponse.getIdToken();
 
         // 3. Read Encrypted ID Token
-        Jwe jwe = Jwe.parse(idToken, null, clientSecret.getBytes(Util.UTF8_STRING_ENCODING));
+        Jwe jwe = Jwe.parse(idToken, (PrivateKey) null, clientSecret.getBytes(Util.UTF8_STRING_ENCODING));
         assertNotNull(jwe.getHeader().getClaimAsString(JwtHeaderName.TYPE));
         assertNotNull(jwe.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
         assertNotNull(jwe.getClaims().getClaimAsString(JwtClaimName.ISSUER));
