@@ -33,7 +33,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
- * @version November 2, 2016
+ * @version November 5, 2016
  */
 public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
@@ -332,6 +332,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
                 StringUtils.spaceSeparatedToList(redirectUris));
         request.setFederationId("1234");
         request.setFederationUrl("http://federationMetadataUrl.org");
+        request.setSubjectType(SubjectType.PUBLIC);
         registerClient.setRequest(request);
 
         RegisterResponse response = registerClient.exec();
