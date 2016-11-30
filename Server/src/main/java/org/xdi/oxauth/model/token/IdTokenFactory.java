@@ -20,6 +20,7 @@ import org.jboss.seam.contexts.Contexts;
 import org.jboss.seam.contexts.Lifecycle;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.GluuAttribute;
+import org.xdi.model.SimpleCustomProperty;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.oxauth.model.authorize.Claim;
 import org.xdi.oxauth.model.common.*;
@@ -254,6 +255,11 @@ public class IdTokenFactory {
                 AuthenticationScriptUsageType.BOTH, acrValues);
         if (script != null) {
             amrList.add(Integer.toString(script.getLevel()));
+
+            Map<String, SimpleCustomProperty> configurationAttributes = script.getConfigurationAttributes();
+            for (SimpleCustomProperty property : configurationAttributes.values()) {
+                amrList.add(property.getValue1() + ":" + property.getValue2());
+            }
         }
 
         jwt.getClaims().setClaim(JwtClaimName.AUTHENTICATION_METHOD_REFERENCES, amrList);
