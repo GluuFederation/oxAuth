@@ -13,19 +13,23 @@ import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
+import org.xdi.oxauth.audit.OAuth2AuditLogger;
+import org.xdi.oxauth.model.audit.Action;
+import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.common.AuthorizationGrant;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.ldap.Grant;
 import org.xdi.oxauth.model.ldap.TokenLdap;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.oxauth.util.TokenHashUtil;
 
 import java.util.*;
 
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version February 24, 2016
+ * @version November 11, 2016
  */
 @Scope(ScopeType.STATELESS)
 @Name("grantService")
@@ -36,6 +40,8 @@ public class GrantService {
     private Log log;
     @In
     private LdapEntryManager ldapEntryManager;
+    @In
+    private OAuth2AuditLogger oAuth2AuditLogger;
 
     public static String generateGrantId() {
         return UUID.randomUUID().toString();
@@ -70,6 +76,7 @@ public class GrantService {
 
     public void persist(TokenLdap p_token) {
         prepareGrantBranch(p_token.getGrantId(), p_token.getClientId());
+        p_token.setTokenCode(TokenHashUtil.getHashedToken(p_token.getTokenCode()));
         ldapEntryManager.persist(p_token);
     }
 
@@ -145,7 +152,7 @@ public class GrantService {
 
     private TokenLdap load(String p_baseDn, String p_code) {
         try {
-            final List<TokenLdap> entries = ldapEntryManager.findEntries(p_baseDn, TokenLdap.class, Filter.create(String.format("oxAuthTokenCode=%s", p_code)));
+            final List<TokenLdap> entries = ldapEntryManager.findEntries(p_baseDn, TokenLdap.class, Filter.create(String.format("oxAuthTokenCode=%s", TokenHashUtil.getHashedToken(p_code))));
             if (entries != null && !entries.isEmpty()) {
                 return entries.get(0);
             }
@@ -170,7 +177,7 @@ public class GrantService {
 
     public List<TokenLdap> getGrantsByAuthorizationCode(String p_authorizationCode) {
         try {
-            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthAuthorizationCode=%s", p_authorizationCode)));
+            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthAuthorizationCode=%s", TokenHashUtil.getHashedToken(p_authorizationCode))));
         } catch (LDAPException e) {
             log.trace(e.getMessage(), e);
         } catch (Exception e) {
@@ -217,6 +224,9 @@ public class GrantService {
         try {
             final Filter filter = Filter.create(String.format("(oxAuthExpiration<=%s)", StaticUtils.encodeGeneralizedTime(new Date())));
             final List<TokenLdap> entries = ldapEntryManager.findEntries(baseDn(), TokenLdap.class, filter);
+
+            auditLogging(entries);
+
             remove(entries);
         } catch (Exception e) {
             log.trace(e.getMessage(), e);
@@ -271,5 +281,16 @@ public class GrantService {
         dn.append(Client.buildClientDn(p_clientId));
 
         return dn.toString();
+    }
+
+    private void auditLogging(Collection<TokenLdap> entries) {
+        for (TokenLdap tokenLdap : entries) {
+            OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(null, Action.SESSION_DESTROYED);
+            oAuth2AuditLog.setSuccess(true);
+            oAuth2AuditLog.setClientId(tokenLdap.getClientId());
+            oAuth2AuditLog.setScope(tokenLdap.getScope());
+            oAuth2AuditLog.setUsername(tokenLdap.getUserId());
+            oAuth2AuditLogger.sendMessage(oAuth2AuditLog);
+        }
     }
 }

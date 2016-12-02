@@ -21,6 +21,7 @@ import org.jboss.seam.contexts.Lifecycle;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.GluuAttribute;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
+import org.xdi.model.custom.script.type.auth.PersonAuthenticationType;
 import org.xdi.oxauth.model.authorize.Claim;
 import org.xdi.oxauth.model.common.*;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
@@ -64,7 +65,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version August 17, 2016
+ * @version October 7, 2016
  */
 @Scope(ScopeType.STATELESS)
 @Name("idTokenFactory")
@@ -91,7 +92,7 @@ public class IdTokenFactory {
 
     public Jwt generateSignedIdToken(IAuthorizationGrant authorizationGrant, String nonce,
                                      AuthorizationCode authorizationCode, AccessToken accessToken,
-                                     Set<String> scopes) throws Exception {
+                                     Set<String> scopes, boolean includeIdTokenClaims) throws Exception {
 
         JwtSigner jwtSigner = JwtSigner.newJwtSigner(authorizationGrant.getClient());
         Jwt jwt = jwtSigner.newJwt();
@@ -127,58 +128,61 @@ public class IdTokenFactory {
         jwt.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
-        for (String scopeName : scopes) {
-            org.xdi.oxauth.model.common.Scope scope = scopeService.getScopeByDisplayName(scopeName);
-            if ((scope != null) && (org.xdi.oxauth.model.common.ScopeType.DYNAMIC == scope.getScopeType())) {
-                dynamicScopes.add(scope.getDisplayName());
-                continue;
-            }
+        if (includeIdTokenClaims) {
+            for (String scopeName : scopes) {
+                org.xdi.oxauth.model.common.Scope scope = scopeService.getScopeByDisplayName(scopeName);
+                if ((scope != null) && (org.xdi.oxauth.model.common.ScopeType.DYNAMIC == scope.getScopeType())) {
+                    dynamicScopes.add(scope.getDisplayName());
+                    continue;
+                }
 
-            if (scope != null && scope.getOxAuthClaims() != null) {
-                if (scope.getIsOxAuthGroupClaims()) {
-                    JwtSubClaimObject groupClaim = new JwtSubClaimObject();
-                    groupClaim.setName(scope.getDisplayName());
+                if (scope != null && scope.getOxAuthClaims() != null) {
+                    if (scope.getIsOxAuthGroupClaims()) {
+                        JwtSubClaimObject groupClaim = new JwtSubClaimObject();
+                        groupClaim.setName(scope.getDisplayName());
 
-                    for (String claimDn : scope.getOxAuthClaims()) {
-                        GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
+                        for (String claimDn : scope.getOxAuthClaims()) {
+                            GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
 
-                        String claimName = gluuAttribute.getOxAuthClaimName();
-                        String ldapName = gluuAttribute.getName();
-                        String attributeValue;
+                            String claimName = gluuAttribute.getOxAuthClaimName();
+                            String ldapName = gluuAttribute.getName();
+                            String attributeValue;
 
-                        if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
-                            if (ldapName.equals("uid")) {
-                                attributeValue = authorizationGrant.getUser().getUserId();
-                            } else {
-                                attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                            if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
+                                if (ldapName.equals("uid")) {
+                                    attributeValue = authorizationGrant.getUser().getUserId();
+                                } else {
+                                    attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                                }
+
+                                groupClaim.setClaim(claimName, attributeValue);
                             }
-
-                            groupClaim.setClaim(claimName, attributeValue);
                         }
-                    }
 
-                    jwt.getClaims().setClaim(scope.getDisplayName(), groupClaim);
-                } else {
-                    for (String claimDn : scope.getOxAuthClaims()) {
-                        GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
+                        jwt.getClaims().setClaim(scope.getDisplayName(), groupClaim);
+                    } else {
+                        for (String claimDn : scope.getOxAuthClaims()) {
+                            GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
 
-                        String claimName = gluuAttribute.getOxAuthClaimName();
-                        String ldapName = gluuAttribute.getName();
-                        String attributeValue;
+                            String claimName = gluuAttribute.getOxAuthClaimName();
+                            String ldapName = gluuAttribute.getName();
+                            String attributeValue;
 
-                        if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
-                            if (ldapName.equals("uid")) {
-                                attributeValue = authorizationGrant.getUser().getUserId();
-                            } else {
-                                attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                            if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
+                                if (ldapName.equals("uid")) {
+                                    attributeValue = authorizationGrant.getUser().getUserId();
+                                } else {
+                                    attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                                }
+
+                                jwt.getClaims().setClaim(claimName, attributeValue);
                             }
-
-                            jwt.getClaims().setClaim(claimName, attributeValue);
                         }
                     }
                 }
             }
         }
+
         if (authorizationGrant.getJwtAuthorizationRequest() != null
                 && authorizationGrant.getJwtAuthorizationRequest().getIdTokenMember() != null) {
             for (Claim claim : authorizationGrant.getJwtAuthorizationRequest().getIdTokenMember().getClaims()) {
@@ -251,6 +255,18 @@ public class IdTokenFactory {
                 AuthenticationScriptUsageType.BOTH, acrValues);
         if (script != null) {
             amrList.add(Integer.toString(script.getLevel()));
+
+            PersonAuthenticationType externalAuthenticator = (PersonAuthenticationType) script.getExternalType();
+            int apiVersion = externalAuthenticator.getApiVersion();
+
+            if (apiVersion > 3) {
+                Map<String, String> authenticationMethodClaimsOrNull = externalAuthenticator.getAuthenticationMethodClaims();
+                if (authenticationMethodClaimsOrNull != null) {
+                    for (String key : authenticationMethodClaimsOrNull.keySet()) {
+                        amrList.add(key + ":" + authenticationMethodClaimsOrNull.get(key));
+                    }
+                }
+            }
         }
 
         jwt.getClaims().setClaim(JwtClaimName.AUTHENTICATION_METHOD_REFERENCES, amrList);
@@ -258,7 +274,7 @@ public class IdTokenFactory {
 
     public Jwe generateEncryptedIdToken(
             IAuthorizationGrant authorizationGrant, String nonce, AuthorizationCode authorizationCode,
-            AccessToken accessToken, Set<String> scopes) throws Exception {
+            AccessToken accessToken, Set<String> scopes, boolean includeIdTokenClaims) throws Exception {
         Jwe jwe = new Jwe();
 
         // Header
@@ -303,29 +319,31 @@ public class IdTokenFactory {
         jwe.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
-        for (String scopeName : scopes) {
-            org.xdi.oxauth.model.common.Scope scope = scopeService.getScopeByDisplayName(scopeName);
-            if (org.xdi.oxauth.model.common.ScopeType.DYNAMIC == scope.getScopeType()) {
-                dynamicScopes.add(scope.getDisplayName());
-                continue;
-            }
+        if (includeIdTokenClaims) {
+            for (String scopeName : scopes) {
+                org.xdi.oxauth.model.common.Scope scope = scopeService.getScopeByDisplayName(scopeName);
+                if (org.xdi.oxauth.model.common.ScopeType.DYNAMIC == scope.getScopeType()) {
+                    dynamicScopes.add(scope.getDisplayName());
+                    continue;
+                }
 
-            if (scope != null && scope.getOxAuthClaims() != null) {
-                for (String claimDn : scope.getOxAuthClaims()) {
-                    GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
+                if (scope != null && scope.getOxAuthClaims() != null) {
+                    for (String claimDn : scope.getOxAuthClaims()) {
+                        GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
 
-                    String claimName = gluuAttribute.getOxAuthClaimName();
-                    String ldapName = gluuAttribute.getName();
-                    String attributeValue;
+                        String claimName = gluuAttribute.getOxAuthClaimName();
+                        String ldapName = gluuAttribute.getName();
+                        String attributeValue;
 
-                    if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
-                        if (ldapName.equals("uid")) {
-                            attributeValue = authorizationGrant.getUser().getUserId();
-                        } else {
-                            attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                        if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
+                            if (ldapName.equals("uid")) {
+                                attributeValue = authorizationGrant.getUser().getUserId();
+                            } else {
+                                attributeValue = authorizationGrant.getUser().getAttribute(gluuAttribute.getName());
+                            }
+
+                            jwe.getClaims().setClaim(claimName, attributeValue);
                         }
-
-                        jwe.getClaims().setClaim(claimName, attributeValue);
                     }
                 }
             }
@@ -441,16 +459,18 @@ public class IdTokenFactory {
 
     public static JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce, AuthorizationCode authorizationCode, AccessToken accessToken,
-            Set<String> scopes)
+            Set<String> scopes, boolean includeIdTokenClaims)
             throws Exception {
         IdTokenFactory idTokenFactory = IdTokenFactory.instance();
 
         final Client grantClient = grant.getClient();
         if (grantClient != null && grantClient.getIdTokenEncryptedResponseAlg() != null
                 && grantClient.getIdTokenEncryptedResponseEnc() != null) {
-            return idTokenFactory.generateEncryptedIdToken(grant, nonce, authorizationCode, accessToken, scopes);
+            return idTokenFactory.generateEncryptedIdToken(
+                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims);
         } else {
-            return idTokenFactory.generateSignedIdToken(grant, nonce, authorizationCode, accessToken, scopes);
+            return idTokenFactory.generateSignedIdToken(
+                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims);
         }
     }
 

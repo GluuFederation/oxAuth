@@ -227,15 +227,44 @@ public class UserService {
         return (User) entries;
     }
 
+    public User addUserAttributeByUserInum(String userInum, String attributeName, String attributeValue) {
+    	log.debug("Add user attribute by user inum  to LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
+
+        User user = getUserByInum(userInum);
+        if (user == null) {
+        	return null;
+        }
+        
+        boolean result = addUserAttribute(user, attributeName, attributeValue);
+        if (!result) {
+        	// We uses this result in Person Authentication Scripts
+        	addUserAttribute(user, attributeName, attributeValue);
+        }
+
+        return updateUser(user);
+    	
+    }
+    
     public User addUserAttribute(String userId, String attributeName, String attributeValue) {
         log.debug("Add user attribute to LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);
 
         User user = getUser(userId);
         if (user == null) {
+        	// We uses this result in Person Authentication Scripts
         	return null;
         }
         
-        CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+        boolean result = addUserAttribute(user, attributeName, attributeValue);
+        if (!result) {
+        	// We uses this result in Person Authentication Scripts
+        	return null;
+        }
+
+        return updateUser(user);
+    }
+
+    public boolean addUserAttribute(User user, String attributeName, String attributeValue) {
+		CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
         if (customAttribute == null) {
         	customAttribute = new CustomAttribute(attributeName, attributeValue);
             user.getCustomAttributes().add(customAttribute);
@@ -246,16 +275,16 @@ public class UserService {
         	newAttributeValues.addAll(currentAttributeValues);
 
         	if (newAttributeValues.contains(attributeValue)) {
-        		return null;
+        		return false;
         	} else {
         		newAttributeValues.add(attributeValue);
         	}
         	
         	customAttribute.setValues(newAttributeValues);
         }
-
-        return updateUser(user);
-    }
+        
+        return true;
+	}
 
     public User removeUserAttribute(String userId, String attributeName, String attributeValue) {
         log.debug("Remove user attribute from LDAP: attributeName = '{0}', attributeValue = '{1}'", attributeName, attributeValue);

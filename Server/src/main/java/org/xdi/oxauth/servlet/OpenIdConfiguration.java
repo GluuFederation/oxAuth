@@ -18,6 +18,7 @@ import org.xdi.oxauth.model.common.Scope;
 import org.xdi.oxauth.model.common.ScopeType;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.uma.UmaScopeType;
 import org.xdi.oxauth.service.AttributeService;
 import org.xdi.oxauth.service.ScopeService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
@@ -79,7 +80,10 @@ public class OpenIdConfiguration extends HttpServlet {
             ScopeService scopeService = ScopeService.instance();
             JSONArray scopesSupported = new JSONArray();
             for (Scope scope : scopeService.getAllScopesList()) {
-                scopesSupported.put(scope.getDisplayName());
+                boolean isUmaAuthorization = UmaScopeType.AUTHORIZATION.getValue().equals(scope.getDisplayName());
+                boolean isUmaProtection = UmaScopeType.PROTECTION.getValue().equals(scope.getDisplayName());
+                if (!isUmaAuthorization && !isUmaProtection)
+                    scopesSupported.put(scope.getDisplayName());
             }
             if (scopesSupported.length() > 0) {
                 jsonObj.put(SCOPES_SUPPORTED, scopesSupported);
@@ -340,13 +344,8 @@ public class OpenIdConfiguration extends HttpServlet {
         final JSONObject mappings = new JSONObject();
         try {
             Map<Integer, Set<String>> map = ExternalAuthenticationService.instance().levelToAcrMapping();
-
-            for (Integer level : map.keySet()) {
-                final JSONArray mappingList = new JSONArray();
-                mappingList.put(map.get(level));
-
-                mappings.put(level.toString(), mappingList);
-            }
+            for (Integer level : map.keySet())
+                mappings.put(level.toString(), map.get(level));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

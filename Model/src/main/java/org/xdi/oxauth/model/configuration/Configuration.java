@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents the configuration XML file.
@@ -21,7 +21,7 @@ import java.util.Map;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version September 21, 2016
+ * @version October 7, 2016
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {
@@ -36,6 +36,7 @@ public class Configuration {
     private String clientInfoEndpoint;
     private String checkSessionIFrame;
     private String endSessionEndpoint;
+    private String endSessionPage;
     private String jwksUri;
     private String registrationEndpoint;
     private String validateTokenEndpoint;
@@ -105,8 +106,6 @@ public class Configuration {
     private List<AuthenticationFilter> authenticationFilters;
     private List<ClientAuthenticationFilter> clientAuthenticationFilters;
 
-    private Map<Integer, List<String>> authLevelMapping; //auth_level_mapping
-
     private String applianceInum;
     private int sessionIdUnusedLifetime;
     private int sessionIdUnauthenticatedUnusedLifetime = 120; // 120 seconds
@@ -135,9 +134,13 @@ public class Configuration {
     private String oxElevenDeleteKeyEndpoint;
 
     private Boolean endSessionWithAccessToken;
-
+    private Boolean enabledOAuthAuditLogging;
+    private Set<String> jmsBrokerURISet;
+    private String jmsUserName;
+    private String jmsPassword;
     private List<String> clientWhiteList;
     private List<String> clientBlackList;
+    private Boolean legacyIdTokenClaims;
 
     @XmlElement(name = "uma-rpt-as-jwt")
     public Boolean getUmaRptAsJwt() {
@@ -365,6 +368,25 @@ public class Configuration {
      */
     public void setEndSessionEndpoint(String endSessionEndpoint) {
         this.endSessionEndpoint = endSessionEndpoint;
+    }
+
+    /**
+     * Returns the URL of the End Session page.
+     *
+     * @return The URL of the End Session page.
+     */
+    @XmlElement(name = "end-session-page")
+    public String getEndSessionPage() {
+        return endSessionPage;
+    }
+
+    /**
+     * Sets the URL of the End Session page.
+     *
+     * @param endSessionPage The URL of the End Session page.
+     */
+    public void setEndSessionPage(String endSessionPage) {
+        this.endSessionPage = endSessionPage;
     }
 
     /**
@@ -945,15 +967,6 @@ public class Configuration {
         return clientAuthenticationFilters;
     }
 
-    @XmlElement(name = "auth_level_mapping")
-    public Map<Integer, List<String>> getAuthLevelMapping() {
-        return authLevelMapping;
-    }
-
-    public void setAuthLevelMapping(Map<Integer, List<String>> authLevelMapping) {
-        this.authLevelMapping = authLevelMapping;
-    }
-
     @XmlElement(name = "appliance-inum")
     public String getApplianceInum() {
         return applianceInum;
@@ -1160,6 +1173,38 @@ public class Configuration {
         this.endSessionWithAccessToken = endSessionWithAccessToken;
     }
 
+    public Boolean getEnabledOAuthAuditLogging() {
+        return enabledOAuthAuditLogging;
+    }
+
+    public void setEnabledOAuthAuditLogging(Boolean enabledOAuthAuditLogging) {
+        this.enabledOAuthAuditLogging = enabledOAuthAuditLogging;
+    }
+
+    public Set<String> getJmsBrokerURISet() {
+        return jmsBrokerURISet;
+    }
+
+    public void setJmsBrokerURISet(Set<String> jmsBrokerURISet) {
+        this.jmsBrokerURISet = jmsBrokerURISet;
+    }
+
+    public String getJmsUserName() {
+        return jmsUserName;
+    }
+
+    public void setJmsUserName(String jmsUserName) {
+        this.jmsUserName = jmsUserName;
+    }
+
+    public String getJmsPassword() {
+        return jmsPassword;
+    }
+
+    public void setJmsPassword(String jmsPassword) {
+        this.jmsPassword = jmsPassword;
+    }
+
     public List<String> getClientWhiteList() {
         return clientWhiteList;
     }
@@ -1174,5 +1219,13 @@ public class Configuration {
 
     public void setClientBlackList(List<String> clientBlackList) {
         this.clientBlackList = clientBlackList;
+    }
+
+    public Boolean getLegacyIdTokenClaims() {
+        return legacyIdTokenClaims;
+    }
+
+    public void setLegacyIdTokenClaims(Boolean legacyIdTokenClaims) {
+        this.legacyIdTokenClaims = legacyIdTokenClaims;
     }
 }
