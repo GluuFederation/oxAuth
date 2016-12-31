@@ -6,16 +6,24 @@
 
 package org.xdi.oxauth.service;
 
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.*;
+import org.jboss.seam.annotations.AutoCreate;
+import org.jboss.seam.annotations.Create;
+import org.jboss.seam.annotations.In;
+import org.jboss.seam.annotations.Logger;
+import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Observer;
+import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.Startup;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
-
-import java.util.Map;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -34,10 +42,12 @@ public class ClientFilterService extends BaseAuthFilterService {
     @In
     private LdapEntryManager ldapEntryManager;
 
+    @In
+    private AppConfiguration appConfiguration;
+
     @Create
     public void init() {
-        final Configuration conf = ConfigurationFactory.instance().getConfiguration();
-        super.init(conf.getClientAuthenticationFilters(), Boolean.TRUE.equals(conf.getClientAuthenticationFiltersEnabled()), false);
+        super.init(appConfiguration.getClientAuthenticationFilters(), Boolean.TRUE.equals(appConfiguration.getClientAuthenticationFiltersEnabled()), false);
     }
 
     public String processAuthenticationFilter(AuthenticationFilterWithParameters authenticationFilterWithParameters, Map<?, ?> attributeValues) {

@@ -1,3 +1,9 @@
+/*
+ * oxAuth is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2014, Gluu
+ */
+
 package org.xdi.oxauth.ws.rs;
 
 import org.testng.annotations.Parameters;
@@ -7,7 +13,6 @@ import org.xdi.oxauth.client.*;
 import org.xdi.oxauth.model.authorize.CodeVerifier;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.common.GrantType;
-import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.util.StringUtils;
@@ -21,21 +26,25 @@ import static org.xdi.oxauth.client.Asserter.assertOk;
 
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 25/03/2016
+ * @author Javier Rojas Blum
+ * @version November 30, 2016
  */
 
 public class PkceHttpTest extends BaseTest {
 
-    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri"})
+    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri", "sectorIdentifierUri"})
     @Test
-    public void tokenWithPkceCheck(final String redirectUris, final String userId, final String userSecret,
-                                  final String redirectUri) throws Exception {
+    public void tokenWithPkceCheck(
+            final String redirectUris, final String userId, final String userSecret, final String redirectUri,
+            final String sectorIdentifierUri) throws Exception {
         showTitle("tokenWithPkceCheck");
 
         // 1. Register client
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
         registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_POST);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
         RegisterResponse registerResponse = registerClient.exec();
@@ -55,17 +64,11 @@ public class PkceHttpTest extends BaseTest {
 
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, registerResponse.getClientId(), scopes, redirectUri, null);
         authorizationRequest.setState(state);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
         CodeVerifier verifier = authorizationRequest.generateAndSetCodeChallengeWithMethod();
-        authorizationRequest.getPrompts().add(Prompt.NONE);
 
-        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setRequest(authorizationRequest);
-        AuthorizationResponse authorizationResponse = authorizeClient.exec();
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
 
-        showClient(authorizeClient);
-        assertEquals(authorizationResponse.getStatus(), 302, "Unexpected response code: " + authorizationResponse.getStatus());
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNotNull(authorizationResponse.getCode(), "The authorization code is null");
         assertNotNull(authorizationResponse.getState(), "The state is null");
@@ -97,16 +100,19 @@ public class PkceHttpTest extends BaseTest {
 
     }
 
-    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri"})
+    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri", "sectorIdentifierUri"})
     @Test
-    public void invalidCodeVerifier(final String redirectUris, final String userId, final String userSecret,
-                                  final String redirectUri) throws Exception {
+    public void invalidCodeVerifier(
+            final String redirectUris, final String userId, final String userSecret, final String redirectUri,
+            final String sectorIdentifierUri) throws Exception {
         showTitle("invalidCodeVerifier");
 
         // 1. Register client
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
         registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_POST);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
         RegisterResponse registerResponse = registerClient.exec();
@@ -126,17 +132,11 @@ public class PkceHttpTest extends BaseTest {
 
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, registerResponse.getClientId(), scopes, redirectUri, null);
         authorizationRequest.setState(state);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
         authorizationRequest.generateAndSetCodeChallengeWithMethod(); // PKCE is set !!!
-        authorizationRequest.getPrompts().add(Prompt.NONE);
 
-        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setRequest(authorizationRequest);
-        AuthorizationResponse authorizationResponse = authorizeClient.exec();
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
 
-        showClient(authorizeClient);
-        assertEquals(authorizationResponse.getStatus(), 302, "Unexpected response code: " + authorizationResponse.getStatus());
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNotNull(authorizationResponse.getCode(), "The authorization code is null");
         assertNotNull(authorizationResponse.getState(), "The state is null");

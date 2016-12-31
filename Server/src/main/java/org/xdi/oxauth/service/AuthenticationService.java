@@ -8,10 +8,8 @@ package org.xdi.oxauth.service;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
-import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
-import org.jboss.seam.annotations.Observer;
 import org.jboss.seam.contexts.Context;
 import org.jboss.seam.contexts.Contexts;
 import org.jboss.seam.faces.FacesManager;
@@ -19,7 +17,6 @@ import org.jboss.seam.log.Log;
 import org.jboss.seam.security.Credentials;
 import org.jboss.seam.security.Identity;
 import org.xdi.ldap.model.CustomAttribute;
-import org.xdi.ldap.model.CustomEntry;
 import org.xdi.ldap.model.GluuStatus;
 import org.xdi.model.SimpleProperty;
 import org.xdi.model.ldap.GluuLdapConfiguration;
@@ -38,7 +35,7 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 
 import javax.annotation.Nonnull;
-import javax.faces.context.FacesContext;
+import javax.faces.context.ExternalContext;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
@@ -51,7 +48,7 @@ import static org.xdi.oxauth.model.authorize.AuthorizeResponseParam.SESSION_STAT
  *
  * @author Yuriy Movchan
  * @author Javier Rojas Blum
- * @version September 9, 2016
+ * @version December 26, 2016
  */
 @Scope(ScopeType.STATELESS)
 @Name("authenticationService")
@@ -62,15 +59,36 @@ public class AuthenticationService {
 
     // use only "acr" instead of "acr_values" #334
     public static final List<String> ALLOWED_PARAMETER = Collections.unmodifiableList(Arrays.asList(
-            "scope", "response_type", "client_id", "redirect_uri", "state", "response_mode", "nonce", "display", "prompt", "max_age",
-            "ui_locales", "id_token_hint", "login_hint", "acr", "session_state", "request", "request_uri",
-            AuthorizeRequestParam.ORIGIN_HEADERS, AuthorizeRequestParam.CODE_CHALLENGE, AuthorizeRequestParam.CODE_CHALLENGE_METHOD));
+            AuthorizeRequestParam.SCOPE,
+            AuthorizeRequestParam.RESPONSE_TYPE,
+            AuthorizeRequestParam.CLIENT_ID,
+            AuthorizeRequestParam.REDIRECT_URI,
+            AuthorizeRequestParam.STATE,
+            AuthorizeRequestParam.RESPONSE_MODE,
+            AuthorizeRequestParam.NONCE,
+            AuthorizeRequestParam.DISPLAY,
+            AuthorizeRequestParam.PROMPT,
+            AuthorizeRequestParam.MAX_AGE,
+            AuthorizeRequestParam.UI_LOCALES,
+            AuthorizeRequestParam.ID_TOKEN_HINT,
+            AuthorizeRequestParam.LOGIN_HINT,
+            AuthorizeRequestParam.ACR_VALUES,
+            AuthorizeRequestParam.SESSION_STATE,
+            AuthorizeRequestParam.REQUEST,
+            AuthorizeRequestParam.REQUEST_URI,
+            AuthorizeRequestParam.ORIGIN_HEADERS,
+            AuthorizeRequestParam.CODE_CHALLENGE,
+            AuthorizeRequestParam.CODE_CHALLENGE_METHOD,
+            AuthorizeRequestParam.CUSTOM_RESPONSE_HEADERS));
 
     @Logger
     private Log log;
 
     @In
     private Identity identity;
+
+    @In(value = "#{facesContext.externalContext}", required = false)
+    private ExternalContext externalContext;
 
     @In(required = false, value = AppInitializer.LDAP_AUTH_CONFIG_NAME)
     // created by app initializer
@@ -95,10 +113,10 @@ public class AuthenticationService {
     private ExternalAuthenticationService externalAuthenticationService;
 
     @In
-    private SessionState sessionUser;
-
-    @In
     private MetricService metricService;
+
+    @In("org.jboss.seam.core.manager")
+    private FacesManager facesManager;
 
     /**
      * Authenticate user.
@@ -138,8 +156,8 @@ public class AuthenticationService {
         return authenticated;
     }
 
-	private void setAuthenticatedUserSessionAttribute(String userName, boolean authenticated) {
-		SessionState sessionState = sessionStateService.getSessionState();
+    private void setAuthenticatedUserSessionAttribute(String userName, boolean authenticated) {
+        SessionState sessionState = sessionStateService.getSessionState();
         if (sessionState != null) {
             Map<String, String> sessionIdAttributes = sessionState.getSessionAttributes();
             if (authenticated) {
@@ -153,7 +171,7 @@ public class AuthenticationService {
                 throw new InvalidStateException("authenticate: User name and user in credentials don't match");
             }
         }
-	}
+    }
 
     private boolean localAuthenticate(Credentials credentials, String userName, String password) {
         User user = userService.getUser(userName);
@@ -242,8 +260,9 @@ public class AuthenticationService {
      */
     public boolean authenticate(GluuLdapConfiguration ldapAuthConfig, LdapEntryManager ldapAuthEntryManager, String keyValue, String password, String primaryKey, String localPrimaryKey) {
         Credentials credentials = ServerUtil.instance(Credentials.class);
-    	return authenticate(credentials, ldapAuthConfig, ldapAuthEntryManager, keyValue, password, primaryKey, localPrimaryKey);
+        return authenticate(credentials, ldapAuthConfig, ldapAuthEntryManager, keyValue, password, primaryKey, localPrimaryKey);
     }
+
     public boolean authenticate(Credentials credentials, GluuLdapConfiguration ldapAuthConfig, LdapEntryManager ldapAuthEntryManager, String keyValue, String password, String primaryKey, String localPrimaryKey) {
         log.debug("Attempting to find userDN by primary key: '{0}' and key value: '{1}', credentials: '{2}'", primaryKey, keyValue, System.identityHashCode(credentials));
 
@@ -370,20 +389,21 @@ public class AuthenticationService {
     }
 
     private void updateLastLogonUserTime(User user) {
-        CustomEntry customEntry = new CustomEntry();
-        customEntry.setDn(user.getDn());
-
-        CustomAttribute customAttribute = new CustomAttribute("oxLastLogonTime", new Date());
-        customEntry.getCustomAttributes().add(customAttribute);
-
-        try {
-            ldapEntryManager.merge(customEntry);
-        } catch (EntryPersistenceException epe) {
-            log.error("Failed to update oxLastLoginTime of user '{0}'", user.getUserId());
-        }
+//        CustomEntry customEntry = new CustomEntry();
+//        customEntry.setDn(user.getDn());
+//		customEntry.setCustomObjectClasses(UserService.USER_OBJECT_CLASSES);
+//
+//        CustomAttribute customAttribute = new CustomAttribute("oxLastLogonTime", new Date());
+//        customEntry.getCustomAttributes().add(customAttribute);
+//
+//        try {
+//            ldapEntryManager.merge(customEntry);
+//        } catch (EntryPersistenceException epe) {
+//            log.error("Failed to update oxLastLoginTime of user '{0}'", user.getUserId());
+//        }
     }
 
-    public void configureSessionUser(SessionState sessionState, Map<String, String> sessionIdAttributes) {
+    public SessionState configureSessionUser(SessionState sessionState, Map<String, String> sessionIdAttributes) {
         Credentials credentials = ServerUtil.instance(Credentials.class);
 
         log.trace("configureSessionUser: credentials: '{0}', sessionState: '{1}', credentials.userName: '{2}', authenticatedUser.userId: '{3}'", System.identityHashCode(credentials), sessionState, credentials.getUsername(), getAuthenticatedUserId());
@@ -405,6 +425,8 @@ public class AuthenticationService {
         }
 
         configureEventUserContext(newSessionState);
+
+        return newSessionState;
     }
 
     public SessionState configureEventUser() {
@@ -445,14 +467,14 @@ public class AuthenticationService {
         if (eventContext.isSet(EVENT_CONTEXT_AUTHENTICATED_USER)) {
             return (User) eventContext.get(EVENT_CONTEXT_AUTHENTICATED_USER);
         } else {
-    		SessionState sessionState = sessionStateService.getSessionState();
+            SessionState sessionState = sessionStateService.getSessionState();
             if (sessionState != null) {
                 Map<String, String> sessionIdAttributes = sessionState.getSessionAttributes();
                 String userId = sessionIdAttributes.get(Constants.AUTHENTICATED_USER);
                 if (StringHelper.isNotEmpty(userId)) {
-                	User user = userService.getUser(userId);
+                    User user = userService.getUser(userId);
                     eventContext.set(EVENT_CONTEXT_AUTHENTICATED_USER, user);
-                    
+
                     return user;
                 }
             }
@@ -491,8 +513,8 @@ public class AuthenticationService {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    @Observer(value = {Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL, Identity.EVENT_LOGIN_SUCCESSFUL})
-    public void onSuccessfulLogin() {
+//    @Observer(value = {Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL, Identity.EVENT_LOGIN_SUCCESSFUL})
+    public void onSuccessfulLogin(SessionState sessionUser) {
         log.info("Attempting to redirect user: SessionUser: {0}", sessionUser);
 
         if ((sessionUser == null) || StringUtils.isBlank(sessionUser.getUserDn())) {
@@ -510,7 +532,7 @@ public class AuthenticationService {
             result.put(SESSION_STATE, sessionUser.getId());
 
             log.trace("Logged in successfully! User: {0}, page: /authorize.xhtml, map: {1}", user, allowedParameters);
-            FacesManager.instance().redirect("/authorize.xhtml", (Map) allowedParameters, false);
+            facesManager.redirect("/authorize.xhtml", (Map) allowedParameters, false);
         }
     }
 
@@ -572,7 +594,7 @@ public class AuthenticationService {
     }
 
     public Map<String, String> getParametersMap(List<String> extraParameters) {
-        final Map<String, String> parameterMap = new HashMap<String, String>(FacesContext.getCurrentInstance().getExternalContext()
+        final Map<String, String> parameterMap = new HashMap<String, String>(externalContext
                 .getRequestParameterMap());
 
         return getParametersMap(extraParameters, parameterMap);

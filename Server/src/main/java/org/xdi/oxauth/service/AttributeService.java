@@ -9,11 +9,9 @@ package org.xdi.oxauth.service;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
-import org.jboss.seam.contexts.Contexts;
-import org.jboss.seam.contexts.Lifecycle;
 import org.jboss.seam.log.Log;
 import org.xdi.model.GluuAttribute;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
 import org.xdi.service.CacheService;
 
 import java.util.List;
@@ -35,17 +33,14 @@ public class AttributeService extends org.xdi.service.AttributeService {
     @In
     private CacheService cacheService;
 
+    @In
+    private StaticConf staticConfiguration;
     /**
      * Get AttributeService instance
      *
      * @return AttributeService instance
      */
     public static AttributeService instance() {
-        boolean createContexts = !Contexts.isEventContextActive() && !Contexts.isApplicationContextActive();
-        if (createContexts) {
-            Lifecycle.beginCall();
-        }
-
         return (AttributeService) Component.getInstance(AttributeService.class);
     }
 
@@ -68,7 +63,7 @@ public class AttributeService extends org.xdi.service.AttributeService {
     }
 
     public GluuAttribute getByLdapName(String name) {
-        List<GluuAttribute> gluuAttributes = getAttributesByAttribute("gluuAttributeName", name, ConfigurationFactory.instance().getBaseDn().getAttributes());
+        List<GluuAttribute> gluuAttributes = getAttributesByAttribute("gluuAttributeName", name, staticConfiguration.getBaseDn().getAttributes());
         if (gluuAttributes.size() > 0) {
             for (GluuAttribute gluuAttribute : gluuAttributes) {
                 if (gluuAttribute.getName() != null && gluuAttribute.getName().equals(name)) {
@@ -81,7 +76,7 @@ public class AttributeService extends org.xdi.service.AttributeService {
     }
 
     public GluuAttribute getByClaimName(String name) {
-        List<GluuAttribute> gluuAttributes = getAttributesByAttribute("oxAuthClaimName", name, ConfigurationFactory.instance().getBaseDn().getAttributes());
+        List<GluuAttribute> gluuAttributes = getAttributesByAttribute("oxAuthClaimName", name, staticConfiguration.getBaseDn().getAttributes());
         if (gluuAttributes.size() > 0) {
             for (GluuAttribute gluuAttribute : gluuAttributes) {
                 if (gluuAttribute.getOxAuthClaimName() != null && gluuAttribute.getOxAuthClaimName().equals(name)) {
@@ -94,6 +89,6 @@ public class AttributeService extends org.xdi.service.AttributeService {
     }
 
     public List<GluuAttribute> getAllAttributes() {
-        return getAllAttributes(ConfigurationFactory.instance().getBaseDn().getAttributes());
+        return getAllAttributes(staticConfiguration.getBaseDn().getAttributes());
     }
 }

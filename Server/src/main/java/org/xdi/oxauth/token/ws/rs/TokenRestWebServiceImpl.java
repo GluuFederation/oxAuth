@@ -6,16 +6,37 @@
 
 package org.xdi.oxauth.token.ws.rs;
 
-import com.google.common.base.Strings;
+import java.security.SignatureException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.SecurityContext;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.log.Log;
+import org.xdi.oxauth.audit.ApplicationAuditLogger;
+import org.xdi.oxauth.model.audit.Action;
+import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.authorize.CodeVerifier;
-import org.xdi.oxauth.model.common.*;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.common.AccessToken;
+import org.xdi.oxauth.model.common.AuthorizationCodeGrant;
+import org.xdi.oxauth.model.common.AuthorizationGrant;
+import org.xdi.oxauth.model.common.AuthorizationGrantList;
+import org.xdi.oxauth.model.common.ClientCredentialsGrant;
+import org.xdi.oxauth.model.common.GrantType;
+import org.xdi.oxauth.model.common.IdToken;
+import org.xdi.oxauth.model.common.RefreshToken;
+import org.xdi.oxauth.model.common.ResourceOwnerPasswordCredentialsGrant;
+import org.xdi.oxauth.model.common.TokenType;
+import org.xdi.oxauth.model.common.User;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.InvalidJweException;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
@@ -31,13 +52,7 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-import java.security.SignatureException;
+import com.google.common.base.Strings;
 
 /**
  * Provides interface for token REST web services
@@ -52,6 +67,9 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     private Log log;
 
     @In
+    private ApplicationAuditLogger applicationAuditLogger;
+
+    @In
     private ErrorResponseFactory errorResponseFactory;
 
     @In
@@ -64,13 +82,16 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     private UserService userService;
 
     @In
+    private GrantService grantService;
+
+    @In
     private AuthenticationFilterService authenticationFilterService;
 
     @In
     private AuthenticationService authenticationService;
 
     @In
-    private ConfigurationFactory configurationFactory;
+    private AppConfiguration appConfiguration;
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -83,6 +104,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         "clientId = {5}, ExtraParams = {6}, isSecure = {7}, codeVerifier = {8}",
                 grantType, code, redirectUri, username, refreshToken, clientId, request.getParameterMap(),
                 sec.isSecure(), codeVerifier);
+
+        OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(request), Action.TOKEN_REQUEST);
+        oAuth2AuditLog.setClientId(clientId);
+        oAuth2AuditLog.setUsername(username);
+        oAuth2AuditLog.setScope(scope);
 
         scope = ServerUtil.urlDecode(scope); // it may be encoded in uma case
         ResponseBuilder builder = Response.ok();
@@ -101,7 +127,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         return response(error(400, TokenErrorResponseType.INVALID_GRANT));
                     }
 
-                    GrantService grantService = GrantService.instance();
                     AuthorizationCodeGrant authorizationCodeGrant = authorizationGrantList.getAuthorizationCodeGrant(client.getClientId(), code);
 
                     if (authorizationCodeGrant != null) {
@@ -120,7 +145,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         if (authorizationCodeGrant.getScopes().contains("openid")) {
                             String nonce = authorizationCodeGrant.getNonce();
                             boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
+                            		appConfiguration.getLegacyIdTokenClaims());
                             idToken = authorizationCodeGrant.createIdToken(
                                     nonce, null, accToken, authorizationCodeGrant, includeIdTokenClaims);
                         }
@@ -131,6 +156,8 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                                 reToken,
                                 scope,
                                 idToken));
+
+                        oAuth2AuditLog.updateOAuth2AuditLog(authorizationCodeGrant, true);
 
                         grantService.removeByCode(authorizationCodeGrant.getAuthorizationCode().getCode(), authorizationCodeGrant.getClientId());
                     } else {
@@ -167,6 +194,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                                 reToken,
                                 scope,
                                 null));
+                        oAuth2AuditLog.updateOAuth2AuditLog(authorizationGrant, true);
                     } else {
                         builder = error(401, TokenErrorResponseType.INVALID_GRANT);
                     }
@@ -186,11 +214,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     IdToken idToken = null;
                     if (clientCredentialsGrant.getScopes().contains("openid")) {
                         boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                                configurationFactory.getConfiguration().getLegacyIdTokenClaims());
+                        		appConfiguration.getLegacyIdTokenClaims());
                         idToken = clientCredentialsGrant.createIdToken(
                                 null, null, null, clientCredentialsGrant, includeIdTokenClaims);
                     }
 
+                    oAuth2AuditLog.updateOAuth2AuditLog(clientCredentialsGrant, true);
                     builder.entity(getJSonResponse(accessToken,
                             accessToken.getTokenType(),
                             accessToken.getExpiresIn(),
@@ -231,11 +260,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         IdToken idToken = null;
                         if (resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
                             boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                                    configurationFactory.getConfiguration().getLegacyIdTokenClaims());
+                            		appConfiguration.getLegacyIdTokenClaims());
                             idToken = resourceOwnerPasswordCredentialsGrant.createIdToken(
                                     null, null, null, resourceOwnerPasswordCredentialsGrant, includeIdTokenClaims);
                         }
 
+                        oAuth2AuditLog.updateOAuth2AuditLog(resourceOwnerPasswordCredentialsGrant, true);
                         builder.entity(getJSonResponse(accessToken,
                                 accessToken.getTokenType(),
                                 accessToken.getExpiresIn(),
@@ -254,6 +284,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     if (authorizationGrant != null) {
                         final AccessToken accessToken = authorizationGrant.createLongLivedAccessToken();
 
+                        oAuth2AuditLog.updateOAuth2AuditLog(authorizationGrant, true);
                         builder.entity(getJSonResponse(accessToken,
                                 accessToken.getTokenType(),
                                 accessToken.getExpiresIn(),
@@ -282,6 +313,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             log.error(e.getMessage(), e);
         }
 
+        applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return response(builder);
     }
 

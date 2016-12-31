@@ -18,6 +18,8 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.UmaErrorResponseType;
 import org.xdi.oxauth.model.uma.persistence.InternalExternal;
@@ -51,6 +53,12 @@ public class ScopeService {
     private InumService inumService;
     @In
     private ErrorResponseFactory errorResponseFactory;
+
+    @In
+    private AppConfiguration appConfiguration;
+
+    @In
+    private StaticConf staticConfiguration;
 
     public static ScopeService instance() {
         return ServerUtil.instance(ScopeService.class);
@@ -160,7 +168,7 @@ public class ScopeService {
                 result.add(entries.get(0).getDn());
             } else { // scope is not in ldap, add it dynamically
 
-                final Boolean addAutomatically = ConfigurationFactory.instance().getConfiguration().getUmaAddScopesAutomatically();
+                final Boolean addAutomatically = appConfiguration.getUmaAddScopesAutomatically();
 
                 if (addAutomatically != null && addAutomatically) {
                     final String inum = inumService.generateInum();
@@ -230,7 +238,7 @@ public class ScopeService {
         return result;
     }
 
-    public static List<String> getScopeUrls(List<ScopeDescription> p_scopes) {
+    public List<String> getScopeUrls(List<ScopeDescription> p_scopes) {
         final List<String> result = new ArrayList<String>();
         if (p_scopes != null && !p_scopes.isEmpty()) {
             for (ScopeDescription s : p_scopes) {
@@ -253,15 +261,15 @@ public class ScopeService {
         return result;
     }
 
-    private static String getInternalScopeUrl(ScopeDescription internalScope) {
+    private String getInternalScopeUrl(ScopeDescription internalScope) {
         if (internalScope != null && internalScope.getType() == InternalExternal.INTERNAL) {
             return getScopeEndpoint() + "/" + internalScope.getId();
         }
         return "";
     }
 
-    private static String getScopeEndpoint() {
-        return ConfigurationFactory.instance().getConfiguration().getBaseEndpoint() + UmaConfigurationWS.UMA_SCOPES_SUFFIX;
+    private String getScopeEndpoint() {
+        return appConfiguration.getBaseEndpoint() + UmaConfigurationWS.UMA_SCOPES_SUFFIX;
     }
 
     private Filter createAnyFilterByUrls(List<String> p_scopeUrls) {
@@ -285,7 +293,7 @@ public class ScopeService {
         return null;
     }
 
-    public static String baseDn() {
-        return String.format("ou=scopes,%s", ConfigurationFactory.instance().getBaseDn().getUmaBase());
+    public String baseDn() {
+        return String.format("ou=scopes,%s", staticConfiguration.getBaseDn().getUmaBase());
     }
 }

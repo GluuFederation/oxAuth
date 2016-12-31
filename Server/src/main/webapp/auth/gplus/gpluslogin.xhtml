@@ -9,7 +9,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
 		<!-- Google+ script -->
-		<script src="#{oxAuthConfigurationService.jsLocation}/jquery-1.11.3.min.js"></script>
+		<script src="#{oxAuthConfigurationService.jsLocation}/jquery-1.12.4.min.js"></script>
 		<script src="https://apis.google.com/js/client:platform.js?onload=start" async="async" defer="defer"></script>
 	
 		<style type="text/css">
@@ -54,7 +54,7 @@
 				<td>
 					<div>
 						<h:form id="loginForm">
-							<s:token />
+							<s:token allowMultiplePosts="true" />
 
 							<input type="hidden" name="gplus_auth_code" value="" />
 

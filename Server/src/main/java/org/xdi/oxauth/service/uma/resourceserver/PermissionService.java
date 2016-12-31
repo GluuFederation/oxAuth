@@ -8,28 +8,23 @@ package org.xdi.oxauth.service.uma.resourceserver;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Logger;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.common.uma.UmaRPT;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.uma.PermissionTicket;
 import org.xdi.oxauth.model.uma.UmaPermission;
-import org.xdi.oxauth.model.uma.PermissionTicket;
 import org.xdi.oxauth.model.uma.persistence.ResourceSet;
 import org.xdi.oxauth.model.uma.persistence.ResourceSetPermission;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.token.TokenService;
 import org.xdi.oxauth.service.uma.ResourceSetPermissionManager;
-import org.xdi.oxauth.uma.ws.rs.PermissionRegistrationWS;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.Pair;
 
 import javax.ws.rs.core.Response;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -42,6 +37,8 @@ import java.util.List;
 @AutoCreate
 public class PermissionService {
 
+    public static final int DEFAULT_PERMISSION_LIFETIME = 3600;
+
     @Logger
     private Log log;
     @In
@@ -50,6 +47,8 @@ public class PermissionService {
     private TokenService tokenService;
     @In
     private ResourceSetPermissionManager resourceSetPermissionManager;
+    @In
+    private AppConfiguration appConfiguration;
 
     public static PermissionService instance() {
         return ServerUtil.instance(PermissionService.class);
@@ -83,8 +82,8 @@ public class PermissionService {
 
             log.debug("Construct response: HTTP 403 (Forbidden), entity: " + entity);
             final Response response = Response.status(Response.Status.FORBIDDEN).
-                    header("host_id", ConfigurationFactory.instance().getConfiguration().getIssuer()).
-                    header("as_uri", ConfigurationFactory.instance().getConfiguration().getUmaConfigurationEndpoint()).
+                    header("host_id", appConfiguration.getIssuer()).
+                    header("as_uri", appConfiguration.getUmaConfigurationEndpoint()).
                     header("error", "insufficient_scope").
                     entity(entity).
                     build();
@@ -118,14 +117,25 @@ public class PermissionService {
         return false;
     }
 
+    public Date rptExpirationDate() {
+        int lifeTime = appConfiguration.getUmaRequesterPermissionTokenLifetime();
+        if (lifeTime <= 0) {
+            lifeTime = DEFAULT_PERMISSION_LIFETIME;
+        }
+
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, lifeTime);
+        return calendar.getTime();
+    }
+
     private String registerPermission(UmaRPT p_rpt, ResourceSet p_resource, List<RsScopeType> p_scopes) {
-        final Date expirationDate = PermissionRegistrationWS.rptExpirationDate();
+        final Date expirationDate = rptExpirationDate();
 
         final UmaPermission r = new UmaPermission();
         r.setResourceSetId(p_resource.getId());
         r.setExpiresAt(expirationDate);
 
-        final String host = ConfigurationFactory.instance().getConfiguration().getIssuer();
+        final String host = appConfiguration.getIssuer();
         final ResourceSetPermission permission = resourceSetPermissionManager.createResourceSetPermission(
                 host, r, expirationDate);
         // IMPORTANT : set scope dns before persistence

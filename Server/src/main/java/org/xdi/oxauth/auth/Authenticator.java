@@ -28,8 +28,8 @@ import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.SessionState;
 import org.xdi.oxauth.model.common.User;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.config.Constants;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.service.AuthenticationService;
@@ -40,7 +40,6 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 
 import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.List;
@@ -79,7 +78,13 @@ public class Authenticator implements Serializable {
     private ExternalAuthenticationService externalAuthenticationService;
 
     @In
+    private AppConfiguration appConfiguration;
+
+    @In
     private FacesMessages facesMessages;
+
+    @In(value = "#{facesContext.externalContext}", required = false)
+    private ExternalContext externalContext;
 
     private String authAcr;
 
@@ -211,7 +216,6 @@ public class Authenticator implements Serializable {
                 return false;
             }
 
-            ExternalContext extCtx = FacesContext.getCurrentInstance().getExternalContext();
             CustomScriptConfiguration customScriptConfiguration = externalAuthenticationService.getCustomScriptConfiguration(AuthenticationScriptUsageType.INTERACTIVE, this.authAcr);
             if (customScriptConfiguration == null) {
                 log.error("Failed to get CustomScriptConfiguration for acr: '{1}', auth_step: '{0}'", this.authAcr, this.authStep);
@@ -225,7 +229,7 @@ public class Authenticator implements Serializable {
                 return false;
             }
 
-            boolean result = externalAuthenticationService.executeExternalAuthenticate(customScriptConfiguration, extCtx.getRequestParameterValuesMap(), this.authStep);
+            boolean result = externalAuthenticationService.executeExternalAuthenticate(customScriptConfiguration, externalContext.getRequestParameterValuesMap(), this.authStep);
             log.debug("Authentication result for user '{0}'. auth_step: '{1}', result: '{2}', credentials: '{3}'", credentials.getUsername(), this.authStep, result, System.identityHashCode(credentials));
 
             int overridenNextStep = -1;
@@ -233,7 +237,7 @@ public class Authenticator implements Serializable {
             int apiVersion = externalAuthenticationService.executeExternalGetApiVersion(customScriptConfiguration);
             if (apiVersion > 1) {
             	log.trace("According to API version script supports steps overriding");
-            	overridenNextStep = externalAuthenticationService.getNextStep(customScriptConfiguration, extCtx.getRequestParameterValuesMap(), this.authStep);
+            	overridenNextStep = externalAuthenticationService.getNextStep(customScriptConfiguration, externalContext.getRequestParameterValuesMap(), this.authStep);
             	log.debug("Get next step from script: '{0}'", apiVersion);
             }
 
@@ -303,7 +307,7 @@ public class Authenticator implements Serializable {
             }
 
             if (this.authStep == countAuthenticationSteps) {
-                authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
+            	SessionState eventSessionState = authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
 
                 Principal principal = new SimplePrincipal(credentials.getUsername());
                 identity.acceptExternallyAuthenticatedPrincipal(principal);
@@ -312,7 +316,8 @@ public class Authenticator implements Serializable {
                 // Redirect to authorization workflow
                 if (Events.exists()) {
                     log.debug("Sending event to trigger user redirection: '{0}'", credentials.getUsername());
-                    Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
+                    authenticationService.onSuccessfulLogin(eventSessionState);
+//                    Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
                 }
 
                 log.info("Authentication success for User: '{0}'", credentials.getUsername());
@@ -322,12 +327,13 @@ public class Authenticator implements Serializable {
             if (StringHelper.isNotEmpty(credentials.getUsername())) {
                 boolean authenticated = authenticationService.authenticate(credentials.getUsername(), credentials.getPassword());
                 if (authenticated) {
-                    authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
+                	SessionState eventSessionState = authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
 
                     // Redirect to authorization workflow
                     if (Events.exists()) {
                         log.debug("Sending event to trigger user redirection: '{0}'", credentials.getUsername());
-                        Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
+                        authenticationService.onSuccessfulLogin(eventSessionState);
+//                        Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
                     }
 
                     log.info("Authentication success for User: '{0}'", credentials.getUsername());
@@ -484,8 +490,7 @@ public class Authenticator implements Serializable {
             return Constants.RESULT_FAILURE;
         }
 
-        ExternalContext extCtx = FacesContext.getCurrentInstance().getExternalContext();
-        Boolean result = externalAuthenticationService.executeExternalPrepareForStep(customScriptConfiguration, extCtx.getRequestParameterValuesMap(), this.authStep);
+        Boolean result = externalAuthenticationService.executeExternalPrepareForStep(customScriptConfiguration, externalContext.getRequestParameterValuesMap(), this.authStep);
         if ((result != null) && result) {
             // Store/Update extra parameters in session attributes map
             updateExtraParameters(customScriptConfiguration, this.authStep, sessionIdAttributes);
@@ -513,7 +518,7 @@ public class Authenticator implements Serializable {
     }
 
     public boolean authenticateBySessionState(String p_sessionState) {
-        if (StringUtils.isNotBlank(p_sessionState) && ConfigurationFactory.instance().getConfiguration().getSessionIdEnabled()) {
+        if (StringUtils.isNotBlank(p_sessionState) && appConfiguration.getSessionIdEnabled()) {
             try {
                 SessionState sessionState = sessionStateService.getSessionState(p_sessionState);
                 return authenticateBySessionState(sessionState);

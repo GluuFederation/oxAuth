@@ -22,7 +22,7 @@ import org.xdi.model.SimpleCustomProperty;
 import org.xdi.model.config.CustomAuthenticationConfiguration;
 import org.xdi.model.custom.script.CustomScriptType;
 import org.xdi.model.custom.script.model.CustomScript;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.service.LdapCustomAuthenticationConfigurationService;
 import org.xdi.service.custom.script.CustomScriptManager;
 import org.xdi.util.INumGenerator;
@@ -49,6 +49,9 @@ public class CustomScriptManagerMigrator {
 
 	private static final long serialVersionUID = -3225890597520443390L;
 
+	@In
+	private AppConfiguration appConfiguration;
+
     public void migrateOldConfigurations() {
     	// Check if there are new configuration
 		List<CustomScript> customScripts = customScriptService.findCustomScripts(customScriptManager.getSupportedCustomScriptTypes(), CustomScriptManager.CUSTOM_SCRIPT_CHECK_ATTRIBUTES);
@@ -64,7 +67,7 @@ public class CustomScriptManagerMigrator {
 			return;
 		}
 		
-		String basedInum = ConfigurationFactory.instance().getConfiguration().getOrganizationInum();
+		String basedInum = appConfiguration.getOrganizationInum();
 		for (CustomAuthenticationConfiguration customAuthenticationConfiguration : customAuthenticationConfigurations) {
 			String customScriptId = basedInum + "!" + INumGenerator.generate(2);
 			String dn = customScriptService.buildDn(customScriptId);

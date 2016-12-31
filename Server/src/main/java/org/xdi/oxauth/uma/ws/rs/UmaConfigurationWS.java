@@ -16,8 +16,7 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.common.TokenType;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.RptProfiles;
 import org.xdi.oxauth.model.uma.UmaConfiguration;
@@ -49,6 +48,9 @@ public class UmaConfigurationWS {
     @In
     private ErrorResponseFactory errorResponseFactory;
 
+    @In
+    private AppConfiguration appConfiguration;
+
     @GET
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
     @ApiOperation(
@@ -60,12 +62,11 @@ public class UmaConfigurationWS {
     })
     public Response getConfiguration() {
         try {
-            final Configuration configuration = ConfigurationFactory.instance().getConfiguration();
-            final String baseEndpointUri = configuration.getBaseEndpoint();
+            final String baseEndpointUri = appConfiguration.getBaseEndpoint();
 
             final UmaConfiguration c = new UmaConfiguration();
             c.setVersion("1.0");
-            c.setIssuer(configuration.getIssuer());
+            c.setIssuer(appConfiguration.getIssuer());
             c.setPatProfilesSupported(new String[]{TokenType.BEARER.getName()});
             c.setAatProfilesSupported(new String[]{TokenType.BEARER.getName()});
             c.setRptProfilesSupported(new String[]{RptProfiles.BEARER.getIdentifyingUri()});
@@ -91,7 +92,7 @@ public class UmaConfigurationWS {
             c.setRptEndpoint(baseEndpointUri + "/requester/rpt");
             c.setGatEndpoint(baseEndpointUri + "/requester/gat");
             c.setScopeEndpoint(baseEndpointUri + UMA_SCOPES_SUFFIX);
-            c.setRptAsJwt(configuration.getUmaRptAsJwt());
+            c.setRptAsJwt(appConfiguration.getUmaRptAsJwt());
 
             // convert manually to avoid possible conflicts between resteasy providers, e.g. jettison, jackson
             final String entity = ServerUtil.asPrettyJson(c);

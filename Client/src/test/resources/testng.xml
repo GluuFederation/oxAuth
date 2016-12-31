@@ -16,6 +16,13 @@
         </classes>
     </test>
 
+    <!-- Authorization Response Custom Header test -->
+    <test name="Authorization Response Custom Header test" enabled="true">
+        <classes>
+            <class name="org.xdi.oxauth.ws.rs.AuthorizationResponseCustomHeaderTest"/>
+        </classes>
+    </test>
+
     <!-- Authorization Response Mode -->
     <test name="Authorization Response Mode (HTTP)" enabled="true">
         <classes>
@@ -36,7 +43,7 @@
             <class name="org.xdi.oxauth.ws.rs.AuthorizeSessionStateRestWebServiceHttpTest"/>
         </classes>
     </test>
-    
+
     <!-- Client Authentication Filter test -->
     <test name="Client Authentication Filter test (HTTP)" enabled="true">
         <classes>
@@ -92,7 +99,7 @@
             <class name="org.xdi.oxauth.ws.rs.JwkRestWebServiceHttpTest"/>
         </classes>
     </test>
-    
+
     <!-- OpenID Request Object test -->
     <test name="OpenID Request Object test (HTTP)" enabled="true">
         <classes>
@@ -122,7 +129,7 @@
     </test>
 
     <!-- SSO with Multiple Backend Services test -->
-    <test name="SSO with Multiple Backend Services test (HTTP)" enabled="false">
+    <test name="SSO with Multiple Backend Services test (HTTP)" enabled="true">
         <classes>
             <class name="org.xdi.oxauth.ws.rs.SSOWithMultipleBackendServicesHttpTest"/>
         </classes>
@@ -467,7 +474,8 @@
             <class name="org.xdi.oxauth.interop.RejectsSecondUseOfAccessCode"/>
         </classes>
     </test>
-    <test name="OC5. FeatureTest-Rejects Sector Identifier Not Containing Registered redirect uri Values" enabled="true">
+    <test name="OC5. FeatureTest-Rejects Sector Identifier Not Containing Registered redirect uri Values"
+          enabled="true">
         <classes>
             <class name="org.xdi.oxauth.interop.RejectsSectorIdentifierNotContainingRegisteredRedirectUriValues"/>
         </classes>
@@ -487,7 +495,8 @@
             <class name="org.xdi.oxauth.interop.SecondUseOfAccessCodeRevokesPreviouslyIssuedAccessToken"/>
         </classes>
     </test>
-    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint using Form-Encoded Client Credentials in POST Body" enabled="true">
+    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint using Form-Encoded Client Credentials in POST Body"
+          enabled="true">
         <classes>
             <class name="org.xdi.oxauth.interop.SupportAuthenticationToTokenEndpointUsingFormEncodedClientCredentialsInPostBody"/>
         </classes>
@@ -497,12 +506,14 @@
             <class name="org.xdi.oxauth.interop.SupportAuthenticationToTokenEndpointUsingHttpBasicWithPost"/>
         </classes>
     </test>
-    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint with Asymmetrically Signed JWTs" enabled="true">
+    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint with Asymmetrically Signed JWTs"
+          enabled="true">
         <classes>
             <class name="org.xdi.oxauth.interop.SupportAuthenticationToTokenEndpointWithAsymmetricallySignedJWTs"/>
         </classes>
     </test>
-    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint with Symmetrically Signed JWTs" enabled="true">
+    <test name="OC5. FeatureTest-Support Authentication to Token Endpoint with Symmetrically Signed JWTs"
+          enabled="true">
         <classes>
             <class name="org.xdi.oxauth.interop.SupportAuthenticationToTokenEndpointWithSymmetricallySignedJWTs"/>
         </classes>
@@ -567,7 +578,7 @@
             <class name="org.xdi.oxauth.interop.SupportRequestFile"/>
         </classes>
     </test>
-    <test name="OC5. FeatureTest-Support claims Request Specifying sub Value" enabled="false">
+    <test name="OC5. FeatureTest-Support claims Request Specifying sub Value" enabled="true">
         <classes>
             <class name="org.xdi.oxauth.interop.SupportClaimsRequestSpecifyingSubValue"/>
         </classes>

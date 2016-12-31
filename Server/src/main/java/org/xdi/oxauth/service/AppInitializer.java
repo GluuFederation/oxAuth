@@ -82,9 +82,6 @@ public class AppInitializer {
     @In
     private ApplianceService applianceService;
     
-    @In
-    private ConfigurationFactory configurationFactory;
-
 	private FileConfiguration ldapConfig;
 	private List<GluuLdapConfiguration> ldapAuthConfigs;
 
@@ -97,7 +94,10 @@ public class AppInitializer {
     private AtomicBoolean isActive;
 	private long lastFinishedTime;
 
-    @Create
+	@In
+	private ConfigurationFactory configurationFactory;
+
+	@Create
     public void createApplicationComponents() {
     	SecurityProviderUtility.installBCProvider();
 
@@ -109,12 +109,13 @@ public class AppInitializer {
         LdapEntryManager localLdapEntryManager = (LdapEntryManager) Component.getInstance(LDAP_ENTRY_MANAGER_NAME, true);
         List<GluuLdapConfiguration> ldapAuthConfigs = loadLdapAuthConfigs(localLdapEntryManager);
         createAuthConnectionProviders(ldapAuthConfigs);
-        
+
         setDefaultAuthenticationMethod(localLdapEntryManager);
 
         addSecurityProviders();
         PythonService.instance().initPythonInterpreter();
     }
+
 
 	@Observer("org.jboss.seam.postInitialization")
 	@Asynchronous
@@ -419,8 +420,8 @@ public class AppInitializer {
 	}
 
 	private GluuAppliance loadAppliance(LdapEntryManager localLdapEntryManager, String ... ldapReturnAttributes) {
-		String baseDn = ConfigurationFactory.instance().getBaseDn().getAppliance();
-		String applianceInum = ConfigurationFactory.instance().getConfiguration().getApplianceInum();
+		String baseDn = configurationFactory.getBaseDn().getAppliance();
+		String applianceInum = configurationFactory.getConfiguration().getApplianceInum();
 		if (StringHelper.isEmpty(baseDn) || StringHelper.isEmpty(applianceInum)) {
 			return null;
 		}

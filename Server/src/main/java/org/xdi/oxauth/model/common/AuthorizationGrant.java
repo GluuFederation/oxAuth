@@ -6,9 +6,15 @@
 
 package org.xdi.oxauth.model.common;
 
+import java.security.SignatureException;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.xdi.oxauth.model.authorize.JwtAuthorizationRequest;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.exception.InvalidJweException;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
@@ -17,18 +23,14 @@ import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.token.IdTokenFactory;
 import org.xdi.oxauth.model.token.JsonWebResponse;
 import org.xdi.oxauth.service.GrantService;
+import org.xdi.oxauth.util.TokenHashUtil;
 import org.xdi.util.security.StringEncrypter;
-
-import java.security.SignatureException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Base class for all the types of authorization grant.
  *
  * @author Javier Rojas Blum
- * @version October 7, 2016
+ * @version November 11, 2016
  */
 public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
@@ -47,8 +49,8 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     private final GrantService grantService = GrantService.instance();
 
     public AuthorizationGrant(User user, AuthorizationGrantType authorizationGrantType, Client client,
-                              Date authenticationTime) {
-        super(user, authorizationGrantType, client, authenticationTime);
+                              Date authenticationTime, AppConfiguration appConfiguration) {
+        super(user, authorizationGrantType, client, authenticationTime, appConfiguration);
     }
 
     public static IdToken createIdToken(
@@ -99,7 +101,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                     if (jwtRequest != null && StringUtils.isNotBlank(jwtRequest.getEncodedJwt())) {
                         t.setJwtRequest(jwtRequest.getEncodedJwt());
                     }
-                    LOGGER.trace("Saving grant: " + grantId + ", code_challenge: " + getCodeChallenge());
+                    LOGGER.error("Saving grant: " + grantId + ", code_challenge: " + getCodeChallenge());
                     grantService.mergeSilently(t);
                 }
             }
@@ -115,7 +117,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             }
             return accessToken;
         } catch (Exception e) {
-            LOGGER.trace(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return null;
         }
     }
@@ -129,7 +131,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             }
             return accessToken;
         } catch (Exception e) {
-            LOGGER.trace(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return null;
         }
     }
@@ -143,7 +145,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             }
             return refreshToken;
         } catch (Exception e) {
-            LOGGER.trace(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return null;
         }
     }
@@ -221,12 +223,12 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
         final TokenLdap result = new TokenLdap();
 
-        result.setDn(GrantService.buildDn(id, getGrantId(), getClientId()));
+        result.setDn(grantService.buildDn(id, getGrantId(), getClientId()));
         result.setId(id);
         result.setGrantId(getGrantId());
         result.setCreationDate(p_token.getCreationDate());
         result.setExpirationDate(p_token.getExpirationDate());
-        result.setTokenCode(p_token.getCode());
+        result.setTokenCode(TokenHashUtil.getHashedToken(p_token.getCode()));
         result.setUserId(getUserId());
         result.setClientId(getClientId());
         result.setScope(getScopesAsString());
@@ -241,7 +243,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
         final AuthorizationCode authorizationCode = getAuthorizationCode();
         if (authorizationCode != null) {
-            result.setAuthorizationCode(authorizationCode.getCode());
+            result.setAuthorizationCode(TokenHashUtil.getHashedToken(authorizationCode.getCode()));
         }
 
         final String nonce = getNonce();

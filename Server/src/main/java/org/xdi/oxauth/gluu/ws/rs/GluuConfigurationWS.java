@@ -20,8 +20,7 @@ import org.jboss.seam.log.Log;
 import org.xdi.model.GluuAttribute;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.oxauth.model.common.Scope;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.gluu.GluuConfiguration;
 import org.xdi.oxauth.model.gluu.GluuErrorResponseType;
@@ -51,6 +50,11 @@ public class GluuConfigurationWS {
     @In
     private ErrorResponseFactory errorResponseFactory;
 
+    @In
+    private AppConfiguration appConfiguration;
+
+    @In
+    private ExternalAuthenticationService externalAuthenticationService;
 
     @GET
     @Produces({"application/json"})
@@ -58,12 +62,10 @@ public class GluuConfigurationWS {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "Failed to build gluu configuration json object.")})
     public Response getConfiguration() {
         try {
-            final Configuration configuration = ConfigurationFactory.instance().getConfiguration();
-
             final GluuConfiguration conf = new GluuConfiguration();
 
-            conf.setIdGenerationEndpoint(configuration.getIdGenerationEndpoint());
-            conf.setIntrospectionEndpoint(configuration.getIntrospectionEndpoint());
+            conf.setIdGenerationEndpoint(appConfiguration.getIdGenerationEndpoint());
+            conf.setIntrospectionEndpoint(appConfiguration.getIntrospectionEndpoint());
             conf.setAuthLevelMapping(createAuthLevelMapping());
             conf.setScopeToClaimsMapping(createScopeToClaimsMapping());
 
@@ -81,10 +83,9 @@ public class GluuConfigurationWS {
     }
 
     public Map<Integer, Set<String>> createAuthLevelMapping() {
-        ExternalAuthenticationService service = ExternalAuthenticationService.instance();
         Map<Integer, Set<String>> map = Maps.newHashMap();
         try {
-            for (CustomScriptConfiguration script : service.getCustomScriptConfigurationsMap()) {
+            for (CustomScriptConfiguration script : externalAuthenticationService.getCustomScriptConfigurationsMap()) {
                 String acr = script.getName();
                 int level = script.getLevel();
 

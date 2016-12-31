@@ -30,8 +30,8 @@ import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.SessionState;
 import org.xdi.oxauth.model.common.User;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.config.Constants;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.ldap.ClientAuthorizations;
@@ -51,7 +51,7 @@ import java.util.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version May 24, 2016
+ * @version December 14, 2016
  */
 @Name("authorizeAction")
 @Scope(ScopeType.EVENT) // Do not change scope, we try to keep server without http sessions
@@ -65,9 +65,6 @@ public class AuthorizeAction {
 
     @In
     private ErrorResponseFactory errorResponseFactory;
-
-    @In
-    private UserGroupService userGroupService;
 
     @In
     private SessionStateService sessionStateService;
@@ -98,6 +95,15 @@ public class AuthorizeAction {
 
     @In
     private Identity identity;
+
+    @In
+    private AppConfiguration appConfiguration;
+
+    @In(required = false)
+    private FacesContext facesContext;
+
+    @In(value = "#{facesContext.externalContext}", required = false)
+    private ExternalContext externalContext;
 
     // OAuth 2.0 request parameters
     private String scope;
@@ -130,7 +136,6 @@ public class AuthorizeAction {
         if (StringUtils.isNotBlank(uiLocales)) {
             uiLocalesList = Util.splittedStringAsList(uiLocales, " ");
 
-            FacesContext facesContext = FacesContext.getCurrentInstance();
             List<Locale> supportedLocales = new ArrayList<Locale>();
             for (Iterator<Locale> it = facesContext.getApplication().getSupportedLocales(); it.hasNext(); ) {
                 supportedLocales.add(it.next());
@@ -147,26 +152,26 @@ public class AuthorizeAction {
 
         if ((clientId == null) || clientId.isEmpty()) {
             log.error("Permission denied. client_id should be not empty.");
-        	permissionDenied();
-        	return;
+            permissionDenied();
+            return;
         }
-        
+
         Client client = null;
-		try {
-			client = clientService.getClient(clientId);
-		} catch (EntryPersistenceException ex) {
+        try {
+            client = clientService.getClient(clientId);
+        } catch (EntryPersistenceException ex) {
             log.error("Permission denied. Failed to find client by inum '{0}' in LDAP.", clientId, ex);
-        	permissionDenied();
-        	return;
-		}
-
-		if (client == null) {
-            log.error("Permission denied. Failed to find client_id '{0}' in LDAP.", clientId);
-        	permissionDenied();
-        	return;
+            permissionDenied();
+            return;
         }
 
-		SessionState session = getSession();
+        if (client == null) {
+            log.error("Permission denied. Failed to find client_id '{0}' in LDAP.", clientId);
+            permissionDenied();
+            return;
+        }
+
+        SessionState session = getSession();
         List<Prompt> prompts = Prompt.fromString(prompt, " ");
 
         try {
@@ -183,7 +188,6 @@ public class AuthorizeAction {
         }
 
         if (session == null || session.getUserDn() == null || SessionIdState.AUTHENTICATED != session.getState()) {
-            final ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
             Map<String, String> parameterMap = externalContext.getRequestParameterMap();
             Map<String, String> requestParameterMap = authenticationService.getAllowedParameters(parameterMap);
 
@@ -229,9 +233,8 @@ public class AuthorizeAction {
             requestParameterMap.put(Constants.REMOTE_IP, remoteIp);
 
             // Create unauthenticated session
-            SessionState unauthenticatedSession = sessionStateService.generateSessionState(null, new Date(), SessionIdState.UNAUTHENTICATED, requestParameterMap, false);
+            SessionState unauthenticatedSession = sessionStateService.generateUnauthenticatedSessionState(null, new Date(), SessionIdState.UNAUTHENTICATED, requestParameterMap, false);
             unauthenticatedSession.setSessionAttributes(requestParameterMap);
-            unauthenticatedSession.addPermission(clientId, false);
             boolean persisted = sessionStateService.persistSessionState(unauthenticatedSession, !prompts.contains(Prompt.NONE)); // always persist is prompt is not none
             if (persisted && log.isTraceEnabled()) {
                 log.trace("Session '{0}' persisted to LDAP", unauthenticatedSession.getId());
@@ -257,17 +260,9 @@ public class AuthorizeAction {
         final User user = userService.getUserByDn(session.getUserDn());
         log.trace("checkPermissionGranted, user = " + user);
 
-        // OXAUTH-87 : if user is not in group then deny permission
-        if (user != null && client.hasUserGroups()) {
-            // if user is not in any group then deny permissions
-            if (!userGroupService.isInAnyGroup(client.getUserGroups(), user.getDn())) {
-                permissionDenied();
-            }
-        }
-
         if (AuthorizeParamsValidator.noNonePrompt(prompts)) {
 
-            if (ConfigurationFactory.instance().getConfiguration().getTrustedClientEnabled()) { // if trusted client = true, then skip authorization page and grant access directly
+            if (appConfiguration.getTrustedClientEnabled()) { // if trusted client = true, then skip authorization page and grant access directly
                 if (client.getTrustedClient() && !prompts.contains(Prompt.CONSENT)) {
                     permissionGranted(session);
                     return;
@@ -284,7 +279,7 @@ public class AuthorizeAction {
                     return;
                 }
             }
-           
+
         } else {
             invalidRequest();
         }
@@ -639,11 +634,14 @@ public class AuthorizeAction {
                 return;
             }
 
+            if (clientId == null) {
+                clientId = session.getSessionAttributes().get(AuthorizeRequestParam.CLIENT_ID);
+            }
             final Client client = clientService.getClient(clientId);
 
             if (client.getPersistClientAuthorizations()) {
-	            final Set<String> scopes = Sets.newHashSet(org.xdi.oxauth.model.util.StringUtils.spaceSeparatedToList(scope));
-	            clientAuthorizationsService.add(user.getAttribute("inum"), client.getClientId(), scopes);
+                final Set<String> scopes = Sets.newHashSet(org.xdi.oxauth.model.util.StringUtils.spaceSeparatedToList(scope));
+                clientAuthorizationsService.add(user.getAttribute("inum"), client.getClientId(), scopes);
             }
 
             session.addPermission(clientId, true);
@@ -653,6 +651,12 @@ public class AuthorizeAction {
             SessionStateService.instance().createSessionStateCookie(sessionState);
 
             Map<String, String> sessionAttribute = authenticationService.getAllowedParameters(session.getSessionAttributes());
+
+            if (sessionAttribute.containsKey(AuthorizeRequestParam.PROMPT)) {
+                List<Prompt> prompts = Prompt.fromString(sessionAttribute.get(AuthorizeRequestParam.PROMPT), " ");
+                prompts.remove(Prompt.CONSENT);
+                sessionAttribute.put(AuthorizeRequestParam.PROMPT, org.xdi.oxauth.model.util.StringUtils.implodeEnum(prompts, " "));
+            }
 
             final String parametersAsString = authenticationService.parametersAsString(sessionAttribute);
             final String uri = "seam/resource/restv1/oxauth/authorize?" + parametersAsString;
@@ -665,7 +669,15 @@ public class AuthorizeAction {
 
     public void permissionDenied() {
         log.trace("permissionDenied");
+        final SessionState session = getSession();
         StringBuilder sb = new StringBuilder();
+
+        if (redirectUri == null) {
+            redirectUri = session.getSessionAttributes().get(AuthorizeRequestParam.REDIRECT_URI);
+        }
+        if (state == null) {
+            state = session.getSessionAttributes().get(AuthorizeRequestParam.STATE);
+        }
 
         sb.append(redirectUri);
         if (redirectUri != null && redirectUri.contains("?")) {

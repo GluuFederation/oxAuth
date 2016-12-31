@@ -10,10 +10,7 @@ import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.util.StaticUtils;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.jboss.seam.log.Logging;
 import org.xdi.ldap.model.SimpleBranch;
@@ -21,6 +18,8 @@ import org.xdi.oxauth.model.common.AuthorizationGrantList;
 import org.xdi.oxauth.model.common.IAuthorizationGrant;
 import org.xdi.oxauth.model.common.uma.UmaRPT;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.uma.persistence.ResourceSetPermission;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.token.TokenService;
@@ -39,18 +38,23 @@ import java.util.UUID;
 @AutoCreate
 @Scope(ScopeType.APPLICATION)
 @Name("rptManager")
+@Startup
 public class RPTManager extends AbstractRPTManager {
 
     private static final String ORGUNIT_OF_RPT = "uma_requester_permission_token";
 
     private static final Log LOG = Logging.getLog(RPTManager.class);
 
-    private final LdapEntryManager ldapEntryManager;
+    @In
+    private LdapEntryManager ldapEntryManager;
 
     @In
     private TokenService tokenService;
     @In
     private AuthorizationGrantList authorizationGrantList;
+
+    @In
+    private StaticConf staticConfiguration;
 
     public RPTManager() {
         ldapEntryManager = ServerUtil.getLdapManager();
@@ -73,7 +77,7 @@ public class RPTManager extends AbstractRPTManager {
     public UmaRPT getRPTByCode(String p_code) {
         try {
             final Filter filter = Filter.create(String.format("&(oxAuthTokenCode=%s)", p_code));
-            final String baseDn = ConfigurationFactory.instance().getBaseDn().getClients();
+            final String baseDn = staticConfiguration.getBaseDn().getClients();
             final List<UmaRPT> entries = ldapEntryManager.findEntries(baseDn, UmaRPT.class, filter);
             if (entries != null && !entries.isEmpty()) {
                 return entries.get(0);
@@ -101,7 +105,7 @@ public class RPTManager extends AbstractRPTManager {
         try {
             final Filter filter = Filter.create(String.format("(oxAuthExpiration<=%s)", StaticUtils.encodeGeneralizedTime(now)));
             final List<UmaRPT> entries = ldapEntryManager.findEntries(
-                    ConfigurationFactory.instance().getBaseDn().getClients(), UmaRPT.class, filter);
+            		staticConfiguration.getBaseDn().getClients(), UmaRPT.class, filter);
             if (entries != null && !entries.isEmpty()) {
                 for (UmaRPT p : entries) {
                     ldapEntryManager.remove(p);

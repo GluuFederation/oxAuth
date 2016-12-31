@@ -14,7 +14,8 @@ import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.util.StringHelper;
 
 import java.util.Map;
@@ -36,10 +37,12 @@ public class AuthenticationFilterService extends BaseAuthFilterService {
     @In
     private LdapEntryManager ldapEntryManager;
 
+    @In
+    private AppConfiguration appConfiguration;
+
     @Create
     public void init() {
-        final Configuration conf = ConfigurationFactory.instance().getConfiguration();
-        super.init(conf.getAuthenticationFilters(), Boolean.TRUE.equals(conf.getAuthenticationFiltersEnabled()), true);
+        super.init(appConfiguration.getAuthenticationFilters(), Boolean.TRUE.equals(appConfiguration.getAuthenticationFiltersEnabled()), true);
     }
 
     public String processAuthenticationFilter(AuthenticationFilterWithParameters authenticationFilterWithParameters, Map<?, ?> attributeValues) {

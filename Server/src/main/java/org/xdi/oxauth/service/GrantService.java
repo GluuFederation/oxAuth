@@ -13,19 +13,22 @@ import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
+import org.xdi.oxauth.audit.ApplicationAuditLogger;
+import org.xdi.oxauth.model.audit.Action;
+import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.common.AuthorizationGrant;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
 import org.xdi.oxauth.model.ldap.Grant;
 import org.xdi.oxauth.model.ldap.TokenLdap;
-import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.oxauth.util.TokenHashUtil;
 
 import java.util.*;
 
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version February 24, 2016
+ * @version November 11, 2016
  */
 @Scope(ScopeType.STATELESS)
 @Name("grantService")
@@ -36,20 +39,28 @@ public class GrantService {
     private Log log;
     @In
     private LdapEntryManager ldapEntryManager;
+    @In
+    private ApplicationAuditLogger applicationAuditLogger;
+    
+    @In
+    private ClientService clientService;
+
+    @In
+    private StaticConf staticConfiguration;
 
     public static String generateGrantId() {
         return UUID.randomUUID().toString();
     }
 
-    public static String buildDn(String p_uniqueIdentifier, String p_grantId, String p_clientId) {
+    public String buildDn(String p_uniqueIdentifier, String p_grantId, String p_clientId) {
         final StringBuilder dn = new StringBuilder();
         dn.append(String.format("uniqueIdentifier=%s,oxAuthGrantId=%s,", p_uniqueIdentifier, p_grantId));
-        dn.append(Client.buildClientDn(p_clientId));
+        dn.append(clientService.buildClientDn(p_clientId));
         return dn.toString();
     }
 
-    public static String baseDn() {
-        return ConfigurationFactory.instance().getBaseDn().getClients();  // ou=clients,o=@!1111,o=gluu
+    public String baseDn() {
+        return staticConfiguration.getBaseDn().getClients();  // ou=clients,o=@!1111,o=gluu
     }
 
     public static GrantService instance() {
@@ -70,6 +81,7 @@ public class GrantService {
 
     public void persist(TokenLdap p_token) {
         prepareGrantBranch(p_token.getGrantId(), p_token.getClientId());
+        p_token.setTokenCode(TokenHashUtil.getHashedToken(p_token.getTokenCode()));
         ldapEntryManager.persist(p_token);
     }
 
@@ -127,7 +139,7 @@ public class GrantService {
 
     public List<TokenLdap> getGrantsOfClient(String p_clientId) {
         try {
-            final String baseDn = Client.buildClientDn(p_clientId);
+            final String baseDn = clientService.buildClientDn(p_clientId);
             return ldapEntryManager.findEntries(baseDn, TokenLdap.class, Filter.create("oxAuthTokenCode=*"));
         } catch (Exception e) {
             log.trace(e.getMessage(), e);
@@ -136,7 +148,7 @@ public class GrantService {
     }
 
     public TokenLdap getGrantsByCodeAndClient(String p_code, String p_clientId) {
-        return load(Client.buildClientDn(p_clientId), p_code);
+        return load(clientService.buildClientDn(p_clientId), p_code);
     }
 
     public TokenLdap getGrantsByCode(String p_code) {
@@ -145,7 +157,7 @@ public class GrantService {
 
     private TokenLdap load(String p_baseDn, String p_code) {
         try {
-            final List<TokenLdap> entries = ldapEntryManager.findEntries(p_baseDn, TokenLdap.class, Filter.create(String.format("oxAuthTokenCode=%s", p_code)));
+            final List<TokenLdap> entries = ldapEntryManager.findEntries(p_baseDn, TokenLdap.class, Filter.create(String.format("oxAuthTokenCode=%s", TokenHashUtil.getHashedToken(p_code))));
             if (entries != null && !entries.isEmpty()) {
                 return entries.get(0);
             }
@@ -170,7 +182,7 @@ public class GrantService {
 
     public List<TokenLdap> getGrantsByAuthorizationCode(String p_authorizationCode) {
         try {
-            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthAuthorizationCode=%s", p_authorizationCode)));
+            return ldapEntryManager.findEntries(baseDn(), TokenLdap.class, Filter.create(String.format("oxAuthAuthorizationCode=%s", TokenHashUtil.getHashedToken(p_authorizationCode))));
         } catch (LDAPException e) {
             log.trace(e.getMessage(), e);
         } catch (Exception e) {
@@ -217,6 +229,9 @@ public class GrantService {
         try {
             final Filter filter = Filter.create(String.format("(oxAuthExpiration<=%s)", StaticUtils.encodeGeneralizedTime(new Date())));
             final List<TokenLdap> entries = ldapEntryManager.findEntries(baseDn(), TokenLdap.class, filter);
+
+            auditLogging(entries);
+
             remove(entries);
         } catch (Exception e) {
             log.trace(e.getMessage(), e);
@@ -268,8 +283,19 @@ public class GrantService {
     private String getBaseDnForGrant(final String p_grantId, final String p_clientId) {
         final StringBuilder dn = new StringBuilder();
         dn.append(String.format("oxAuthGrantId=%s,", p_grantId));
-        dn.append(Client.buildClientDn(p_clientId));
+        dn.append(clientService.buildClientDn(p_clientId));
 
         return dn.toString();
+    }
+
+    private void auditLogging(Collection<TokenLdap> entries) {
+        for (TokenLdap tokenLdap : entries) {
+            OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(null, Action.SESSION_DESTROYED);
+            oAuth2AuditLog.setSuccess(true);
+            oAuth2AuditLog.setClientId(tokenLdap.getClientId());
+            oAuth2AuditLog.setScope(tokenLdap.getScope());
+            oAuth2AuditLog.setUsername(tokenLdap.getUserId());
+            applicationAuditLogger.sendMessage(oAuth2AuditLog);
+        }
     }
 }

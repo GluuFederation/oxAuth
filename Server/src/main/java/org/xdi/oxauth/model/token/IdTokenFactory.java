@@ -16,14 +16,14 @@ import org.jboss.seam.annotations.AutoCreate;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.jboss.seam.contexts.Contexts;
-import org.jboss.seam.contexts.Lifecycle;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.GluuAttribute;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
+import org.xdi.model.custom.script.type.auth.PersonAuthenticationType;
 import org.xdi.oxauth.model.authorize.Claim;
 import org.xdi.oxauth.model.common.*;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.AbstractCryptoProvider;
 import org.xdi.oxauth.model.crypto.CryptoProviderFactory;
 import org.xdi.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
@@ -64,7 +64,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version October 7, 2016
+ * @version December 20, 2016
  */
 @Scope(ScopeType.STATELESS)
 @Name("idTokenFactory")
@@ -89,14 +89,20 @@ public class IdTokenFactory {
     @In
     private PairwiseIdentifierService pairwiseIdentifierService;
 
+    @In
+    private AppConfiguration appConfiguration;
+
+    @In
+    private JSONWebKeySet webKeysConfiguration;
+
     public Jwt generateSignedIdToken(IAuthorizationGrant authorizationGrant, String nonce,
                                      AuthorizationCode authorizationCode, AccessToken accessToken,
                                      Set<String> scopes, boolean includeIdTokenClaims) throws Exception {
 
-        JwtSigner jwtSigner = JwtSigner.newJwtSigner(authorizationGrant.getClient());
+        JwtSigner jwtSigner = JwtSigner.newJwtSigner(appConfiguration, webKeysConfiguration, authorizationGrant.getClient());
         Jwt jwt = jwtSigner.newJwt();
 
-        int lifeTime = ConfigurationFactory.instance().getConfiguration().getIdTokenLifetime();
+        int lifeTime = appConfiguration.getIdTokenLifetime();
         Calendar calendar = Calendar.getInstance();
         Date issuedAt = calendar.getTime();
         calendar.add(Calendar.SECOND, lifeTime);
@@ -123,8 +129,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(jwtSigner.getSignatureAlgorithm());
             jwt.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwt.getClaims().setClaim("oxValidationURI", ConfigurationFactory.instance().getConfiguration().getCheckSessionIFrame());
-        jwt.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
+        jwt.getClaims().setClaim("oxValidationURI", appConfiguration.getCheckSessionIFrame());
+        jwt.getClaims().setClaim("oxOpenIDConnectVersion", appConfiguration.getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
         if (includeIdTokenClaims) {
@@ -234,8 +240,13 @@ public class IdTokenFactory {
             }
             jwt.getClaims().setSubjectIdentifier(pairwiseIdentifier.getId());
         } else {
-            String openidSubAttribute = configurationFactory.getConfiguration().getOpenidSubAttribute();
-            jwt.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getAttribute(openidSubAttribute));
+            String openidSubAttribute = appConfiguration.getOpenidSubAttribute();
+
+            if (openidSubAttribute.equals("uid")) {
+                jwt.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getUserId());
+            } else {
+                jwt.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getAttribute(openidSubAttribute));
+            }
         }
 
         if ((dynamicScopes.size() > 0) && externalDynamicScopeService.isEnabled()) {
@@ -254,6 +265,18 @@ public class IdTokenFactory {
                 AuthenticationScriptUsageType.BOTH, acrValues);
         if (script != null) {
             amrList.add(Integer.toString(script.getLevel()));
+
+            PersonAuthenticationType externalAuthenticator = (PersonAuthenticationType) script.getExternalType();
+            int apiVersion = externalAuthenticator.getApiVersion();
+
+            if (apiVersion > 3) {
+                Map<String, String> authenticationMethodClaimsOrNull = externalAuthenticator.getAuthenticationMethodClaims();
+                if (authenticationMethodClaimsOrNull != null) {
+                    for (String key : authenticationMethodClaimsOrNull.keySet()) {
+                        amrList.add(key + ":" + authenticationMethodClaimsOrNull.get(key));
+                    }
+                }
+            }
         }
 
         jwt.getClaims().setClaim(JwtClaimName.AUTHENTICATION_METHOD_REFERENCES, amrList);
@@ -272,10 +295,10 @@ public class IdTokenFactory {
         jwe.getHeader().setEncryptionMethod(blockEncryptionAlgorithm);
 
         // Claims
-        jwe.getClaims().setIssuer(ConfigurationFactory.instance().getConfiguration().getIssuer());
+        jwe.getClaims().setIssuer(appConfiguration.getIssuer());
         jwe.getClaims().setAudience(authorizationGrant.getClient().getClientId());
 
-        int lifeTime = ConfigurationFactory.instance().getConfiguration().getIdTokenLifetime();
+        int lifeTime = appConfiguration.getIdTokenLifetime();
         Calendar calendar = Calendar.getInstance();
         Date issuedAt = calendar.getTime();
         calendar.add(Calendar.SECOND, lifeTime);
@@ -302,8 +325,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(null);
             jwe.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwe.getClaims().setClaim("oxValidationURI", ConfigurationFactory.instance().getConfiguration().getCheckSessionIFrame());
-        jwe.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
+        jwe.getClaims().setClaim("oxValidationURI", appConfiguration.getCheckSessionIFrame());
+        jwe.getClaims().setClaim("oxOpenIDConnectVersion", appConfiguration.getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
         if (includeIdTokenClaims) {
@@ -388,8 +411,13 @@ public class IdTokenFactory {
             }
             jwe.getClaims().setSubjectIdentifier(pairwiseIdentifier.getId());
         } else {
-            String openidSubAttribute = configurationFactory.getConfiguration().getOpenidSubAttribute();
-            jwe.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getAttribute(openidSubAttribute));
+            String openidSubAttribute = appConfiguration.getOpenidSubAttribute();
+
+            if (openidSubAttribute.equals("uid")) {
+                jwe.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getUserId());
+            } else {
+                jwe.getClaims().setSubjectIdentifier(authorizationGrant.getUser().getAttribute(openidSubAttribute));
+            }
         }
 
         if ((dynamicScopes.size() > 0) && externalDynamicScopeService.isEnabled()) {
@@ -402,7 +430,7 @@ public class IdTokenFactory {
         if (keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA_OAEP
                 || keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA1_5) {
             JSONObject jsonWebKeys = JwtUtil.getJSONWebKeys(authorizationGrant.getClient().getJwksUri());
-            AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(ConfigurationFactory.instance().getConfiguration());
+            AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(appConfiguration);
             String keyId = cryptoProvider.getKeyId(JSONWebKeySet.fromJSONObject(jsonWebKeys), SignatureAlgorithm.RS256);
             PublicKey publicKey = cryptoProvider.getPublicKey(keyId, jsonWebKeys);
 
@@ -436,11 +464,6 @@ public class IdTokenFactory {
      * @return IdTokenFactory instance
      */
     public static IdTokenFactory instance() {
-        boolean createContexts = !Contexts.isEventContextActive() && !Contexts.isApplicationContextActive();
-        if (createContexts) {
-            Lifecycle.beginCall();
-        }
-
         return (IdTokenFactory) Component.getInstance(IdTokenFactory.class);
     }
 

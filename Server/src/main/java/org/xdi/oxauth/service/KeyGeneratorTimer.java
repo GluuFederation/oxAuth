@@ -19,6 +19,8 @@ import org.jboss.seam.core.Events;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.config.Conf;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.AbstractCryptoProvider;
 import org.xdi.oxauth.model.crypto.CryptoProviderFactory;
 
@@ -49,14 +51,18 @@ public class KeyGeneratorTimer {
     @In
     private LdapEntryManager ldapEntryManager;
 
+    @In
+    private AppConfiguration appConfiguration;
+
     private AtomicBoolean isActive;
 
     @Observer("org.jboss.seam.postInitialization")
     public void init() {
         log.debug("Initializing KeyGeneratorTimer");
+
         this.isActive = new AtomicBoolean(false);
 
-        long interval = configurationFactory.getConfiguration().getKeyRegenerationInterval();
+        long interval = appConfiguration.getKeyRegenerationInterval();
         if (interval <= 0) {
             interval = DEFAULT_INTERVAL;
         }
@@ -68,7 +74,7 @@ public class KeyGeneratorTimer {
     @Observer(EVENT_TYPE)
     @Asynchronous
     public void process() {
-        if (!configurationFactory.getConfiguration().getKeyRegenerationEnabled()) {
+        if (!appConfiguration.getKeyRegenerationEnabled()) {
             return;
         }
 
@@ -105,9 +111,9 @@ public class KeyGeneratorTimer {
 
     private JSONObject updateKeys(JSONObject jwks) throws Exception {
         JSONObject jsonObject = AbstractCryptoProvider.generateJwks(
-                configurationFactory.getConfiguration().getKeyRegenerationInterval(),
-                configurationFactory.getConfiguration().getIdTokenLifetime(),
-                ConfigurationFactory.instance().getConfiguration());
+        		appConfiguration.getKeyRegenerationInterval(),
+        		appConfiguration.getIdTokenLifetime(),
+        		appConfiguration);
 
         JSONArray keys = jwks.getJSONArray(JSON_WEB_KEY_SET);
         for (int i = 0; i < keys.length(); i++) {
@@ -124,15 +130,15 @@ public class KeyGeneratorTimer {
                             key.getString(KEY_ID),
                             key.getString(EXPIRATION_TIME));
                     AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(
-                            ConfigurationFactory.instance().getConfiguration());
+                    		appConfiguration);
                     cryptoProvider.deleteKey(key.getString(KEY_ID));
                 } else {
                     jsonObject.getJSONArray(JSON_WEB_KEY_SET).put(key);
                 }
             } else {
                 GregorianCalendar expirationTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-                expirationTime.add(GregorianCalendar.HOUR, configurationFactory.getConfiguration().getKeyRegenerationInterval());
-                expirationTime.add(GregorianCalendar.SECOND, configurationFactory.getConfiguration().getIdTokenLifetime());
+                expirationTime.add(GregorianCalendar.HOUR, appConfiguration.getKeyRegenerationInterval());
+                expirationTime.add(GregorianCalendar.SECOND, appConfiguration.getIdTokenLifetime());
                 key.put(EXPIRATION_TIME, expirationTime.getTimeInMillis());
 
                 jsonObject.getJSONArray(JSON_WEB_KEY_SET).put(key);

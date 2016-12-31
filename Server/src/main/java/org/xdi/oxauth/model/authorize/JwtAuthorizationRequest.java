@@ -15,7 +15,7 @@ import org.xdi.oxauth.model.common.Display;
 import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.AbstractCryptoProvider;
 import org.xdi.oxauth.model.crypto.CryptoProviderFactory;
 import org.xdi.oxauth.model.crypto.OxAuthCryptoProvider;
@@ -64,12 +64,15 @@ public class JwtAuthorizationRequest {
     private IdTokenMember idTokenMember;
 
     private String encodedJwt;
+    
+    private AppConfiguration appConfiguration;
 
-    public JwtAuthorizationRequest(String encodedJwt, Client client) throws InvalidJwtException, InvalidJweException {
+    public JwtAuthorizationRequest(AppConfiguration appConfiguration, String encodedJwt, Client client) throws InvalidJwtException, InvalidJweException {
         try {
-            responseTypes = new ArrayList<ResponseType>();
-            scopes = new ArrayList<String>();
-            prompts = new ArrayList<Prompt>();
+        	this.appConfiguration = appConfiguration;
+        	this.responseTypes = new ArrayList<ResponseType>();
+        	this.scopes = new ArrayList<String>();
+        	this.prompts = new ArrayList<Prompt>();
             this.encodedJwt = encodedJwt;
 
             if (encodedJwt != null && !encodedJwt.isEmpty()) {
@@ -92,9 +95,8 @@ public class JwtAuthorizationRequest {
 
                     JweDecrypterImpl jweDecrypter = null;
                     if ("RSA".equals(keyEncryptionAlgorithm.getFamily())) {
-                        Configuration configuration = ConfigurationFactory.instance().getConfiguration();
-                        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(configuration.getKeyStoreFile(),
-                                configuration.getKeyStoreSecret(), configuration.getDnName());
+                        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(appConfiguration.getKeyStoreFile(),
+                        		appConfiguration.getKeyStoreSecret(), appConfiguration.getDnName());
                         PrivateKey privateKey = cryptoProvider.getPrivateKey(keyId);
                         jweDecrypter = new JweDecrypterImpl(privateKey);
                     } else {
@@ -321,7 +323,7 @@ public class JwtAuthorizationRequest {
                 JwtUtil.getJSONWebKeys(client.getJwksUri()) :
                 new JSONObject(client.getJwks());
         AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(
-                ConfigurationFactory.instance().getConfiguration());
+        		appConfiguration);
         boolean validSignature = cryptoProvider.verifySignature(signingInput, signature, keyId, jwks, sharedSecret, signatureAlgorithm);
 
         return validSignature;

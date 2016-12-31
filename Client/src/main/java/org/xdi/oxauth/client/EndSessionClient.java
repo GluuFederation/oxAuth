@@ -6,13 +6,13 @@
 
 package org.xdi.oxauth.client;
 
-import org.xdi.oxauth.model.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
 import org.xdi.oxauth.model.session.EndSessionRequestParam;
 import org.xdi.oxauth.model.session.EndSessionResponseParam;
+import org.xdi.oxauth.model.util.Util;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -23,7 +23,7 @@ import java.util.Map;
  * authorization server via REST Services.
  *
  * @author Javier Rojas Blum
- * @version December 15, 2015
+ * @version December 26, 2016
  */
 public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionResponse> {
 
@@ -90,8 +90,7 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
             setResponse(new EndSessionResponse(status));
             String entity = clientResponse.getEntity(String.class);
             getResponse().setEntity(entity);
-            getResponse().setHtmlPage(entity);
-            getResponse().setHeaders(clientResponse.getHeaders());
+            getResponse().setHeaders(clientResponse.getMetadata());
             if (clientResponse.getLocation() != null) {
                 String location = clientResponse.getLocation().getHref();
                 getResponse().setLocation(location);
@@ -121,9 +120,6 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-
-                    // http based logout : http://openid.net/specs/openid-connect-logout-1_0.html
-                    getResponse().setHtmlPage(entity);
                 }
             }
         } catch (Exception e) {

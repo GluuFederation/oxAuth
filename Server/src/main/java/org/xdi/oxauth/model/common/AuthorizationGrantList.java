@@ -13,12 +13,18 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
+import org.jboss.seam.annotations.AutoCreate;
+import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Observer;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.Startup;
 import org.jboss.seam.log.Log;
 import org.jboss.seam.log.Logging;
 import org.xdi.oxauth.model.authorize.JwtAuthorizationRequest;
+import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.ldap.TokenLdap;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.util.Util;
@@ -37,56 +43,59 @@ import java.util.List;
  * @author Javier Rojas Blum Date: 09.29.2011
  */
 @Name("authorizationGrantList")
-@Startup(depends = "appInitializer")
+@AutoCreate
 @Scope(ScopeType.APPLICATION)
+@Startup
 public class AuthorizationGrantList implements IAuthorizationGrantList {
 
     private static final Log LOGGER = Logging.getLog(AuthorizationGrantList.class);
 
-    final GrantService grantServive;
-    final UserService userService;
-    final ClientService clientService;
+    @In
+    private GrantService grantService;
 
-    public AuthorizationGrantList() {
-        grantServive = GrantService.instance();
-        userService = (UserService) Component.getInstance(UserService.class);
-        clientService = (ClientService) Component.getInstance(ClientService.class);
-    }
+    @In
+    private UserService userService;
+
+    @In
+    private ClientService clientService;
+
+    @In
+	private AppConfiguration appConfiguration;
 
     @Override
     public void removeAuthorizationGrants(List<AuthorizationGrant> authorizationGrants) {
         if (authorizationGrants != null && !authorizationGrants.isEmpty()) {
             for (AuthorizationGrant r : authorizationGrants) {
-                grantServive.remove(r);
+                grantService.remove(r);
             }
         }
     }
 
     @Override
     public AuthorizationGrant createAuthorizationGrant(User user, Client client, Date authenticationTime) {
-        return new AuthorizationGrant(user, null, client, authenticationTime);
+        return new AuthorizationGrant(user, null, client, authenticationTime, appConfiguration);
     }
 
     @Override
     public AuthorizationCodeGrant createAuthorizationCodeGrant(User user, Client client, Date authenticationTime) {
-        final AuthorizationCodeGrant grant = new AuthorizationCodeGrant(user, client, authenticationTime);
+        final AuthorizationCodeGrant grant = new AuthorizationCodeGrant(user, client, authenticationTime, appConfiguration);
         grant.persist(grant.getAuthorizationCode());
         return grant;
     }
 
     @Override
     public ImplicitGrant createImplicitGrant(User user, Client client, Date authenticationTime) {
-        return new ImplicitGrant(user, client, authenticationTime);
+        return new ImplicitGrant(user, client, authenticationTime, appConfiguration);
     }
 
     @Override
     public ClientCredentialsGrant createClientCredentialsGrant(User user, Client client) {
-        return new ClientCredentialsGrant(user, client);
+        return new ClientCredentialsGrant(user, client, appConfiguration);
     }
 
     @Override
     public ResourceOwnerPasswordCredentialsGrant createResourceOwnerPasswordCredentialsGrant(User user, Client client) {
-        return new ResourceOwnerPasswordCredentialsGrant(user, client);
+        return new ResourceOwnerPasswordCredentialsGrant(user, client, appConfiguration);
     }
 
     @Override
@@ -103,7 +112,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     public List<AuthorizationGrant> getAuthorizationGrant(String clientId) {
         final List<AuthorizationGrant> result = new ArrayList<AuthorizationGrant>();
         try {
-            final List<TokenLdap> entries = grantServive.getGrantsOfClient(clientId);
+            final List<TokenLdap> entries = grantService.getGrantsOfClient(clientId);
             if (entries != null && !entries.isEmpty()) {
                 for (TokenLdap t : entries) {
                     final AuthorizationGrant grant = asGrant(t);
@@ -120,7 +129,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
 
     @Override
     public AuthorizationGrant getAuthorizationGrantByAccessToken(String accessToken) {
-        final TokenLdap tokenLdap = grantServive.getGrantsByCode(accessToken);
+        final TokenLdap tokenLdap = grantService.getGrantsByCode(accessToken);
         if (tokenLdap != null && (tokenLdap.getTokenTypeEnum() == org.xdi.oxauth.model.ldap.TokenType.ACCESS_TOKEN || tokenLdap.getTokenTypeEnum() == org.xdi.oxauth.model.ldap.TokenType.LONG_LIVED_ACCESS_TOKEN)) {
             return asGrant(tokenLdap);
         }
@@ -129,7 +138,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
 
     @Override
     public AuthorizationGrant getAuthorizationGrantByIdToken(String idToken) {
-        TokenLdap tokenLdap = grantServive.getGrantsByCode(idToken);
+        TokenLdap tokenLdap = grantService.getGrantsByCode(idToken);
         if (tokenLdap != null && (tokenLdap.getTokenTypeEnum() == org.xdi.oxauth.model.ldap.TokenType.ID_TOKEN)) {
             return asGrant(tokenLdap);
         }
@@ -137,7 +146,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     }
 
     public AuthorizationGrant load(String clientId, String p_code) {
-        return asGrant(grantServive.getGrantsByCodeAndClient(p_code, clientId));
+        return asGrant(grantService.getGrantsByCodeAndClient(p_code, clientId));
     }
 
     public static String extractClientIdFromTokenDn(String p_dn) {
@@ -175,16 +184,16 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
                 AuthorizationGrant result;
                 switch (grantType) {
                     case AUTHORIZATION_CODE:
-                        result = new AuthorizationCodeGrant(user, client, authenticationTime);
+                        result = new AuthorizationCodeGrant(user, client, authenticationTime, appConfiguration);
                         break;
                     case CLIENT_CREDENTIALS:
-                        result = new ClientCredentialsGrant(user, client);
+                        result = new ClientCredentialsGrant(user, client, appConfiguration);
                         break;
                     case IMPLICIT:
-                        result = new ImplicitGrant(user, client, authenticationTime);
+                        result = new ImplicitGrant(user, client, authenticationTime, appConfiguration);
                         break;
                     case RESOURCE_OWNER_PASSWORD_CREDENTIALS:
-                        result = new ResourceOwnerPasswordCredentialsGrant(user, client);
+                        result = new ResourceOwnerPasswordCredentialsGrant(user, client, appConfiguration);
                         break;
                     default:
                         return null;
@@ -207,7 +216,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
 
                 if (StringUtils.isNotBlank(jwtRequest)) {
                     try {
-                        result.setJwtAuthorizationRequest(new JwtAuthorizationRequest(jwtRequest, client));
+                        result.setJwtAuthorizationRequest(new JwtAuthorizationRequest(appConfiguration, jwtRequest, client));
                     } catch (Exception e) {
                         LOGGER.trace(e.getMessage(), e);
                     }

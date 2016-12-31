@@ -14,8 +14,7 @@ import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.log.Log;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.fido.u2f.U2fConfiguration;
 import org.xdi.oxauth.model.fido.u2f.U2fErrorResponseType;
@@ -42,6 +41,9 @@ public class U2fConfigurationWS {
 	private Log log;
 
 	@In
+	private AppConfiguration appConfiguration;
+
+	@In
 	private ErrorResponseFactory errorResponseFactory;
 
 	@GET
@@ -50,12 +52,11 @@ public class U2fConfigurationWS {
 	@ApiResponses(value = { @ApiResponse(code = 500, message = "Failed to build FIDO U2F configuration json object.") })
 	public Response getConfiguration() {
 		try {
-			final Configuration configuration = ConfigurationFactory.instance().getConfiguration();
-			final String baseEndpointUri = configuration.getBaseEndpoint();
+			final String baseEndpointUri = appConfiguration.getBaseEndpoint();
 
 			final U2fConfiguration conf = new U2fConfiguration();
 			conf.setVersion("2.0");
-			conf.setIssuer(configuration.getIssuer());
+			conf.setIssuer(appConfiguration.getIssuer());
 
 			conf.setRegistrationEndpoint(baseEndpointUri + "/fido/u2f/registration");
 			conf.setAuthenticationEndpoint(baseEndpointUri + "/fido/u2f/authentication");

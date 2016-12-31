@@ -34,7 +34,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
 
 /**
  * @author Javier Rojas Blum
- * @version June 19, 2015
+ * @version November 30, 2016
  */
 public class ResponseTypesRestrictionHttpTest extends BaseTest {
 
@@ -42,16 +42,18 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
      * Registering without provide the response_types param, should register the Client using only
      * the <code>code</code> response type.
      */
-    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri"})
+    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri", "sectorIdentifierUri"})
     @Test
-    public void omittedResponseTypes(final String redirectUris, final String userId, final String userSecret,
-                                     final String redirectUri) throws Exception {
+    public void omittedResponseTypes(
+            final String redirectUris, final String userId, final String userSecret, final String redirectUri,
+            final String sectorIdentifierUri) throws Exception {
         showTitle("omittedResponseTypes");
 
         // 1. Register client
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
         registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_POST);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
@@ -102,16 +104,10 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
 
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, null);
         authorizationRequest.setState(state);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
-        authorizationRequest.getPrompts().add(Prompt.NONE);
 
-        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setRequest(authorizationRequest);
-        AuthorizationResponse authorizationResponse = authorizeClient.exec();
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
 
-        showClient(authorizeClient);
-        assertEquals(authorizationResponse.getStatus(), 302, "Unexpected response code: " + authorizationResponse.getStatus());
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNotNull(authorizationResponse.getCode(), "The authorization code is null");
         assertNotNull(authorizationResponse.getState(), "The state is null");
@@ -146,14 +142,15 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         String userId = context.getCurrentXmlTest().getParameter("userId");
         String userSecret = context.getCurrentXmlTest().getParameter("userSecret");
         String redirectUri = context.getCurrentXmlTest().getParameter("redirectUri");
+        String sectorIdentifierUri = context.getCurrentXmlTest().getParameter("sectorIdentifierUri");
 
         return new Object[][]{
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.ID_TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.ID_TOKEN)},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.ID_TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.ID_TOKEN), sectorIdentifierUri},
         };
     }
 
@@ -161,15 +158,19 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
      * Authorization request with the other Response types combination should fail.
      */
     @Test(dataProvider = "omittedResponseTypesFailDataProvider")
-    public void omittedResponseTypesFail(final String redirectUris, final String redirectUri,
-                                         final String userId, final String userSecret,
-                                         final List<ResponseType> responseTypes) throws Exception {
+    public void omittedResponseTypesFail(
+            final String redirectUris, final String redirectUri, final String userId, final String userSecret,
+            final List<ResponseType> responseTypes, final String sectorIdentifierUri) throws Exception {
         showTitle("omittedResponseTypesFail");
 
         // 1. Register client
-        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        RegisterResponse registerResponse = registerClient.execRegister(ApplicationType.WEB, "oxAuth test app",
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
         assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
@@ -232,10 +233,11 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
     /**
      * Registering with the response_types param <code>code, id_token</code>.
      */
-    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri"})
+    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri", "sectorIdentifierUri"})
     @Test
-    public void responseTypesCodeIdToken(final String redirectUris, final String userId, final String userSecret,
-                                         final String redirectUri) throws Exception {
+    public void responseTypesCodeIdToken(
+            final String redirectUris, final String userId, final String userSecret, final String redirectUri,
+            final String sectorIdentifierUri) throws Exception {
         showTitle("responseTypesCodeIdToken");
 
         List<ResponseType> responseTypes = Arrays.asList(
@@ -247,6 +249,7 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
                 StringUtils.spaceSeparatedToList(redirectUris));
         registerRequest.setResponseTypes(responseTypes);
         registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_POST);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
@@ -297,16 +300,10 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
 
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
         authorizationRequest.setState(state);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
-        authorizationRequest.getPrompts().add(Prompt.NONE);
 
-        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setRequest(authorizationRequest);
-        AuthorizationResponse authorizationResponse = authorizeClient.exec();
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
 
-        showClient(authorizeClient);
-        assertEquals(authorizationResponse.getStatus(), 302, "Unexpected response code: " + authorizationResponse.getStatus());
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNotNull(authorizationResponse.getCode(), "The authorization code is null");
         assertNotNull(authorizationResponse.getIdToken(), "The id token is null");
@@ -363,12 +360,13 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         String redirectUri = context.getCurrentXmlTest().getParameter("redirectUri");
         String userId = context.getCurrentXmlTest().getParameter("userId");
         String userSecret = context.getCurrentXmlTest().getParameter("userSecret");
+        String sectorIdentifierUri = context.getCurrentXmlTest().getParameter("sectorIdentifierUri");
 
         return new Object[][]{
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN), sectorIdentifierUri},
         };
     }
 
@@ -376,9 +374,9 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
      * Authorization request with the other Response types combination should fail.
      */
     @Test(dataProvider = "responseTypesCodeIdTokenFailDataProvider")
-    public void responseTypesCodeIdTokenFail(final String redirectUris, final String redirectUri,
-                                             final String userId, final String userSecret,
-                                             final List<ResponseType> responseTypes) throws Exception {
+    public void responseTypesCodeIdTokenFail(
+            final String redirectUris, final String redirectUri, final String userId, final String userSecret,
+            final List<ResponseType> responseTypes, final String sectorIdentifierUri) throws Exception {
         showTitle("responseTypesCodeIdTokenFail");
 
         // 1. Register client
@@ -387,6 +385,8 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         registerRequest.setResponseTypes(Arrays.asList(
                 ResponseType.CODE,
                 ResponseType.ID_TOKEN));
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
         RegisterResponse registerResponse = registerClient.exec();
@@ -449,10 +449,11 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         assertNotNull(authorizationResponse.getErrorDescription(), "The error description is null");
     }
 
-    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri"})
+    @Parameters({"redirectUris", "userId", "userSecret", "redirectUri", "sectorIdentifierUri"})
     @Test
-    public void responseTypesTokenIdToken(final String redirectUris, final String userId, final String userSecret,
-                                          final String redirectUri) throws Exception {
+    public void responseTypesTokenIdToken(
+            final String redirectUris, final String userId, final String userSecret, final String redirectUri,
+            final String sectorIdentifierUri) throws Exception {
         showTitle("responseTypesTokenIdToken");
 
         List<ResponseType> responseTypes = Arrays.asList(
@@ -463,6 +464,7 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
         registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
@@ -513,16 +515,10 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(
                 responseTypes, clientId, scopes, redirectUri, nonce);
         authorizationRequest.setState(state);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
-        authorizationRequest.getPrompts().add(Prompt.NONE);
 
-        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setRequest(authorizationRequest);
-        AuthorizationResponse authorizationResponse = authorizeClient.exec();
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
 
-        showClient(authorizeClient);
-        assertEquals(authorizationResponse.getStatus(), 302, "Unexpected response code: " + authorizationResponse.getStatus());
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNull(authorizationResponse.getCode(), "The authorization code is null");
         assertNotNull(authorizationResponse.getAccessToken(), "The access token is null");
@@ -560,19 +556,20 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         String redirectUri = context.getCurrentXmlTest().getParameter("redirectUri");
         String userId = context.getCurrentXmlTest().getParameter("userId");
         String userSecret = context.getCurrentXmlTest().getParameter("userSecret");
+        String sectorIdentifierUri = context.getCurrentXmlTest().getParameter("sectorIdentifierUri");
 
         return new Object[][]{
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.ID_TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN)},
-                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.ID_TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN), sectorIdentifierUri},
+                {redirectUris, redirectUri, userId, userSecret, Arrays.asList(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN), sectorIdentifierUri},
         };
     }
 
     @Test(dataProvider = "responseTypesTokenIdTokenFailDataProvider")
-    public void responseTypesTokenIdTokenFail(final String redirectUris, final String redirectUri,
-                                              final String userId, final String userSecret,
-                                              final List<ResponseType> responseTypes) throws Exception {
+    public void responseTypesTokenIdTokenFail(
+            final String redirectUris, final String redirectUri, final String userId, final String userSecret,
+            final List<ResponseType> responseTypes, final String sectorIdentifierUri) throws Exception {
         showTitle("responseTypesTokenIdTokenFail");
 
         // 1. Register client
@@ -581,6 +578,8 @@ public class ResponseTypesRestrictionHttpTest extends BaseTest {
         registerRequest.setResponseTypes(Arrays.asList(
                 ResponseType.TOKEN,
                 ResponseType.ID_TOKEN));
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
         RegisterResponse registerResponse = registerClient.exec();

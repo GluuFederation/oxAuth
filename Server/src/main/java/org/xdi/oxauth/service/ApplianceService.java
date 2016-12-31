@@ -6,20 +6,17 @@
 
 package org.xdi.oxauth.service;
 
-import java.util.List;
-
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Logger;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.appliance.GluuAppliance;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.util.StringHelper;
+
+import java.util.List;
 
 /**
  * GluuAppliance service
@@ -37,6 +34,11 @@ public class ApplianceService {
 	@In
 	private LdapEntryManager ldapEntryManager;
 
+    @In
+    private AppConfiguration appConfiguration;
+
+	@In
+	private StaticConf staticConfiguration;
 	/**
 	 * Add new appliance
 	 * @param appliance Appliance
@@ -102,7 +104,7 @@ public class ApplianceService {
 	 * @throws Exception 
 	 */
 	public String getDnForAppliance(String inum) {
-		String baseDn = ConfigurationFactory.instance().getBaseDn().getAppliance();
+		String baseDn = staticConfiguration.getBaseDn().getAppliance();
 		if (StringHelper.isEmpty(inum)) {
 			return baseDn;
 		}
@@ -120,7 +122,7 @@ public class ApplianceService {
 	}
 
 	public String getApplianceInum() {
-		return ConfigurationFactory.instance().getConfiguration().getApplianceInum();
+		return appConfiguration.getApplianceInum();
 	}
 
 	/**

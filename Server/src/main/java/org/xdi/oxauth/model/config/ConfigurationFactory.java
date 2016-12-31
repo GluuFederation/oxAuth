@@ -6,6 +6,10 @@
 
 package org.xdi.oxauth.model.config;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -14,16 +18,22 @@ import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.gluu.site.ldap.persistence.exception.LdapMappingException;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.*;
+import org.jboss.seam.annotations.AutoCreate;
+import org.jboss.seam.annotations.Create;
+import org.jboss.seam.annotations.Factory;
+import org.jboss.seam.annotations.Logger;
+import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Observer;
+import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.Startup;
 import org.jboss.seam.annotations.async.Asynchronous;
 import org.jboss.seam.async.TimerSchedule;
 import org.jboss.seam.contexts.Contexts;
-import org.jboss.seam.contexts.Lifecycle;
 import org.jboss.seam.core.Events;
 import org.jboss.seam.log.Log;
 import org.jboss.seam.log.Logging;
 import org.xdi.exception.ConfigurationException;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.AbstractCryptoProvider;
 import org.xdi.oxauth.model.error.ErrorMessages;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
@@ -31,10 +41,6 @@ import org.xdi.oxauth.model.jwk.JSONWebKeySet;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 import org.xdi.util.properties.FileConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -51,6 +57,8 @@ public class ConfigurationFactory {
     private static final Log LOG = Logging.getLog(ConfigurationFactory.class);
 
     public final static String LDAP_CONFIGUARION_RELOAD_EVENT_TYPE = "LDAP_CONFIGUARION_RELOAD";
+    public final static String CONFIGURATION_UPDATE_EVENT = "configurationUpdateEvent";
+
     private final static String EVENT_TYPE = "ConfigurationFactoryTimerEvent";
     private final static int DEFAULT_INTERVAL = 30; // 30 seconds
 
@@ -86,7 +94,7 @@ public class ConfigurationFactory {
     private String confDir, configFilePath, errorsFilePath, staticConfFilePath, webKeysFilePath, saltFilePath;
 
     private FileConfiguration ldapConfiguration;
-    private Configuration conf;
+    private AppConfiguration conf;
     private StaticConf staticConf;
     private JSONWebKeySet jwks;
     private String cryptoConfigurationSalt;
@@ -193,10 +201,12 @@ public class ConfigurationFactory {
         return ldapConfiguration;
     }
 
-    public Configuration getConfiguration() {
+    @Factory(value = "appConfiguration", scope = ScopeType.APPLICATION, autoCreate = true)
+    public AppConfiguration getConfiguration() {
         return conf;
     }
 
+    @Factory(value = "staticConfiguration", scope = ScopeType.APPLICATION, autoCreate = true)
     public StaticConf getStaticConfiguration() {
         return staticConf;
     }
@@ -204,7 +214,8 @@ public class ConfigurationFactory {
     public BaseDnConfiguration getBaseDn() {
         return getStaticConfiguration().getBaseDn();
     }
-
+    
+    @Factory(value = "webKeysConfiguration", scope = ScopeType.APPLICATION, autoCreate = true)
     public JSONWebKeySet getWebKeys() {
         return jwks;
     }
@@ -265,7 +276,7 @@ public class ConfigurationFactory {
     }
 
     private boolean reloadConfFromFile() {
-        final Configuration configFromFile = loadConfFromFile();
+        final AppConfiguration configFromFile = loadConfFromFile();
         if (configFromFile != null) {
             LOG.info("Reloaded configuration from file: " + configFilePath);
             conf = configFromFile;
@@ -280,9 +291,17 @@ public class ConfigurationFactory {
     private boolean createFromLdap(boolean recoverFromFiles) {
         LOG.info("Loading configuration from LDAP...");
         try {
-            final Conf conf = loadConfigurationFromLdap();
-            if (conf != null) {
-                init(conf);
+            final Conf c = loadConfigurationFromLdap();
+            if (c != null) {
+                init(c);
+
+                // Destroy old configuration
+            	Contexts.getApplicationContext().remove("appConfiguration");
+            	Contexts.getApplicationContext().remove("staticConfiguration");
+            	Contexts.getApplicationContext().remove("webKeysConfiguration");
+
+                Events.instance().raiseAsynchronousEvent(CONFIGURATION_UPDATE_EVENT, this.conf, this.staticConf);
+                
                 return true;
             }
         } catch (Exception ex) {
@@ -377,7 +396,7 @@ public class ConfigurationFactory {
 
     private void initConfigurationFromJson(String p_configurationJson) {
         try {
-            final Configuration c = ServerUtil.createJsonMapper().readValue(p_configurationJson, Configuration.class);
+            final AppConfiguration c = ServerUtil.createJsonMapper().readValue(p_configurationJson, AppConfiguration.class);
             if (c != null) {
                 conf = c;
             }
@@ -425,9 +444,9 @@ public class ConfigurationFactory {
         return LDAP_DEFAULT_FILE_PATH;
     }
 
-    private Configuration loadConfFromFile() {
+    private AppConfiguration loadConfFromFile() {
         try {
-            return ServerUtil.createJsonMapper().readValue(new File(configFilePath), Configuration.class);
+            return ServerUtil.createJsonMapper().readValue(new File(configFilePath), AppConfiguration.class);
         } catch (Exception e) {
             LOG.warn(e.getMessage(), e);
         }
@@ -485,20 +504,6 @@ public class ConfigurationFactory {
         }
 
         return null;
-    }
-
-    /**
-     * Get ConfigurationFactory instance
-     *
-     * @return ConfigurationFactory instance
-     */
-    public static ConfigurationFactory instance() {
-        boolean createContexts = !Contexts.isEventContextActive() && !Contexts.isApplicationContextActive();
-        if (createContexts) {
-            Lifecycle.beginCall();
-        }
-
-        return (ConfigurationFactory) Component.getInstance(ConfigurationFactory.class);
     }
 
 }

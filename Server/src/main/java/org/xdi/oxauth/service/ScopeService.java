@@ -6,18 +6,22 @@
 
 package org.xdi.oxauth.service;
 
-import com.unboundid.ldap.sdk.Filter;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.*;
-import org.jboss.seam.contexts.Contexts;
-import org.jboss.seam.contexts.Lifecycle;
+import org.jboss.seam.annotations.AutoCreate;
+import org.jboss.seam.annotations.In;
+import org.jboss.seam.annotations.Logger;
+import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.config.StaticConf;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.unboundid.ldap.sdk.Filter;
 
 /**
  * @author Javier Rojas Blum Date: 07.05.2012
@@ -34,17 +38,14 @@ public class ScopeService {
     @Logger
     private Log log;
 
+    @In
+    private StaticConf staticConfiguration;
     /**
      * Get ScopeService instance
      *
      * @return ScopeService instance
      */
     public static ScopeService instance() {
-        boolean createContexts = !Contexts.isEventContextActive() && !Contexts.isApplicationContextActive();
-        if (createContexts) {
-            Lifecycle.beginCall();
-        }
-
         return (ScopeService) Component.getInstance(ScopeService.class);
     }
 
@@ -54,7 +55,7 @@ public class ScopeService {
      * @return list of scopes
      */
     public List<org.xdi.oxauth.model.common.Scope> getAllScopesList() {
-        String scopesBaseDN = ConfigurationFactory.instance().getBaseDn().getScopes();
+        String scopesBaseDN = staticConfiguration.getBaseDn().getScopes();
 
         return ldapEntryManager.findEntries(scopesBaseDN,
                 org.xdi.oxauth.model.common.Scope.class,
@@ -116,7 +117,7 @@ public class ScopeService {
      * @return scope
      */
     public org.xdi.oxauth.model.common.Scope getScopeByDisplayName(String DisplayName) {
-        String scopesBaseDN = ConfigurationFactory.instance().getBaseDn().getScopes();
+        String scopesBaseDN = staticConfiguration.getBaseDn().getScopes();
 
         org.xdi.oxauth.model.common.Scope scope = new org.xdi.oxauth.model.common.Scope();
         scope.setDn(scopesBaseDN);
@@ -139,7 +140,7 @@ public class ScopeService {
     public List<org.xdi.oxauth.model.common.Scope> getScopeByClaim(String claimDn) {
         Filter filter = Filter.createEqualityFilter("oxAuthClaim", claimDn);
         
-    	String scopesBaseDN = ConfigurationFactory.instance().getBaseDn().getScopes();
+    	String scopesBaseDN = staticConfiguration.getBaseDn().getScopes();
         List<org.xdi.oxauth.model.common.Scope> scopes = ldapEntryManager.findEntries(scopesBaseDN, org.xdi.oxauth.model.common.Scope.class, filter);  
 
         return scopes;

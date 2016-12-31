@@ -10,7 +10,8 @@ import org.apache.http.client.CookieStore;
 
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 15/03/2013
+ * @author Javier Rojas Blum
+ * @version December 26, 2016
  */
 
 public class ClientUtils {
@@ -39,12 +40,12 @@ public class ClientUtils {
         System.out.println("");
 
         if (client.getResponse() != null) {
-	        System.out.println("-------------------------------------------------------");
-	        System.out.println("RESPONSE:");
-	        System.out.println("-------------------------------------------------------");
-	        System.out.println("HTTP/1.1 302 Found");
-	        System.out.println("Location: " + client.getResponse().getLocation());
-	        System.out.println("");
+            System.out.println("-------------------------------------------------------");
+            System.out.println("RESPONSE:");
+            System.out.println("-------------------------------------------------------");
+            System.out.println("HTTP/1.1 302 Found");
+            System.out.println("Location: " + client.getResponse().getLocation());
+            System.out.println("");
         }
     }
 

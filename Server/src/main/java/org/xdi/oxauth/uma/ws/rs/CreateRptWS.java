@@ -18,8 +18,9 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.common.AuthorizationGrant;
 import org.xdi.oxauth.model.common.uma.UmaRPT;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
+import org.xdi.oxauth.model.jwk.JSONWebKeySet;
 import org.xdi.oxauth.model.jwt.Jwt;
 import org.xdi.oxauth.model.token.JsonWebResponse;
 import org.xdi.oxauth.model.token.JwtSigner;
@@ -65,6 +66,12 @@ public class CreateRptWS {
     @In
     private LdapEntryManager ldapEntryManager;
 
+    @In
+    private AppConfiguration appConfiguration;
+
+    @In
+    private JSONWebKeySet webKeysConfiguration;
+
     @Path("rpt")
     @POST
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
@@ -83,7 +90,7 @@ public class CreateRptWS {
             UmaRPT rpt = rptManager.createRPT(authorization, validatedAmHost, false);
 
             String rptResponse = rpt.getCode();
-            final Boolean umaRptAsJwt = ConfigurationFactory.instance().getConfiguration().getUmaRptAsJwt();
+            final Boolean umaRptAsJwt = appConfiguration.getUmaRptAsJwt();
             if (umaRptAsJwt != null && umaRptAsJwt) {
                 rptResponse = createJwr(rpt, authorization, Lists.<String>newArrayList()).asString();
             }
@@ -105,7 +112,7 @@ public class CreateRptWS {
     private JsonWebResponse createJwr(UmaRPT rpt, String authorization, List<String> gluuAccessTokenScopes) throws Exception {
         final AuthorizationGrant grant = tokenService.getAuthorizationGrant(authorization);
 
-        JwtSigner jwtSigner = JwtSigner.newJwtSigner(grant.getClient());
+        JwtSigner jwtSigner = JwtSigner.newJwtSigner(appConfiguration, webKeysConfiguration, grant.getClient());
         Jwt jwt = jwtSigner.newJwt();
 
         jwt.getClaims().setExpirationTime(rpt.getExpirationDate());
@@ -140,7 +147,7 @@ public class CreateRptWS {
             authorizeGat(request, rpt, authorization, httpRequest);
 
             String rptResponse = rpt.getCode();
-            final Boolean umaRptAsJwt = ConfigurationFactory.instance().getConfiguration().getUmaRptAsJwt();
+            final Boolean umaRptAsJwt = appConfiguration.getUmaRptAsJwt();
             if (umaRptAsJwt != null && umaRptAsJwt) {
                 rptResponse = createJwr(rpt, authorization, request.getScopes()).asString();
             }

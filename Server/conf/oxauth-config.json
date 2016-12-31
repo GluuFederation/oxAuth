@@ -43,7 +43,7 @@
         "public",
         "pairwise"
     ],
-    "defaultSubjectType": "public",
+    "defaultSubjectType": "pairwise",
     "userInfoSigningAlgValuesSupported":[
         "HS256",
         "HS384",
@@ -206,7 +206,8 @@
     "sessionIdUnusedLifetime":86400,
     "sessionIdUnauthenticatedUnusedLifetime":60,
     "sessionIdEnabled":true,
-    "sessionIdPersistOnPromptNone":false,
+"sessionIdPersistOnPromptNone":true,
+"sessionStateHttpOnly": false,
     "configurationUpdateInterval":3600,
     "cssLocation":"${config.oxauth.contextPath}/stylesheet",
     "jsLocation":"${config.oxauth.contextPath}/js",
@@ -218,10 +219,11 @@
     "pairwiseCalculationSalt": "${config.oxauth.pairwiseCalculationSalt}",
     "webKeysStorage": "keystore",
     "dnName": "CN=oxAuth CA Certificates",
-    "keyStoreFile": "/etc/certs/keystore.jks",
+    "keyStoreFile": "./conf/keystore.jks",
     "keyStoreSecret": "secret",
     "endSessionWithAccessToken":false,
     "clientWhiteList": ["*"],
     "clientBlackList": ["*.attacker.com/*"],
-    "legacyIdTokenClaims": true
+"legacyIdTokenClaims": true,
+"customHeadersWithAuthorizationResponse": true
 }

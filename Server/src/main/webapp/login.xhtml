@@ -34,8 +34,10 @@
                          </div><!-- end logo-->
 
                          <div class="login span4 offset6">
-                         Need a Gluu account?                         
-                         <a class="register,need-account" href="../identity/register?redirectUri=https://support.gluu.org">Sign Up!</a>
+							 Need a Gluu account?
+							 <a class="register,need-account"
+								href="#{'../identity/register?redirectUri='.concat(pageService.getRootUrlByRequest(request))}">Sign Up!
+							 </a>
                        	                        	 
                         </div>
                     </div>
@@ -47,11 +49,11 @@
                <div id="content" class="sign-in-page">
 		        <div class="row-fluid">
 			       <h:form id="loginForm" class="signin-form span6 offset3">
-			        <h:panelGroup rendered="#{not identity.loggedIn}">
+			        <h:panelGroup rendered="#{sessionStateService.notSessionStateAuthenticated}">
 				      <div class="inner-form-container row-fluid">
 								<ul class="offset2 span10">
 
-									<s:token />
+									<s:token allowMultiplePosts="true" />
 									<h:messages style="color:red;" />
 									<div class="row-fluid">
 										<span class="input-name span3"> <h:outputLabel
@@ -159,7 +161,6 @@
                 var userName = '#{!empty loginAction.loginHint ? loginAction.loginHint : ""}';
                 if (userName) {
                     userNameField.value = userName;
-                    userNameField.readOnly = true;
                     passwordField.focus();
                 } else {
                     userNameField.focus();

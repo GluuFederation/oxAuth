@@ -27,6 +27,7 @@ import org.xdi.oxauth.model.common.Id;
 import org.xdi.oxauth.model.common.IdType;
 import org.xdi.oxauth.model.common.uma.UmaRPT;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.uma.persistence.ResourceSetPermission;
 import org.xdi.oxauth.service.token.TokenService;
 import org.xdi.oxauth.service.uma.RPTManager;
@@ -50,17 +51,8 @@ import com.wordnik.swagger.annotations.ApiParam;
 @Api(value = "/id", description = "ID Generation")
 public class IdGenRestWebService {
 
-    private static class UnauthorizedResponseHolder {
-        public static Response UNAUTHORIZED_RESPONSE = unauthorizedResponse();
-
-        public static Response unauthorizedResponse() {
-            return Response.status(Response.Status.UNAUTHORIZED).
-                    header("host_id", ConfigurationFactory.instance().getConfiguration().getIssuer()).
-                    header("as_uri", ConfigurationFactory.instance().getConfiguration().getUmaConfigurationEndpoint()).
-                    build();
-        }
-
-    }
+    @In
+    private AppConfiguration appConfiguration;
 
     @Logger
     private Log log;
@@ -159,9 +151,9 @@ public class IdGenRestWebService {
         // to facilitate authorization server configuration data discovery,
         // including discovery of the endpoint where the client can request an RPT (Section 3.4.1).
         log.debug("Client does not present RPT. Return HTTP 401 (Unauthorized)\n with reference to AM as_uri: {0}",
-                ConfigurationFactory.instance().getConfiguration().getUmaConfigurationEndpoint());
+        		appConfiguration.getUmaConfigurationEndpoint());
 
-        return new Pair<Boolean, Response>(false, UnauthorizedResponseHolder.UNAUTHORIZED_RESPONSE);
+        return new Pair<Boolean, Response>(false, unauthorizedResponse());
     }
 
     private Response generateId(String prefix, String type, String p_authorization, String p_mediaType) {
@@ -199,5 +191,13 @@ public class IdGenRestWebService {
         log.trace("Generated id: {0}, prefix: {1}, type: {2}", id, prefix, type);
         return id;
     }
+
+    public Response unauthorizedResponse() {
+        return Response.status(Response.Status.UNAUTHORIZED).
+                header("host_id", appConfiguration.getIssuer()).
+                header("as_uri", appConfiguration.getUmaConfigurationEndpoint()).
+                build();
+    }
+
 }
 

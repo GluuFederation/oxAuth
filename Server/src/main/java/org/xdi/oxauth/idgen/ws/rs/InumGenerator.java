@@ -6,28 +6,23 @@
 
 package org.xdi.oxauth.idgen.ws.rs;
 
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.gluu.site.ldap.persistence.LdapEntryManager;
-import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Logger;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
-import org.jboss.seam.log.Log;
-import org.xdi.ldap.model.LdapDummyEntry;
-import org.xdi.oxauth.model.common.IdType;
-import org.xdi.oxauth.model.config.BaseDnConfiguration;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.util.ServerUtil;
-import org.xdi.util.INumGenerator;
-
 import com.unboundid.ldap.sdk.DN;
 import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.RDN;
+import org.apache.commons.lang.StringUtils;
+import org.gluu.site.ldap.persistence.LdapEntryManager;
+import org.jboss.seam.ScopeType;
+import org.jboss.seam.annotations.*;
+import org.jboss.seam.log.Log;
+import org.xdi.ldap.model.LdapDummyEntry;
+import org.xdi.oxauth.model.common.IdType;
+import org.xdi.oxauth.model.config.BaseDnConfiguration;
+import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.util.INumGenerator;
+
+import java.util.List;
 
 /**
  * Inum ID generator. Generates inum: e.g. @!1111!0001!1234.
@@ -48,6 +43,9 @@ public class InumGenerator implements IdGenerator {
     private Log log;
     @In
     private LdapEntryManager ldapEntryManager;
+
+    @In
+    private StaticConf staticConfiguration;
 
     @Override
     public String generateId(String p_idType, String p_idPrefix) {
@@ -116,7 +114,7 @@ public class InumGenerator implements IdGenerator {
     }
 
     public String baseDn(IdType p_type) {
-        final BaseDnConfiguration baseDn = ConfigurationFactory.instance().getBaseDn();
+        final BaseDnConfiguration baseDn = staticConfiguration.getBaseDn();
         switch (p_type) {
             case CLIENTS:
                 return baseDn.getClients();

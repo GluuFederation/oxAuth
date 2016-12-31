@@ -8,8 +8,7 @@ import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.xdi.ldap.model.SimpleBranch;
 import org.xdi.oxauth.model.common.PairwiseIdType;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.ldap.PairwiseIdentifier;
 import org.xdi.oxauth.model.util.SubjectIdentifierGenerator;
 import org.xdi.util.StringHelper;
@@ -34,6 +33,8 @@ public class PairwiseIdentifierService {
 
     @Logger
     private Log log;
+    @In
+    private AppConfiguration appConfiguration;
 
     public void addBranch(final String userInum) {
         SimpleBranch branch = new SimpleBranch();
@@ -55,7 +56,7 @@ public class PairwiseIdentifierService {
     }
 
     public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifierUri) throws Exception {
-        PairwiseIdType pairwiseIdType = PairwiseIdType.fromString(ConfigurationFactory.instance().getConfiguration().getPairwiseIdType());
+        PairwiseIdType pairwiseIdType = PairwiseIdType.fromString(appConfiguration.getPairwiseIdType());
         String sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
 
         if (PairwiseIdType.PERSISTENT == pairwiseIdType) {
@@ -76,12 +77,11 @@ public class PairwiseIdentifierService {
                 return entries.get(0);
             }
         } else { // PairwiseIdType.ALGORITHMIC
-            Configuration configuration = ConfigurationFactory.instance().getConfiguration();
-            String key = configuration.getPairwiseCalculationKey();
-            String salt = configuration.getPairwiseCalculationSalt();
+            String key = appConfiguration.getPairwiseCalculationKey();
+            String salt = appConfiguration.getPairwiseCalculationSalt();
 
             String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(
-                    sectorIdentifierUri, userInum, key, salt, configuration);
+                    sectorIdentifierUri, userInum, key, salt, appConfiguration);
 
             PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
             pairwiseIdentifier.setId(calculatedSub);

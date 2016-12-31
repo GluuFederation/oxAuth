@@ -6,21 +6,20 @@
 
 package org.xdi.oxauth.model.authorize;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.AutoCreate;
+import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.jboss.seam.contexts.Contexts;
-import org.jboss.seam.contexts.Lifecycle;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.service.ScopeService;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Validates the scopes received for the authorize web service.
@@ -37,11 +36,12 @@ public class ScopeChecker {
     @Logger
     private Log log;
 
+    @In
+    private ScopeService scopeService;
+
     public Set<String> checkScopesPolicy(Client client, String scope) {
         log.debug("Checking scopes policy for: " + scope);
         Set<String> grantedScopes = new HashSet<String>();
-
-        ScopeService scopeService = ScopeService.instance();
 
         final String[] scopesRequested = scope.split(" ");
         final String[] scopesAllowed = client.getScopes();
@@ -71,11 +71,6 @@ public class ScopeChecker {
      * @return ScopeChecker instance
      */
     public static ScopeChecker instance() {
-        boolean createContexts = !Contexts.isEventContextActive() && !Contexts.isApplicationContextActive();
-        if (createContexts) {
-            Lifecycle.beginCall();
-        }
-
         return (ScopeChecker) Component.getInstance(ScopeChecker.class);
     }
 
