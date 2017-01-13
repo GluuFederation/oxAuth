@@ -99,7 +99,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             	log.debug("Grant type: '{0}'", gt.toString());
 
                 Client client = sessionClient.getClient();
-            	log.debug("Get client from session: '{0}'", client.getClientId());
+            	log.debug("Get sessionClient: '{0}'", sessionClient);
+            	if (client != null) {
+            		log.debug("Get client from session: '{0}'", client.getClientId());
+            	}
 
                 if (ConfigurationFactory.instance().getConfiguration().getFederationEnabled()) {
                     if (!federationDataService.hasAnyActiveTrust(client)) {
