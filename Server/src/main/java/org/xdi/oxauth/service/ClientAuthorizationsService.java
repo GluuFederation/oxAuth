@@ -14,7 +14,7 @@ import java.util.*;
 
 /**
  * @author Javier Rojas Blum
- * @version October 16, 2015
+ * @version January 17, 2017
  */
 @Scope(ScopeType.STATELESS)
 @Name("clientAuthorizationsService")
@@ -85,7 +85,9 @@ public class ClientAuthorizationsService {
             ldapEntryManager.persist(clientAuthorizations);
         } else {
             Set<String> set = new HashSet<String>(scopes);
-            set.addAll(Arrays.asList(clientAuthorizations.getScopes()));
+            if (clientAuthorizations.getScopes() != null) {
+                set.addAll(Arrays.asList(clientAuthorizations.getScopes()));
+            }
             clientAuthorizations.setScopes(set.toArray(new String[set.size()]));
 
             ldapEntryManager.merge(clientAuthorizations);
