@@ -6,18 +6,6 @@
 
 package org.xdi.oxauth.ws.rs;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.CLIENT_ID_ISSUED_AT;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET_EXPIRES_AT;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.REGISTRATION_ACCESS_TOKEN;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.REGISTRATION_CLIENT_URI;
-
-import javax.ws.rs.core.MediaType;
-
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.jboss.seam.mock.EnhancedMockHttpServletRequest;
@@ -30,16 +18,22 @@ import org.xdi.oxauth.client.RegisterRequest;
 import org.xdi.oxauth.client.TokenRequest;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.common.GrantType;
-import org.xdi.oxauth.model.crypto.signature.RSAPrivateKey;
+import org.xdi.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.register.RegisterResponseParam;
 import org.xdi.oxauth.model.util.StringUtils;
 
+import javax.ws.rs.core.MediaType;
+
+import static org.testng.Assert.*;
+import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
+
 /**
  * Functional tests for Token Web Services (embedded)
  *
- * @author Javier Rojas Blum Date: 04.12.2013
+ * @author Javier Rojas Blum
+ * @version January 17, 2017
  */
 public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
@@ -115,34 +109,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS256Step1")
     public void requestAccessTokenWithClientSecretJwtRS256Step2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId1);
-                tokenRequest.setAuthPassword(clientSecret1);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId1);
+                    tokenRequest.setAuthPassword(clientSecret1);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -152,10 +150,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
@@ -226,34 +224,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS384_modulus", "RS384_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS384_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS384Step1")
     public void requestAccessTokenWithClientSecretJwtRS384Step2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId2);
-                tokenRequest.setAuthPassword(clientSecret2);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS384);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS384SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId2);
+                    tokenRequest.setAuthPassword(clientSecret2);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS384);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -263,10 +265,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
@@ -337,34 +339,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS512_modulus", "RS512_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS512_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS512Step1")
     public void requestAccessTokenWithClientSecretJwtRS512Step2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId3);
-                tokenRequest.setAuthPassword(clientSecret3);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS512);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS512SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId3);
+                    tokenRequest.setAuthPassword(clientSecret3);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS512);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -374,10 +380,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
@@ -448,34 +454,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS256X509CertStep1")
     public void requestAccessTokenWithClientSecretJwtRS256X509CertStep2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId4);
-                tokenRequest.setAuthPassword(clientSecret4);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId4);
+                    tokenRequest.setAuthPassword(clientSecret4);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -485,10 +495,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
@@ -559,34 +569,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS384_modulus", "RS384_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS384_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS384X509CertStep1")
     public void requestAccessTokenWithClientSecretJwtRS384X509CertStep2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId5);
-                tokenRequest.setAuthPassword(clientSecret5);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS384);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS384SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId5);
+                    tokenRequest.setAuthPassword(clientSecret5);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS384);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -596,10 +610,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
@@ -670,34 +684,38 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
         }.run();
     }
 
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS512_modulus", "RS512_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS512_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "requestAccessTokenWithClientSecretJwtRS512X509CertStep1")
     public void requestAccessTokenWithClientSecretJwtRS512X509CertStep2(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                try {
+                    super.prepareRequest(request);
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
 
-                tokenRequest.setAuthUsername(clientId6);
-                tokenRequest.setAuthPassword(clientSecret6);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS512);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS512SIG");
-                tokenRequest.setAudience(audience);
+                    tokenRequest.setAuthUsername(clientId6);
+                    tokenRequest.setAuthPassword(clientSecret6);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS512);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
 
-                request.addParameters(tokenRequest.getParameters());
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -707,10 +725,10 @@ public class TokenRestWebServiceWithRSAlgEmbeddedTest extends BaseTest {
 
                 assertEquals(response.getStatus(), 200, "Unexpected response code.");
                 assertTrue(response.getHeader("Cache-Control") != null
-                        && response.getHeader("Cache-Control").equals("no-store"),
+                                && response.getHeader("Cache-Control").equals("no-store"),
                         "Unexpected result: " + response.getHeader("Cache-Control"));
                 assertTrue(response.getHeader("Pragma") != null
-                        && response.getHeader("Pragma").equals("no-cache"),
+                                && response.getHeader("Pragma").equals("no-cache"),
                         "Unexpected result: " + response.getHeader("Pragma"));
                 assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
                 try {
