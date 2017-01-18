@@ -24,7 +24,6 @@ import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.crypto.OxAuthCryptoProvider;
-import org.xdi.oxauth.model.crypto.signature.RSAPrivateKey;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.register.RegisterResponseParam;
@@ -44,7 +43,7 @@ import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
 
 /**
  * @author Javier Rojas Blum
- * @version June 27, 2016
+ * @version January 17, 2017
  */
 public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
 
@@ -200,6 +199,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
                     RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                             StringUtils.spaceSeparatedToList(redirectUris));
                     registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_BASIC);
+                    registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
                     request.setContentType(MediaType.APPLICATION_JSON);
                     String registerRequestContent = registerRequest.getJSONParameters().toString(4);
@@ -503,33 +503,37 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
     /**
      * Fail 3: Call to Token Endpoint with Auth Method <code>private_key_jwt</code> should fail.
      */
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
     public void tokenEndpointAuthMethodClientSecretBasicFail3(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
+                try {
+                    super.prepareRequest(request);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
-                tokenRequest.setAuthUsername(clientId2);
-                tokenRequest.setAuthPassword(clientSecret2);
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
+                    tokenRequest.setAuthUsername(clientId2);
+                    tokenRequest.setAuthPassword(clientSecret2);
 
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-                request.addParameters(tokenRequest.getParameters());
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -569,6 +573,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
                     RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                             StringUtils.spaceSeparatedToList(redirectUris));
                     registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_POST);
+                    registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
                     request.setContentType(MediaType.APPLICATION_JSON);
                     String registerRequestContent = registerRequest.getJSONParameters().toString(4);
@@ -872,33 +877,37 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
     /**
      * Fail 3: Call to Token Endpoint with Auth Method <code>private_key_jwt</code> should fail.
      */
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
     public void tokenEndpointAuthMethodClientSecretPostFail3(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
+                try {
+                    super.prepareRequest(request);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
-                tokenRequest.setAuthUsername(clientId3);
-                tokenRequest.setAuthPassword(clientSecret3);
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
+                    tokenRequest.setAuthUsername(clientId3);
+                    tokenRequest.setAuthPassword(clientSecret3);
 
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-                request.addParameters(tokenRequest.getParameters());
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -938,6 +947,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
                     RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                             StringUtils.spaceSeparatedToList(redirectUris));
                     registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.CLIENT_SECRET_JWT);
+                    registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
                     request.setContentType(MediaType.APPLICATION_JSON);
                     String registerRequestContent = registerRequest.getJSONParameters().toString(4);
@@ -1247,33 +1257,37 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
     /**
      * Fail 3: Call to Token Endpoint with Auth Method <code>private_key_jwt</code> should fail.
      */
-    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
     public void tokenEndpointAuthMethodClientSecretJwtFail3(
             final String tokenPath, final String userId, final String userSecret, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
+                try {
+                    super.prepareRequest(request);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
-                tokenRequest.setUsername(userId);
-                tokenRequest.setPassword(userSecret);
-                tokenRequest.setScope("email read_stream manage_pages");
-                tokenRequest.setAuthUsername(clientId4);
-                tokenRequest.setAuthPassword(clientSecret4);
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
+                    tokenRequest.setUsername(userId);
+                    tokenRequest.setPassword(userSecret);
+                    tokenRequest.setScope("email read_stream manage_pages");
+                    tokenRequest.setAuthUsername(clientId4);
+                    tokenRequest.setAuthPassword(clientSecret4);
 
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-                request.addParameters(tokenRequest.getParameters());
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
@@ -1315,6 +1329,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
                             StringUtils.spaceSeparatedToList(redirectUris));
                     registerRequest.setTokenEndpointAuthMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
                     registerRequest.setJwksUri(jwksUri);
+                    registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
                     request.setContentType(MediaType.APPLICATION_JSON);
                     String registerRequestContent = registerRequest.getJSONParameters().toString(4);
@@ -1475,31 +1490,35 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
     /**
      * Call to Token Endpoint with Auth Method <code>private_key_jwt</code>.
      */
-    @Parameters({"tokenPath", "redirectUri", "audience", "RS256_modulus", "RS256_privateExponent"})
+    @Parameters({"tokenPath", "redirectUri", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
     @Test(dependsOnMethods = {"tokenEndpointAuthMethodPrivateKeyJwtStep3"})
     public void tokenEndpointAuthMethodPrivateKeyJwtStep4(
             final String tokenPath, final String redirectUri, final String audience,
-            final String modulus, final String privateExponent) throws Exception {
+            final String keyId, final String keyStoreFile, final String keyStoreSecret) throws Exception {
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this), ResourceRequestEnvironment.Method.POST, tokenPath) {
 
             @Override
             protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                super.prepareRequest(request);
+                try {
+                    super.prepareRequest(request);
 
-                RSAPrivateKey privateKey = new RSAPrivateKey(modulus, privateExponent);
+                    OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, null);
 
-                TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
-                tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
-                tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
-                tokenRequest.setRsaPrivateKey(privateKey);
-                tokenRequest.setKeyId("RS256SIG");
-                tokenRequest.setAudience(audience);
-                tokenRequest.setCode(authorizationCode5);
-                tokenRequest.setRedirectUri(redirectUri);
-                tokenRequest.setAuthUsername(clientId5);
+                    TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+                    tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);
+                    tokenRequest.setAlgorithm(SignatureAlgorithm.RS256);
+                    tokenRequest.setKeyId(keyId);
+                    tokenRequest.setCryptoProvider(cryptoProvider);
+                    tokenRequest.setAudience(audience);
+                    tokenRequest.setCode(authorizationCode5);
+                    tokenRequest.setRedirectUri(redirectUri);
+                    tokenRequest.setAuthUsername(clientId5);
 
-                request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-                request.addParameters(tokenRequest.getParameters());
+                    request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+                    request.addParameters(tokenRequest.getParameters());
+                } catch (Exception ex) {
+                    fail(ex.getMessage(), ex);
+                }
             }
 
             @Override
