@@ -37,6 +37,7 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientFilterService;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.SessionStateService;
+import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 
 import javax.servlet.FilterChain;
@@ -79,7 +80,7 @@ public class AuthenticationFilter extends AbstractFilter {
             public void process() {
                 try {
                     final String requestUrl = httpRequest.getRequestURL().toString();
-                    if (requestUrl.equals(ConfigurationFactory.instance().getConfiguration().getTokenEndpoint())) {
+                    if (requestUrl.endsWith("/token") && ServerUtil.isSameRequestPath(requestUrl, ConfigurationFactory.instance().getConfiguration().getTokenEndpoint())) {
                         if (httpRequest.getParameter("client_assertion") != null
                                 && httpRequest.getParameter("client_assertion_type") != null) {
                             processJwtAuth(httpRequest, httpResponse, filterChain);
@@ -393,4 +394,5 @@ public class AuthenticationFilter extends AbstractFilter {
     private ErrorResponseFactory getErrorResponseFactory() {
         return (ErrorResponseFactory) Component.getInstance(ErrorResponseFactory.class, true);
     }
+
 }
