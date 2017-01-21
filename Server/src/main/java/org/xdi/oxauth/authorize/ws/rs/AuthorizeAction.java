@@ -51,7 +51,7 @@ import java.util.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 14, 2016
+ * @version January 20, 2017
  */
 @Name("authorizeAction")
 @Scope(ScopeType.EVENT) // Do not change scope, we try to keep server without http sessions
@@ -84,7 +84,7 @@ public class AuthorizeAction {
     @In
     private ExternalAuthenticationService externalAuthenticationService;
 
-    @In(value = AppInitializer.DEFAULT_AUTH_MODE_NAME, required = false)
+    @In(value = AppInitializer.DEFAULT_ACR_VALUES, required = false)
     private String defaultAuthenticationMethod;
 
     @In("org.jboss.seam.international.localeSelector")
@@ -235,6 +235,7 @@ public class AuthorizeAction {
             // Create unauthenticated session
             SessionState unauthenticatedSession = sessionStateService.generateUnauthenticatedSessionState(null, new Date(), SessionIdState.UNAUTHENTICATED, requestParameterMap, false);
             unauthenticatedSession.setSessionAttributes(requestParameterMap);
+            unauthenticatedSession.addPermission(clientId, false);
             boolean persisted = sessionStateService.persistSessionState(unauthenticatedSession, !prompts.contains(Prompt.NONE)); // always persist is prompt is not none
             if (persisted && log.isTraceEnabled()) {
                 log.trace("Session '{0}' persisted to LDAP", unauthenticatedSession.getId());
@@ -639,7 +640,15 @@ public class AuthorizeAction {
             }
             final Client client = clientService.getClient(clientId);
 
-            if (client.getPersistClientAuthorizations()) {
+            if (scope == null) {
+                scope = session.getSessionAttributes().get(AuthorizeRequestParam.SCOPE);
+            }
+
+            // oxAuth #441 Pre-Authorization + Persist Authorizations... don't write anything
+            // If a client has pre-authorization=true, there is no point to create the entry under
+            // ou=clientAuthorizations it will negatively impact performance, grow the size of the
+            // ldap database, and serve no purpose.
+            if (client.getPersistClientAuthorizations() && !client.getTrustedClient()) {
                 final Set<String> scopes = Sets.newHashSet(org.xdi.oxauth.model.util.StringUtils.spaceSeparatedToList(scope));
                 clientAuthorizationsService.add(user.getAttribute("inum"), client.getClientId(), scopes);
             }

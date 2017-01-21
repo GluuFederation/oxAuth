@@ -23,6 +23,7 @@ import org.xdi.oxauth.model.uma.persistence.ResourceSetPermission;
 import org.xdi.oxauth.service.AppInitializer;
 import org.xdi.oxauth.service.uma.ScopeService;
 import org.xdi.util.ArrayHelper;
+import org.xdi.util.StringHelper;
 import org.xdi.util.Util;
 
 import javax.faces.context.ExternalContext;
@@ -224,23 +225,15 @@ public class ServerUtil {
         return (HttpServletRequest) request;
     }
 
-    public static String getMACAddressOrNull() {
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-
-            byte[] mac = network.getHardwareAddress();
-
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mac.length; i++) {
-                sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-            }
-            return sb.toString();
-        } catch (UnknownHostException e) {
-            return null;
-        } catch (SocketException e) {
-            return null;
-        }
+    public static boolean isSameRequestPath(String url1, String url2) throws MalformedURLException {
+    	if ((url1 == null) || (url2 == null)) {
+    		return false;
+    	}
+    	
+    	URL parsedUrl1 = new URL(url1);
+    	URL parsedUrl2 = new URL(url2);
+    	
+    	return StringHelper.equals(parsedUrl1.getPath(), parsedUrl2.getPath());
     }
 
 }

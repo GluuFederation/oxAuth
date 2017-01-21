@@ -52,6 +52,7 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientFilterService;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.SessionStateService;
+import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 
 /**
@@ -103,13 +104,18 @@ public class AuthenticationFilter extends AbstractFilter {
 
                 try {
                     final String requestUrl = httpRequest.getRequestURL().toString();
-                    if (requestUrl.equals(appConfiguration.getTokenEndpoint())) {
+					log.trace("Get request to: '{0}'", requestUrl);
+                    if (requestUrl.endsWith("/token") && ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getTokenEndpoint())) {
+                    	log.debug("Starting token endpoint authentication");
                         if (httpRequest.getParameter("client_assertion") != null
                                 && httpRequest.getParameter("client_assertion_type") != null) {
+							log.debug("Starting JWT token endpoint authentication");
                             processJwtAuth(authenticator, errorResponseFactory, httpRequest, httpResponse, filterChain, identity);
                         } else if (httpRequest.getHeader("Authorization") != null && httpRequest.getHeader("Authorization").startsWith("Basic ")) {
+							log.debug("Starting Basic Auth token endpoint authentication");
                             processBasicAuth(authenticator, clientService, errorResponseFactory, httpRequest, httpResponse, filterChain, identity);
                         } else {
+							log.debug("Starting POST Auth token endpoint authentication");
                             processPostAuth(authenticator, clientService, clientFilterService, errorResponseFactory, httpRequest, httpResponse, filterChain, identity);
                         }
                     } else if (httpRequest.getHeader("Authorization") != null) {
@@ -266,8 +272,10 @@ public class AuthenticationFilter extends AbstractFilter {
                 clientSecret = servletRequest.getParameter("client_secret");
                 isExistUserPassword = true;
             }
+        	log.trace("isExistUserPassword: {0}", isExistUserPassword);
 
             boolean requireAuth = !StringHelper.equals(clientId, identity.getCredentials().getUsername()) || !identity.isLoggedIn();
+        	log.debug("requireAuth: '{0}'", requireAuth);
 
             if (requireAuth) {
                 if (isExistUserPassword) {

@@ -34,7 +34,6 @@ public class AppConfiguration {
     private String clientInfoEndpoint;
     private String checkSessionIFrame;
     private String endSessionEndpoint;
-    private String endSessionPage;
     private String jwksUri;
     private String registrationEndpoint;
     private String validateTokenEndpoint;
@@ -141,8 +140,21 @@ public class AppConfiguration {
     private List<String> clientBlackList;
     private Boolean legacyIdTokenClaims;
     private Boolean customHeadersWithAuthorizationResponse;
+    private Boolean frontChannelLogoutSessionSupported; 
+    private String loggingLevel;
+    private Boolean updateUserLastLogonTime;
+    private Boolean updateClientAccessTime;
 
-    public Boolean getUmaRptAsJwt() {
+    public Boolean getFrontChannelLogoutSessionSupported() {
+		return frontChannelLogoutSessionSupported;
+	}
+
+	public void setFrontChannelLogoutSessionSupported(
+			Boolean frontChannelLogoutSessionSupported) {
+		this.frontChannelLogoutSessionSupported = frontChannelLogoutSessionSupported;
+	}
+
+	public Boolean getUmaRptAsJwt() {
         return umaRptAsJwt;
     }
 
@@ -354,24 +366,6 @@ public class AppConfiguration {
      */
     public void setEndSessionEndpoint(String endSessionEndpoint) {
         this.endSessionEndpoint = endSessionEndpoint;
-    }
-
-    /**
-     * Returns the URL of the End Session page.
-     *
-     * @return The URL of the End Session page.
-     */
-    public String getEndSessionPage() {
-        return endSessionPage;
-    }
-
-    /**
-     * Sets the URL of the End Session page.
-     *
-     * @param endSessionPage The URL of the End Session page.
-     */
-    public void setEndSessionPage(String endSessionPage) {
-        this.endSessionPage = endSessionPage;
     }
 
     /**
@@ -1135,4 +1129,29 @@ public class AppConfiguration {
     public void setCustomHeadersWithAuthorizationResponse(Boolean customHeadersWithAuthorizationResponse) {
         this.customHeadersWithAuthorizationResponse = customHeadersWithAuthorizationResponse;
     }
+
+    public Boolean getUpdateUserLastLogonTime() {
+        return updateUserLastLogonTime != null ? updateUserLastLogonTime : false;
+    }
+
+    public void setUpdateUserLastLogonTime(Boolean updateUserLastLogonTime) {
+        this.updateUserLastLogonTime = updateUserLastLogonTime;
+    }
+
+    public Boolean getUpdateClientAccessTime() {
+        return updateClientAccessTime != null ? updateClientAccessTime : false;
+    }
+
+    public void setUpdateClientAccessTime(Boolean updateClientAccessTime) {
+        this.updateClientAccessTime = updateClientAccessTime;
+    }
+
+    public String getLoggingLevel() {
+		return loggingLevel;
+	}
+
+	public void setLoggingLevel(String loggingLevel) {
+		this.loggingLevel = loggingLevel;
+	}
+
 }

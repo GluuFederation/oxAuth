@@ -10,7 +10,6 @@
     "clientInfoEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/clientinfo",
     "checkSessionIFrame":"${config.oxauth.contextPath}/opiframe",
     "endSessionEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/end_session",
-    "endSessionPage":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/end_session_page",
     "jwksUri":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/jwks",
     "registrationEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/register",
     "validateTokenEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/validate",
@@ -206,8 +205,8 @@
     "sessionIdUnusedLifetime":86400,
     "sessionIdUnauthenticatedUnusedLifetime":60,
     "sessionIdEnabled":true,
-"sessionIdPersistOnPromptNone":true,
-"sessionStateHttpOnly": false,
+    "sessionIdPersistOnPromptNone":true,
+    "sessionStateHttpOnly": false,
     "configurationUpdateInterval":3600,
     "cssLocation":"${config.oxauth.contextPath}/stylesheet",
     "jsLocation":"${config.oxauth.contextPath}/js",
@@ -224,6 +223,9 @@
     "endSessionWithAccessToken":false,
     "clientWhiteList": ["*"],
     "clientBlackList": ["*.attacker.com/*"],
-"legacyIdTokenClaims": true,
-"customHeadersWithAuthorizationResponse": true
+    "legacyIdTokenClaims": false,
+    "customHeadersWithAuthorizationResponse": true,
+    "updateUserLastLogonTime": true,
+    "updateClientAccessTime":true
+
 }

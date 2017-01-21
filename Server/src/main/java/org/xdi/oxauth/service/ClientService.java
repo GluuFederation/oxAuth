@@ -8,21 +8,25 @@ package org.xdi.oxauth.service;
 
 import com.google.common.collect.Sets;
 import com.unboundid.ldap.sdk.Filter;
+import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
+import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.*;
+import org.jboss.seam.annotations.Observer;
 import org.jboss.seam.log.Log;
 import org.python.jline.internal.Preconditions;
+import org.xdi.ldap.model.CustomAttribute;
+import org.xdi.ldap.model.CustomEntry;
+import org.xdi.ldap.model.SearchScope;
 import org.xdi.oxauth.model.config.StaticConf;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.registration.Client;
-import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.service.CacheService;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Provides operations with clients.
@@ -55,15 +59,17 @@ public class ClientService {
     private ClientFilterService clientFilterService;
 
     @In
+    private AppConfiguration appConfiguration;
+
+    @In
     private StaticConf staticConfiguration;
 
-    /**
-     * Get ClientService instance
-     *
-     * @return ClientService instance
-     */
-    public static ClientService instance() {
-        return ServerUtil.instance(ClientService.class);
+    private static String getClientIdCacheKey(String clientId) {
+        return "client_id_" + StringHelper.toLowerCase(clientId);
+    }
+
+    private static String getClientDnCacheKey(String dn) {
+        return "client_dn_" + StringHelper.toLowerCase(dn);
     }
 
     public void persist(Client client) {
@@ -144,7 +150,6 @@ public class ClientService {
     public Set<Client> getClientsByDns(Collection<String> dnList) {
         return getClientsByDns(dnList, true);
     }
-
 
     public Set<Client> getClientsByDns(Collection<String> dnList, boolean silently) {
         Preconditions.checkNotNull(dnList);
@@ -240,11 +245,10 @@ public class ClientService {
         return result;
     }
 
-    public List<Client> getClientsWithExpirationDate(String[] returnAttributes) {
+    public List<Client> getClientsWithExpirationDate(BatchOperation<Client> batchOperation, int searchLimit, int sizeLimit){
         String baseDN = staticConfiguration.getBaseDn().getClients();
         Filter filter = Filter.createPresenceFilter("oxAuthClientSecretExpiresAt");
-
-        return ldapEntryManager.findEntries(baseDN, Client.class, filter);
+        return ldapEntryManager.findEntries(baseDN, Client.class, filter, SearchScope.SUB, null, batchOperation, 0, searchLimit, sizeLimit);
     }
 
     public String buildClientDn(String p_clientId) {
@@ -291,36 +295,32 @@ public class ClientService {
     }
 
     public void updatAccessTime(Client client, boolean isUpdateLogonTime) {
-//        String clientDn = client.getDn();
-//
-//        CustomEntry customEntry = new CustomEntry();
-//        customEntry.setDn(clientDn);
-//		customEntry.setCustomObjectClasses(CLIENT_OBJECT_CLASSES);
-//
-//        Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
-//        CustomAttribute customAttributeLastAccessTime = new CustomAttribute("oxLastAccessTime", now);
-//        customEntry.getCustomAttributes().add(customAttributeLastAccessTime);
-//
-//        if (isUpdateLogonTime) {
-//            CustomAttribute customAttributeLastLogonTime = new CustomAttribute("oxLastLogonTime", now);
-//            customEntry.getCustomAttributes().add(customAttributeLastLogonTime);
-//        }
-//
-//        try {
-//            ldapEntryManager.merge(customEntry);
-//        } catch (EntryPersistenceException epe) {
-//            log.error("Failed to update oxLastAccessTime and oxLastLoginTime of client '{0}'", clientDn);
-//        }
-//
-//        removeFromCache(client);
-    }
+		if (!appConfiguration.getUpdateClientAccessTime()) {
+			return;
+		}
 
-    private static String getClientIdCacheKey(String clientId) {
-        return "client_id_" + StringHelper.toLowerCase(clientId);
-    }
+		String clientDn = client.getDn();
 
-    private static String getClientDnCacheKey(String dn) {
-        return "client_dn_" + StringHelper.toLowerCase(dn);
+        CustomEntry customEntry = new CustomEntry();
+        customEntry.setDn(clientDn);
+		customEntry.setCustomObjectClasses(CLIENT_OBJECT_CLASSES);
+
+        Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
+        CustomAttribute customAttributeLastAccessTime = new CustomAttribute("oxLastAccessTime", now);
+        customEntry.getCustomAttributes().add(customAttributeLastAccessTime);
+
+        if (isUpdateLogonTime) {
+            CustomAttribute customAttributeLastLogonTime = new CustomAttribute("oxLastLogonTime", now);
+            customEntry.getCustomAttributes().add(customAttributeLastLogonTime);
+        }
+
+        try {
+            ldapEntryManager.merge(customEntry);
+        } catch (EntryPersistenceException epe) {
+            log.error("Failed to update oxLastAccessTime and oxLastLoginTime of client '{0}'", clientDn);
+        }
+
+        removeFromCache(client);
     }
 
 }
