@@ -9,15 +9,17 @@ package org.xdi.oxauth.model.ldap;
 import org.apache.commons.lang.StringUtils;
 
 /**
-* @author Yuriy Zabrovarnyy
-* @version 0.9, 08/01/2013
-*/
+ * @author Yuriy Zabrovarnyy
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
+ */
 public enum TokenType {
     ID_TOKEN("id_token"),
     ACCESS_TOKEN("access_token"),
     LONG_LIVED_ACCESS_TOKEN("access_token"),
     REFRESH_TOKEN("refresh_token"),
-    AUTHORIZATION_CODE("authorization_code");
+    AUTHORIZATION_CODE("authorization_code"),
+    DEVICE_CODE("device_code");
 
     private final String value;
 

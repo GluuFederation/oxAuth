@@ -19,7 +19,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version December 29, 2016
+ * @version January 23, 2017
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration {
@@ -140,21 +140,27 @@ public class AppConfiguration {
     private List<String> clientBlackList;
     private Boolean legacyIdTokenClaims;
     private Boolean customHeadersWithAuthorizationResponse;
-    private Boolean frontChannelLogoutSessionSupported; 
+    private Boolean frontChannelLogoutSessionSupported;
     private String loggingLevel;
     private Boolean updateUserLastLogonTime;
     private Boolean updateClientAccessTime;
 
+    private String deviceAuthorizationEndpoint;
+    private String deviceVerificationUri;
+    ;
+    private int deviceVerificationCodeLifetime;
+    private int devicePollInterval;
+
     public Boolean getFrontChannelLogoutSessionSupported() {
-		return frontChannelLogoutSessionSupported;
-	}
+        return frontChannelLogoutSessionSupported;
+    }
 
-	public void setFrontChannelLogoutSessionSupported(
-			Boolean frontChannelLogoutSessionSupported) {
-		this.frontChannelLogoutSessionSupported = frontChannelLogoutSessionSupported;
-	}
+    public void setFrontChannelLogoutSessionSupported(
+            Boolean frontChannelLogoutSessionSupported) {
+        this.frontChannelLogoutSessionSupported = frontChannelLogoutSessionSupported;
+    }
 
-	public Boolean getUmaRptAsJwt() {
+    public Boolean getUmaRptAsJwt() {
         return umaRptAsJwt;
     }
 
@@ -1147,11 +1153,50 @@ public class AppConfiguration {
     }
 
     public String getLoggingLevel() {
-		return loggingLevel;
-	}
+        return loggingLevel;
+    }
 
-	public void setLoggingLevel(String loggingLevel) {
-		this.loggingLevel = loggingLevel;
-	}
+    public void setLoggingLevel(String loggingLevel) {
+        this.loggingLevel = loggingLevel;
+    }
 
+    public void setAuthenticationFilters(List<AuthenticationFilter> authenticationFilters) {
+        this.authenticationFilters = authenticationFilters;
+    }
+
+    public void setClientAuthenticationFilters(List<ClientAuthenticationFilter> clientAuthenticationFilters) {
+        this.clientAuthenticationFilters = clientAuthenticationFilters;
+    }
+
+    public String getDeviceAuthorizationEndpoint() {
+        return deviceAuthorizationEndpoint;
+    }
+
+    public void setDeviceAuthorizationEndpoint(String deviceAuthorizationEndpoint) {
+        this.deviceAuthorizationEndpoint = deviceAuthorizationEndpoint;
+    }
+
+    public String getDeviceVerificationUri() {
+        return deviceVerificationUri;
+    }
+
+    public void setDeviceVerificationUri(String deviceVerificationUri) {
+        this.deviceVerificationUri = deviceVerificationUri;
+    }
+
+    public int getDeviceVerificationCodeLifetime() {
+        return deviceVerificationCodeLifetime;
+    }
+
+    public void setDeviceVerificationCodeLifetime(int deviceVerificationCodeLifetime) {
+        this.deviceVerificationCodeLifetime = deviceVerificationCodeLifetime;
+    }
+
+    public int getDevicePollInterval() {
+        return devicePollInterval;
+    }
+
+    public void setDevicePollInterval(int devicePollInterval) {
+        this.devicePollInterval = devicePollInterval;
+    }
 }

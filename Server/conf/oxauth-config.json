@@ -19,6 +19,8 @@
     "introspectionEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/introspection",
     "umaConfigurationEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/uma-configuration",
     "sectorIdentifierEndpoint":"${config.oxauth.contextPath}/sectoridentifier",
+    "deviceAuthorizationEndpoint":"${config.oxauth.contextPath}/seam/resource/restv1/oxauth/authorize_device",
+     "deviceVerificationUri":"${config.oxauth.contextPath}/device",
     "oxElevenGenerateKeyEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/generateKey",
     "oxElevenSignEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/sign",
     "oxElevenVerifySignatureEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/verifySignature",
@@ -226,6 +228,7 @@
     "legacyIdTokenClaims": false,
     "customHeadersWithAuthorizationResponse": true,
     "updateUserLastLogonTime": true,
-    "updateClientAccessTime":true
-
+    "updateClientAccessTime":true,
+    "deviceVerificationCodeLifetime": 1800,
+     "devicePollInterval": 5
 }

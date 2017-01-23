@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 import org.xdi.oxauth.BaseTest;
 import org.xdi.oxauth.client.*;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
+import org.xdi.oxauth.model.common.ExtensionGrantType;
 import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.crypto.OxAuthCryptoProvider;
@@ -30,7 +31,7 @@ import static org.testng.Assert.*;
  * Functional tests for Token Web Services (HTTP)
  *
  * @author Javier Rojas Blum
- * @version November 30, 2016
+ * @version January 23, 2017
  */
 public class TokenRestWebServiceHttpTest extends BaseTest {
 
@@ -1190,7 +1191,7 @@ public class TokenRestWebServiceHttpTest extends BaseTest {
         String clientSecret = registerResponse.getClientSecret();
 
         // 2. Request Extension Grant
-        String grantTypeUri = "http://oauth.net/grant_type/assertion/saml/2.0/bearer";
+        String grantTypeUri = ExtensionGrantType.SAML2_BEARER;
         String assertion = "PEFzc2VydGlvbiBJc3N1ZUluc3RhbnQV0aG5TdGF0ZW1lbnQPC9Bc3NlcnRpb24";
 
         TokenClient tokenClient = new TokenClient(tokenEndpoint);

@@ -86,6 +86,13 @@
         </classes>
     </test>
 
+    <!-- Device Flow test -->
+    <test name="Device Flow test (HTTP)" enabled="true">
+        <classes>
+            <class name="org.xdi.oxauth.ws.rs.DeviceFlowHttpTest"/>
+        </classes>
+    </test>
+
     <!-- End Session test -->
     <test name="End Session test (HTTP)" enabled="true">
         <classes>

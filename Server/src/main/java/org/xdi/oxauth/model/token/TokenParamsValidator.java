@@ -6,14 +6,17 @@
 
 package org.xdi.oxauth.model.token;
 
-import java.net.URI;
-
+import org.apache.commons.lang.StringUtils;
+import org.xdi.oxauth.model.common.ExtensionGrantType;
 import org.xdi.oxauth.model.common.GrantType;
+
+import java.net.URI;
 
 /**
  * Validates the parameters received for the token web service.
  *
- * @author Javier Rojas Blum Date: 09.21.2011
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 public class TokenParamsValidator {
 
@@ -54,7 +57,11 @@ public class TokenParamsValidator {
                 result = true;
                 break;
             case EXTENSION:
-                result = assertion != null && !assertion.isEmpty();
+                if (gt.getValue().equals(ExtensionGrantType.DEVICE_CODE)) {
+                    result = StringUtils.isNotBlank(code);
+                } else {
+                    result = assertion != null && !assertion.isEmpty();
+                }
                 break;
             case REFRESH_TOKEN:
                 result = refreshToken != null && !refreshToken.isEmpty();

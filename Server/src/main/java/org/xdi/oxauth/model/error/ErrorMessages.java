@@ -6,15 +6,15 @@
 
 package org.xdi.oxauth.model.error;
 
-import javax.xml.bind.annotation.*;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
+import javax.xml.bind.annotation.*;
 import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 26/12/2012
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 @XmlRootElement(name = "errors")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -24,24 +24,31 @@ public class ErrorMessages {
     @XmlElementWrapper(name = "authorize")
     @XmlElement(name = "error")
     private List<ErrorMessage> authorize;
+
     @XmlElementWrapper(name = "client-info")
     @XmlElement(name = "error")
     private List<ErrorMessage> clientInfo;
+
     @XmlElementWrapper(name = "end-session")
     @XmlElement(name = "error")
     private List<ErrorMessage> endSession;
+
     @XmlElementWrapper(name = "register")
     @XmlElement(name = "error")
     private List<ErrorMessage> register;
+
     @XmlElementWrapper(name = "token")
     @XmlElement(name = "error")
     private List<ErrorMessage> token;
+
     @XmlElementWrapper(name = "uma")
     @XmlElement(name = "error")
     private List<ErrorMessage> uma;
+
     @XmlElementWrapper(name = "user-info")
     @XmlElement(name = "error")
     private List<ErrorMessage> userInfo;
+
     @XmlElementWrapper(name = "validate-token")
     @XmlElement(name = "error")
     private List<ErrorMessage> validateToken;
@@ -49,6 +56,10 @@ public class ErrorMessages {
     @XmlElementWrapper(name = "fido")
     @XmlElement(name = "error")
     private List<ErrorMessage> fido;
+
+    @XmlElementWrapper(name = "authorize-device")
+    @XmlElement(name = "error")
+    private List<ErrorMessage> authorizeDevice;
 
     public List<ErrorMessage> getAuthorize() {
         return authorize;
@@ -114,12 +125,19 @@ public class ErrorMessages {
         validateToken = p_validateToken;
     }
 
-	public List<ErrorMessage> getFido() {
-		return fido;
-	}
+    public List<ErrorMessage> getFido() {
+        return fido;
+    }
 
-	public void setFido(List<ErrorMessage> fido) {
-		this.fido = fido;
-	}
+    public void setFido(List<ErrorMessage> fido) {
+        this.fido = fido;
+    }
 
+    public List<ErrorMessage> getAuthorizeDevice() {
+        return authorizeDevice;
+    }
+
+    public void setAuthorizeDevice(List<ErrorMessage> authorizeDevice) {
+        this.authorizeDevice = authorizeDevice;
+    }
 }

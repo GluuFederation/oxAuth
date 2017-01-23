@@ -11,19 +11,12 @@ import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.RDN;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Observer;
+import org.jboss.seam.annotations.*;
 import org.jboss.seam.annotations.Scope;
-import org.jboss.seam.annotations.Startup;
 import org.jboss.seam.log.Log;
 import org.jboss.seam.log.Logging;
 import org.xdi.oxauth.model.authorize.JwtAuthorizationRequest;
-import org.xdi.oxauth.model.config.ConfigurationFactory;
-import org.xdi.oxauth.model.config.StaticConf;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.ldap.TokenLdap;
 import org.xdi.oxauth.model.registration.Client;
@@ -40,7 +33,8 @@ import java.util.List;
 /**
  * Component to hold in memory authorization grant objects.
  *
- * @author Javier Rojas Blum Date: 09.29.2011
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 @Name("authorizationGrantList")
 @AutoCreate
@@ -60,7 +54,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     private ClientService clientService;
 
     @In
-	private AppConfiguration appConfiguration;
+    private AppConfiguration appConfiguration;
 
     @Override
     public void removeAuthorizationGrants(List<AuthorizationGrant> authorizationGrants) {
@@ -91,6 +85,14 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @Override
     public ClientCredentialsGrant createClientCredentialsGrant(User user, Client client) {
         return new ClientCredentialsGrant(user, client, appConfiguration);
+    }
+
+    @Override
+    public DeviceAuthorizationGrant createDeviceAuthorizationGrant(
+            Client client, String deviceCode, String userCode, int expiresIn) {
+        DeviceAuthorizationGrant grant = new DeviceAuthorizationGrant(client, deviceCode, userCode, expiresIn, appConfiguration);
+        grant.persist(grant.getTokenLdap());
+        return grant;
     }
 
     @Override
@@ -145,6 +147,15 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         return null;
     }
 
+    @Override
+    public AuthorizationGrant getDeviceAuthorizationGrant(String clientId, String deviceCode) {
+        TokenLdap tokenLdap = grantService.getGrantsByCodeAndClient(deviceCode, clientId);
+        if (tokenLdap != null && (tokenLdap.getTokenTypeEnum() == org.xdi.oxauth.model.ldap.TokenType.DEVICE_CODE)) {
+            return asGrant(tokenLdap);
+        }
+        return null;
+    }
+
     public AuthorizationGrant load(String clientId, String p_code) {
         return asGrant(grantService.getGrantsByCodeAndClient(p_code, clientId));
     }
@@ -194,6 +205,12 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
                         break;
                     case RESOURCE_OWNER_PASSWORD_CREDENTIALS:
                         result = new ResourceOwnerPasswordCredentialsGrant(user, client, appConfiguration);
+                        break;
+                    case DEVICE_CODE:
+                        String deviceCode = tokenLdap.getAuthorizationCode();
+                        String userCode = tokenLdap.getCodeChallenge();
+                        Date expirationDate = tokenLdap.getExpirationDate();
+                        result = new DeviceAuthorizationGrant(client, deviceCode, userCode, expirationDate, appConfiguration);
                         break;
                     default:
                         return null;

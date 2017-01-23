@@ -9,7 +9,8 @@ package org.xdi.oxauth.model.token;
 import org.xdi.oxauth.model.error.IErrorType;
 
 /**
- * @author Javier Rojas Date: 09.22.2011
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 public enum TokenErrorResponseType implements IErrorType {
     /**
@@ -50,7 +51,24 @@ public enum TokenErrorResponseType implements IErrorType {
      * The requested scope is invalid, unknown, malformed, or exceeds the scope
      * granted by the resource owner.
      */
-    INVALID_SCOPE("invalid_scope");
+    INVALID_SCOPE("invalid_scope"),
+
+    /**
+     * The authorization request is still pending as the end-user hasn't yet visited the authorization server and
+     * entered their verification code (OAuth 2.0 Device Flow).
+     */
+    AUTHORIZATION_PENDING("authorization_pending"),
+
+    /**
+     * The client is polling too quickly and should back off at a reasonable rate (OAuth 2.0 Device Flow).
+     */
+    SLOW_DOWN("slow_down"),
+
+    /**
+     * The device_code has expired.
+     * The client will need to make a new Device Authorization Request (OAuth 2.0 Device Flow).
+     */
+    EXPIRED_TOKEN("expired_token");
 
     private final String paramName;
 

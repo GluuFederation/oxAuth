@@ -6,12 +6,12 @@
 
 package org.xdi.oxauth.model.common;
 
+import org.gluu.site.ldap.persistence.annotation.LdapEnum;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.gluu.site.ldap.persistence.annotation.LdapEnum;
 
 /**
  * <p>
@@ -26,7 +26,8 @@ import org.gluu.site.ldap.persistence.annotation.LdapEnum;
  * implicit grant type flows.
  * </p>
  *
- * @author Javier Rojas Blum Date: 09.20.2011
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 public enum ResponseType implements HasParamName, LdapEnum {
 
@@ -41,7 +42,11 @@ public enum ResponseType implements HasParamName, LdapEnum {
     /**
      * Include an ID Token in the authorization response.
      */
-    ID_TOKEN("id_token", "ID Token");
+    ID_TOKEN("id_token", "ID Token"),
+    /**
+     * Used for Device Authorization Flow.
+     */
+    DEVICE_CODE("device_code", "Device Authorization Flow");
 
     private final String value;
 	private final String displayName;

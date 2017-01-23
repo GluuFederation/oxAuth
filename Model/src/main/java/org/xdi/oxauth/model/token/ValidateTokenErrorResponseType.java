@@ -9,9 +9,11 @@ package org.xdi.oxauth.model.token;
 import org.xdi.oxauth.model.error.IErrorType;
 
 /**
- * @author Javier Rojas Blum Date: 10.27.2011
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 public enum ValidateTokenErrorResponseType implements IErrorType {
+
     /**
      * The request is missing a required parameter, includes an unsupported
      * parameter or parameter value, repeats a parameter, includes multiple
@@ -19,6 +21,7 @@ public enum ValidateTokenErrorResponseType implements IErrorType {
      * client, or is otherwise malformed.
      */
     INVALID_REQUEST("invalid_request"),
+
     /**
      * The provided access token is invalid, or was issued to another client.
      */

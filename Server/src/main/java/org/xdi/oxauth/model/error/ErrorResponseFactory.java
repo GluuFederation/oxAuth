@@ -14,6 +14,7 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.log.Log;
+import org.xdi.oxauth.model.authorize.AuthorizeDeviceErrorResponseType;
 import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.xdi.oxauth.model.clientinfo.ClientInfoErrorResponseType;
 import org.xdi.oxauth.model.fido.u2f.U2fErrorResponseType;
@@ -37,6 +38,7 @@ import java.util.List;
  *
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 @Name("errorResponseFactory")
 @AutoCreate
@@ -147,6 +149,8 @@ public class ErrorResponseFactory {
                 list = messages.getValidateToken();
             } else if (type instanceof U2fErrorResponseType) {
                 list = messages.getFido();
+            } else if (type instanceof AuthorizeDeviceErrorResponseType) {
+                list = messages.getAuthorizeDevice();
             }
 
             if (list != null) {
@@ -201,15 +205,15 @@ public class ErrorResponseFactory {
 
     public String getJsonErrorResponse(IErrorType type) {
         final DefaultErrorResponse response = getErrorResponse(type);
-        
+
         JsonErrorResponse jsonErrorResponse = new JsonErrorResponse(response);
 
         try {
-			return ServerUtil.asJson(jsonErrorResponse);
-		} catch (IOException ex) {
+            return ServerUtil.asJson(jsonErrorResponse);
+        } catch (IOException ex) {
             log.error("Failed to generate error response", ex);
             return null;
-		}
+        }
     }
 
 }

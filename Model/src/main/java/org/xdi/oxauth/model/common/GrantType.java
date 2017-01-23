@@ -17,7 +17,7 @@ import java.util.Map;
  * parameter grant_type for access token requests.
  *
  * @author Javier Rojas Blum
- * @version December 9, 2015
+ * @version January 23, 2017
  */
 public enum GrantType implements HasParamName, LdapEnum {
 
@@ -112,7 +112,11 @@ public enum GrantType implements HasParamName, LdapEnum {
 
     @Override
     public String getValue() {
-        return value;
+        if (this == EXTENSION) {
+            return uri;
+        } else {
+            return value;
+        }
     }
 
     /**

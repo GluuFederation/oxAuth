@@ -62,7 +62,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version January 20, 2016
+ * @version January 23, 2017
  */
 public abstract class BaseTest {
 
@@ -82,6 +82,7 @@ public abstract class BaseTest {
     protected String configurationEndpoint;
     protected String idGenEndpoint;
     protected String introspectionEndpoint;
+    protected String deviceAuthorizationEndpoint;
     protected Map<String, List<String>> scopeToClaimsMapping;
 
     // Form Interaction
@@ -209,6 +210,14 @@ public abstract class BaseTest {
 
     public void setIntrospectionEndpoint(String p_introspectionEndpoint) {
         introspectionEndpoint = p_introspectionEndpoint;
+    }
+
+    public String getDeviceAuthorizationEndpoint() {
+        return deviceAuthorizationEndpoint;
+    }
+
+    public void setDeviceAuthorizationEndpoint(String deviceAuthorizationEndpoint) {
+        this.deviceAuthorizationEndpoint = deviceAuthorizationEndpoint;
     }
 
     public Map<String, List<String>> getScopeToClaimsMapping() {
@@ -659,6 +668,7 @@ public abstract class BaseTest {
             validateTokenEndpoint = response.getValidateTokenEndpoint();
             idGenEndpoint = response.getIdGenerationEndpoint();
             introspectionEndpoint = response.getIntrospectionEndpoint();
+            deviceAuthorizationEndpoint = response.getDeviceAuthorizationEndpoint();
             scopeToClaimsMapping = response.getScopeToClaimsMapping();
             gluuConfigurationEndpoint = determineGluuConfigurationEndpoint(openIdConnectDiscoveryResponse.getLinks().get(0).getHref());
         } else {
@@ -676,6 +686,7 @@ public abstract class BaseTest {
             configurationEndpoint = context.getCurrentXmlTest().getParameter("configurationEndpoint");
             idGenEndpoint = context.getCurrentXmlTest().getParameter("idGenEndpoint");
             introspectionEndpoint = context.getCurrentXmlTest().getParameter("introspectionEndpoint");
+            deviceAuthorizationEndpoint = context.getCurrentXmlTest().getParameter("deviceAuthorizationEndpoint");
             scopeToClaimsMapping = new HashMap<String, List<String>>();
         }
 

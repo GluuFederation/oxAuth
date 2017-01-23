@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 08/01/2013
+ * @author Javier Rojas Blum
+ * @version January 23, 2017
  */
 
 public interface IAuthorizationGrantList {
@@ -30,6 +31,8 @@ public interface IAuthorizationGrantList {
 
     public ResourceOwnerPasswordCredentialsGrant createResourceOwnerPasswordCredentialsGrant(User user, Client client);
 
+    public DeviceAuthorizationGrant createDeviceAuthorizationGrant(Client client, String deviceCode, String userCode, int expiresIn);
+
     public AuthorizationCodeGrant getAuthorizationCodeGrant(String clientId, String authorizationCode);
 
     public AuthorizationGrant getAuthorizationGrantByRefreshToken(String clientId, String refreshTokenCode);
@@ -39,4 +42,6 @@ public interface IAuthorizationGrantList {
     public AuthorizationGrant getAuthorizationGrantByAccessToken(String tokenCode);
 
     public AuthorizationGrant getAuthorizationGrantByIdToken(String idToken);
+
+    public AuthorizationGrant getDeviceAuthorizationGrant(String clientId, String deviceCode);
 }

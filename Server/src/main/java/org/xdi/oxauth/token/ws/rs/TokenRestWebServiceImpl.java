@@ -6,15 +6,7 @@
 
 package org.xdi.oxauth.token.ws.rs;
 
-import java.security.SignatureException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-
+import com.google.common.base.Strings;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.jboss.seam.annotations.In;
@@ -25,17 +17,7 @@ import org.xdi.oxauth.audit.ApplicationAuditLogger;
 import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.authorize.CodeVerifier;
-import org.xdi.oxauth.model.common.AccessToken;
-import org.xdi.oxauth.model.common.AuthorizationCodeGrant;
-import org.xdi.oxauth.model.common.AuthorizationGrant;
-import org.xdi.oxauth.model.common.AuthorizationGrantList;
-import org.xdi.oxauth.model.common.ClientCredentialsGrant;
-import org.xdi.oxauth.model.common.GrantType;
-import org.xdi.oxauth.model.common.IdToken;
-import org.xdi.oxauth.model.common.RefreshToken;
-import org.xdi.oxauth.model.common.ResourceOwnerPasswordCredentialsGrant;
-import org.xdi.oxauth.model.common.TokenType;
-import org.xdi.oxauth.model.common.User;
+import org.xdi.oxauth.model.common.*;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.InvalidJweException;
@@ -52,13 +34,19 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
-import com.google.common.base.Strings;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.SecurityContext;
+import java.security.SignatureException;
 
 /**
  * Provides interface for token REST web services
  *
  * @author Javier Rojas Blum
- * @version October 7, 2016
+ * @version January 23, 2017
  */
 @Name("requestTokenRestWebService")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
@@ -114,21 +102,21 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         ResponseBuilder builder = Response.ok();
 
         try {
-        	log.debug("Starting to validate request parameters");
+            log.debug("Starting to validate request parameters");
             if (!TokenParamsValidator.validateParams(grantType, code, redirectUri, username, password,
                     scope, assertion, refreshToken, oxAuthExchangeToken)) {
-            	log.trace("Failed to validate request parameters");
+                log.trace("Failed to validate request parameters");
                 builder = error(400, TokenErrorResponseType.INVALID_REQUEST);
             } else {
-            	log.trace("Request parameters are right");
+                log.trace("Request parameters are right");
                 GrantType gt = GrantType.fromString(grantType);
-            	log.debug("Grant type: '{0}'", gt);
+                log.debug("Grant type: '{0}'", gt);
 
                 Client client = sessionClient.getClient();
-            	log.debug("Get sessionClient: '{0}'", sessionClient);
-            	if (client != null) {
-            		log.debug("Get client from session: '{0}'", client.getClientId());
-            	}
+                log.debug("Get sessionClient: '{0}'", sessionClient);
+                if (client != null) {
+                    log.debug("Get client from session: '{0}'", client.getClientId());
+                }
 
                 if (gt == GrantType.AUTHORIZATION_CODE) {
                     if (client == null) {
@@ -155,7 +143,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         if (authorizationCodeGrant.getScopes().contains("openid")) {
                             String nonce = authorizationCodeGrant.getNonce();
                             boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                            		appConfiguration.getLegacyIdTokenClaims());
+                                    appConfiguration.getLegacyIdTokenClaims());
                             idToken = authorizationCodeGrant.createIdToken(
                                     nonce, null, accToken, authorizationCodeGrant, includeIdTokenClaims);
                         }
@@ -171,7 +159,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         grantService.removeByCode(authorizationCodeGrant.getAuthorizationCode().getCode(), authorizationCodeGrant.getClientId());
                     } else {
-                    	log.debug("AuthorizationCodeGrant from LDAP is empty");
+                        log.debug("AuthorizationCodeGrant from LDAP is empty");
                         // if authorization code is not found then code was already used = remove all grants with this auth code
                         grantService.removeAllByAuthorizationCode(code);
                         builder = error(400, TokenErrorResponseType.INVALID_GRANT);
@@ -224,7 +212,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     IdToken idToken = null;
                     if (clientCredentialsGrant.getScopes().contains("openid")) {
                         boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                        		appConfiguration.getLegacyIdTokenClaims());
+                                appConfiguration.getLegacyIdTokenClaims());
                         idToken = clientCredentialsGrant.createIdToken(
                                 null, null, null, clientCredentialsGrant, includeIdTokenClaims);
                     }
@@ -270,7 +258,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         IdToken idToken = null;
                         if (resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
                             boolean includeIdTokenClaims = Boolean.TRUE.equals(
-                            		appConfiguration.getLegacyIdTokenClaims());
+                                    appConfiguration.getLegacyIdTokenClaims());
                             idToken = resourceOwnerPasswordCredentialsGrant.createIdToken(
                                     null, null, null, resourceOwnerPasswordCredentialsGrant, includeIdTokenClaims);
                         }
@@ -287,7 +275,26 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         builder = error(401, TokenErrorResponseType.INVALID_CLIENT);
                     }
                 } else if (gt == GrantType.EXTENSION) {
-                    builder = error(501, TokenErrorResponseType.INVALID_GRANT);
+                    if (gt.getValue().equals(ExtensionGrantType.DEVICE_CODE)) {
+                        if (client == null) {
+                            return response(error(400, TokenErrorResponseType.INVALID_GRANT));
+                        }
+
+                        log.debug("Attempting to find deviceAuthorizationGrant in LDAP by clientId: '{0}', code: '{1}'", client.getClientId(), code);
+                        AuthorizationGrant deviceAuthorizationGrant = authorizationGrantList.getDeviceAuthorizationGrant(client.getClientId(), code);
+                        log.trace("DeviceAuthorizationGrant from LDAP: '{0}'", deviceAuthorizationGrant);
+
+                        if (deviceAuthorizationGrant != null) {
+                            builder = error(401, TokenErrorResponseType.AUTHORIZATION_PENDING);
+                        } else {
+                            log.debug("AuthorizationCodeGrant from LDAP is empty");
+                            // if authorization code is not found then code was already used = remove all grants with this auth code
+                            grantService.removeAllByAuthorizationCode(code);
+                            builder = error(400, TokenErrorResponseType.EXPIRED_TOKEN);
+                        }
+                    } else {
+                        builder = error(501, TokenErrorResponseType.INVALID_GRANT);
+                    }
                 } else if (gt == GrantType.OXAUTH_EXCHANGE_TOKEN) {
                     AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByAccessToken(oxAuthExchangeToken);
 
