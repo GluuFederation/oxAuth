@@ -42,6 +42,7 @@ import org.xdi.util.security.StringEncrypter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -214,6 +215,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         } catch (JSONException e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
+        } catch (WebApplicationException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
