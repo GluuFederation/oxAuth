@@ -170,10 +170,12 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             updateClientFromRequestObject(client, r);
 
+                            boolean registerClient = true;
                             if (externalDynamicClientRegistrationService.isEnabled()) {
-                                externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
+                            	registerClient = externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
                             }
-
+                            
+                            if (registerClient) {
                             Date currentTime = Calendar.getInstance().getTime();
                             client.setLastAccessTime(currentTime);
                             client.setLastLogonTime(currentTime);
@@ -185,6 +187,11 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             JSONObject jsonObject = getJSONObject(client);
                             builder.entity(jsonObject.toString(4).replace("\\/", "/"));
+                            } else {
+                                log.trace("Client parameters are invalid, returns invalid_request error.");
+                                builder = Response.status(Response.Status.BAD_REQUEST).
+                                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
+                            }
                         }
                     } else {
                         log.trace("Client parameters are invalid, returns invalid_request error.");
