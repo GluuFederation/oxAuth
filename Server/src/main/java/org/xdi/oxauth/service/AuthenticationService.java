@@ -29,7 +29,6 @@ import org.xdi.oxauth.model.common.SimpleUser;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
-import org.xdi.oxauth.model.exception.InvalidStateException;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.session.SessionClient;
 import org.xdi.oxauth.model.util.Util;
@@ -403,8 +402,8 @@ public class AuthenticationService {
 
         try {
             ldapEntryManager.merge(customEntry);
-        } catch (EntryPersistenceException epe) {
-            log.error("Failed to update oxLastLoginTime of user '{0}'", user.getUserId());
+        } catch (EntryPersistenceException e) {
+            log.error("Failed to update oxLastLoginTime of user '{0}'", user.getUserId(), e);
         }
     }
 
