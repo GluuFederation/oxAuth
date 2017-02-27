@@ -37,6 +37,7 @@ public class RptIntrospectionResponse {
     private Date issuedAt;
     private Date nbf;
     private String clientId;
+    private String userId;
     private String sub;
     private String aud;
     private String iss;
@@ -100,6 +101,16 @@ public class RptIntrospectionResponse {
         this.clientId = clientId;
     }
 
+    @JsonProperty(value = "user_id")
+    @XmlElement(name = "user_id")
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     @JsonProperty(value = "active")
     @XmlElement(name = "active")
     public boolean getActive() {
@@ -159,6 +170,7 @@ public class RptIntrospectionResponse {
         sb.append(", issuedAt=").append(issuedAt);
         sb.append(", nbf=").append(nbf);
         sb.append(", clientId=").append(clientId);
+        sb.append(", userId=").append(userId);
         sb.append(", sub=").append(sub);
         sb.append(", aud=").append(aud);
         sb.append(", iss=").append(iss);

@@ -120,6 +120,8 @@ public class RptStatusWS {
             statusResponse.setExpiresAt(rpt.getExpirationDate());
             statusResponse.setIssuedAt(rpt.getCreationDate());
             statusResponse.setPermissions(permissions);
+            statusResponse.setClientId(rpt.getClientId());
+            statusResponse.setUserId(rpt.getUserId());
 
             // convert manually to avoid possible conflict between resteasy providers, e.g. jettison, jackson
             final String entity = ServerUtil.asJson(statusResponse);
@@ -154,6 +156,8 @@ public class RptStatusWS {
         statusResponse.setExpiresAt(rpt.getExpirationDate());
         statusResponse.setIssuedAt(rpt.getCreationDate());
         statusResponse.setPermissions(Lists.newArrayList(permission));
+        statusResponse.setClientId(rpt.getClientId());
+        statusResponse.setUserId(rpt.getUserId());
 
         // convert manually to avoid possible conflict between resteasy providers, e.g. jettison, jackson
         final String entity = ServerUtil.asJson(statusResponse);
