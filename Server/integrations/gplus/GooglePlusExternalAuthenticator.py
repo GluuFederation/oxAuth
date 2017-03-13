@@ -4,20 +4,18 @@
 # Author: Yuriy Movchan
 #
 
+import java
+from java.util import Arrays, HashMap, IdentityHashMap
 from org.jboss.seam import Component
-from org.jboss.seam.contexts import Context, Contexts
+from org.jboss.seam.contexts import Contexts
 from org.jboss.seam.security import Identity
-from javax.faces.context import FacesContext
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService
-from org.xdi.util import StringHelper, ArrayHelper
-from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
-from org.xdi.oxauth.model.common import User
 from org.xdi.oxauth.client import TokenClient, TokenRequest, UserInfoClient
 from org.xdi.oxauth.model.common import GrantType, AuthenticationMethod
+from org.xdi.oxauth.model.common import User
 from org.xdi.oxauth.model.jwt import Jwt, JwtClaimName
-
-import java
+from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService
+from org.xdi.util import StringHelper, ArrayHelper
 
 try:
     import json

@@ -4,18 +4,15 @@
 # Author: Yuriy Movchan
 #
 
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
+import java
+from java.util import Arrays
 from org.jboss.seam import Component
-from javax.faces.context import FacesContext
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from java.util import Arrays
 from org.xdi.oxpush import OxPushClient
-
-import java
+from org.xdi.util import StringHelper
 
 try:
     import json

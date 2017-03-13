@@ -4,19 +4,16 @@
 # Author: Yuriy Movchan
 #
 
+import string
+
+from net.phonefactor.pfsdk import PFAuth, SecurityException, TimeoutException, PFException
+from net.phonefactor.pfsdk import PFAuthResult
 from org.jboss.seam import Component
-from org.jboss.seam.contexts import Context, Contexts
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService, AuthenticationService
 from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from org.xdi.util.security import StringEncrypter 
-from net.phonefactor.pfsdk import PFAuth, PFAuthResult, SecurityException, TimeoutException, PFException
-from net.phonefactor.pfsdk import PFAuthResult
-
-import java
-import string
+from org.xdi.util.security import StringEncrypter
 
 try:
     import json

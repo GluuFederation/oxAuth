@@ -4,28 +4,23 @@
 # Author: Arvind Tomar
 #
 
-from org.jboss.seam import Component
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.faces import FacesMessages
+from java.util import IdentityHashMap
 from javax.faces.context import FacesContext
+from org.jboss.seam import Component
+from org.jboss.seam.faces import FacesMessages
 from org.jboss.seam.international import StatusMessage
-from org.xdi.util import StringHelper, ArrayHelper
-from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
-from org.xdi.oxauth.client import TokenClient, TokenRequest, UserInfoClient
-from org.xdi.oxauth.model.common import GrantType, AuthenticationMethod
-from org.xdi.oxauth.model.jwt import Jwt, JwtClaimName
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService
 from org.xdi.oxauth.model.common import User
-from org.xdi.util import StringHelper
+from org.xdi.oxauth.service import UserService, AuthenticationService
 from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import ArrayHelper
+from org.xdi.util import StringHelper
 
 try:
     import json
 except ImportError:
     import simplejson as json
-import java
 
 
 class PersonAuthentication(PersonAuthenticationType):

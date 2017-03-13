@@ -4,29 +4,20 @@
 # Author: Michael Schwartz
 #
 
-from org.jboss.seam import Component
-from org.jboss.seam.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.util import StringHelper
-from org.jboss.seam.contexts import Context, Contexts
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.util import StringHelper 
-from org.xdi.util import ArrayHelper 
-from java.util import Arrays
+import random
 
 import com.twilio.sdk.TwilioRestClient as TwilioRestClient
-import com.twilio.sdk.TwilioRestException as TwilioRestException
-import com.twilio.sdk.resource.factory.MessageFactory as MessageFactory
-import com.twilio.sdk.resource.instance.Message as Message
-import org.apache.http.NameValuePair as NameValuePair
-import org.apache.http.message.BasicNameValuePair as BasicNameValuePair
 import java.util.ArrayList as ArrayList
-import java.util.Arrays.asList as List
+import org.apache.http.message.BasicNameValuePair as BasicNameValuePair
+from java.util import Arrays
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.service import UserService
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
 
-import java
-import random
-import jarray
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):

@@ -4,21 +4,18 @@
 # Author: Yuriy Movchan
 #
 
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
+from java.lang import Boolean
 from org.jboss.seam import Component
-from javax.faces.context import FacesContext
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService
 from org.xdi.oxauth.service.net import HttpService
 from org.xdi.service import XmlService
-from org.xdi.util.security import StringEncrypter 
-from org.xdi.util import StringHelper
 from org.xdi.util import ArrayHelper
-from java.lang import Boolean
+from org.xdi.util import StringHelper
+from org.xdi.util.security import StringEncrypter
 
-import java
-import sys
 try:
     import json
 except ImportError:

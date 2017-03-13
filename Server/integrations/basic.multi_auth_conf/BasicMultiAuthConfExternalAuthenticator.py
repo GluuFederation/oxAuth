@@ -4,16 +4,13 @@
 # Author: Yuriy Movchan
 #
 
+from java.util import Arrays
 from org.jboss.seam import Component
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, AuthenticationService, AppInitializer
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
 from org.xdi.model.ldap import GluuLdapConfiguration
-from java.util import Arrays
-
-import java
+from org.xdi.oxauth.service import AuthenticationService, AppInitializer
+from org.xdi.util import StringHelper
 
 try:
     import json

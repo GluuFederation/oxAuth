@@ -13,23 +13,17 @@
 #   registration_uri: https://ce-dev.gluu.org/identity/register
 #   qr_options: { width: 400, height: 400 }
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.jboss.seam import Component
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.oxauth.model.config import Constants
-from org.jboss.resteasy.client import ClientResponseFailure
-from javax.ws.rs.core import Response
-from java.util import Arrays
-from org.xdi.oxauth.service.net import HttpService
-from org.apache.http.params import CoreConnectionPNames
-
 import sys
-import java
+from java.util import Arrays
+from org.apache.http.params import CoreConnectionPNames
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
+from org.xdi.oxauth.service.net import HttpService
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
 
 try:
     import json

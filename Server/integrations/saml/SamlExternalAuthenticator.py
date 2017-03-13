@@ -4,24 +4,22 @@
 # Author: Yuriy Movchan
 #
 
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
-from org.jboss.seam import Component
+import java
+from java.lang import StringBuilder
+from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
 from javax.faces.context import FacesContext
+from org.gluu.saml import SamlConfiguration, AuthRequest, Response
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
 from org.jboss.seam.faces import FacesMessages
 from org.jboss.seam.international import StatusMessage
+from org.jboss.seam.security import Identity
+from org.xdi.ldap.model import CustomAttribute
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.model.common import User
 from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService, AttributeService
 from org.xdi.oxauth.service.net import HttpService
 from org.xdi.util import StringHelper, ArrayHelper, Util
-from org.gluu.saml import SamlConfiguration, AuthRequest, Response
-from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
-from org.xdi.oxauth.model.common import User
-from org.xdi.ldap.model import CustomAttribute
-from java.lang import String, StringBuilder
-
-from jarray import array
-import java
 
 try:
     import json

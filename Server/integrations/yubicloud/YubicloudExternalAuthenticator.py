@@ -4,17 +4,14 @@
 # Author: Yuriy Movchan, Arunmozhi
 #
 
+import urllib
+import urllib2
+import uuid
+
 from org.jboss.seam import Component
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService
-from org.xdi.util import StringHelper
-
-import java
-
-import urllib2
-import urllib
-import uuid
 
 
 class PersonAuthentication(PersonAuthenticationType):

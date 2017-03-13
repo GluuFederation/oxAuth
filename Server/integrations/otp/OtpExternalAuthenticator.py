@@ -14,37 +14,29 @@
 #   qr_options: { width: 400, height: 400 }
 #   registration_uri: https://ce-dev.gluu.org/identity/register
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.jboss.seam.faces import FacesMessages
-from javax.faces.context import FacesContext
-from org.jboss.seam.international import StatusMessage
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
-from org.jboss.seam import Component
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from org.xdi.oxauth.util import ServerUtil
-from java.util import Arrays
-
-from java.security import SecureRandom
-from java.util.concurrent import TimeUnit
-
+import jarray
+import sys
 from com.google.common.io import BaseEncoding
-
-from com.lochbridge.oath.otp import TOTP
 from com.lochbridge.oath.otp import HOTP
-from com.lochbridge.oath.otp import HOTPValidationResult
 from com.lochbridge.oath.otp import HOTPValidator
 from com.lochbridge.oath.otp import HmacShaAlgorithm
-
+from com.lochbridge.oath.otp import TOTP
 from com.lochbridge.oath.otp.keyprovisioning import OTPAuthURIBuilder;
 from com.lochbridge.oath.otp.keyprovisioning import OTPKey;
 from com.lochbridge.oath.otp.keyprovisioning.OTPKey import OTPType;
-
-import sys
-import java
-import jarray
+from java.security import SecureRandom
+from java.util import Arrays
+from java.util.concurrent import TimeUnit
+from javax.faces.context import FacesContext
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.faces import FacesMessages
+from org.jboss.seam.international import StatusMessage
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
 
 try:
     import json

@@ -5,28 +5,27 @@
 # Author: Yuriy Movchan
 #
 
-import sys
 import base64
 import urllib
 
-from org.jboss.seam import Component
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.jboss.seam.contexts import Contexts
-from javax.faces.context import FacesContext
-from org.jboss.seam.security import Identity
-from org.xdi.oxauth.service import UserService
-from org.xdi.util import StringHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.util.security import StringEncrypter
+import java
+import sys
 from java.util import Arrays
+from javax.faces.context import FacesContext
+from org.apache.http.params import CoreConnectionPNames
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.cert.fingerprint import FingerprintHelper
 from org.xdi.oxauth.cert.validation import GenericCertificateVerifier, PathCertificateVerifier, OCSPCertificateVerifier, CRLCertificateVerifier
 from org.xdi.oxauth.cert.validation.model import ValidationStatus
-from org.xdi.oxauth.util import CertUtil
+from org.xdi.oxauth.service import UserService
 from org.xdi.oxauth.service.net import HttpService
-from org.apache.http.params import CoreConnectionPNames
-import java
-
+from org.xdi.oxauth.util import CertUtil
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
+from org.xdi.util.security import StringEncrypter
 
 try:
     import json

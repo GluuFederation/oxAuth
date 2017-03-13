@@ -8,10 +8,9 @@ from org.jboss.seam import Component
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService
-from org.xdi.util import StringHelper
 from org.xdi.util import ArrayHelper
+from org.xdi.util import StringHelper
 
-import java
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):

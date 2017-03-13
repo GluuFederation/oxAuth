@@ -5,20 +5,19 @@
 #
 
 import sys
-
+from java.util import Arrays
+from java.util import HashMap
+from javax.faces.context import FacesContext
+from org.apache.http.params import CoreConnectionPNames
 from org.jboss.seam import Component
 from org.jboss.seam.contexts import Contexts
 from org.jboss.seam.security import Identity
-from javax.faces.context import FacesContext
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService
 from org.xdi.oxauth.service import AuthenticationService
+from org.xdi.oxauth.service import UserService
 from org.xdi.oxauth.service.net import HttpService
-from org.xdi.util import StringHelper
 from org.xdi.util import ArrayHelper
-from org.apache.http.params import CoreConnectionPNames
-from java.util import Arrays
-from java.util import HashMap
+from org.xdi.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):

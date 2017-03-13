@@ -5,8 +5,8 @@
 #
 
 from org.jboss.seam import Component
-from org.jboss.seam.security import Identity
 from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService
 from org.xdi.util import StringHelper
