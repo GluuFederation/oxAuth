@@ -42,10 +42,12 @@ import org.xdi.oxauth.service.ScopeService;
 import org.xdi.oxauth.service.external.ExternalDynamicClientRegistrationService;
 import org.xdi.oxauth.service.token.TokenService;
 import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -175,25 +177,32 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             updateClientFromRequestObject(client, r);
 
+                            boolean registerClient = true;
                             if (externalDynamicClientRegistrationService.isEnabled()) {
-                                externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
+                            	registerClient = externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
                             }
-
-                            Date currentTime = Calendar.getInstance().getTime();
-                            client.setLastAccessTime(currentTime);
-                            client.setLastLogonTime(currentTime);
-
-                            Boolean persistClientAuthorizations = appConfiguration.getDynamicRegistrationPersistClientAuthorizations();
-                            client.setPersistClientAuthorizations(persistClientAuthorizations != null ? persistClientAuthorizations : false);
-
-                            clientService.persist(client);
-
-                            JSONObject jsonObject = getJSONObject(client);
-                            builder.entity(jsonObject.toString(4).replace("\\/", "/"));
-
-                            oAuth2AuditLog.setClientId(client.getClientId());
-                            oAuth2AuditLog.setScope(clientScopesToString(client));
-                            oAuth2AuditLog.setSuccess(true);
+                            
+                            if (registerClient) {
+	                            Date currentTime = Calendar.getInstance().getTime();
+	                            client.setLastAccessTime(currentTime);
+	                            client.setLastLogonTime(currentTime);
+	
+	                            Boolean persistClientAuthorizations = appConfiguration.getDynamicRegistrationPersistClientAuthorizations();
+	                            client.setPersistClientAuthorizations(persistClientAuthorizations != null ? persistClientAuthorizations : false);
+	
+	                            clientService.persist(client);
+	
+	                            JSONObject jsonObject = getJSONObject(client);
+	                            builder.entity(jsonObject.toString(4).replace("\\/", "/"));
+	
+	                            oAuth2AuditLog.setClientId(client.getClientId());
+	                            oAuth2AuditLog.setScope(clientScopesToString(client));
+	                            oAuth2AuditLog.setSuccess(true);
+                            } else {
+                                log.trace("Client parameters are invalid, returns invalid_request error.");
+                                builder = Response.status(Response.Status.BAD_REQUEST).
+                                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
+                            }
                         }
                     } else {
                         log.trace("Client parameters are invalid, returns invalid_request error.");
@@ -216,6 +225,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         } catch (JSONException e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
+        } catch (WebApplicationException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
@@ -581,7 +593,10 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                             Arrays.asList(p_requestObject.getString(attr));
                     if (parameterValues != null && !parameterValues.isEmpty()) {
                         try {
-                            p_client.getCustomAttributes().add(new CustomAttribute(attr, parameterValues));
+                        	boolean processed = processApplicationAttributes(p_client, attr, parameterValues);
+                        	if (!processed) {
+                        		p_client.getCustomAttributes().add(new CustomAttribute(attr, parameterValues));
+                        	}
                         } catch (Exception e) {
                             staticLog.debug(e.getMessage(), e);
                         }
@@ -590,6 +605,17 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         }
     }
+
+	private boolean processApplicationAttributes(Client p_client, String attr, final List<String> parameterValues) {
+		if (StringHelper.equalsIgnoreCase("oxAuthTrustedClient", attr)) {
+			boolean trustedClient = StringHelper.toBoolean(parameterValues.get(0), false);
+			p_client.setTrustedClient(trustedClient);
+			
+			return true;
+		}
+		
+		return false;
+	}
 
     private String clientScopesToString(Client client){
         String[] scopeDns = client.getScopes();
@@ -603,4 +629,5 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         }
         return null;
     }
+
 }

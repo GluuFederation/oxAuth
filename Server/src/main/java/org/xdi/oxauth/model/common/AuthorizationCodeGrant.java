@@ -6,11 +6,10 @@
 
 package org.xdi.oxauth.model.common;
 
-import java.util.Date;
-
-import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.registration.Client;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -51,6 +50,7 @@ public class AuthorizationCodeGrant extends AuthorizationGrant {
     public AuthorizationCodeGrant(User user, Client client, Date authenticationTime, AppConfiguration appConfiguration) {
         super(user, AuthorizationGrantType.AUTHORIZATION_CODE, client, authenticationTime, appConfiguration);
         setAuthorizationCode(new AuthorizationCode(appConfiguration.getAuthorizationCodeLifetime()));
+        setIsCachedWithNoPersistence(true);
     }
 
     /**

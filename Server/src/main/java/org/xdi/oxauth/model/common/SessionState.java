@@ -33,7 +33,7 @@ public class SessionState implements Serializable {
     @LdapDN
     private String dn;
 
-    @LdapAttribute(name = "uniqueIdentifier")
+    @LdapAttribute(name = "oxAuthSessionId")
     private String id;
 
     @LdapAttribute(name = "oxLastAccessTime")
@@ -127,11 +127,11 @@ public class SessionState implements Serializable {
     }
 
     public Date getLastUsedAt() {
-        return lastUsedAt != null ? new Date(lastUsedAt.getTime()) : null;
+        return lastUsedAt;
     }
 
     public void setLastUsedAt(Date p_lastUsedAt) {
-        lastUsedAt = p_lastUsedAt != null ? new Date(p_lastUsedAt.getTime()) : null;
+        lastUsedAt = p_lastUsedAt;
     }
 
     public String getUserDn() {
@@ -139,15 +139,15 @@ public class SessionState implements Serializable {
     }
 
     public void setUserDn(String p_userDn) {
-        userDn = p_userDn;
+        userDn = p_userDn != null ? p_userDn : "";
     }
 
     public Date getAuthenticationTime() {
-        return authenticationTime != null ? new Date(authenticationTime.getTime()) : null;
+        return authenticationTime;
     }
 
     public void setAuthenticationTime(Date authenticationTime) {
-        this.authenticationTime = authenticationTime != null ? new Date(authenticationTime.getTime()) : null;
+        this.authenticationTime = authenticationTime;
     }
 
     public Boolean getPermissionGranted() {

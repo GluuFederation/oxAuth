@@ -147,7 +147,6 @@ public class AppConfiguration {
 
     private String deviceAuthorizationEndpoint;
     private String deviceVerificationUri;
-    ;
     private int deviceVerificationCodeLifetime;
     private int devicePollInterval;
 

@@ -24,6 +24,7 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.GrantService;
 import org.xdi.oxauth.service.UserService;
+import org.xdi.service.CacheService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +57,9 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @In
     private AppConfiguration appConfiguration;
 
+    @In
+    private CacheService cacheService;
+
     @Override
     public void removeAuthorizationGrants(List<AuthorizationGrant> authorizationGrants) {
         if (authorizationGrants != null && !authorizationGrants.isEmpty()) {
@@ -73,7 +77,9 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @Override
     public AuthorizationCodeGrant createAuthorizationCodeGrant(User user, Client client, Date authenticationTime) {
         final AuthorizationCodeGrant grant = new AuthorizationCodeGrant(user, client, authenticationTime, appConfiguration);
-        grant.persist(grant.getAuthorizationCode());
+        MemcachedGrant memcachedGrant = new MemcachedGrant(grant);
+        cacheService.put(Integer.toString(grant.getAuthorizationCode().getExpiresIn()), memcachedGrant.cacheKey(), memcachedGrant);
+        LOGGER.trace("Put authorization grant in cache, code: " + grant.getAuthorizationCode().getCode() + ", clientId: " + grant.getClientId());
         return grant;
     }
 
@@ -102,7 +108,13 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
 
     @Override
     public AuthorizationCodeGrant getAuthorizationCodeGrant(String clientId, String authorizationCode) {
-        return (AuthorizationCodeGrant) load(clientId, authorizationCode);
+        Object cachedGrant = cacheService.get(null, MemcachedGrant.cacheKey(clientId, authorizationCode));
+        if (cachedGrant == null) {
+            // retry one time : sometimes during high load cache client may be not fast enough
+            cachedGrant = cacheService.get(null, MemcachedGrant.cacheKey(clientId, authorizationCode));
+            LOGGER.trace("Failed to fetch authorization grant from cache, code: " + authorizationCode + ", clientId: " + clientId);
+        }
+        return cachedGrant instanceof MemcachedGrant ? ((MemcachedGrant) cachedGrant).asCodeGrant(appConfiguration) : null;
     }
 
     @Override
@@ -189,7 +201,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
             if (grantType != null) {
                 final User user = userService.getUser(tokenLdap.getUserId());
                 final Client client = clientService.getClient(extractClientIdFromTokenDn(tokenLdap.getDn()));
-                final Date authenticationTime = org.xdi.oxauth.model.util.StringUtils.parseSilently(tokenLdap.getAuthenticationTime());
+                final Date authenticationTime = tokenLdap.getAuthenticationTime();
                 final String nonce = tokenLdap.getNonce();
 
                 AuthorizationGrant result;

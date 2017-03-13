@@ -4,6 +4,7 @@
 # Author: Yuriy Movchan
 #
 
+from org.jboss.seam import Component
 from org.jboss.seam.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.service import UserService, AuthenticationService, AppInitializer
@@ -83,7 +84,7 @@ class PersonAuthentication(PersonAuthenticationType):
             userPassword = credentials.getPassword()
 
             if (StringHelper.isNotEmptyString(keyValue) and StringHelper.isNotEmptyString(userPassword)):
-                authenticationService = AuthenticationService.instance()
+                authenticationService = Component.getInstance(AuthenticationService)
 
                 for ldapExtendedEntryManager in self.ldapExtendedEntryManagers:
                     ldapConfiguration = ldapExtendedEntryManager["ldapConfiguration"]
@@ -200,7 +201,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def createLdapExtendedEntryManagers(self, authConfiguration):
         ldapExtendedConfigurations = self.createLdapExtendedConfigurations(authConfiguration)
         
-        appInitializer = AppInitializer.instance()
+        appInitializer = Component.getInstance(AppInitializer)
 
         ldapExtendedEntryManagers = []
         for ldapExtendedConfiguration in ldapExtendedConfigurations:

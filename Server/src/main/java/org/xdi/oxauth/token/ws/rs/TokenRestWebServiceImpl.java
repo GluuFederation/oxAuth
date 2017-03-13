@@ -6,7 +6,15 @@
 
 package org.xdi.oxauth.token.ws.rs;
 
-import com.google.common.base.Strings;
+import java.security.SignatureException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.SecurityContext;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.jboss.seam.annotations.In;
@@ -17,7 +25,17 @@ import org.xdi.oxauth.audit.ApplicationAuditLogger;
 import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.authorize.CodeVerifier;
-import org.xdi.oxauth.model.common.*;
+import org.xdi.oxauth.model.common.AccessToken;
+import org.xdi.oxauth.model.common.AuthorizationCodeGrant;
+import org.xdi.oxauth.model.common.AuthorizationGrant;
+import org.xdi.oxauth.model.common.AuthorizationGrantList;
+import org.xdi.oxauth.model.common.ClientCredentialsGrant;
+import org.xdi.oxauth.model.common.GrantType;
+import org.xdi.oxauth.model.common.IdToken;
+import org.xdi.oxauth.model.common.RefreshToken;
+import org.xdi.oxauth.model.common.ResourceOwnerPasswordCredentialsGrant;
+import org.xdi.oxauth.model.common.TokenType;
+import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.InvalidJweException;
@@ -34,13 +52,7 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-import java.security.SignatureException;
+import com.google.common.base.Strings;
 
 /**
  * Provides interface for token REST web services
@@ -123,12 +135,15 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         return response(error(400, TokenErrorResponseType.INVALID_GRANT));
                     }
 
-                    log.debug("Attempting to find authorizationCodeGrant in LDAP by clinetId: '{0}', code: '{1}'", client.getClientId(), code);
+                    log.debug("Attempting to find authorizationCodeGrant by clientId: '{0}', code: '{1}'", client.getClientId(), code);
                     AuthorizationCodeGrant authorizationCodeGrant = authorizationGrantList.getAuthorizationCodeGrant(client.getClientId(), code);
-                    log.trace("AuthorizationCodeGrant from LDAP: '{0}'", authorizationCodeGrant);
+                    log.trace("AuthorizationCodeGrant : '{0}'", authorizationCodeGrant);
 
                     if (authorizationCodeGrant != null) {
                         validatePKCE(authorizationCodeGrant, codeVerifier);
+
+                        authorizationCodeGrant.setIsCachedWithNoPersistence(false);
+                        authorizationCodeGrant.save();
 
                         AccessToken accToken = authorizationCodeGrant.createAccessToken();
                         log.debug("Issuing access token: {0}", accToken.getCode());
@@ -159,7 +174,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         grantService.removeByCode(authorizationCodeGrant.getAuthorizationCode().getCode(), authorizationCodeGrant.getClientId());
                     } else {
-                        log.debug("AuthorizationCodeGrant from LDAP is empty");
+                        log.debug("AuthorizationCodeGrant is empty by clientId: '{0}', code: '{1}'", client.getClientId(), code);
                         // if authorization code is not found then code was already used = remove all grants with this auth code
                         grantService.removeAllByAuthorizationCode(code);
                         builder = error(400, TokenErrorResponseType.INVALID_GRANT);
