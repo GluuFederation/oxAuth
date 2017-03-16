@@ -10,13 +10,14 @@ import org.gluu.site.ldap.persistence.annotation.LdapAttribute;
 import org.gluu.site.ldap.persistence.annotation.LdapDN;
 import org.gluu.site.ldap.persistence.annotation.LdapEntry;
 import org.gluu.site.ldap.persistence.annotation.LdapObjectClass;
+import org.xdi.oxauth.model.common.AuthorizationGrantType;
 
 import java.util.Date;
 
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version September 5, 2016
+ * @version March 16, 2017
  */
 
 @LdapEntry
@@ -137,6 +138,16 @@ public class TokenLdap {
 
     public void setGrantType(String p_grantType) {
         grantType = p_grantType;
+    }
+
+    public AuthorizationGrantType getGrantTypeEnum() {
+        return AuthorizationGrantType.fromString(grantType);
+    }
+
+    public void setGrantTypeEnum(AuthorizationGrantType p_grantType) {
+        if (p_grantType != null) {
+            grantType = p_grantType.getParamName();
+        }
     }
 
     public String getScope() {

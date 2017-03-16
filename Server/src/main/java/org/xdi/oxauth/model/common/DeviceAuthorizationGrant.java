@@ -19,7 +19,7 @@ import java.util.UUID;
 
 /**
  * @author Javier Rojas Blum
- * @version January 23, 2017
+ * @version March 16, 2017
  */
 public class DeviceAuthorizationGrant extends AuthorizationGrant {
 
@@ -52,8 +52,9 @@ public class DeviceAuthorizationGrant extends AuthorizationGrant {
         token.setGrantId(getGrantId());
         token.setAuthorizationCode(deviceCode);
         token.setCodeChallenge(userCode);
-        token.setTokenCode(userCode);
+        token.setTokenCode(deviceCode);
         token.setTokenTypeEnum(TokenType.DEVICE_CODE);
+        token.setGrantTypeEnum(getAuthorizationGrantType());
         token.setExpirationDate(expirationDate);
 
         setTokenLdap(token);
