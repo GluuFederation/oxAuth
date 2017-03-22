@@ -52,7 +52,7 @@
     </ui:define>
 
     <ui:define name="pageTitle">
-        <h:outputText value="#{messages['login.pageTitle']}"/>
+        <h:outputText value="#{oxauth['login.pageTitle']}"/>
     </ui:define>
 
     <ui:define name="body">
@@ -75,33 +75,33 @@
 	            <div class="dialog">
 	                <h:panelGrid columns="1" border="0" rowClasses="prop" columnClasses="value">
 	                    <p></p>
-	                    <p class="body-section">This can happen in the following cases:</p>
-	                    <ul class="body-list"><li>You do not have a personal certificate yet. <br/>Please, registered with the system and receive the certificate.</li></ul>
-	                    <ul class="body-list"><li>You failed to install the personal certificate into the browser<br/>Please, install the certificate from the backup file (.PFX), restart your browser and try to log in again.</li></ul>
-	                    <ul class="body-list"><li>You have already opened the page in this browser but haven't chosen any certificate for further usage. The browser now remembers this choice. <br/>Please, restart your browser, log in again and choose the appropriate certificate.<br/>If you use Internet Explorer, click "Clear SSL state" at Tools/Internet Options/Content.</li></ul>
-	                    <ul class="body-list"><li>If you use MacOS X and updated the operation system to version 10.5.3 please see <a href="http://support.apple.com/kb/HT1679?viewlocale=en_US" class="external">http://support.apple.com/kb/HT1679?viewlocale=en_US</a> to resolve the issue.</li></ul>
+	                    <p class="body-section">#{oxauth['cert.thisCanHappen']}</p>
+	                    <ul class="body-list"><li>#{oxauth['cert.youHaveExpired']}</li></ul>
+	                    <ul class="body-list"><li>#{oxauth['cert.youFailedToInstall']}</li></ul>
+	                    <ul class="body-list"><li>#{oxauth['cert.youHaveAlreadyOpened']}</li></ul>
+	                    <ul class="body-list"><li>#{oxauth['cert.ifYouUseMacOS']}</li></ul>
 
 	                    <p></p>
-	                    <p class="body-section">Note: Internet Explorer and Mozilla Firefox allow to clear the SSL state without restarting the browser:</p>
-	                    <ul class="body-list"><li>If you are using Internet Explorer, you can use the "Clear SSL" button in the settings section: Contents (click Tools → Internet Options).</li></ul>
-	                    <ul class="body-list"><li>If you use FireFox, you can use the menu: Options → Privacy → Clear all current history → select “Active Logins” → press button Clear Now.</li></ul>
+	                    <p class="body-section">#{oxauth['cert.noteInternetExplorer']}</p>
+	                    <ul class="body-list"><li>#{oxauth['cert.ifYouAreUsing']}</li></ul>
+	                    <ul class="body-list"><li>#{oxauth['cert.ifYouUseFireFox']}</li></ul>
 	                </h:panelGrid>
 	            </div>
 	
 	            <s:div rendered='#{!empty client.getPolicyUri()}'>
 	                <p>
-	                    <h:outputText value="#{messages['common.agreePolicy']}"/>
+	                    <h:outputText value="#{oxauth['common.agreePolicy']}"/>
 	                    <a target="_blank" href='#{client.getPolicyUri()}'>
-	                        <h:outputText value="#{messages['common.privacyPolicy']}"/>
+	                        <h:outputText value="#{oxauth['common.privacyPolicy']}"/>
 	                    </a>
 	                </p>
 	            </s:div>
 	
 	            <s:div rendered='#{!empty client.getTosUri()}'>
 	                <p>
-	                    <h:outputText value="#{messages['common.pleaseReadTheTos']}"/>
+	                    <h:outputText value="#{oxauth['common.pleaseReadTheTos']}"/>
 	                    <a target="_blank" href='#{client.getTosUri()}'>
-	                        <h:outputText value="#{messages['common.termsOfService']}"/>
+	                        <h:outputText value="#{oxauth['common.termsOfService']}"/>
 	                    </a>
 	                </p>
 	            </s:div>

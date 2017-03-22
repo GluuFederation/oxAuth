@@ -11,12 +11,15 @@
 
 	<ui:define name="body">
 		<div class="section">
-			<h1>Error Encountered</h1>
+			<h1>#{oxauth['error.errorEncountered']}</h1>
 		</div>
 
 		<div class="section">
-			<p>An unexpected error has occurred at #{pageService.currentDateTime}.</p>
-
+			<p>
+				<h:outputFormat value="#{oxauth['error.unexpectedError']}">
+					<f:param value="#{pageService.currentDateTime}"/>
+				</h:outputFormat>
+			</p>
 			<div class="body">
 				<h:messages id="globalMessage" styleClass="message"
 					errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"

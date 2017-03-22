@@ -39,7 +39,7 @@
         </style>
     </ui:define>
 
-    <ui:define name="pageTitle">oxAuth Wikid - Login</ui:define>
+    <ui:define name="pageTitle">#{oxauth['wikid.pageTitle']}</ui:define>
 
     <ui:define name="body">
         <table border="0" align="center">
@@ -61,39 +61,39 @@
                                         </s:div>
 
                                         <p class="info">
-                                            <h:outputText value="#{messages['login.pleaseLoginHere']}"/>
+                                            <h:outputText value="#{oxauth['login.pleaseLoginHere']}"/>
                                         </p>
 
                                         <div class="dialog">
                                             <h:panelGrid columns="3" border="0" rowClasses="prop"
                                                          columnClasses="name,value,hint">
-				                                <h:outputLabel for="regcode">Registration code</h:outputLabel>
+				                                <h:outputLabel for="regcode">#{oxauth['wikid.registrationCode']}</h:outputLabel>
 								                <input name="regcode" type="text" autocomplete="off" />
-                                                <h:outputText value="Code generated during token registration"/>
+                                                <h:outputText value="#{oxauth['wikid.codeGeneratedDuringToken']}"/>
                                             </h:panelGrid>
                                         </div>
 
                                         <s:div rendered='#{!empty client.getPolicyUri()}'>
                                             <p>
-                                                <h:outputText value="#{messages['common.agreePolicy']}"/>
+                                                <h:outputText value="#{oxauth['common.agreePolicy']}"/>
                                                 <a target="_blank" href='#{client.getPolicyUri()}'>
-                                                    <h:outputText value="#{messages['common.privacyPolicy']}"/>
+                                                    <h:outputText value="#{oxauth['common.privacyPolicy']}"/>
                                                 </a>
                                             </p>
                                         </s:div>
 
                                         <s:div rendered='#{!empty client.getTosUri()}'>
                                             <p>
-                                                <h:outputText value="#{messages['common.pleaseReadTheTos']}"/>
+                                                <h:outputText value="#{oxauth['common.pleaseReadTheTos']}"/>
                                                 <a target="_blank" href='#{client.getTosUri()}'>
-                                                    <h:outputText value="#{messages['common.termsOfService']}"/>
+                                                    <h:outputText value="#{oxauth['common.termsOfService']}"/>
                                                 </a>
                                             </p>
                                         </s:div>
 
                                         <div class="actionButtons">
                                             <h:commandButton id="loginButton"
-                                                             value="#{messages['login.login']}"
+                                                             value="#{oxauth['login.login']}"
                                                              action="#{authenticator.authenticate}"/>
                                         </div>
                                     </div>

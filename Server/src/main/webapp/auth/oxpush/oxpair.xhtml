@@ -50,15 +50,14 @@
 </style>
 	</ui:define>
 
-	<ui:define name="pageTitle">oxAuth oxPush - Login</ui:define>
+	<ui:define name="pageTitle">#{oxauth['oxpush.pageTitle']}</ui:define>
 
 	<ui:define name="body">
 		<form id="loginForm" method="post"
 			action="#{request.contextPath}/postlogin.seam">
 			<h:panelGroup id="loginGroup" rendered="#{not identity.loggedIn}">
 				<div class="login-panel">
-					<div class="login-panel-header">oxPush Login (Pairing
-						request)</div>
+					<div class="login-panel-header">#{oxauth['oxpush.loginPairingRequest']}</div>
 					<div class="login-panel-body">
 						<ui:param name="client"
 							value="#{clientService.getClient(redirect.parameters['client_id'])}" />
@@ -68,24 +67,23 @@
 
 						<s:div styleClass="dialog"
 							rendered="#{param.oxpush_user_uid != null}">
-							<p class="info">Checking pairing status...</p>
+							<p class="info">#{oxauth['oxpush.checkingPairing']}</p>
 						</s:div>
 						<s:div styleClass="dialog"
 							rendered="#{param.oxpush_user_uid == null}">
-							<p class="info">Waiting for user approval...</p>
+							<p class="info">#{oxauth['oxpush.waitingForUser']}</p>
 							<br/>
 
-							<p class="info">Pairing QR code:</p>
+							<p class="info">#{oxauth['oxpush.pairingQRCode']}</p>
 							<h:outputText value="#{oxpush_pairing_qr_image}" escape="false" />
 
-							<p class="info">Pairing code:</p>
+							<p class="info">#{oxauth['oxpush.pairingCode']}</p>
 							<h:outputText value="#{oxpush_pairing_code}" styleClass="bolded"/>
 						</s:div>
 
 						<s:div rendered='#{!empty client.getPolicyUri()}'>
 							<p>
-								<a target="_blank" href='#{client.getPolicyUri()}'>Terms
-									&amp; Privacy</a>
+								<a target="_blank" href='#{client.getPolicyUri()}'>#{oxauth['oxpush.termsPrivacy']}</a>
 							</p>
 						</s:div>
 					</div>
