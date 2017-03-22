@@ -41,7 +41,7 @@
     </ui:define>
 
     <ui:define name="pageTitle">
-        <h:outputText value="#{messages['authorize.pageTitle']}"/>
+        <h:outputText value="#{oxauth['authorize.pageTitle']}"/>
     </ui:define>
 
     <ui:define name="body">
@@ -51,7 +51,7 @@
 
             <div class="authorize-panel">
                 <div class="authorize-panel-header">
-                    <h:outputText value="#{messages['authorize.requestForPermission']}"/>
+                    <h:outputText value="#{oxauth['authorize.requestForPermission']}"/>
                 </div>
                 <div class="authorize-panel-body">
                     <ui:param name="client" value='#{clientService.getClient(request.getParameter("client_id"))}'/>
@@ -61,7 +61,7 @@
                     </s:div>
 
                     <p class="info">
-                        <h:outputText value="#{messages['authorize.requestingPermissionForScopes']}"/>
+                        <h:outputText value="#{oxauth['authorize.requestingPermissionForScopes']}"/>
                     </p>
 
                     <ul>
@@ -74,28 +74,28 @@
 
                     <s:div rendered='#{!empty client.getPolicyUri()}'>
                         <p>
-                            <h:outputText value="#{messages['common.agreePolicy']}"/>
+                            <h:outputText value="#{oxauth['common.agreePolicy']}"/>
                             <a target="_blank" href='#{client.getPolicyUri()}'>
-                                <h:outputText value="#{messages['common.privacyPolicy']}"/>
+                                <h:outputText value="#{oxauth['common.privacyPolicy']}"/>
                             </a>
                         </p>
                     </s:div>
 
                     <s:div rendered='#{!empty client.getTosUri()}'>
                         <p>
-                            <h:outputText value="#{messages['common.pleaseReadTheTos']}"/>
+                            <h:outputText value="#{oxauth['common.pleaseReadTheTos']}"/>
                             <a target="_blank" href='#{client.getTosUri()}'>
-                                <h:outputText value="#{messages['common.termsOfService']}"/>
+                                <h:outputText value="#{oxauth['common.termsOfService']}"/>
                             </a>
                         </p>
                     </s:div>
 
                     <div class="actionButtons">
                         <h:commandButton id="allowButton"
-                                         value="#{messages['authorize.allow']}"
+                                         value="#{oxauth['authorize.allow']}"
                                          action="#{authorizeAction.permissionGranted}"/>
                         <h:commandButton id="doNotAllowButton"
-                                         value="#{messages['authorize.doNotAllow']}"
+                                         value="#{oxauth['authorize.doNotAllow']}"
                                          action="#{authorizeAction.permissionDenied}"/>
                     </div>
                 </div>

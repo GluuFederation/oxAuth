@@ -5,29 +5,36 @@
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:s="http://jboss.org/schema/seam/taglib">
-<f:view transient="true">
+<f:view transient="true" locale="#{language.localeCode}">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <title><ui:insert name="pageTitle"/></title>
-        <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/theme.css" />
+        <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/theme.css"/>
         <ui:insert name="head"/>
+        <h:form>
+            Language :
+            <h:selectOneMenu value="#{language.localeCode}" onchange="submit()"
+                             valueChangeListener="#{language.countryLocaleCodeChanged}">
+                <f:selectItems value="#{language.countriesInMap}"/>
+            </h:selectOneMenu>
+        </h:form>
     </h:head>
     <h:body>
-    <div class="body">
-        <h:messages id="messages" globalOnly="true" styleClass="message"
-                    errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
-                    rendered="#{showGlobalMessages != 'false'}"/>
-        <ui:insert name="body"/>
-    </div>
-    <s:fragment>
-        <div class="footer">
-            <p>
-                <h:outputText value="#{messages['common.copyright']}" />
-                <a href="http://www.gluu.org">Gluu</a>.&#160;
-                <h:outputText value="#{messages['common.allRightsReserved']}" />
-            </p>
+        <div class="body">
+            <h:messages id="messages" globalOnly="true" styleClass="message"
+                        errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
+                        rendered="#{showGlobalMessages != 'false'}"/>
+            <ui:insert name="body"/>
         </div>
-    </s:fragment>
+        <s:fragment>
+            <div class="footer">
+                <p>
+                    <h:outputText value="#{oxauth['common.copyright']}"/>
+                    <a href="http://www.gluu.org">Gluu</a>.&#160;
+                    <h:outputText value="#{oxauth['common.allRightsReserved']}"/>
+                </p>
+            </div>
+        </s:fragment>
     </h:body>
 </f:view>
 </html>
