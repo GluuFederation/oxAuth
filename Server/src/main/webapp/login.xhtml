@@ -52,11 +52,6 @@
             <div id="content" class="sign-in-page">
                 <div class="row-fluid">
                     <h:form id="loginForm" class="signin-form span6 offset3">
-                        Language :
-                        <h:selectOneMenu value="#{language.localeCode}" onchange="submit()"
-                                         valueChangeListener="#{language.countryLocaleCodeChanged}">
-                            <f:selectItems value="#{language.countriesInMap}"/>
-                        </h:selectOneMenu>
                         <h:panelGroup rendered="#{sessionStateService.notSessionStateAuthenticated}">
                             <div class="inner-form-container row-fluid">
                                 <ul class="offset2 span10">

@@ -15,6 +15,13 @@
        <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/style.css" />
        
         <ui:insert name="head"/>
+        <h:form>
+            Language :
+            <h:selectOneMenu value="#{language.localeCode}" onchange="submit()"
+                             valueChangeListener="#{language.countryLocaleCodeChanged}">
+                <f:selectItems value="#{language.countriesInMap}"/>
+            </h:selectOneMenu>
+        </h:form>
     </h:head>
     <h:body>
     <div class="body">
