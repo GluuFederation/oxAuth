@@ -157,6 +157,7 @@ var super_gluu = {
 		(function worker() {
 			$.ajax({
 				url: '/oxauth/seam/resource/restv1/oxauth/session_status',
+				cache: false,
 				timeout: super_gluu.checker.timeout,
 				success: function(result, status, xhr) {
 					if ((result.state == 'unknown') || ((result.state == 'unauthenticated') && ((result.custom_state == 'declined') || (result.custom_state == 'expired')))) {
