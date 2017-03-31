@@ -13,22 +13,14 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
-import org.xdi.oxauth.model.common.AbstractToken;
-import org.xdi.oxauth.model.common.AuthorizationGrant;
-import org.xdi.oxauth.model.common.AuthorizationGrantList;
-import org.xdi.oxauth.model.common.IntrospectionResponse;
+import org.xdi.oxauth.model.common.*;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.UmaScopeType;
 import org.xdi.oxauth.service.token.TokenService;
 import org.xdi.oxauth.util.ServerUtil;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -52,6 +44,8 @@ public class IntrospectionWebService {
     private ErrorResponseFactory errorResponseFactory;
     @In
     private AuthorizationGrantList authorizationGrantList;
+    @In
+    private AppConfiguration appConfiguration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,25 +71,35 @@ public class IntrospectionWebService {
             if (StringUtils.isNotBlank(p_authorization) && StringUtils.isNotBlank(p_token)) {
                 final AuthorizationGrant authorizationGrant = tokenService.getAuthorizationGrant(p_authorization);
                 if (authorizationGrant != null) {
-                    final AbstractToken accessToken = authorizationGrant.getAccessToken(tokenService.getTokenFromAuthorizationParameter(p_authorization));
+                    final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getTokenFromAuthorizationParameter(p_authorization));
                     boolean isPat = authorizationGrant.getScopesAsString().contains(UmaScopeType.PROTECTION.getValue()); // #432
-                    if (accessToken != null && accessToken.isValid() && isPat) {
+                    if (authorizationAccessToken != null && authorizationAccessToken.isValid() && isPat) {
                         final IntrospectionResponse response = new IntrospectionResponse(false);
 
                         final AuthorizationGrant grantOfIntrospectionToken = authorizationGrantList.getAuthorizationGrantByAccessToken(p_token);
                         if (grantOfIntrospectionToken != null) {
                             final AbstractToken tokenToIntrospect = grantOfIntrospectionToken.getAccessToken(p_token);
-                            if (tokenToIntrospect != null) {
-                                response.setActive(tokenToIntrospect.isValid());
-                                response.setExpiresAt(tokenToIntrospect.getExpirationDate());
-                                response.setIssuedAt(tokenToIntrospect.getCreationDate());
-                                response.setAcrValues(tokenToIntrospect.getAuthMode());
-                                response.setScopes(grantOfIntrospectionToken.getScopes()); // #433
+
+                            response.setActive(tokenToIntrospect.isValid());
+                            response.setExpiresAt(tokenToIntrospect.getExpirationDate());
+                            response.setIssuedAt(tokenToIntrospect.getCreationDate());
+                            response.setAcrValues(tokenToIntrospect.getAuthMode());
+                            response.setScopes(grantOfIntrospectionToken.getScopes()); // #433
+                            response.setClientId(grantOfIntrospectionToken.getClientId());
+                            response.setUsername(grantOfIntrospectionToken.getUserId());
+                            response.setIssuer(appConfiguration.getIssuer());
+                            response.setAudience(grantOfIntrospectionToken.getClientId());
+
+                            if (tokenToIntrospect instanceof AccessToken) {
+                                AccessToken accessToken = (AccessToken) tokenToIntrospect;
+                                response.setTokenType(accessToken.getTokenType().getName());
                             }
+                        } else {
+                            log.error("Failed to find grant for access_token: " + p_token);
                         }
                         return Response.status(Response.Status.OK).entity(ServerUtil.asJson(response)).build();
                     } else {
-                        log.error("Access token is not valid. Valid: " + (accessToken != null && accessToken.isValid()) + ", isPat:" + isPat);
+                        log.error("Access token is not valid. Valid: " + (authorizationAccessToken != null && authorizationAccessToken.isValid()) + ", isPat:" + isPat);
                     }
                 } else {
                     log.error("Authorization grant is null.");
