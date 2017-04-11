@@ -270,7 +270,7 @@ public class Authenticator implements Serializable {
             sessionIdAttributes = sessionStateService.getSessionAttributes(sessionState);
 
             // Prepare for next step
-            if (this.authStep < countAuthenticationSteps) {
+            if ((this.authStep < countAuthenticationSteps) || overrideCurrentStep) {
             	int nextStep;
             	if (overrideCurrentStep) {
             		nextStep = overridenNextStep;
