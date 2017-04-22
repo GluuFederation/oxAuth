@@ -28,7 +28,7 @@ import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
 
 /**
  * @author Javier Rojas Blum
- * @version 0.9 March 5, 2015
+ * @version April 20, 2017
  */
 public class ApplicationTypeRestrictionEmbeddedTest extends BaseTest {
 
@@ -302,54 +302,6 @@ public class ApplicationTypeRestrictionEmbeddedTest extends BaseTest {
     }
 
     /**
-     * Fail: Register a client with Application Type <code>web</code> and Redirect URI with the host localhost.
-     */
-    @Parameters({"registerPath"})
-    @Test
-    public void applicationTypeWebFail2(final String registerPath) throws Exception {
-
-        new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
-                ResourceRequestEnvironment.Method.POST, registerPath) {
-
-            @Override
-            protected void prepareRequest(EnhancedMockHttpServletRequest request) {
-                try {
-                    super.prepareRequest(request);
-
-                    final String redirectUris = "https://localhost/cb";
-
-                    RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
-                            StringUtils.spaceSeparatedToList(redirectUris));
-
-                    request.setContentType(MediaType.APPLICATION_JSON);
-                    String registerRequestContent = registerRequest.getJSONParameters().toString(4);
-                    request.setContent(registerRequestContent.getBytes());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    fail(e.getMessage());
-                }
-            }
-
-            @Override
-            protected void onResponse(EnhancedMockHttpServletResponse response) {
-                super.onResponse(response);
-                showResponse("applicationTypeWebFail2", response);
-
-                assertEquals(response.getStatus(), 400, "Unexpected response code. " + response.getContentAsString());
-                assertNotNull(response.getContentAsString(), "Unexpected result: " + response.getContentAsString());
-                try {
-                    JSONObject jsonObj = new JSONObject(response.getContentAsString());
-                    assertTrue(jsonObj.has("error"), "The error type is null");
-                    assertTrue(jsonObj.has("error_description"), "The error description is null");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    fail(e.getMessage() + "\nResponse was: " + response.getContentAsString());
-                }
-            }
-        }.run();
-    }
-
-    /**
      * Register a client with Application Type <code>native</code>.
      */
     @Parameters({"registerPath"})
@@ -461,7 +413,8 @@ public class ApplicationTypeRestrictionEmbeddedTest extends BaseTest {
      * Fail: Register a client with Application Type <code>native</code> and Redirect URI with the schema HTTPS.
      */
     @Parameters({"registerPath"})
-    @Test(enabled = false) //allowed to register redirect_uris with custom schema to conform "OAuth 2.0 for Native Apps" spec
+    @Test(enabled = false)
+    //allowed to register redirect_uris with custom schema to conform "OAuth 2.0 for Native Apps" spec
     public void applicationTypeNativeFail1(final String registerPath) throws Exception {
 
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
@@ -509,7 +462,8 @@ public class ApplicationTypeRestrictionEmbeddedTest extends BaseTest {
      * Fail: Register a client with Application Type <code>native</code> and Redirect URI with the host different than localhost.
      */
     @Parameters({"registerPath", "redirectUris"})
-    @Test(enabled = false) //allowed to register redirect_uris with custom schema to conform "OAuth 2.0 for Native Apps" spec
+    @Test(enabled = false)
+    //allowed to register redirect_uris with custom schema to conform "OAuth 2.0 for Native Apps" spec
     public void applicationTypeNativeFail2(final String registerPath, final String redirectUris) throws Exception {
 
         new ResourceRequestEnvironment.ResourceRequest(new ResourceRequestEnvironment(this),
