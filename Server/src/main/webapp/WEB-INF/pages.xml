@@ -37,7 +37,7 @@
         <exception class="java.lang.NullPointerException">
             <redirect view-id="/error.xhtml">
                 <message severity="warn">Required data not found to complete this action. Please try again
-                or report your issue to a BT administrator.</message>
+                or report your issue to a server administrator.</message>
             </redirect>
         </exception>
 
