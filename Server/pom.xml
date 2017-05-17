@@ -9,8 +9,11 @@
 	<parent>
 		<groupId>org.xdi</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>3.0.2</version>
+		<version>3.0.2_rs3</version>
 	</parent>
+	<properties>
+		<oxauth.version>3.0.2</oxauth.version>
+	</properties>
 
 	<prerequisites>
 		<maven>${maven.min-version}</maven>
@@ -104,7 +107,7 @@
 							<packaging>jar</packaging>
 							<artifactId>${project.artifactId}</artifactId>
 							<groupId>${project.groupId}</groupId>
-							<version>${project.version}</version>
+							<version>${oxauth.version}</version>
 							<file>
 								${project.build.directory}/${project.build.finalName}.jar
 							</file>
@@ -120,7 +123,7 @@
 							<packaging>war</packaging>
 							<artifactId>${project.artifactId}</artifactId>
 							<groupId>${project.groupId}</groupId>
-							<version>${project.version}</version>
+							<version>${oxauth.version}</version>
 							<file>
 								${project.build.directory}/${project.build.finalName}.war
 							</file>
@@ -314,7 +317,7 @@
 		<dependency>
 			<groupId>org.xdi</groupId>
 			<artifactId>oxauth-static</artifactId>
-			<version>${project.version}</version>
+			<version>${oxauth.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.xdi</groupId>
@@ -878,14 +881,14 @@
 				<dependency>
 					<groupId>org.xdi</groupId>
 					<artifactId>oxauth-model</artifactId>
-					<version>${project.version}</version>
+					<version>${oxauth.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
 					<groupId>org.xdi</groupId>
 					<artifactId>oxauth-client</artifactId>
-					<version>${project.version}</version>
+					<version>${oxauth.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>

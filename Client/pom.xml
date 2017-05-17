@@ -7,10 +7,15 @@
 	<name>oxAuth Client</name>
 	<packaging>jar</packaging>
 
+	<properties>
+		<resteasy.version>3.0.21.Final</resteasy.version>
+		<jaxr.version>3.0.12.Final</jaxr.version>
+		<oxauth.version>3.0.2</oxauth.version>
+	</properties>
 	<parent>
 		<groupId>org.xdi</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>3.0.2</version>
+		<version>3.0.2_rs3</version>
 	</parent>
 
 	<prerequisites>
@@ -101,6 +106,7 @@
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>jaxrs-api</artifactId>
+			<version>${jaxr.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jettison</groupId>
@@ -184,7 +190,7 @@
 				<dependency>
 					<groupId>org.xdi</groupId>
 					<artifactId>oxauth-model</artifactId>
-					<version>${project.version}</version>
+					<version>${oxauth.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>

@@ -5,13 +5,14 @@
 	<groupId>org.xdi</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>3.0.2</version>
+	<version>3.0.2_rs3</version>
 	<name>oxAuth</name>
 	<url>http://ox.gluu.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.0.3</maven.min-version>
+		<oxauth.version>3.0.2</oxauth.version>
 		<oxCore.version>3.0.2</oxCore.version>
 		<oxeleven.version>3.0.2</oxeleven.version>
 		<jackson.version>1.9.11</jackson.version>
@@ -81,12 +82,12 @@
 			<dependency>
 				<groupId>org.xdi</groupId>
 				<artifactId>oxauth-model</artifactId>
-				<version>${project.version}</version>
+				<version>${oxauth.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.xdi</groupId>
 				<artifactId>oxauth-client</artifactId>
-				<version>${project.version}</version>
+				<version>${oxauth.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
