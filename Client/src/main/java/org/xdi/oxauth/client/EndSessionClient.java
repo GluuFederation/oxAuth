@@ -91,14 +91,13 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
             String entity = clientResponse.getEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
-            if (clientResponse.getLocation() != null) {
+            if (clientResponse.getLocationLink() != null) {
                 String location = clientResponse.getLocationLink().getHref();
                 getResponse().setLocation(location);
 
                 int queryStringIndex = location.indexOf("?");
                 if (queryStringIndex != -1) {
-                    String queryString = location
-                            .substring(queryStringIndex + 1);
+                    String queryString = location.substring(queryStringIndex + 1);
                     Map<String, String> params = QueryStringDecoder.decode(queryString);
                     if (params.containsKey(EndSessionResponseParam.STATE)) {
                         getResponse().setState(params.get(EndSessionResponseParam.STATE));
