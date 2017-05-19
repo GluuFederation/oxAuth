@@ -64,7 +64,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 20, 2016
+ * @version May 19, 2017
  */
 @Scope(ScopeType.STATELESS)
 @Name("idTokenFactory")
@@ -129,8 +129,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(jwtSigner.getSignatureAlgorithm());
             jwt.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwt.getClaims().setClaim("oxValidationURI", appConfiguration.getCheckSessionIFrame());
-        jwt.getClaims().setClaim("oxOpenIDConnectVersion", appConfiguration.getOxOpenIdConnectVersion());
+        jwt.getClaims().setClaim(JwtClaimName.OX_VALIDATION_URI, appConfiguration.getValidateTokenEndpoint());
+        jwt.getClaims().setClaim(JwtClaimName.OX_OPENID_CONNECT_VERSION, appConfiguration.getOxOpenIdConnectVersion());
 
         List<org.xdi.oxauth.model.common.Scope> dynamicScopes = Lists.newArrayList();
         if (includeIdTokenClaims) {
@@ -325,8 +325,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(null);
             jwe.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwe.getClaims().setClaim("oxValidationURI", appConfiguration.getCheckSessionIFrame());
-        jwe.getClaims().setClaim("oxOpenIDConnectVersion", appConfiguration.getOxOpenIdConnectVersion());
+        jwe.getClaims().setClaim(JwtClaimName.OX_VALIDATION_URI, appConfiguration.getValidateTokenEndpoint());
+        jwe.getClaims().setClaim(JwtClaimName.OX_OPENID_CONNECT_VERSION, appConfiguration.getOxOpenIdConnectVersion());
 
         List<org.xdi.oxauth.model.common.Scope> dynamicScopes = Lists.newArrayList();
         if (includeIdTokenClaims) {
