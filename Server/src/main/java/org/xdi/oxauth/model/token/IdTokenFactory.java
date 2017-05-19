@@ -28,7 +28,6 @@ import org.xdi.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.xdi.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.xdi.oxauth.model.crypto.signature.RSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.xdi.oxauth.model.exception.InvalidClaimException;
 import org.xdi.oxauth.model.exception.InvalidJweException;
 import org.xdi.oxauth.model.jwe.Jwe;
 import org.xdi.oxauth.model.jwe.JweEncrypter;
@@ -50,8 +49,6 @@ import org.xdi.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.xdi.util.security.StringEncrypter;
 
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -64,7 +61,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version October 7, 2016
+ * @version May 19, 2017
  */
 @Scope(ScopeType.STATELESS)
 @Name("idTokenFactory")
@@ -123,8 +120,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(jwtSigner.getSignatureAlgorithm());
             jwt.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwt.getClaims().setClaim("oxValidationURI", ConfigurationFactory.instance().getConfiguration().getCheckSessionIFrame());
-        jwt.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
+        jwt.getClaims().setClaim(JwtClaimName.OX_VALIDATION_URI, ConfigurationFactory.instance().getConfiguration().getValidateTokenEndpoint());
+        jwt.getClaims().setClaim(JwtClaimName.OX_OPENID_CONNECT_VERSION, ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
         if (includeIdTokenClaims) {
@@ -302,8 +299,8 @@ public class IdTokenFactory {
             String accessTokenHash = accessToken.getHash(null);
             jwe.getClaims().setClaim(JwtClaimName.ACCESS_TOKEN_HASH, accessTokenHash);
         }
-        jwe.getClaims().setClaim("oxValidationURI", ConfigurationFactory.instance().getConfiguration().getCheckSessionIFrame());
-        jwe.getClaims().setClaim("oxOpenIDConnectVersion", ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
+        jwe.getClaims().setClaim(JwtClaimName.OX_VALIDATION_URI, ConfigurationFactory.instance().getConfiguration().getValidateTokenEndpoint());
+        jwe.getClaims().setClaim(JwtClaimName.OX_OPENID_CONNECT_VERSION, ConfigurationFactory.instance().getConfiguration().getOxOpenIdConnectVersion());
 
         List<String> dynamicScopes = new ArrayList<String>();
         if (includeIdTokenClaims) {

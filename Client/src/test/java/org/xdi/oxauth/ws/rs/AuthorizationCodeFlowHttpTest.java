@@ -34,7 +34,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
  * Test cases for the authorization code flow (HTTP)
  *
  * @author Javier Rojas Blum
- * @version November 3, 2016
+ * @version May 19, 2017
  */
 public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
@@ -99,8 +99,8 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.CODE_HASH));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxValidationURI"));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxOpenIDConnectVersion"));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_VALIDATION_URI));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_OPENID_CONNECT_VERSION));
         assertNotNull(jwt.getClaims().getClaimAsString("user_name"));
         assertNull(jwt.getClaims().getClaimAsString("org_name"));
         assertNull(jwt.getClaims().getClaimAsString("work_phone"));
@@ -171,8 +171,8 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.CODE_HASH));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxValidationURI"));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxOpenIDConnectVersion"));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_VALIDATION_URI));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_OPENID_CONNECT_VERSION));
         assertNotNull(jwt.getClaims().getClaimAsString("user_name"));
         assertNull(jwt.getClaims().getClaimAsString("phone_mobile_number"));
     }
@@ -210,8 +210,8 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.CODE_HASH));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxValidationURI"));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxOpenIDConnectVersion"));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_VALIDATION_URI));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_OPENID_CONNECT_VERSION));
         assertNotNull(jwt.getClaims().getClaimAsString("user_name"));
         assertNotNull(jwt.getClaims().getClaimAsString("org_name"));
         assertNotNull(jwt.getClaims().getClaimAsString("work_phone"));
@@ -305,8 +305,8 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.CODE_HASH));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxValidationURI"));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxOpenIDConnectVersion"));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_VALIDATION_URI));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_OPENID_CONNECT_VERSION));
 
         RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
                 jwksUri,
@@ -542,8 +542,8 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.CODE_HASH));
         assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxValidationURI"));
-        assertNotNull(jwt.getClaims().getClaimAsString("oxOpenIDConnectVersion"));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_VALIDATION_URI));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.OX_OPENID_CONNECT_VERSION));
         assertNotNull(jwt.getClaims().getClaimAsString("user_name"));
         assertNull(jwt.getClaims().getClaimAsString("org_name"));
         assertNull(jwt.getClaims().getClaimAsString("work_phone"));
