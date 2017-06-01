@@ -34,6 +34,8 @@ import javax.faces.context.FacesContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -223,6 +225,13 @@ public class SessionStateService {
                 String header = SESSION_STATE_COOKIE_NAME + "=" + sessionState;
                 header += "; Path=/";
                 header += "; Secure";
+                int sessionStateLifetime = configurationFactory.getConfiguration().getSessionStateLifetime();
+                if (sessionStateLifetime != -1) {
+                    DateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
+                    Calendar expirationDate = Calendar.getInstance();
+                    expirationDate.add(Calendar.SECOND, sessionStateLifetime);
+                    header += "; Expires="+formatter.format(expirationDate.getTime())+";";
+                }
                 httpResponse.addHeader("Set-Cookie", header);
             }
         } catch (Exception e) {
@@ -554,6 +563,14 @@ public class SessionStateService {
         }
         if (sessionState.getState() == SessionIdState.UNAUTHENTICATED && timeSinceLastAccess > sessionUnauthenticatedInterval && ConfigurationFactory.instance().getConfiguration().getSessionIdUnauthenticatedUnusedLifetime() != -1) {
             return false;
+        }
+
+        if (sessionState.getState() == SessionIdState.AUTHENTICATED) {
+            final long currentLifetimeInSeconds = (System.currentTimeMillis() - sessionState.getAuthenticationTime().getTime()) / 1000;
+            if (currentLifetimeInSeconds > configurationFactory.getConfiguration().getSessionStateLifetime()) {
+                remove(sessionState); // expired
+                return false;
+            }
         }
 
         return true;

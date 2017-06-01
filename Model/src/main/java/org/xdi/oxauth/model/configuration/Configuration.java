@@ -121,6 +121,7 @@ public class Configuration {
     private String applianceInum;
     private int sessionIdUnusedLifetime;
     private int sessionIdUnauthenticatedUnusedLifetime = 120; // 120 seconds
+    private int sessionStateLifetime = 86400; // in seconds
     private Boolean sessionIdEnabled;
     private Boolean sessionIdPersistOnPromptNone;
     private int configurationUpdateInterval;
@@ -1085,6 +1086,15 @@ public class Configuration {
 
     public void setSessionIdUnauthenticatedUnusedLifetime(int sessionIdUnauthenticatedUnusedLifetime) {
         this.sessionIdUnauthenticatedUnusedLifetime = sessionIdUnauthenticatedUnusedLifetime;
+    }
+
+    @XmlElement(name = "session-state-lifetime")
+    public int getSessionStateLifetime() {
+        return sessionStateLifetime;
+    }
+
+    public void setSessionStateLifetime(int sessionStateLifetime) {
+        this.sessionStateLifetime = sessionStateLifetime;
     }
 
     @XmlElement(name = "session-id-persist-on-prompt-none")
