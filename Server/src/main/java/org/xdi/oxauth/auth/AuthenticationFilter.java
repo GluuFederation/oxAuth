@@ -37,6 +37,7 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientFilterService;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.SessionStateService;
+import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
 
 import javax.servlet.FilterChain;
@@ -79,13 +80,19 @@ public class AuthenticationFilter extends AbstractFilter {
             public void process() {
                 try {
                     final String requestUrl = httpRequest.getRequestURL().toString();
-                    if (requestUrl.equals(ConfigurationFactory.instance().getConfiguration().getTokenEndpoint())) {
+                    log.debug("Get request to: '{0}'", requestUrl);
+                    log.debug("Token endpoint according configuration: '{0}'", ConfigurationFactory.instance().getConfiguration().getTokenEndpoint());
+                    if (requestUrl.endsWith("/token") && ServerUtil.isSameRequestPath(requestUrl, ConfigurationFactory.instance().getConfiguration().getTokenEndpoint())) {
+                    	log.debug("Starting token endpoint authentication");
                         if (httpRequest.getParameter("client_assertion") != null
                                 && httpRequest.getParameter("client_assertion_type") != null) {
+                        	log.debug("Starting JWT token endpoint authentication");
                             processJwtAuth(httpRequest, httpResponse, filterChain);
                         } else if (httpRequest.getHeader("Authorization") != null && httpRequest.getHeader("Authorization").startsWith("Basic ")) {
+                        	log.debug("Starting Basic Auth token endpoint authentication");
                             processBasicAuth(httpRequest, httpResponse, filterChain);
                         } else {
+                        	log.debug("Starting POST Auth token endpoint authentication");
                             processPostAuth(httpRequest, httpResponse, filterChain);
                         }
                     } else if (httpRequest.getHeader("Authorization") != null) {
@@ -246,8 +253,10 @@ public class AuthenticationFilter extends AbstractFilter {
                 clientSecret = servletRequest.getParameter("client_secret");
                 isExistUserPassword = true;
             }
+        	log.debug("client_id: '{0}', client_secret: '{1}', isExistUserPassword: {2}", clientId, clientSecret, isExistUserPassword);
 
             boolean requireAuth = !StringHelper.equals(clientId, identity.getCredentials().getUsername()) || !identity.isLoggedIn();
+        	log.debug("requireAuth: '{0}'", requireAuth);
 
             if (requireAuth) {
                 if (isExistUserPassword) {
@@ -393,4 +402,5 @@ public class AuthenticationFilter extends AbstractFilter {
     private ErrorResponseFactory getErrorResponseFactory() {
         return (ErrorResponseFactory) Component.getInstance(ErrorResponseFactory.class, true);
     }
+
 }

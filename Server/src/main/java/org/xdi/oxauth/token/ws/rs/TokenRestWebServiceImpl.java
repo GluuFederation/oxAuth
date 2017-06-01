@@ -88,13 +88,21 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         ResponseBuilder builder = Response.ok();
 
         try {
+        	log.debug("Starting to validate request parameters");
             if (!TokenParamsValidator.validateParams(grantType, code, redirectUri, username, password,
                     scope, assertion, refreshToken, oxAuthExchangeToken)) {
+            	log.debug("Failed to validate request parameters");
                 builder = error(400, TokenErrorResponseType.INVALID_REQUEST);
             } else {
+            	log.debug("Request parameters are ok");
                 GrantType gt = GrantType.fromString(grantType);
+            	log.debug("Grant type: '{0}'", gt.toString());
 
                 Client client = sessionClient.getClient();
+            	log.debug("Get sessionClient: '{0}'", sessionClient);
+            	if (client != null) {
+            		log.debug("Get client from session: '{0}'", client.getClientId());
+            	}
 
                 if (ConfigurationFactory.instance().getConfiguration().getFederationEnabled()) {
                     if (!federationDataService.hasAnyActiveTrust(client)) {
@@ -110,9 +118,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     				}
 
     				GrantService grantService = GrantService.instance();
+                	log.debug("Attempting to find authorizationCodeGrant in LDAP by clinetId: '{0}', code: '{1}'", gt.toString(), code);
                     AuthorizationCodeGrant authorizationCodeGrant = authorizationGrantList.getAuthorizationCodeGrant(client.getClientId(), code);
+                	log.debug("AuthorizationCodeGrant from LDAP: '{0}'", authorizationCodeGrant);
 
                     if (authorizationCodeGrant != null) {
+                    	log.debug("AuthorizationCodeGrant from LDAP: '{0}' is not empty", authorizationCodeGrant);
                         validatePKCE(authorizationCodeGrant, codeVerifier);
 
                         AccessToken accToken = authorizationCodeGrant.createAccessToken();
@@ -142,6 +153,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                         grantService.removeByCode(authorizationCodeGrant.getAuthorizationCode().getCode(), authorizationCodeGrant.getClientId());
                     } else {
+                    	log.debug("AuthorizationCodeGrant from LDAP is empty");
                         // if authorization code is not found then code was already used = remove all grants with this auth code
                         grantService.removeAllByAuthorizationCode(code);
                         builder = error(400, TokenErrorResponseType.INVALID_GRANT);

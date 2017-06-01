@@ -42,6 +42,7 @@ import org.xdi.util.security.StringEncrypter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -170,10 +171,12 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             updateClientFromRequestObject(client, r);
 
+                            boolean registerClient = true;
                             if (externalDynamicClientRegistrationService.isEnabled()) {
-                                externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
+                            	registerClient = externalDynamicClientRegistrationService.executeExternalUpdateClientMethods(r, client);
                             }
-
+                            
+                            if (registerClient) {
                             Date currentTime = Calendar.getInstance().getTime();
                             client.setLastAccessTime(currentTime);
                             client.setLastLogonTime(currentTime);
@@ -185,6 +188,11 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             JSONObject jsonObject = getJSONObject(client);
                             builder.entity(jsonObject.toString(4).replace("\\/", "/"));
+                            } else {
+                                log.trace("Client parameters are invalid, returns invalid_request error.");
+                                builder = Response.status(Response.Status.BAD_REQUEST).
+                                        entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA));
+                            }
                         }
                     } else {
                         log.trace("Client parameters are invalid, returns invalid_request error.");
@@ -207,6 +215,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         } catch (JSONException e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
+        } catch (WebApplicationException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             builder = internalErrorResponse();
             log.error(e.getMessage(), e);
