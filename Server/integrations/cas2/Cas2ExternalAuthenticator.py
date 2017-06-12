@@ -166,9 +166,8 @@ class PersonAuthentication(PersonAuthenticationType):
 
                 found_user_name = find_user_by_uid.getUserId()
                 print "CAS2. Authenticate for step 1. found_user_name: " + found_user_name
-
-                credentials = Identity.instance().getCredentials()
-                credentials.setUsername(found_user_name)
+                
+                authenticationService.authenticate(found_user_name)
             
                 print "CAS2. Authenticate for step 1. Setting count steps to 1"
                 context.set("cas2_count_login_steps", 1)
@@ -186,8 +185,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 found_user_name = find_user_by_uid.getUserId()
                 print "CAS2. Authenticate for step 1. found_user_name: " + found_user_name
 
-                credentials = Identity.instance().getCredentials()
-                credentials.setUsername(found_user_name)
+                authenticationService.authenticate(found_user_name)
 
                 print "CAS2. Authenticate for step 1. Setting count steps to 1"
                 context.set("cas2_count_login_steps", 1)
