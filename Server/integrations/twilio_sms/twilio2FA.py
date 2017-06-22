@@ -147,7 +147,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 return True
             except java.lang.Throwable, ex:
                 print "TwilioSMS. Error sending message to Twilio"
-                print "TwilioSMS. Unexpected error:", ex
+                ex.printStackTrace() 
             print "TwilioSMS. Step 1 Password Authentication. 11"
 
             return False
