@@ -119,15 +119,18 @@ class PersonAuthentication(PersonAuthenticationType):
                 return False
                         
             # Generate Random six digit code and store it in array
+            print "TwilioSMS. Step 1 Password Authentication. 6"
             code = random.randint(100000, 999999)
             
             # Get code and save it in LDAP temporarily with special session entry 
             context.set("code", code)
 
+            print "TwilioSMS. Step 1 Password Authentication. 7"
             client = TwilioRestClient(self.ACCOUNT_SID, self.AUTH_TOKEN)
             bodyParam = BasicNameValuePair("Body", str(code))
             toParam = BasicNameValuePair("To", mobile_number)
             fromParam = BasicNameValuePair("From", self.FROM_NUMBER)
+            print "TwilioSMS. Step 1 Password Authentication. 8"
 
             params = ArrayList()
             params.add(bodyParam)
@@ -135,14 +138,17 @@ class PersonAuthentication(PersonAuthenticationType):
             params.add(fromParam)
             
             try:
+                print "TwilioSMS. Step 1 Password Authentication. 9"
                 messageFactory = client.getAccount().getMessageFactory()
                 message = messageFactory.create(params)
+                print "TwilioSMS. Step 1 Password Authentication. 10"
 
                 print 'TwilioSMs, Message Sid: %s' % (message.getSid())
                 return True
             except Exception, ex:
                 print "TwilioSMS. Error sending message to Twilio"
                 print "TwilioSMS. Unexpected error:", ex
+            print "TwilioSMS. Step 1 Password Authentication. 11"
 
             return False
         elif step == 2:
