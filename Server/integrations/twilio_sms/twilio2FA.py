@@ -93,20 +93,25 @@ class PersonAuthentication(PersonAuthenticationType):
             user_password = credentials.getPassword()
             
             logged_in = False
+            print "TwilioSMS. Step 1 Password Authentication. 1"
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
                 logged_in = userService.authenticate(user_name, user_password)
+            print "TwilioSMS. Step 1 Password Authentication. 2"
             
             if not logged_in:
                 return False
+            print "TwilioSMS. Step 1 Password Authentication. 3"
 
             # Get the Person's number and generate a code
             foundUser = None
             try:
                 foundUser = userService.getUserByAttribute("uid", user_name)
+                print "TwilioSMS. Step 1 Password Authentication. 4"
             except:
                 print 'TwilioSMS, Error retrieving user %s from LDAP' % (user_name)
                 return False
 
+            print "TwilioSMS. Step 1 Password Authentication. 5"
             try:
                 mobile_number = foundUser.getAttribute("phoneNumberVerified")
             except:
