@@ -21,6 +21,7 @@ import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.authorize.*;
 import org.xdi.oxauth.model.common.*;
+import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.AcrChangedException;
@@ -38,6 +39,7 @@ import org.xdi.oxauth.util.RedirectUri;
 import org.xdi.oxauth.util.RedirectUtil;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
+import org.xdi.util.properties.FileConfiguration;
 import org.xdi.util.security.StringEncrypter;
 
 import javax.inject.Inject;
@@ -48,6 +50,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -112,6 +118,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
     @Inject
     private AppConfiguration appConfiguration;
+    
+	@Inject
+	private ConfigurationFactory configurationFactory;
 
     @Override
     public Response requestAuthorizationGet(
@@ -289,7 +298,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                     log.error(e.getMessage(), e);
                                 }
                             }
-
+                            
                             boolean invalidOpenidRequestObject = false;
                             if (StringUtils.isNotBlank(request)) {
                                 try {
@@ -423,6 +432,30 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                     }
                                 }
 
+                                
+                                if(acrValues.isEmpty() || acrValues.contains("default")){
+                                	FileConfiguration conf = configurationFactory.getLdapConfiguration();
+                                	String userObjectClass = conf.getString("userObjectClass");
+                                	Class<User> userCalss = User.class;
+                                	
+                                	for (Annotation annotation : userCalss.getDeclaredAnnotations()) {
+                                	    if(annotation.annotationType().getName().contains("LdapObjectClass")){
+                                	    	for (Method m : annotation.annotationType().getDeclaredMethods()) {
+                                                String[] values = (String[])m.invoke(annotation, (Object[])null);
+                                                List<String> valueList = Arrays.asList(values);
+                                                if(!valueList.contains(userObjectClass)){
+                                                    redirectUriResponse.parseQueryString(errorResponseFactory.getErrorAsQueryString(
+                                                            AuthorizeErrorResponseType.ACCESS_DENIED, state));
+
+                                                    builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse, httpRequest);
+                                                    applicationAuditLogger.sendMessage(oAuth2AuditLog);
+                                                    return builder.build();
+                                                }
+                                            }
+                                	    }
+                                	}
+                                }
+                                
                                 oAuth2AuditLog.setUsername(user.getUserId());
 
                                 ClientAuthorizations clientAuthorizations = clientAuthorizationsService.findClientAuthorizations(user.getAttribute("inum"), client.getClientId());
