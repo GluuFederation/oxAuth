@@ -8,7 +8,7 @@ package org.xdi.oxauth.model.session;
 
 /**
  * @author Javier Rojas Blum
- * @version December 15, 2015
+ * @version August 11, 2017
  */
 public interface EndSessionRequestParam {
 
@@ -32,7 +32,7 @@ public interface EndSessionRequestParam {
     public static final String STATE = "state";
 
     /**
-     * String that represents the End-User's login state at the OP.
+     * String that represents the End-User's login id at the OP.
      */
-    public static final String SESSION_STATE = "session_state";
+    public static final String SESSION_ID = "session_id";
 }

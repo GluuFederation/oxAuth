@@ -39,13 +39,13 @@ import static org.xdi.oxauth.model.register.RegisterResponseParam.CLIENT_ID;
  * Test cases for the end session web service (embedded)
  *
  * @author Javier Rojas Blum
- * @version December 12, 2016
+ * @version August 11, 2017
  */
 public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
 
     private String clientId;
     private String idToken;
-    private String sessionState;
+    private String sessionId;
 
     @Parameters({"registerPath", "redirectUris", "postLogoutRedirectUri"})
     @Test
@@ -155,7 +155,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                         assertEquals(params.get(AuthorizeResponseParam.STATE), state);
 
                         idToken = params.get(AuthorizeResponseParam.ID_TOKEN);
-                        sessionState = params.get(AuthorizeResponseParam.SESSION_STATE);
+                        sessionId = params.get(AuthorizeResponseParam.SESSION_ID);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                         fail("Response URI is not well formed");
@@ -181,7 +181,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                 request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
                 EndSessionRequest endSessionRequest = new EndSessionRequest(idToken, postLogoutRedirectUri, state);
-                endSessionRequest.setSessionState(sessionState);
+                endSessionRequest.setSessionId(sessionId);
 
                 request.setQueryString(endSessionRequest.getQueryString());
             }
@@ -207,7 +207,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
 //                        Map<String, String> params = QueryStringDecoder.decode(uri.getQuery());
 //
 //                        assertNotNull(params.get(EndSessionResponseParam.STATE), "The state is null");
-//                        assertEquals(params.get(EndSessionResponseParam.STATE), endSessionState);
+//                        assertEquals(params.get(EndSessionResponseParam.STATE), endSessionId);
 //                    } catch (URISyntaxException e) {
 //                        e.printStackTrace();
 //                        fail("Response URI is not well formed");
@@ -264,8 +264,8 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                 super.prepareRequest(request);
                 request.addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
 
-                String endSessionState = UUID.randomUUID().toString();
-                EndSessionRequest endSessionRequest = new EndSessionRequest("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, endSessionState);
+                String endSessionId = UUID.randomUUID().toString();
+                EndSessionRequest endSessionRequest = new EndSessionRequest("INVALID_ACCESS_TOKEN", postLogoutRedirectUri, endSessionId);
 
                 request.setQueryString(endSessionRequest.getQueryString());
             }

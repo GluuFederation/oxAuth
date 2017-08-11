@@ -6,27 +6,21 @@
 
 package org.xdi.oxauth.service;
 
-import org.xdi.oxauth.model.util.Util;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.seam.ScopeType;
-import org.jboss.seam.annotations.AutoCreate;
-import org.jboss.seam.annotations.In;
-import org.jboss.seam.annotations.Logger;
-import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.*;
 import org.jboss.seam.log.Log;
 import org.xdi.oxauth.client.QueryStringDecoder;
-import org.xdi.oxauth.model.common.SessionState;
+import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
+import org.xdi.oxauth.model.util.Util;
 
 import javax.ws.rs.HttpMethod;
 import java.util.HashMap;
@@ -35,7 +29,7 @@ import java.util.Set;
 
 /**
  * @author Javier Rojas Blum
- * @version 0.9 April 27, 2015
+ * @version August 11, 2017
  */
 @Name("redirectionUriService")
 @Scope(ScopeType.STATELESS)
@@ -144,35 +138,35 @@ public class RedirectionUriService {
         return null;
     }
 
-	public String validatePostLogoutRedirectUri(SessionState sessionState, String postLogoutRedirectUri) {
-		if (Strings.isNullOrEmpty(postLogoutRedirectUri) || (sessionState == null)) {
-	        errorResponseFactory.throwBadRequestException(EndSessionErrorResponseType.INVALID_REQUEST);
-	        return null;
-		}
+    public String validatePostLogoutRedirectUri(SessionId sessionId, String postLogoutRedirectUri) {
+        if (Strings.isNullOrEmpty(postLogoutRedirectUri) || (sessionId == null)) {
+            errorResponseFactory.throwBadRequestException(EndSessionErrorResponseType.INVALID_REQUEST);
+            return null;
+        }
 
-		final Set<Client> clientsByDns = sessionState.getPermissionGrantedMap() != null
-				? clientService.getClient(sessionState.getPermissionGrantedMap().getClientIds(true), true)
-				: Sets.<Client>newHashSet();
+        final Set<Client> clientsByDns = sessionId.getPermissionGrantedMap() != null
+                ? clientService.getClient(sessionId.getPermissionGrantedMap().getClientIds(true), true)
+                : Sets.<Client>newHashSet();
 
-		log.trace("Validating post logout redirect URI: postLogoutRedirectUri = {0}", postLogoutRedirectUri);
+        log.trace("Validating post logout redirect URI: postLogoutRedirectUri = {0}", postLogoutRedirectUri);
 
-		for (Client client : clientsByDns) {
-			String[] postLogoutRedirectUris = client.getPostLogoutRedirectUris();
-			if (postLogoutRedirectUris == null) {
-				continue;
-			}
+        for (Client client : clientsByDns) {
+            String[] postLogoutRedirectUris = client.getPostLogoutRedirectUris();
+            if (postLogoutRedirectUris == null) {
+                continue;
+            }
 
-			for (String uri : postLogoutRedirectUris) {
-				log.debug("Comparing {0} == {1}, clientId: {2}", uri, postLogoutRedirectUri, client.getClientId());
-				if (uri.equals(postLogoutRedirectUri)) {
-					return postLogoutRedirectUri;
-				}
-			}
-		}
+            for (String uri : postLogoutRedirectUris) {
+                log.debug("Comparing {0} == {1}, clientId: {2}", uri, postLogoutRedirectUri, client.getClientId());
+                if (uri.equals(postLogoutRedirectUri)) {
+                    return postLogoutRedirectUri;
+                }
+            }
+        }
 
         errorResponseFactory.throwBadRequestException(EndSessionErrorResponseType.INVALID_REQUEST);
         return null;
-	}
+    }
 
     private Map<String, String> getParams(String uri) {
         Map<String, String> params = new HashMap<String, String>();

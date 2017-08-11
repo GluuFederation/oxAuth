@@ -19,7 +19,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version February 15, 2017
+ * @version August 11, 2017
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration {
@@ -109,7 +109,10 @@ public class AppConfiguration {
     private int sessionIdUnauthenticatedUnusedLifetime = 120; // 120 seconds
     private Boolean sessionIdEnabled;
     private Boolean sessionIdPersistOnPromptNone;
-    private Boolean sessionStateHttpOnly;
+    /**
+     * SessionId will be expired after sessionIdLifetime seconds
+     */
+    private Integer sessionIdLifetime = 86400;
     private int configurationUpdateInterval;
 
     private String cssLocation;
@@ -907,24 +910,20 @@ public class AppConfiguration {
         this.sessionIdPersistOnPromptNone = sessionIdPersistOnPromptNone;
     }
 
-    public Boolean getSessionStateHttpOnly() {
-        if (sessionStateHttpOnly == null) {
-            return false;
-        }
-
-        return sessionStateHttpOnly;
-    }
-
-    public void setSessionStateHttpOnly(Boolean sessionStateHttpOnly) {
-        this.sessionStateHttpOnly = sessionStateHttpOnly;
-    }
-
     public Boolean getSessionIdEnabled() {
         return sessionIdEnabled;
     }
 
     public void setSessionIdEnabled(Boolean p_sessionIdEnabled) {
         sessionIdEnabled = p_sessionIdEnabled;
+    }
+
+    public Integer getSessionIdLifetime() {
+        return sessionIdLifetime;
+    }
+
+    public void setSessionIdLifetime(Integer sessionIdLifetime) {
+        this.sessionIdLifetime = sessionIdLifetime;
     }
 
     public int getConfigurationUpdateInterval() {

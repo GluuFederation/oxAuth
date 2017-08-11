@@ -13,23 +13,17 @@
 #   registration_uri: https://ce-dev.gluu.org/identity/register
 #   qr_options: { width: 400, height: 400 }
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.jboss.seam import Component
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.oxauth.model.config import Constants
-from org.jboss.resteasy.client import ClientResponseFailure
-from javax.ws.rs.core import Response
-from java.util import Arrays
-from org.xdi.oxauth.service.net import HttpService
-from org.apache.http.params import CoreConnectionPNames
-
 import sys
-import java
+from java.util import Arrays
+from org.apache.http.params import CoreConnectionPNames
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.xdi.oxauth.service.net import HttpService
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
 
 try:
     import json
@@ -126,9 +120,9 @@ class PersonAuthentication(PersonAuthenticationType):
         elif (step == 2):
             print "UAF. Authenticate for step 2"
 
-            session_state = Component.getInstance(SessionStateService).getSessionStateFromCookie()
-            if StringHelper.isEmpty(session_state):
-                print "UAF. Prepare for step 2. Failed to determine session_state"
+            session_id = Component.getInstance(SessionIdService).getSessionIdFromCookie()
+            if StringHelper.isEmpty(session_id):
+                print "UAF. Prepare for step 2. Failed to determine session_id"
                 return False
 
             if user_name == None:
@@ -232,9 +226,9 @@ class PersonAuthentication(PersonAuthenticationType):
         elif (step == 2):
             print "UAF. Prepare for step 2"
 
-            session_state = Component.getInstance(SessionStateService).getSessionStateFromCookie()
-            if StringHelper.isEmpty(session_state):
-                print "UAF. Prepare for step 2. Failed to determine session_state"
+            session_id = Component.getInstance(SessionIdService).getSessionIdFromCookie()
+            if StringHelper.isEmpty(session_id):
+                print "UAF. Prepare for step 2. Failed to determine session_id"
                 return False
 
             authenticationService = Component.getInstance(AuthenticationService)

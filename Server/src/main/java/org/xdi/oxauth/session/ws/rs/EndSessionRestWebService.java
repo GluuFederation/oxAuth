@@ -22,7 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 
 /**
  * @author Javier Rojas Blum
- * @version December 15, 2015
+ * @version August 11, 2017
  */
 @Path("/oxauth")
 @Api(value = "/oxauth", description = "End Session Endpoint - URL at the OP to which an RP can perform a redirect to request that the End-User be logged out at the OP")
@@ -46,16 +46,16 @@ public interface EndSessionRestWebService {
     Response requestEndSession(
             @QueryParam(EndSessionRequestParam.ID_TOKEN_HINT)
             @ApiParam(value = "Previously issued ID Token (id_token) passed to the logout endpoint as a hint about the End-User's current authenticated session with the Client. This is used as an indication of the identity of the End-User that the RP is requesting be logged out by the OP. The OP need not be listed as an audience of the ID Token when it is used as an id_token_hint value.", required = true)
-            String idTokenHint,
+                    String idTokenHint,
             @QueryParam(EndSessionRequestParam.POST_LOGOUT_REDIRECT_URI)
             @ApiParam(value = "URL to which the RP is requesting that the End-User's User Agent be redirected after a logout has been performed. The value MUST have been previously registered with the OP, either using the post_logout_redirect_uris Registration parameter or via another mechanism. If supplied, the OP SHOULD honor this request following the logout.", required = false)
-            String postLogoutRedirectUri,
+                    String postLogoutRedirectUri,
             @QueryParam(EndSessionRequestParam.STATE)
             @ApiParam(value = "Opaque value used by the RP to maintain state between the logout request and the callback to the endpoint specified by the post_logout_redirect_uri parameter. If included in the logout request, the OP passes this value back to the RP using the state query parameter when redirecting the User Agent back to the RP.", required = false)
-            String state,
-            @QueryParam("session_state")
-            @ApiParam(value = "Session State", required = false)
-            String sessionState,
+                    String state,
+            @QueryParam("session_id")
+            @ApiParam(value = "Session Id", required = false)
+                    String sessionId,
             @Context HttpServletRequest httpRequest,
             @Context HttpServletResponse httpResponse,
             @Context SecurityContext securityContext);

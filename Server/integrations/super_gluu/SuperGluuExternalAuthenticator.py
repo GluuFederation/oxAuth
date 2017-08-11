@@ -4,25 +4,25 @@
 # Author: Yuriy Movchan
 #
 
-import sys
 import datetime
 import urllib
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+import sys
+from com.google.android.gcm.server import Sender, Message
+from com.notnoop.apns import APNS
+from java.util import Arrays
+from org.apache.http.params import CoreConnectionPNames
 from org.jboss.seam import Component
 from org.jboss.seam.contexts import Contexts
 from org.jboss.seam.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.oxauth.service.fido.u2f import DeviceRegistrationService
-from org.xdi.util import StringHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.util.security import StringEncrypter
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.oxauth.model.config import ConfigurationFactory
-from java.util import Arrays
+from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.xdi.oxauth.service.fido.u2f import DeviceRegistrationService
 from org.xdi.oxauth.service.net import HttpService
-from org.apache.http.params import CoreConnectionPNames
-from com.notnoop.apns import APNS
-from com.google.android.gcm.server import Sender, Message
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
+from org.xdi.util.security import StringEncrypter
 
 try:
     import json
@@ -238,15 +238,15 @@ class PersonAuthentication(PersonAuthenticationType):
         if step == 1:
             print "Super-Gluu. Prepare for step 1"
             if self.oneStep:
-                session_state = Component.getInstance(SessionStateService).getSessionStateFromCookie()
-                if StringHelper.isEmpty(session_state):
-                    print "Super-Gluu. Prepare for step 2. Failed to determine session_state"
+                session_id = Component.getInstance(SessionIdService).getSessionIdFromCookie()
+                if StringHelper.isEmpty(session_id):
+                    print "Super-Gluu. Prepare for step 2. Failed to determine session_id"
                     return False
             
                 issuer = Component.getInstance(ConfigurationFactory).getConfiguration().getIssuer()
                 super_gluu_request_dictionary = {'app': client_redirect_uri,
                                    'issuer': issuer,
-                                   'state': session_state,
+                                   'state': session_id,
                                    'created': datetime.datetime.now().isoformat()}
 
                 self.addGeolocationData(session_attributes, super_gluu_request_dictionary)
@@ -276,9 +276,9 @@ class PersonAuthentication(PersonAuthenticationType):
                    print "Super-Gluu. Prepare for step 2. Request was generated already"
                    return True
             
-            session_state = Component.getInstance(SessionStateService).getSessionStateFromCookie()
-            if StringHelper.isEmpty(session_state):
-                print "Super-Gluu. Prepare for step 2. Failed to determine session_state"
+            session_id = Component.getInstance(SessionIdService).getSessionIdFromCookie()
+            if StringHelper.isEmpty(session_id):
+                print "Super-Gluu. Prepare for step 2. Failed to determine session_id"
                 return False
 
             auth_method = session_attributes.get("super_gluu_auth_method")
@@ -293,7 +293,7 @@ class PersonAuthentication(PersonAuthenticationType):
                                'app': client_redirect_uri,
                                'issuer': issuer,
                                'method': auth_method,
-                               'state': session_state,
+                               'state': session_id,
                                'created': datetime.datetime.now().isoformat()}
 
             self.addGeolocationData(session_attributes, super_gluu_request_dictionary)

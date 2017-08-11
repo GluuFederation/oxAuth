@@ -52,6 +52,6 @@
            value="#{authorizeAction.codeChallengeMethod}"/>
 
     <!-- custom oxAuth parameters -->
-    <param name="session_state"
-           value="#{authorizeAction.sessionState}"/>
+    <param name="session_id"
+           value="#{authorizeAction.sessionId}"/>
 </page>

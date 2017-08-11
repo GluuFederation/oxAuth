@@ -8,7 +8,7 @@ package org.xdi.oxauth.model.authorize;
 
 /**
  * @author Javier Rojas Blum
- * @version December 26, 2016
+ * @version August 11, 2017
  */
 public interface AuthorizeRequestParam {
 
@@ -41,7 +41,7 @@ public interface AuthorizeRequestParam {
     /**
      * String that represents the End-User's login state at the OP.
      */
-    public static final String SESSION_STATE = "session_state";
+    public static final String SESSION_ID = "session_id";
 
-    public static final String REQUEST_SESSION_STATE = "request_session_state";
+    public static final String REQUEST_SESSION_ID = "request_session_id";
 }

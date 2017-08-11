@@ -47,7 +47,7 @@
     <ui:define name="body">
         <h:form id="authorizeForm">
             <s:token allowMultiplePosts="true"/>
-            <h:inputHidden id="session_state" value="#{authorizeAction.sessionState}"/>
+            <h:inputHidden id="session_id" value="#{authorizeAction.sessionId}"/>
 
             <div class="authorize-panel">
                 <div class="authorize-panel-header">

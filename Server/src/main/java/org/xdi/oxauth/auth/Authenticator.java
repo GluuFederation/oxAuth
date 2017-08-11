@@ -25,8 +25,8 @@ import org.jboss.seam.security.Identity;
 import org.jboss.seam.security.SimplePrincipal;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
+import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
-import org.xdi.oxauth.model.common.SessionState;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
@@ -34,7 +34,7 @@ import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.service.AuthenticationService;
 import org.xdi.oxauth.service.ClientService;
-import org.xdi.oxauth.service.SessionStateService;
+import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
@@ -50,7 +50,7 @@ import java.util.Map;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 15, 2015
+ * @version August 11, 2017
  */
 @Name("authenticator")
 @Scope(ScopeType.EVENT)
@@ -69,7 +69,7 @@ public class Authenticator implements Serializable {
     private ClientService clientService;
 
     @In
-    private SessionStateService sessionStateService;
+    private SessionIdService sessionIdService;
 
     @In
     private AuthenticationService authenticationService;
@@ -194,8 +194,8 @@ public class Authenticator implements Serializable {
     }
 
     private boolean userAuthenticationInteractive(Credentials credentials) {
-        SessionState sessionState = sessionStateService.getSessionState();
-        Map<String, String> sessionIdAttributes = sessionStateService.getSessionAttributes(sessionState);
+        SessionId sessionId = sessionIdService.getSessionId();
+        Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             log.error("Failed to get session attributes");
             authenticationFailedSessionInvalid();
@@ -236,9 +236,9 @@ public class Authenticator implements Serializable {
 
             int apiVersion = externalAuthenticationService.executeExternalGetApiVersion(customScriptConfiguration);
             if (apiVersion > 1) {
-            	log.trace("According to API version script supports steps overriding");
-            	overridenNextStep = externalAuthenticationService.getNextStep(customScriptConfiguration, externalContext.getRequestParameterValuesMap(), this.authStep);
-            	log.debug("Get next step from script: '{0}'", apiVersion);
+                log.trace("According to API version script supports steps overriding");
+                overridenNextStep = externalAuthenticationService.getNextStep(customScriptConfiguration, externalContext.getRequestParameterValuesMap(), this.authStep);
+                log.debug("Get next step from script: '{0}'", apiVersion);
             }
 
             if (!result && (overridenNextStep == -1)) {
@@ -247,15 +247,15 @@ public class Authenticator implements Serializable {
 
             boolean overrideCurrentStep = false;
             if (overridenNextStep > -1) {
-            	overrideCurrentStep = true;
-            	// Reload session state
-                sessionState = sessionStateService.getSessionState();
+                overrideCurrentStep = true;
+                // Reload session id
+                sessionId = sessionIdService.getSessionId();
 
                 // Reset to pecified step
-            	sessionStateService.resetToStep(sessionState, overridenNextStep);
+                sessionIdService.resetToStep(sessionId, overridenNextStep);
 
-            	this.authStep = overridenNextStep;
-            	log.info("Authentication reset to step : '{0}'", this.authStep);
+                this.authStep = overridenNextStep;
+                log.info("Authentication reset to step : '{0}'", this.authStep);
             }
 
 
@@ -266,39 +266,39 @@ public class Authenticator implements Serializable {
             int countAuthenticationSteps = externalAuthenticationService.executeExternalGetCountAuthenticationSteps(customScriptConfiguration);
 
             // Reload from LDAP to make sure that we are updating latest session attributes
-            sessionState = sessionStateService.getSessionState();
-            sessionIdAttributes = sessionStateService.getSessionAttributes(sessionState);
+            sessionId = sessionIdService.getSessionId();
+            sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
 
             // Prepare for next step
             if ((this.authStep < countAuthenticationSteps) || overrideCurrentStep) {
-            	int nextStep;
-            	if (overrideCurrentStep) {
-            		nextStep = overridenNextStep;
-            	} else {
-            		nextStep = this.authStep + 1;
-            	}
+                int nextStep;
+                if (overrideCurrentStep) {
+                    nextStep = overridenNextStep;
+                } else {
+                    nextStep = this.authStep + 1;
+                }
 
-            	String redirectTo = externalAuthenticationService.executeExternalGetPageForStep(customScriptConfiguration, nextStep);
+                String redirectTo = externalAuthenticationService.executeExternalGetPageForStep(customScriptConfiguration, nextStep);
                 if (StringHelper.isEmpty(redirectTo)) {
-                	redirectTo = "/login.xhtml";
+                    redirectTo = "/login.xhtml";
                 }
 
                 // Store/Update extra parameters in session attributes map
                 updateExtraParameters(customScriptConfiguration, nextStep, sessionIdAttributes);
 
                 if (!overrideCurrentStep) {
-	                // Update auth_step
-	                sessionIdAttributes.put("auth_step", Integer.toString(nextStep));
+                    // Update auth_step
+                    sessionIdAttributes.put("auth_step", Integer.toString(nextStep));
 
-	                // Mark step as passed
-	                markAuthStepAsPassed(sessionIdAttributes, this.authStep);
+                    // Mark step as passed
+                    markAuthStepAsPassed(sessionIdAttributes, this.authStep);
                 }
 
-                if (sessionState != null) {
-                	boolean updateResult = updateSession(sessionState, sessionIdAttributes);
-                	if (!updateResult) {
-                		return false;
-                	}
+                if (sessionId != null) {
+                    boolean updateResult = updateSession(sessionId, sessionIdAttributes);
+                    if (!updateResult) {
+                        return false;
+                    }
                 }
 
                 log.trace("Redirect to page: '{0}'", redirectTo);
@@ -307,7 +307,7 @@ public class Authenticator implements Serializable {
             }
 
             if (this.authStep == countAuthenticationSteps) {
-            	SessionState eventSessionState = authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
+                SessionId eventSessionId = authenticationService.configureSessionUser(sessionId, sessionIdAttributes);
 
                 Principal principal = new SimplePrincipal(credentials.getUsername());
                 identity.acceptExternallyAuthenticatedPrincipal(principal);
@@ -316,7 +316,7 @@ public class Authenticator implements Serializable {
                 // Redirect to authorization workflow
                 if (Events.exists()) {
                     log.debug("Sending event to trigger user redirection: '{0}'", credentials.getUsername());
-                    authenticationService.onSuccessfulLogin(eventSessionState);
+                    authenticationService.onSuccessfulLogin(eventSessionId);
 //                    Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
                 }
 
@@ -327,12 +327,12 @@ public class Authenticator implements Serializable {
             if (StringHelper.isNotEmpty(credentials.getUsername())) {
                 boolean authenticated = authenticationService.authenticate(credentials.getUsername(), credentials.getPassword());
                 if (authenticated) {
-                	SessionState eventSessionState = authenticationService.configureSessionUser(sessionState, sessionIdAttributes);
+                    SessionId eventSessionId = authenticationService.configureSessionUser(sessionId, sessionIdAttributes);
 
                     // Redirect to authorization workflow
                     if (Events.exists()) {
                         log.debug("Sending event to trigger user redirection: '{0}'", credentials.getUsername());
-                        authenticationService.onSuccessfulLogin(eventSessionState);
+                        authenticationService.onSuccessfulLogin(eventSessionId);
 //                        Events.instance().raiseEvent(Constants.EVENT_OXAUTH_CUSTOM_LOGIN_SUCCESSFUL);
                     }
 
@@ -345,16 +345,16 @@ public class Authenticator implements Serializable {
         return false;
     }
 
-	private boolean updateSession(SessionState sessionState, Map<String, String> sessionIdAttributes) {
-		sessionState.setSessionAttributes(sessionIdAttributes);
-		boolean updateResult = sessionStateService.updateSessionState(sessionState, true, true, true);
-		if (!updateResult) {
-		    log.debug("Failed to update session entry: '{0}'", sessionState.getId());
-		    return false;
-		}
+    private boolean updateSession(SessionId sessionId, Map<String, String> sessionIdAttributes) {
+        sessionId.setSessionAttributes(sessionIdAttributes);
+        boolean updateResult = sessionIdService.updateSessionId(sessionId, true, true, true);
+        if (!updateResult) {
+            log.debug("Failed to update session entry: '{0}'", sessionId.getId());
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
     private boolean userAuthenticationService(Credentials credentials) {
         if (externalAuthenticationService.isEnabled(AuthenticationScriptUsageType.SERVICE)) {
@@ -396,21 +396,21 @@ public class Authenticator implements Serializable {
         return false;
     }
 
-	private void updateExtraParameters(CustomScriptConfiguration customScriptConfiguration, final int step, Map<String, String> sessionIdAttributes) {
-		List<String> extraParameters = externalAuthenticationService.executeExternalGetExtraParametersForStep(customScriptConfiguration, step);
-		if (extraParameters != null) {
-		    for (String extraParameter : extraParameters) {
-		    	if (authenticationService.isParameterExists(extraParameter)) {
-			        String extraParameterValue = authenticationService.getParameterValue(extraParameter);
-			        sessionIdAttributes.put(extraParameter, extraParameterValue);
-		    	}
-		    }
-		}
-	}
+    private void updateExtraParameters(CustomScriptConfiguration customScriptConfiguration, final int step, Map<String, String> sessionIdAttributes) {
+        List<String> extraParameters = externalAuthenticationService.executeExternalGetExtraParametersForStep(customScriptConfiguration, step);
+        if (extraParameters != null) {
+            for (String extraParameter : extraParameters) {
+                if (authenticationService.isParameterExists(extraParameter)) {
+                    String extraParameterValue = authenticationService.getParameterValue(extraParameter);
+                    sessionIdAttributes.put(extraParameter, extraParameterValue);
+                }
+            }
+        }
+    }
 
     public String prepareAuthenticationForStep() {
-        SessionState sessionState = sessionStateService.getSessionState();
-        Map<String, String> sessionIdAttributes = sessionStateService.getSessionAttributes(sessionState);
+        SessionId sessionId = sessionIdService.getSessionId();
+        Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             log.error("Failed to get attributes from session");
             return Constants.RESULT_EXPIRED;
@@ -472,8 +472,8 @@ public class Authenticator implements Serializable {
                 sessionIdAttributes.put("auth_level", determinedAuthLevel);
                 sessionIdAttributes.put("auth_step", Integer.toString(1));
 
-                if (sessionState != null) {
-                	boolean updateResult = updateSession(sessionState, sessionIdAttributes);
+                if (sessionId != null) {
+                    boolean updateResult = updateSession(sessionId, sessionIdAttributes);
                     if (!updateResult) {
                         return Constants.RESULT_EXPIRED;
                     }
@@ -497,11 +497,11 @@ public class Authenticator implements Serializable {
             // Store/Update extra parameters in session attributes map
             updateExtraParameters(customScriptConfiguration, this.authStep, sessionIdAttributes);
 
-            if (sessionState != null) {
-            	boolean updateResult = updateSession(sessionState, sessionIdAttributes);
-            	if (!updateResult) {
-            		return Constants.RESULT_FAILURE;
-            	}
+            if (sessionId != null) {
+                boolean updateResult = updateSession(sessionId, sessionIdAttributes);
+                if (!updateResult) {
+                    return Constants.RESULT_FAILURE;
+                }
             }
 
             return Constants.RESULT_SUCCESS;
@@ -519,11 +519,11 @@ public class Authenticator implements Serializable {
         }
     }
 
-    public boolean authenticateBySessionState(String p_sessionState) {
-        if (StringUtils.isNotBlank(p_sessionState) && appConfiguration.getSessionIdEnabled()) {
+    public boolean authenticateBySessionId(String p_sessionId) {
+        if (StringUtils.isNotBlank(p_sessionId) && appConfiguration.getSessionIdEnabled()) {
             try {
-                SessionState sessionState = sessionStateService.getSessionState(p_sessionState);
-                return authenticateBySessionState(sessionState);
+                SessionId sessionId = sessionIdService.getSessionId(p_sessionId);
+                return authenticateBySessionId(sessionId);
             } catch (Exception e) {
                 log.trace(e.getMessage(), e);
             }
@@ -532,20 +532,20 @@ public class Authenticator implements Serializable {
         return false;
     }
 
-    public boolean authenticateBySessionState(SessionState sessionState) {
-        if (sessionState == null) {
+    public boolean authenticateBySessionId(SessionId sessionId) {
+        if (sessionId == null) {
             return false;
         }
-        String p_sessionState = sessionState.getId();
+        String p_sessionId = sessionId.getId();
 
-        log.trace("authenticateBySessionState, sessionState = '{0}', session = '{1}', state= '{2}'", p_sessionState, sessionState, sessionState.getState());
-        // IMPORTANT : authenticate by session state only if state of session is authenticated!
-        if (SessionIdState.AUTHENTICATED == sessionState.getState()) {
-            final User user = authenticationService.getUserOrRemoveSession(sessionState);
+        log.trace("authenticateBySessionId, sessionId = '{0}', session = '{1}', state= '{2}'", p_sessionId, sessionId, sessionId.getState());
+        // IMPORTANT : authenticate by session id only if state of session is authenticated!
+        if (SessionIdState.AUTHENTICATED == sessionId.getState()) {
+            final User user = authenticationService.getUserOrRemoveSession(sessionId);
             if (user != null) {
                 try {
                     authenticateExternallyWebService(user.getUserId());
-                    authenticationService.configureEventUser(sessionState);
+                    authenticationService.configureEventUser(sessionId);
                 } catch (Exception e) {
                     log.trace(e.getMessage(), e);
                 }

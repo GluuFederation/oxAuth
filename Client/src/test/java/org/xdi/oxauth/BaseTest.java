@@ -62,7 +62,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version January 20, 2016
+ * @version August 11, 2017
  */
 public abstract class BaseTest {
 
@@ -310,12 +310,12 @@ public abstract class BaseTest {
 
         authorizationResponseStr = driver.getCurrentUrl();
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("authenticateResourceOwnerAndGrantAccess: sessionState:" + sessionState);
+        System.out.println("authenticateResourceOwnerAndGrantAccess: sessionId:" + sessionId);
 
         stopSelenium();
 
@@ -365,12 +365,12 @@ public abstract class BaseTest {
 
         authorizationResponseStr = driver.getCurrentUrl();
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("authenticateResourceOwnerAndDenyAccess: sessionState:" + sessionState);
+        System.out.println("authenticateResourceOwnerAndDenyAccess: sessionId:" + sessionId);
 
         stopSelenium();
 
@@ -378,7 +378,7 @@ public abstract class BaseTest {
         if (authorizationRequest.getRedirectUri() != null && authorizationRequest.getRedirectUri().equals(authorizationResponseStr)) {
             authorizationResponse.setResponseMode(ResponseMode.FORM_POST);
         }
-        authorizationResponse.setSessionState(sessionState);
+        authorizationResponse.setSessionId(sessionId);
         authorizeClient.setResponse(authorizationResponse);
         showClientUserAgent(authorizeClient);
 
@@ -411,12 +411,12 @@ public abstract class BaseTest {
 
         authorizationResponseStr = driver.getCurrentUrl();
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("authorizationRequestAndGrantAccess: sessionState:" + sessionState);
+        System.out.println("authorizationRequestAndGrantAccess: sessionId:" + sessionId);
 
         stopSelenium();
 
@@ -454,12 +454,12 @@ public abstract class BaseTest {
 
         String authorizationResponseStr = driver.getCurrentUrl();
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("authorizationRequestAndDenyAccess: sessionState:" + sessionState);
+        System.out.println("authorizationRequestAndDenyAccess: sessionId:" + sessionId);
 
         stopSelenium();
 
@@ -521,12 +521,12 @@ public abstract class BaseTest {
 
         authorizationResponseStr = driver.getCurrentUrl();*/
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("authenticateResourceOwner: sessionState:" + sessionState);
+        System.out.println("authenticateResourceOwner: sessionId:" + sessionId);
 
         stopSelenium();
 
@@ -566,18 +566,18 @@ public abstract class BaseTest {
             return null;
         }
 
-        Cookie sessionStateCookie = driver.manage().getCookieNamed("session_state");
-        String sessionState = null;
-        if (sessionStateCookie != null) {
-            sessionState = sessionStateCookie.getValue();
+        Cookie sessionIdCookie = driver.manage().getCookieNamed("session_id");
+        String sessionId = null;
+        if (sessionIdCookie != null) {
+            sessionId = sessionIdCookie.getValue();
         }
-        System.out.println("waitForResourceOwnerAndGrantLoginForm: sessionState:" + sessionState);
+        System.out.println("waitForResourceOwnerAndGrantLoginForm: sessionId:" + sessionId);
 
         stopSelenium();
 
         showClientUserAgent(authorizeClient);
 
-        return sessionState;
+        return sessionId;
     }
 
     /**

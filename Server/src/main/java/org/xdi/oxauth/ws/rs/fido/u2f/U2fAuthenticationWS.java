@@ -28,7 +28,7 @@ import org.xdi.oxauth.model.util.Base64Util;
 import org.xdi.oxauth.service.UserService;
 import org.xdi.oxauth.service.fido.u2f.AuthenticationService;
 import org.xdi.oxauth.service.fido.u2f.DeviceRegistrationService;
-import org.xdi.oxauth.service.fido.u2f.UserSessionStateService;
+import org.xdi.oxauth.service.fido.u2f.UserSessionIdService;
 import org.xdi.oxauth.service.fido.u2f.ValidationService;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
@@ -39,7 +39,8 @@ import javax.ws.rs.core.Response;
 /**
  * The endpoint allows to start and finish U2F authentication process
  *
- * @author Yuriy Movchan Date: 05/14/2015
+ * @author Yuriy Movchan
+ * @version August 11, 2017
  */
 @Path("/fido/u2f/authentication")
 @Api(value = "/fido/u2f/registration", description = "The endpoint at which the application U2F device start registration process.")
@@ -62,17 +63,17 @@ public class U2fAuthenticationWS {
 	private DeviceRegistrationService deviceRegistrationService;
 
 	@In
-	private UserSessionStateService userSessionStateService;
+	private UserSessionIdService userSessionIdService;
 
 	@In
 	private ValidationService u2fValidationService;
 
 	@GET
 	@Produces({ "application/json" })
-	public Response startAuthentication(@QueryParam("username") String userName, @QueryParam("keyhandle") String keyHandle, @QueryParam("application") String appId, @QueryParam("session_state") String sessionState) {
+	public Response startAuthentication(@QueryParam("username") String userName, @QueryParam("keyhandle") String keyHandle, @QueryParam("application") String appId, @QueryParam("session_id") String sessionId) {
 		// Parameter username is deprecated. We uses it only to determine is it's one or two step workflow
 		try {
-			log.debug("Startig authentication with username '{0}', keyhandle '{1}' for appId '{2}' and session_state '{3}'", userName, keyHandle, appId, sessionState);
+			log.debug("Startig authentication with username '{0}', keyhandle '{1}' for appId '{2}' and session_id '{3}'", userName, keyHandle, appId, sessionId);
 
 			if (StringHelper.isEmpty(userName) && StringHelper.isEmpty(keyHandle)) {
 				throw new BadInputException(String.format("The request should contains either username or keyhandle"));
@@ -82,9 +83,9 @@ public class U2fAuthenticationWS {
 
 			boolean twoStep = StringHelper.isNotEmpty(userName);
 			if (twoStep) {
-				boolean valid = u2fValidationService.isValidSessionState(userName, sessionState);
+				boolean valid = u2fValidationService.isValidSessionId(userName, sessionId);
 				if (!valid) {
-					throw new BadInputException(String.format("session_state '%s' is invalid", sessionState));
+					throw new BadInputException(String.format("session_id '%s' is invalid", sessionId));
 				}
 
 				foundUserInum = userService.getUserInum(userName);
@@ -101,7 +102,7 @@ public class U2fAuthenticationWS {
 			}
 
 			AuthenticateRequestMessage authenticateRequestMessage = u2fAuthenticationService.buildAuthenticateRequestMessage(appId, foundUserInum);
-			u2fAuthenticationService.storeAuthenticationRequestMessage(authenticateRequestMessage, foundUserInum, sessionState);
+			u2fAuthenticationService.storeAuthenticationRequestMessage(authenticateRequestMessage, foundUserInum, sessionId);
 
 			// convert manually to avoid possible conflict between resteasy
 			// providers, e.g. jettison, jackson
@@ -127,7 +128,7 @@ public class U2fAuthenticationWS {
 	@POST
 	@Produces({ "application/json" })
 	public Response finishAuthentication(@FormParam("username") String userName, @FormParam("tokenResponse") String authenticateResponseString) {
-		String sessionState = null;
+		String sessionId = null;
 		try {
 			log.debug("Finishing authentication for username '{0}' with response '{1}'", userName, authenticateResponseString);
 
@@ -139,7 +140,7 @@ public class U2fAuthenticationWS {
 				throw new WebApplicationException(Response.status(Response.Status.FORBIDDEN)
 						.entity(errorResponseFactory.getJsonErrorResponse(U2fErrorResponseType.SESSION_EXPIRED)).build());
 			}
-			sessionState = authenticateRequestMessageLdap.getSessionState();
+			sessionId = authenticateRequestMessageLdap.getSessionId();
 			u2fAuthenticationService.removeAuthenticationRequestMessage(authenticateRequestMessageLdap);
 
 			AuthenticateRequestMessage authenticateRequestMessage = authenticateRequestMessageLdap.getAuthenticateRequestMessage();
@@ -147,12 +148,12 @@ public class U2fAuthenticationWS {
 			String foundUserInum = authenticateRequestMessageLdap.getUserInum();
 			DeviceRegistrationResult deviceRegistrationResult = u2fAuthenticationService.finishAuthentication(authenticateRequestMessage, authenticateResponse, foundUserInum);
 
-			// If sessionState is not empty update session
-			if (StringHelper.isNotEmpty(sessionState)) {
-				log.debug("There is session state. Setting session state attributes");
+			// If sessionId is not empty update session
+			if (StringHelper.isNotEmpty(sessionId)) {
+				log.debug("There is session id. Setting session id attributes");
 
 				boolean oneStep = StringHelper.isEmpty(userName);
-				userSessionStateService.updateUserSessionStateOnFinishRequest(sessionState, foundUserInum, deviceRegistrationResult, false, oneStep);
+				userSessionIdService.updateUserSessionIdOnFinishRequest(sessionId, foundUserInum, deviceRegistrationResult, false, oneStep);
 			}
 
 			AuthenticateStatus authenticationStatus = new AuthenticateStatus(Constants.RESULT_SUCCESS, requestId);
@@ -169,13 +170,13 @@ public class U2fAuthenticationWS {
 			}
 
 			try {
-				// If sessionState is not empty update session
-				if (StringHelper.isNotEmpty(sessionState)) {
-					log.debug("There is session state. Setting session state status to 'declined'");
-					userSessionStateService.updateUserSessionStateOnError(sessionState);
+				// If sessionId is not empty update session
+				if (StringHelper.isNotEmpty(sessionId)) {
+					log.debug("There is session id. Setting session id status to 'declined'");
+					userSessionIdService.updateUserSessionIdOnError(sessionId);
 				}
 			} catch (Exception ex2) {
-				log.error("Failed to update session state status", ex2);
+				log.error("Failed to update session id status", ex2);
 			}
 
 			if (ex instanceof BadInputException) {

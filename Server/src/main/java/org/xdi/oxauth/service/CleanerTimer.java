@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version December 15, 2015
+ * @version August 11, 2017
  */
 @Name("cleanerTimer")
 @AutoCreate
@@ -61,7 +61,7 @@ public class CleanerTimer {
     @In
     private ResourceSetPermissionManager resourceSetPermissionManager;
     @In
-    private SessionStateService sessionStateService;
+    private SessionIdService sessionIdService;
 
     @In
     private RequestService u2fRequestService;
@@ -107,7 +107,7 @@ public class CleanerTimer {
         try {
             processAuthorizationGrantList();
             processRegisteredClients();
-            sessionStateService.cleanUpSessions(); // remove unused session ids
+            sessionIdService.cleanUpSessions(); // remove unused session ids
 
             Date now = new Date();
             this.rptManager.cleanupRPTs(now);
@@ -216,8 +216,7 @@ public class CleanerTimer {
                                 deviceRegistration.getId(),
                                 deviceRegistration.getCreationDate());
                         deviceRegistrationService.removeUserDeviceRegistration(deviceRegistration);
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         log.error("Failed to remove entry", e);
                     }
                 }

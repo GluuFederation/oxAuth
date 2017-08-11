@@ -14,37 +14,29 @@
 #   qr_options: { width: 400, height: 400 }
 #   registration_uri: https://ce-dev.gluu.org/identity/register
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.jboss.seam.faces import FacesMessages
-from javax.faces.context import FacesContext
-from org.jboss.seam.international import StatusMessage
-from org.jboss.seam.contexts import Context, Contexts
-from org.jboss.seam.security import Identity
-from org.jboss.seam import Component
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionStateService
-from org.xdi.util import StringHelper
-from org.xdi.util import ArrayHelper
-from org.xdi.oxauth.util import ServerUtil
-from java.util import Arrays
-
-from java.security import SecureRandom
-from java.util.concurrent import TimeUnit
-
+import jarray
+import sys
 from com.google.common.io import BaseEncoding
-
-from com.lochbridge.oath.otp import TOTP
 from com.lochbridge.oath.otp import HOTP
-from com.lochbridge.oath.otp import HOTPValidationResult
 from com.lochbridge.oath.otp import HOTPValidator
 from com.lochbridge.oath.otp import HmacShaAlgorithm
-
+from com.lochbridge.oath.otp import TOTP
 from com.lochbridge.oath.otp.keyprovisioning import OTPAuthURIBuilder;
 from com.lochbridge.oath.otp.keyprovisioning import OTPKey;
 from com.lochbridge.oath.otp.keyprovisioning.OTPKey import OTPType;
-
-import sys
-import java
-import jarray
+from java.security import SecureRandom
+from java.util import Arrays
+from java.util.concurrent import TimeUnit
+from javax.faces.context import FacesContext
+from org.jboss.seam import Component
+from org.jboss.seam.contexts import Contexts
+from org.jboss.seam.faces import FacesMessages
+from org.jboss.seam.international import StatusMessage
+from org.jboss.seam.security import Identity
+from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.xdi.oxauth.util import ServerUtil
+from org.xdi.util import StringHelper
 
 try:
     import json
@@ -144,8 +136,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif step == 2:
             print "OTP. Authenticate for step 2"
 
-            session_state_validation = self.validateSessionState(session_attributes)
-            if not session_state_validation:
+            session_id_validation = self.validateSessionId(session_attributes)
+            if not session_id_validation:
                 return False
 
             # Restore state from session
@@ -166,8 +158,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif step == 3:
             print "OTP. Authenticate for step 3"
 
-            session_state_validation = self.validateSessionState(session_attributes)
-            if not session_state_validation:
+            session_id_validation = self.validateSessionId(session_attributes)
+            if not session_id_validation:
                 return False
 
             # Restore state from session
@@ -196,8 +188,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif step == 2:
             print "OTP. Prepare for step 2"
 
-            session_state_validation = self.validateSessionState(session_attributes)
-            if not session_state_validation:
+            session_id_validation = self.validateSessionId(session_attributes)
+            if not session_id_validation:
                 return False
 
             otp_auth_method = session_attributes.get("otp_auth_method")
@@ -228,8 +220,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif step == 3:
             print "OTP. Prepare for step 3"
 
-            session_state_validation = self.validateSessionState(session_attributes)
-            if not session_state_validation:
+            session_id_validation = self.validateSessionId(session_attributes)
+            if not session_id_validation:
                 return False
 
             otp_auth_method = session_attributes.get("otp_auth_method")
@@ -371,15 +363,15 @@ class PersonAuthentication(PersonAuthenticationType):
         
         return result
 
-    def validateSessionState(self, session_attributes):
-        session_state = Component.getInstance(SessionStateService).getSessionStateFromCookie()
-        if StringHelper.isEmpty(session_state):
-            print "OTP. Validate session state. Failed to determine session_state"
+    def validateSessionId(self, session_attributes):
+        session_id = Component.getInstance(SessionIdService).getSessionIdFromCookie()
+        if StringHelper.isEmpty(session_id):
+            print "OTP. Validate session id. Failed to determine session_id"
             return False
 
         otp_auth_method = session_attributes.get("otp_auth_method")
         if not otp_auth_method in ['enroll', 'authenticate']:
-            print "OTP. Validate session state. Failed to authenticate user. otp_auth_method: '%s'" % otp_auth_method
+            print "OTP. Validate session id. Failed to authenticate user. otp_auth_method: '%s'" % otp_auth_method
             return False
 
         return True

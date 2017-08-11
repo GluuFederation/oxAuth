@@ -20,13 +20,13 @@ import java.util.Map;
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version December 15, 2015
+ * @version August 11, 2017
  */
 @Name("sessionUser")
 @AutoCreate
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthSessionId"})
-public class SessionState implements Serializable {
+public class SessionId implements Serializable {
 
     private static final long serialVersionUID = -237476411915686378L;
 
@@ -49,6 +49,9 @@ public class SessionState implements Serializable {
     private SessionIdState state;
 
     @LdapAttribute(name = "oxAuthSessionState")
+    private Boolean sessionState;
+
+    @LdapAttribute(name = "oxAuthPermissionGranted")
     private Boolean permissionGranted;
 
     @LdapAttribute(name = "oxAsJwt")
@@ -72,7 +75,7 @@ public class SessionState implements Serializable {
     @Transient
     private transient boolean persisted;
 
-    public SessionState() {
+    public SessionId() {
     }
 
     public String getDn() {
@@ -150,6 +153,14 @@ public class SessionState implements Serializable {
         this.authenticationTime = authenticationTime;
     }
 
+    public Boolean getSessionState() {
+        return sessionState;
+    }
+
+    public void setSessionState(Boolean sessionState) {
+        this.sessionState = sessionState;
+    }
+
     public Boolean getPermissionGranted() {
         return permissionGranted;
     }
@@ -202,7 +213,7 @@ public class SessionState implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SessionState id1 = (SessionState) o;
+        SessionId id1 = (SessionId) o;
 
         return !(id != null ? !id.equals(id1.id) : id1.id != null);
     }
@@ -215,8 +226,8 @@ public class SessionState implements Serializable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("SessionState");
-        sb.append(", dn='").append(dn).append('\'');
+        sb.append("SessionId {");
+        sb.append("dn='").append(dn).append('\'');
         sb.append(", id='").append(id).append('\'');
         sb.append(", isJwt=").append(isJwt);
         sb.append(", lastUsedAt=").append(lastUsedAt);
