@@ -306,6 +306,13 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         p_client.setResponseTypes(responseTypeSet.toArray(new ResponseType[responseTypeSet.size()]));
         p_client.setGrantTypes(grantTypeSet.toArray(new GrantType[grantTypeSet.size()]));
 
+        List<GrantType> grantTypes = requestObject.getGrantTypes();
+        if (grantTypes != null && grantTypes.isEmpty()){
+        	GrantType[] availableGrantTypes = getGrantTypeArray(grantTypes);
+        	if(availableGrantTypes != null){
+        		p_client.setGrantTypes(availableGrantTypes);
+        	}
+        }
         List<String> contacts = requestObject.getContacts();
         if (contacts != null && !contacts.isEmpty()) {
             contacts = new ArrayList<String>(new HashSet<String>(contacts)); // Remove repeated elements
@@ -429,6 +436,31 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         }
     }
 
+    private GrantType[] getGrantTypeArray(List<GrantType> grantTypes){
+    	GrantType[] availableGrantTypeArray = null ;
+     	if(appConfiguration.getEnableClientGrantUpdate()) {
+ 			if(grantTypes != null && !grantTypes.isEmpty()){
+ 				List<String> dynamicClientRegDefaultGrantType = appConfiguration.getDynamicClientRegDefaultGrantTypes();
+ 				List<String> grantTypesValue = new ArrayList<String>();
+ 				for(GrantType grantType: grantTypes){
+ 					grantTypesValue.add(grantType.toString());
+ 				}
+ 				List<String> availableGrantTypesString = new ArrayList<String>(dynamicClientRegDefaultGrantType);
+ 				availableGrantTypesString.retainAll(grantTypesValue);
+ 				List<GrantType> availableGrantTypes = new ArrayList<GrantType>();
+ 				for(String availableGrantType: availableGrantTypesString){
+ 					availableGrantTypes.add(GrantType.valueOf(availableGrantType));
+ 				}
+ 				availableGrantTypeArray = new GrantType[availableGrantTypes.size()];
+ 				availableGrantTypeArray = availableGrantTypes.toArray(availableGrantTypeArray);
+ 				return availableGrantTypeArray;
+ 			}
+ 		}
+     	else{
+     		log.trace("Client don't have authentication for grant type update.");
+     	}
+ 		return availableGrantTypeArray;
+ 	}
     @Override
     public Response requestClientUpdate(String requestParams, String clientId, @HeaderParam("Authorization") String authorization, @Context HttpServletRequest httpRequest, @Context SecurityContext securityContext) {
         OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_UPDATE);
