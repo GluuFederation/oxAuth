@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
  * @author Javier Rojas Blum
- * @version August 11, 2017
+ * @version August 12, 2017
  */
 
 @Scope(ScopeType.STATELESS)
@@ -249,7 +249,7 @@ public class SessionIdService {
         return null;
     }
 
-    public void createSessionIdCookie(String sessionId, HttpServletResponse httpResponse) {
+    public void createSessionIdCookie(String sessionId, String sessionState, HttpServletResponse httpResponse) {
         String header = SESSION_ID_COOKIE_NAME + "=" + sessionId;
         header += "; Path=/";
         header += "; Secure";
@@ -265,16 +265,16 @@ public class SessionIdService {
 
         httpResponse.addHeader("Set-Cookie", header);
 
-        createSessionStateCookie(sessionId, httpResponse);
+        createSessionStateCookie(sessionState, httpResponse);
     }
 
-    public void createSessionIdCookie(String sessionId) {
+    public void createSessionIdCookie(String sessionId, String sessionState) {
         try {
             final Object response = externalContext.getResponse();
             if (response instanceof HttpServletResponse) {
                 final HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-                createSessionIdCookie(sessionId, httpResponse);
+                createSessionIdCookie(sessionId, sessionState, httpResponse);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -357,8 +357,9 @@ public class SessionIdService {
     }
 
     private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
-        final String uuid = UUID.randomUUID().toString();
-        final String dn = dn(uuid);
+        final String sid = UUID.randomUUID().toString();
+        final String sessionState = UUID.randomUUID().toString();
+        final String dn = dn(sid);
 
         if (StringUtils.isBlank(dn)) {
             return null;
@@ -371,9 +372,10 @@ public class SessionIdService {
         }
 
         final SessionId sessionId = new SessionId();
-        sessionId.setId(uuid);
+        sessionId.setId(sid);
         sessionId.setDn(dn);
         sessionId.setUserDn(userDn);
+        sessionId.setSessionState(sessionState);
 
         Boolean sessionAsJwt = appConfiguration.getSessionAsJwt();
         sessionId.setIsJwt(sessionAsJwt != null && sessionAsJwt);

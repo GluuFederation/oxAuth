@@ -51,7 +51,7 @@ import java.util.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version August 11, 2017
+ * @version August 12, 2017
  */
 @Name("authorizeAction")
 @Scope(ScopeType.EVENT) // Do not change scope, we try to keep server without http sessions
@@ -242,7 +242,7 @@ public class AuthorizeAction {
             }
 
             this.sessionId = unauthenticatedSession.getId();
-            sessionIdService.createSessionIdCookie(this.sessionId);
+            sessionIdService.createSessionIdCookie(this.sessionId, unauthenticatedSession.getSessionState());
 
             Map<String, Object> loginParameters = new HashMap<String, Object>();
             if (requestParameterMap.containsKey(AuthorizeRequestParam.LOGIN_HINT)) {
@@ -657,7 +657,7 @@ public class AuthorizeAction {
             sessionIdService.updateSessionId(session);
 
             // OXAUTH-297 - set session_id cookie
-            SessionIdService.instance().createSessionIdCookie(sessionId);
+            SessionIdService.instance().createSessionIdCookie(sessionId, session.getSessionState());
 
             Map<String, String> sessionAttribute = authenticationService.getAllowedParameters(session.getSessionAttributes());
 

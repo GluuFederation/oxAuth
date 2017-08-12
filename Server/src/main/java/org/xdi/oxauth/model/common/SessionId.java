@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version August 11, 2017
+ * @version August 12, 2017
  */
 @Name("sessionUser")
 @AutoCreate
@@ -49,7 +49,7 @@ public class SessionId implements Serializable {
     private SessionIdState state;
 
     @LdapAttribute(name = "oxAuthSessionState")
-    private Boolean sessionState;
+    private String sessionState;
 
     @LdapAttribute(name = "oxAuthPermissionGranted")
     private Boolean permissionGranted;
@@ -153,11 +153,11 @@ public class SessionId implements Serializable {
         this.authenticationTime = authenticationTime;
     }
 
-    public Boolean getSessionState() {
+    public String getSessionState() {
         return sessionState;
     }
 
-    public void setSessionState(Boolean sessionState) {
+    public void setSessionState(String sessionState) {
         this.sessionState = sessionState;
     }
 
@@ -229,13 +229,16 @@ public class SessionId implements Serializable {
         sb.append("SessionId {");
         sb.append("dn='").append(dn).append('\'');
         sb.append(", id='").append(id).append('\'');
-        sb.append(", isJwt=").append(isJwt);
         sb.append(", lastUsedAt=").append(lastUsedAt);
         sb.append(", userDn='").append(userDn).append('\'');
         sb.append(", authenticationTime=").append(authenticationTime);
         sb.append(", state=").append(state);
+        sb.append(", sessionState=").append(sessionState);
+        sb.append(", isJwt=").append(isJwt);
+        sb.append(", jwt=").append(jwt);
         sb.append(", permissionGranted=").append(permissionGranted);
         sb.append(", permissionGrantedMap=").append(permissionGrantedMap);
+        sb.append(", involvedClients=").append(involvedClients);
         sb.append(", sessionAttributes=").append(sessionAttributes);
         sb.append(", persisted=").append(persisted);
         sb.append('}');
