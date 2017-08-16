@@ -58,8 +58,8 @@
                 document.getElementById('loginForm')["loginForm:name"].value = userObj.name;
                 if (userObj.email) {
                     document.getElementById('loginForm')["loginForm:email"].value = userObj.email;
+		    document.getElementById('loginForm')["loginForm:postForm"].click();
                 }
-                document.getElementById('loginForm')["loginForm:postForm"].click();
             });
         </script>
     </ui:define>
