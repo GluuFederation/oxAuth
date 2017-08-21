@@ -252,5 +252,12 @@
         }
     ],
     "logClientIdOnClientAuthentication": true,
-    "logClientNameOnClientAuthentication": false
+    "logClientNameOnClientAuthentication": false,
+    "enableClientGrantUpdate": false,
+    "dynamicClientRegDefaultGrantType":[
+     	"authorization_code", 
+     	"implicit", 
+     	"refresh_token", 
+     	"client_credentials"
+     ]
 }

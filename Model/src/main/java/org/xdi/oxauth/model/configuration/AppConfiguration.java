@@ -154,6 +154,8 @@ public class AppConfiguration implements Configuration {
     private Boolean updateClientAccessTime;
     private Boolean logClientIdOnClientAuthentication;
     private Boolean logClientNameOnClientAuthentication;
+    private Boolean enableClientGrantUpdate;
+    private List<String> dynamicClientRegDefaultGrantTypes;
 
     /**
      * Used in ServletLoggingFilter to enable http request/response logging.
@@ -1231,4 +1233,21 @@ public class AppConfiguration implements Configuration {
     public void setExternalLoggerConfiguration(String externalLoggerConfiguration) {
         this.externalLoggerConfiguration = externalLoggerConfiguration;
     }
+
+	public Boolean getEnableClientGrantUpdate() {
+		return enableClientGrantUpdate;
+	}
+
+	public void setEnableClientGrantUpdate(Boolean enableClientGrantUpdate) {
+		this.enableClientGrantUpdate = enableClientGrantUpdate;
+	}
+
+	public List<String> getDynamicClientRegDefaultGrantTypes() {
+		return dynamicClientRegDefaultGrantTypes;
+	}
+
+	public void setDynamicClientRegDefaultGrantTypes(List<String> dynamicClientRegDefaultGrantTypes) {
+		this.dynamicClientRegDefaultGrantTypes = dynamicClientRegDefaultGrantTypes;
+	}
+    
 }
