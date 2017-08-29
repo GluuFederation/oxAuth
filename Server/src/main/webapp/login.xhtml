@@ -180,6 +180,14 @@
 							</div>
 						  </div>
 						  </h:panelGroup>
+                                        <div align="center">
+
+                                                    <h:outputLink value="#{identity.getWorkingParameter('supergluu_android_download_url')}" title="android" rendered="#{!empty identity.getWorkingParameter('supergluu_android_download_url')}"><h:graphicImage value="img/android.png" /></h:outputLink>
+
+                                                    <h:outputLink value="#{identity.getWorkingParameter('supergluu_ios_download_url')}" title="ios" rendered="#{!empty identity.getWorkingParameter('supergluu_ios_download_url')}"><h:graphicImage value="img/ios.png" /></h:outputLink>
+
+
+                                        </div>						  
 						</h:form>
 						</div>
 						<h:panelGroup layout="block" rendered="#{external_registration_uri != Null}">
