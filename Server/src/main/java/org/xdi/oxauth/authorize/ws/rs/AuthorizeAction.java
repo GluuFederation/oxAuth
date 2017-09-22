@@ -205,7 +205,7 @@ public class AuthorizeAction {
             }
         }
 
-        if (session == null || StringUtils.isBlank(session.getUserDn()) || SessionIdState.AUTHENTICATED != session.getState()) {
+        if (session == null || StringUtils.isBlank(session.getUserDn()) || StringUtils.isEmpty((String)session.getState().get("state"))) {
             Map<String, String> parameterMap = externalContext.getRequestParameterMap();
             Map<String, String> requestParameterMap = authenticationService.getAllowedParameters(parameterMap);
 
@@ -308,9 +308,9 @@ public class AuthorizeAction {
 
     private SessionId handleAcrChange(SessionId session, List<Prompt> prompts) {
         if (session != null && prompts.contains(Prompt.LOGIN)) { // change session state only if prompt=none
-            if (session.getState() == SessionIdState.AUTHENTICATED) {
+            if (!StringUtils.isEmpty((String)session.getState().get("state"))) {
                 session.getSessionAttributes().put("prompt", prompt);
-                session.setState(SessionIdState.UNAUTHENTICATED);
+                session.setState(null);
 
                 // Update Remote IP
                 String remoteIp = networkService.getRemoteIp();

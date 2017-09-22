@@ -156,6 +156,20 @@ public class Util {
 
         return jsonArray.toString();
     }
+    
+    public static String mapAsStringJSonObject(Map<String, String> p_map) throws JSONException {
+        if (p_map == null || p_map.size() == 0) {
+            return null;
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        for (String key : p_map.keySet()) {
+            jsonObject.put(key, p_map.get(key));
+
+        }
+
+        return jsonObject.toString();
+    }
 
     public static boolean allNotBlank(String... p_strings) {
         if (p_strings != null && p_strings.length > 0) {
@@ -209,6 +223,24 @@ public class Util {
                     String value = jsonObject.getString(key);
                     result.put(key, value);
                 }
+            }
+        }
+
+        return result;
+    }
+    
+    public static Map<String, String> jsonObjectStringAsMap(String jsonString) throws JSONException {
+        Map<String, String> result = new HashMap<String, String>();
+
+        if (!isNullOrEmpty(jsonString)) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            @SuppressWarnings("unchecked")
+			Iterator<String> keysIter = jsonObject.keys();
+            while (keysIter.hasNext()) {
+                String key = keysIter.next();
+                String value = jsonObject.getString(key);
+                result.put(key, value);
             }
         }
 

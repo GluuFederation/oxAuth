@@ -6,6 +6,7 @@
 
 package org.xdi.oxauth.service.fido.u2f;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
@@ -78,7 +79,7 @@ public class UserSessionIdService {
             return null;
         }
 
-        if (SessionIdState.UNAUTHENTICATED != ldapSessionId.getState()) {
+        if (!StringUtils.isEmpty(ldapSessionId.getState().get("state"))) {
             log.warn("Unexpected session id '{}' state: '{}'", sessionId, ldapSessionId.getState());
             return null;
         }

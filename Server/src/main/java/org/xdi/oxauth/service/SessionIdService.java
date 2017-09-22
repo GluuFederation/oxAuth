@@ -107,7 +107,7 @@ public class SessionIdService {
     // 3) client_id change -> do nothing
     // https://github.com/GluuFederation/oxAuth/issues/34
     public SessionId assertAuthenticatedSessionCorrespondsToNewRequest(SessionId session, String acrValuesStr) throws AcrChangedException {
-        if (session != null && !session.getSessionAttributes().isEmpty() && session.getState() == SessionIdState.AUTHENTICATED) {
+        if (session != null && !session.getSessionAttributes().isEmpty() && !StringUtils.isEmpty(session.getState().get("state"))) {
 
             final Map<String, String> sessionAttributes = session.getSessionAttributes();
 
@@ -340,18 +340,18 @@ public class SessionIdService {
         Map<String, String> sessionIdAttributes = new HashMap<String, String>();
         sessionIdAttributes.put("prompt", prompt);
 
-        return generateSessionId(userDn, new Date(), SessionIdState.AUTHENTICATED, sessionIdAttributes, true);
+        return generateSessionId(userDn, new Date(), new HashMap<String, String>(), sessionIdAttributes, true);
     }
 
     public SessionId generateAuthenticatedSessionId(String userDn, Map<String, String> sessionIdAttributes) {
-        return generateSessionId(userDn, new Date(), SessionIdState.AUTHENTICATED, sessionIdAttributes, true);
+        return generateSessionId(userDn, new Date(), new HashMap<String, String>(), sessionIdAttributes, true);
     }
 
     public SessionId generateUnauthenticatedSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
-        return generateSessionId(userDn, authenticationDate, state, sessionIdAttributes, persist);
+        return generateSessionId(userDn, authenticationDate, new HashMap<String, String>(), sessionIdAttributes, persist);
     }
 
-    private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
+    private SessionId generateSessionId(String userDn, Date authenticationDate, Map<String, String> state, Map<String, String> sessionIdAttributes, boolean persist) {
         final String sid = UUID.randomUUID().toString();
         final String sessionState = UUID.randomUUID().toString();
         final String dn = dn(sid);
@@ -360,7 +360,7 @@ public class SessionIdService {
             return null;
         }
 
-        if (SessionIdState.AUTHENTICATED == state) {
+        if (!StringUtils.isEmpty(state.get("state"))) {
             if (StringUtils.isBlank(userDn)) {
                 return null;
             }
@@ -411,7 +411,7 @@ public class SessionIdService {
             jwt.getClaims().setClaim("authentication_time", sessionId.getAuthenticationTime());
             jwt.getClaims().setClaim("user_dn", sessionId.getUserDn());
             jwt.getClaims().setClaim("state", sessionId.getState() != null ?
-                    sessionId.getState().getValue() : "");
+                    Util.mapAsStringJSonObject(sessionId.getState()) : "");
 
             jwt.getClaims().setClaim("session_attributes", JwtSubClaimObject.fromMap(sessionId.getSessionAttributes()));
 
@@ -431,7 +431,7 @@ public class SessionIdService {
     public SessionId setSessionIdStateAuthenticated(SessionId sessionId, String p_userDn) {
         sessionId.setUserDn(p_userDn);
         sessionId.setAuthenticationTime(new Date());
-        sessionId.setState(SessionIdState.AUTHENTICATED);
+        sessionId.setState(new HashMap<String, String>());
 
         boolean persisted = updateSessionId(sessionId, true, true, true);
 
@@ -529,7 +529,7 @@ public class SessionIdService {
     }
 
     private void putInCache(SessionId sessionId) {
-        int expirationInSeconds = sessionId.getState() == SessionIdState.UNAUTHENTICATED ?
+        int expirationInSeconds = StringUtils.isEmpty(sessionId.getState().get("state")) ?
                 appConfiguration.getSessionIdUnauthenticatedUnusedLifetime() :
                 appConfiguration.getSessionIdLifetime();
         cacheService.put(Integer.toString(expirationInSeconds), sessionId.getId(), sessionId); // first parameter is expiration instead of region for memcached
@@ -650,7 +650,7 @@ public class SessionIdService {
         if (timeSinceLastAccess > sessionInterval && appConfiguration.getSessionIdUnusedLifetime() != -1) {
             return false;
         }
-        if (sessionId.getState() == SessionIdState.UNAUTHENTICATED && timeSinceLastAccess > sessionUnauthenticatedInterval && appConfiguration.getSessionIdUnauthenticatedUnusedLifetime() != -1) {
+        if (StringUtils.isEmpty(sessionId.getState().get("state")) && timeSinceLastAccess > sessionUnauthenticatedInterval && appConfiguration.getSessionIdUnauthenticatedUnusedLifetime() != -1) {
             return false;
         }
 
@@ -670,9 +670,9 @@ public class SessionIdService {
             return false;
         }
 
-        SessionIdState sessionIdState = sessionId.getState();
+        Map<String, String> sessionIdState = sessionId.getState();
 
-        if (SessionIdState.AUTHENTICATED.equals(sessionIdState)) {
+        if (!StringUtils.isEmpty(sessionIdState.get("state"))) {
             return true;
         }
 
@@ -686,16 +686,11 @@ public class SessionIdService {
     private void auditLogging(SessionId sessionId) {
         HttpServletRequest httpServletRequest = ServerUtil.getRequestOrNull();
         if (httpServletRequest != null) {
-            Action action;
-            switch (sessionId.getState()) {
-                case AUTHENTICATED:
-                    action = Action.SESSION_AUTHENTICATED;
-                    break;
-                case UNAUTHENTICATED:
-                    action = Action.SESSION_UNAUTHENTICATED;
-                    break;
-                default:
-                    action = Action.SESSION_UNAUTHENTICATED;
+            Action action = Action.SESSION_UNAUTHENTICATED;
+            if(!StringUtils.isEmpty(sessionId.getState().get("state"))) {
+            	action = Action.SESSION_AUTHENTICATED;
+            } else {
+            	action = Action.SESSION_UNAUTHENTICATED;
             }
             OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpServletRequest), action);
             oAuth2AuditLog.setSuccess(true);

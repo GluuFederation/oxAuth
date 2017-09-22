@@ -11,6 +11,7 @@ import com.wordnik.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jettison.json.JSONException;
 import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -387,7 +388,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                                 params = getGenericRequestMap(httpRequest);
                                             }
 
-                                            String userDn = authenticationFilterService.processAuthenticationFilters(params);
+                                            String userDn = authenticationFilterService.processAuthenticationFilters(getStateCustomParametersWithGenericRequestMap(params));
                                             if (userDn != null) {
                                                 Map<String, String> genericRequestMap = getGenericRequestMap(httpRequest);
 
@@ -395,7 +396,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                                 Map<String, String> requestParameterMap = authenticationService.getAllowedParameters(parameterMap);
 
                                                 sessionUser = sessionIdService.generateAuthenticatedSessionId(userDn, prompt);
-                                                sessionUser.setSessionAttributes(requestParameterMap);
+                                                sessionUser.setSessionAttributes(getStateCustomParametersWithGenericRequestMap(requestParameterMap));
 
                                                 sessionIdService.createSessionIdCookie(sessionUser.getId(), sessionUser.getSessionState(), httpResponse, false);
                                                 sessionIdService.updateSessionId(sessionUser);
@@ -658,14 +659,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
      */
     private void overrideUnauthenticatedSessionParameters(HttpServletRequest httpRequest, List<Prompt> prompts) {
         SessionId sessionUser = identity.getSessionId();
-        if (sessionUser != null && sessionUser.getState() != SessionIdState.AUTHENTICATED) {
+        if (sessionUser != null && sessionUser.getState().containsKey("state") && ((String)sessionUser.getState().get("state") == null)) {
             Map<String, String> genericRequestMap = getGenericRequestMap(httpRequest);
 
             Map<String, String> parameterMap = Maps.newHashMap(genericRequestMap);
             Map<String, String> requestParameterMap = authenticationService.getAllowedParameters(parameterMap);
 
             sessionUser.setUserDn(null);
-            sessionUser.setSessionAttributes(requestParameterMap);
+            sessionUser.setSessionAttributes(getStateCustomParametersWithGenericRequestMap(requestParameterMap));
             boolean persisted = sessionIdService.persistSessionId(sessionUser, !prompts.contains(Prompt.NONE));
             if (persisted) {
                 if (log.isTraceEnabled()) {
@@ -684,6 +685,22 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         }
 
         return result;
+    }
+    
+    private Map<String, String> getStateCustomParametersWithGenericRequestMap(final Map<String, String> genericRequestParameters) {
+        if(genericRequestParameters.containsKey("state")) {
+        	Map<String, String> stateMap = null;
+        	try {
+				stateMap = Util.jsonObjectStringAsMap(genericRequestParameters.get("state"));
+			} catch (JSONException e) {
+			}
+        	
+        	if(stateMap.containsKey("state") && !StringUtils.isEmpty((String)stateMap.get("state"))) {
+				stateMap.put("stateId", stateMap.get("state"));
+				stateMap.remove("state");
+        	}
+        }
+    	return genericRequestParameters;
     }
 
     private ResponseBuilder error(Response.Status p_status, AuthorizeErrorResponseType p_type, String p_state) {

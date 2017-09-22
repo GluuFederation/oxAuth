@@ -11,9 +11,11 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jettison.json.JSONException;
 import org.slf4j.Logger;
 import org.xdi.model.security.Identity;
 import org.xdi.oxauth.model.common.SessionId;
+import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.util.StringHelper;
@@ -70,7 +72,10 @@ public class CheckSessionStatusRestWebServiceImpl {
 
         SessionId sessionId = sessionIdService.getSessionId(sessionIdCookie);
         if (sessionId != null) {
-            response.setState(sessionId.getState().getValue());
+            try {
+				response.setState(Util.mapAsStringJSonObject(sessionId.getState()));
+			} catch (JSONException e) {
+			}
             response.setAuthTime(sessionId.getAuthenticationTime());
 
             String sessionCustomState = sessionId.getSessionAttributes().get(SessionIdService.SESSION_CUSTOM_STATE);

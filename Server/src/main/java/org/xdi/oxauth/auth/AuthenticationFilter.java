@@ -130,7 +130,7 @@ public class AuthenticationFilter implements Filter {
                 if (StringUtils.isNotBlank(sessionId)) {
                     sessionIdObject = sessionIdService.getSessionId(sessionId);
                 }
-                if (sessionIdObject != null && SessionIdState.AUTHENTICATED == sessionIdObject.getState()
+                if (sessionIdObject != null && !StringUtils.isEmpty(sessionIdObject.getState().get("state"))
                         && !prompts.contains(Prompt.LOGIN)) {
                     processSessionAuth(errorResponseFactory, sessionId, httpRequest, httpResponse, filterChain);
                 } else {

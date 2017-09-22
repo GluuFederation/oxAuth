@@ -43,8 +43,9 @@ public class SessionId implements Serializable {
     @LdapAttribute(name = "oxAuthAuthenticationTime")
     private Date authenticationTime;
 
+    @LdapJsonObject
     @LdapAttribute(name = "oxState")
-    private SessionIdState state;
+    private Map<String, String> state;
 
     @LdapAttribute(name = "oxAuthSessionState")
     private String sessionState;
@@ -111,11 +112,15 @@ public class SessionId implements Serializable {
         this.involvedClients = involvedClients;
     }
 
-    public SessionIdState getState() {
+    @Nonnull
+    public Map<String, String> getState() {
+    	if (state == null) {
+            state = Maps.newHashMap();
+        }
         return state;
     }
 
-    public void setState(SessionIdState state) {
+    public void setState(Map<String, String> state) {
         this.state = state;
     }
 
