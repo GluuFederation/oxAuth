@@ -38,6 +38,10 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
     @LdapAttribute(name = "oxDeviceRegistrationConf")
 	private DeviceRegistrationConfiguration deviceRegistrationConfiguration;
 
+    @LdapJsonObject
+    @LdapAttribute(name = "oxDeviceNotificationConf")
+	private String deviceNotificationConf;
+
     @LdapAttribute(name = "oxCounter")
 	private long counter;
 
@@ -102,6 +106,14 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
 
 	public void setDeviceRegistrationConfiguration(DeviceRegistrationConfiguration deviceRegistrationConfiguration) {
 		this.deviceRegistrationConfiguration = deviceRegistrationConfiguration;
+	}
+
+	public String getDeviceNotificationConf() {
+		return deviceNotificationConf;
+	}
+
+	public void setDeviceNotificationConf(String deviceNotificationConf) {
+		this.deviceNotificationConf = deviceNotificationConf;
 	}
 
 	public long getCounter() {
@@ -186,12 +198,10 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("DeviceRegistration [id=").append(id).append(", deviceRegistrationConfiguration=").append(deviceRegistrationConfiguration)
-				.append(", counter=").append(counter).append(", status=").append(status).append(", application=").append(application).append(", keyHandle=")
-				.append(keyHandle).append(", keyHandleHashCode=").append(keyHandleHashCode).append(", deviceData=").append(deviceData)
-				.append(", creationDate=").append(creationDate).append(", lastAccessTime=").append(lastAccessTime).append("]");
-		return builder.toString();
+		return "DeviceRegistration [id=" + id + ", deviceRegistrationConfiguration=" + deviceRegistrationConfiguration
+				+ ", deviceNotificationConf=" + deviceNotificationConf + ", counter=" + counter + ", status=" + status + ", application="
+				+ application + ", keyHandle=" + keyHandle + ", keyHandleHashCode=" + keyHandleHashCode + ", deviceData=" + deviceData
+				+ ", creationDate=" + creationDate + ", lastAccessTime=" + lastAccessTime + "]";
 	}
 
 }
