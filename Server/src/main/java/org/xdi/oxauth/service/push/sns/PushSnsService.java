@@ -37,7 +37,7 @@ public class PushSnsService {
 		return customUserData;
 	}
 
-    public static ScopeService instance() {
+    public static PushSnsService instance() {
         return ServerUtil.instance(PushSnsService.class);
     }
 
