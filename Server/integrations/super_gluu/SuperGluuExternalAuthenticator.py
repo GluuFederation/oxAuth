@@ -23,7 +23,7 @@ from org.apache.http.params import CoreConnectionPNames
 from com.notnoop.apns import APNS
 from com.google.android.gcm.server import Sender, Message
 from org.xdi.oxauth.service.push.sns import PushPlatform, PushSnsService 
-from org.gluu.oxnotify.client2 import NotifyClientFactory
+from org.gluu.oxnotify.client import NotifyClientFactory
 
 try:
     import json
@@ -508,7 +508,7 @@ class PersonAuthentication(PersonAuthenticationType):
             print "Super-Gluu. Initialize Gluu notification services. Failed to load metadata. Exception: ", sys.exc_info()[1]
             return False
 
-        gluuClient = notifyClientFactory.createPoolledNotifyService(metadataConfiguration)
+        gluuClient = notifyClientFactory.createNotifyService(metadataConfiguration)
         stringEncrypter = StringEncrypter.defaultInstance()
 
         if android_creds["enabled"]:

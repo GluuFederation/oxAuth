@@ -11,6 +11,8 @@ import org.jboss.seam.annotations.Scope;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.configuration.Configuration;
+import org.xdi.oxauth.service.uma.ScopeService;
+import org.xdi.oxauth.util.ServerUtil;
 
 /**
  * Provides operations to send AWS SNS push messages
@@ -34,5 +36,9 @@ public class PushSnsService {
 				ldapEntryManager.encodeGeneralizedTime(new Date()));
 		return customUserData;
 	}
+
+    public static ScopeService instance() {
+        return ServerUtil.instance(PushSnsService.class);
+    }
 
 }
