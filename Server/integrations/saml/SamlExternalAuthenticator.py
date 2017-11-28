@@ -195,6 +195,21 @@ class PersonAuthentication(PersonAuthenticationType):
                 if (not samlResponse.isValid()):
                     print "Saml. Authenticate for step 1. saml_response isn't valid"
 
+                    # Parse saml_response response XML and find message and code
+                    try:
+                        xmlDocument = xmlService.getXmlDocument(saml_response)
+                    except Exception, err:
+                        print "Saml. Authenticate for step 1. saml_response:. Failed to parse XML response:", err
+                        return False
+            
+                    saml_response_message = xmlService.getNodeValue(xmlDocument, "/message", None)
+                    saml_response_code = xmlService.getNodeValue(xmlDocument, "/code", None)
+
+                    context.set("saml_response_message", saml_response_message)
+                    context.set("saml_response_code", saml_response_code)
+                    context.set("saml_error", True)
+                    return True
+
             saml_response_name_id = samlResponse.getNameId()
             if (StringHelper.isEmpty(saml_response_name_id)):
                 print "Saml. Authenticate for step 1. saml_response_name_id is invalid"
@@ -454,7 +469,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getExtraParametersForStep(self, configurationAttributes, step):
         if (step == 2):
-            return Arrays.asList("saml_user_uid")
+            return Arrays.asList("saml_user_uid", "saml_response_message", "saml_response_code", "saml_error")
 
         return None
 
@@ -466,6 +481,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return 2
 
     def getPageForStep(self, configurationAttributes, step):
+        context = Contexts.getEventContext()
         if (step == 1):
             saml_allow_basic_login = False
             if (configurationAttributes.containsKey("saml_allow_basic_login")):
@@ -475,6 +491,9 @@ class PersonAuthentication(PersonAuthenticationType):
                 return "/login.xhtml"
             else:
                 return "/auth/saml/samllogin.xhtml"
+        else:
+            if context.isSet("saml_error"):
+                return "/auth/saml/samlerror.xhtml"
 
         return "/auth/saml/samlpostlogin.xhtml"
 
