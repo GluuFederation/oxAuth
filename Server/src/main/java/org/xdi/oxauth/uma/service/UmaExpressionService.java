@@ -41,7 +41,8 @@ public class UmaExpressionService {
     @Inject
     private UmaResourceService resourceService;
     @Inject
-    private LdapEntryManager ldapEntryManager;
+
+    private UmaPermissionService permissionService;
 
     public boolean isExpressionValid(String expression) {
         return JsonLogicNodeParser.isNodeValid(expression);
@@ -133,11 +134,8 @@ public class UmaExpressionService {
 
             if (newPermissionScopes.size() < permission.getScopeDns().size()) {
                 permission.setScopeDns(newPermissionScopes);
-                try {
-                    ldapEntryManager.merge(permission);
-                } catch (Exception e) {
-                    log.error("Failed to remove scopes from permission: " + permission.getDn(), e);
-                }
+
+                permissionService.mergeSilently(permission);
             }
         }
     }
