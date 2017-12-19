@@ -63,7 +63,7 @@ import java.util.*;
  * Provides interface for User Info REST web services
  *
  * @author Javier Rojas Blum
- * @version September 6, 2017
+ * @version December 19, 2017
  */
 @Path("/")
 public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
@@ -236,16 +236,31 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                     String claimName = gluuAttribute.getOxAuthClaimName();
                     String ldapName = gluuAttribute.getName();
-                    String attributeValue = null;
+                    Object attributeValue = null;
 
                     if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                         if (ldapName.equals("uid")) {
                             attributeValue = user.getUserId();
                         } else {
-                            attributeValue = user.getAttribute(gluuAttribute.getName());
+                            attributeValue = user.getAttribute(gluuAttribute.getName(), true);
                         }
 
-                        jwt.getClaims().setClaim(claimName, attributeValue);
+                        if (attributeValue != null) {
+                            if (attributeValue instanceof JSONArray) {
+                                JSONArray jsonArray = (JSONArray) attributeValue;
+                                List<String> values = new ArrayList<String>();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    String value = jsonArray.optString(i);
+                                    if (value != null) {
+                                        values.add(value);
+                                    }
+                                }
+                                jwt.getClaims().setClaim(claimName, values);
+                            } else {
+                                String value = attributeValue.toString();
+                                jwt.getClaims().setClaim(claimName, value);
+                            }
+                        }
                     }
                 }
             }
@@ -272,7 +287,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
                             }
                             jwt.getClaims().setClaim(claim.getName(), values);
                         } else {
-                            String value = (String) attribute;
+                            String value = attribute.toString();
                             jwt.getClaims().setClaim(claim.getName(), value);
                         }
                     }
@@ -350,16 +365,31 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                     String claimName = gluuAttribute.getOxAuthClaimName();
                     String ldapName = gluuAttribute.getName();
-                    String attributeValue = null;
+                    Object attributeValue = null;
 
                     if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                         if (ldapName.equals("uid")) {
                             attributeValue = user.getUserId();
                         } else {
-                            attributeValue = user.getAttribute(gluuAttribute.getName());
+                            attributeValue = user.getAttribute(gluuAttribute.getName(), true);
                         }
 
-                        jwe.getClaims().setClaim(claimName, attributeValue);
+                        if (attributeValue != null) {
+                            if (attributeValue instanceof JSONArray) {
+                                JSONArray jsonArray = (JSONArray) attributeValue;
+                                List<String> values = new ArrayList<String>();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    String value = jsonArray.optString(i);
+                                    if (value != null) {
+                                        values.add(value);
+                                    }
+                                }
+                                jwe.getClaims().setClaim(claimName, values);
+                            } else {
+                                String value = attributeValue.toString();
+                                jwe.getClaims().setClaim(claimName, value);
+                            }
+                        }
                     }
                 }
             }
@@ -386,7 +416,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
                             }
                             jwe.getClaims().setClaim(claim.getName(), values);
                         } else {
-                            String value = (String) attribute;
+                            String value = attribute.toString();
                             jwe.getClaims().setClaim(claim.getName(), value);
                         }
                     }
