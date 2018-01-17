@@ -286,17 +286,15 @@ public class AuthorizeAction {
                 }
             }
 
-            if (client.getPersistClientAuthorizations()) {
-                ClientAuthorizations clientAuthorizations = clientAuthorizationsService.findClientAuthorizations(
-                        user.getAttribute("inum"),
-                        client.getClientId(),
-                        client.getPersistClientAuthorizations());
-                if (clientAuthorizations != null && clientAuthorizations.getScopes() != null &&
-                        Arrays.asList(clientAuthorizations.getScopes()).containsAll(
-                                org.xdi.oxauth.model.util.StringUtils.spaceSeparatedToList(scope))) {
-                    permissionGranted(session);
-                    return;
-                }
+            ClientAuthorizations clientAuthorizations = clientAuthorizationsService.findClientAuthorizations(
+                    user.getAttribute("inum"),
+                    client.getClientId(),
+                    client.getPersistClientAuthorizations());
+            if (clientAuthorizations != null && clientAuthorizations.getScopes() != null &&
+                    Arrays.asList(clientAuthorizations.getScopes()).containsAll(
+                            org.xdi.oxauth.model.util.StringUtils.spaceSeparatedToList(scope))) {
+                permissionGranted(session);
+                return;
             }
 
         } else {
