@@ -12,21 +12,203 @@
         <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/style.css"/>
         <link type="text/css" rel="stylesheet"
               href="#{oxAuthConfigurationService.getCssLocation()}/bootstrap-responsive.css"/>
-        
+
         <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
         <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/font-awesome.css"/>
         <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600"/>
     	<script src="#{oxAuthConfigurationService.getJsLocation()}/jquery-1.12.4.min.js"/>
     	<script src="#{oxAuthConfigurationService.getJsLocation()}/bootstrap.min.js"></script>
         <ui:insert name="head"/>
+
+
+        <meta name="description" content="Gluu Inc."/>
+        <script type="text/javascript" src="#{oxAuthConfigurationService.jsLocation}/jquery-1.12.4.min.js">
+        </script>
+
+
+        <style type="text/css">
+            body {
+                padding: 0;
+            }
+
+            .navbar-nav {
+                padding-top: 30px;
+            }
+
+            ul, ol {
+                margin-bottom: 0;
+            }
+
+            a {
+                color: #2300cc;
+                transition: all 0.5s ease-in-out 0s;
+            }
+
+            a:hover, a:focus {
+                color: #079857;
+                text-decoration: none;
+                transition: all 0.5s ease-in-out 0s;
+            }
+
+            .btn-login {
+                color: #fff;
+                background-color: #007541;
+                border-color: #ffffff;
+                min-width: 100px;
+                transition: all 0.5s ease-in-out 0s;
+            }
+
+            .btn-login:hover,
+            .btn-login:focus {
+                background-color: #ffffff;
+                border-color: #079857;
+                color: #079857;
+                transition: all 0.5s ease-in-out 0s;
+            }
+
+            .form-control:focus {
+                border-color: #007541;
+            }
+
+            input[type="text"]:focus,
+            input[type="password"]:focus {
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(0, 117, 65, 0.71), inset 0px 0px 3px #007541;
+            }
+
+            .panel-default > .panel-heading {
+                color: #079857;
+                font-size: 18px;
+            }
+
+            .input-name {
+                padding-top: 3px;
+            }
+
+            .panel-order hr {
+                margin: 10px 15px;
+            }
+
+            .panel-order .panel-body {
+                height: 260px;
+                overflow-y: auto;
+            }
+
+            .panel-order .panel-body > .row:last-child hr {
+                display: none;
+            }
+
+            .list-inline>li {
+                margin-bottom: 5px;
+                vertical-align: middle;
+            }
+
+            .list-inline>li img{
+                max-width:40px;
+            }
+
+            .social-wrapper {
+                position: relative;
+                text-align: center;
+                padding: 20px;
+                border: 1px solid #dfdfdf;
+                border-radius: 4px;
+                background-color: #f5f5f5;
+            }
+
+            #footer {
+                padding: 30px 0 20px;
+                text-align: center;
+                border-top: 0;
+            }
+
+            /* Media Query */
+            @media (max-width: 979px) {
+                .navbar .container {
+                    padding: 0 15px;
+                }
+            }
+            @media (max-width: 767px) {
+                .navbar {
+                    text-align: center;
+                }
+                .navbar-nav {
+                    padding-top: 0px;
+                }
+                .navbar-header img{
+                    max-width: 130px;
+                }
+                #content.sign-in-page {
+                    padding-top: 30px;
+                }
+                .list-inline>li img{
+                    max-width: 30px;
+                }
+            }
+        </style>
     </h:head>
     <h:body>
+
+        <!--Header-->
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-3">
+                        <div class="navbar-header">
+                            <ui:param name="client"
+                                      value="#{clientService.getClient(identity.sessionId.sessionAttributes['client_id'])}"/>
+                            <h:panelGroup rendered='#{!empty client.getLogoUri()}'>
+                                <h:graphicImage url='#{client.getLogoUri()}'/>
+                            </h:panelGroup>
+                            <h:panelGroup rendered='#{empty client.getLogoUri()}'>
+                                <a href="http://www.gluu.org/">
+
+                                    <h:graphicImage id="logoimg" url="../../img/logo.png"/>
+
+                                </a>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-9">
+                        <div class="nav navbar-nav navbar-right">
+                            #{msgs['passport.needAGluuAccount']}
+                            <a class=""
+                               href="../identity/register?redirectUri=https://support.gluu.org">Sign Up!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <!--Header End-->
+
         <div class="body">
             <h:messages id="messages" globalOnly="true" styleClass="message"
                         errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
                         rendered="#{showGlobalMessages != 'false'}"/>
             <ui:insert name="body"/>
         </div>
+
+
+        <!-- footer -->
+        <footer id="footer">
+            <p>
+                <h:outputText value="#{msgs['common.gluuInc']}"/>
+                , |
+                <h:outputText value="#{msgs['common.caution']}" escape="false"/>
+            </p>
+        </footer>
+        <!-- end footer -->
+
+        <script>
+
+            jQuery(document).ready(function () {
+
+                if(document.title == "oxAuth - Login"){
+                    $("#logoimg").attr('src','img/logo.png');
+                }
+            });
+
+        </script>
+
     </h:body>
 </f:view>
 </html>
