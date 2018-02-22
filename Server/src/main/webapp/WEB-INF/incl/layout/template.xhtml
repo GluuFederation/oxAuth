@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-                "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
@@ -9,26 +9,75 @@
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <title>oxAuth</title>
+        <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+        <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/font-awesome.css"/>
+        <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600"/>
         <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/theme.xcss"/>
         <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/theme.css"/>
         <link type="text/css" rel="stylesheet" href="#{oxAuthConfigurationService.getCssLocation()}/site.css"/>
         <ui:insert name="head"/>
+        <style>
+            #footer {
+                padding: 30px 0 20px;
+                text-align: center;
+                border-top: 0;
+            }
+            .bs-docs-section{
+                margin: 0;
+                padding: 0;
+                border-top:0;
+            }
+        </style>
     </h:head>
     <h:body>
+
         <div class="body">
-            <a4j:status startText="Loading..."
-                        startStyle="background-color: #006699; color: white; font-weight: bold; position: fixed; left: 0px; top: 0px; padding: 5px 5px 5px 5px;"/>
-            <h:messages id="messages" globalOnly="true" styleClass="message"
-                        errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
-                        rendered="#{showGlobalMessages != 'false'}"/>
+            <nav class="navbar navbar-default">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-3">
+                            <div class="navbar-header">
+                                <ui:param name="client"
+                                          value="#{clientService.getClient(identity.sessionId.sessionAttributes['client_id'])}"/>
+                                <h:panelGroup rendered='#{!empty client.getLogoUri()}'>
+                                    <h:graphicImage url='#{client.getLogoUri()}'/>
+                                </h:panelGroup>
+                                <h:panelGroup rendered='#{empty client.getLogoUri()}'>
+                                    <a href="http://www.gluu.org/">
+
+                                        <h:graphicImage id="logoimg" url="../../img/logo.png"/>
+
+                                    </a>
+                                </h:panelGroup>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-9">
+                            <div class="nav navbar-nav navbar-right" style="padding-top: 30px">
+                                #{msgs['passport.needAGluuAccount']}
+                                <a class=""
+                                   href="../identity/register?redirectUri=https://support.gluu.org">Sign Up!</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="body">
+                <a4j:status startText="Loading..."
+                            startStyle="background-color: #006699; color: white; font-weight: bold; position: fixed; left: 0px; top: 0px; padding: 5px 5px 5px 5px;"/>
+                <h:messages id="messages" globalOnly="true" styleClass="message"
+                            errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
+                            rendered="#{showGlobalMessages != 'false'}"/>
+            </div>
+
             <ui:insert name="body"/>
         </div>
-        <div class="footer">
-            <p>
-                Powered by <a href="http://www.gluu.org">Gluu</a>. Free and open
-                source access management.
+        <footer id="footer">
+            <p style="text-align: center">
+                <h:outputText value="#{msgs['common.gluuInc']}"/>
+                , |
+                <h:outputText value="#{msgs['common.caution']}" escape="false"/>
             </p>
-        </div>
+        </footer>
     </h:body>
 </f:view>
 </html>
