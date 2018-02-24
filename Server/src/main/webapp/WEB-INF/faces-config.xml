@@ -16,7 +16,7 @@
         </locale-config>
 
         <resource-bundle>
-            <base-name>messages</base-name>
+            <base-name>org.xdi.oxauth.i18n.CustomResourceBundle</base-name>
             <var>msgs</var>
         </resource-bundle>
     </application>

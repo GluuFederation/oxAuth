@@ -63,10 +63,10 @@ public class LanguageBean implements Serializable {
     }
 
     public String getMessage(String key) {
+        FacesContext context = FacesContext.getCurrentInstance();
+        ResourceBundle bundle = context.getApplication().getResourceBundle(context, "msgs");
         String result;
         try {
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            ResourceBundle bundle = ResourceBundle.getBundle(BASE_NAME, new Locale(this.localeCode), loader);
             result = bundle.getString(key);
         } catch (MissingResourceException e) {
             result = "???" + key + "??? not found";
