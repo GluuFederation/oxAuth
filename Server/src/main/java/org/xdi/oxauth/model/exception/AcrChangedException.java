@@ -7,6 +7,8 @@ package org.xdi.oxauth.model.exception;
 
 public class AcrChangedException extends Exception {
 
+    private boolean methodEnabled=true;
+
     public AcrChangedException() {
     }
 
@@ -21,4 +23,13 @@ public class AcrChangedException extends Exception {
     public AcrChangedException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public boolean isMethodEnabled() {
+        return methodEnabled;
+    }
+
+    public void setMethodEnabled(boolean methodEnabled) {
+        this.methodEnabled = methodEnabled;
+    }
+
 }

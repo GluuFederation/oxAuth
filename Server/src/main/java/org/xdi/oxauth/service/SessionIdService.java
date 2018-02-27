@@ -145,7 +145,9 @@ public class SessionIdService {
 	                
 	                // Requested acr method which not enabled
 	                if (currentAcrLevel == null) {
-	                    throw new AcrChangedException();
+                        AcrChangedException ex=new AcrChangedException();
+                        ex.setMethodEnabled(false);
+                        throw ex;
 	                }
 
 	                if (sessionAcrLevel < currentAcrLevel) {

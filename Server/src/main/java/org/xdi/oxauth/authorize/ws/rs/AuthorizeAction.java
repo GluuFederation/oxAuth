@@ -203,7 +203,13 @@ public class AuthorizeAction {
         try {
             session = sessionIdService.assertAuthenticatedSessionCorrespondsToNewRequest(session, acrValues);
         } catch (AcrChangedException e) {
-            log.debug("There is already existing session which has another acr then {}, session: {}", acrValues, session.getId());
+            log.info("There is already existing session which has another acr then {}, session: {}", acrValues, session.getId());
+
+            if (e.isMethodEnabled() && !prompts.contains(Prompt.LOGIN)){
+                log.info("Adding prompt=login to prompts");
+                prompts.add(Prompt.LOGIN);
+            }
+
             if (prompts.contains(Prompt.LOGIN)) {
                 session = handleAcrChange(session, prompts);
             } else {
