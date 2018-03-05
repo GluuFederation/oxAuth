@@ -51,6 +51,7 @@ public class AppConfiguration implements Configuration {
     private int umaPctLifetime;
     private Boolean umaAddScopesAutomatically;
     private Boolean umaValidateClaimToken = false;
+    private int umaResourceLifetime;
 
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;
@@ -755,6 +756,14 @@ public class AppConfiguration implements Configuration {
 
     public void setUmaRptLifetime(int umaRptLifetime) {
         this.umaRptLifetime = umaRptLifetime;
+    }
+
+    public int getUmaResourceLifetime() {
+        return umaResourceLifetime;
+    }
+
+    public void setUmaResourceLifetime(int umaResourceLifetime) {
+        this.umaResourceLifetime = umaResourceLifetime;
     }
 
     public int getUmaPctLifetime() {
