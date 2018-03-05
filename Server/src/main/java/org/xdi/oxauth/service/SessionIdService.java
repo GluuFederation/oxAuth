@@ -143,9 +143,9 @@ public class SessionIdService {
 	                log.info("Acr is changed. Session acr: " + sessionAcr + "(level: " + sessionAcrLevel + "), " +
 	                        "current acr: " + acrValue + "(level: " + currentAcrLevel + ")");
 	                
-	                // Requested acr method which not enabled
+	                // Requested acr method not enabled
 	                if (currentAcrLevel == null) {
-                        AcrChangedException ex=new AcrChangedException();
+                        AcrChangedException ex = new AcrChangedException();
                         ex.setMethodEnabled(false);
                         throw ex;
 	                }

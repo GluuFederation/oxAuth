@@ -203,17 +203,11 @@ public class AuthorizeAction {
         try {
             session = sessionIdService.assertAuthenticatedSessionCorrespondsToNewRequest(session, acrValues);
         } catch (AcrChangedException e) {
-            log.info("There is already existing session which has another acr then {}, session: {}", acrValues, session.getId());
-
-            if (e.isMethodEnabled() && !prompts.contains(Prompt.LOGIN)){
-                log.info("Adding prompt=login to prompts");
-                prompts.add(Prompt.LOGIN);
-            }
-
-            if (prompts.contains(Prompt.LOGIN)) {
+            log.debug("There is already existing session which has another acr then {}, session: {}", acrValues, session.getId());
+            if (e.isMethodEnabled()) {
                 session = handleAcrChange(session, prompts);
             } else {
-                log.error("Please provide prompt=login to force login with new ACR or otherwise perform logout and re-authenticate.");
+                log.error("ACR is changed, please provide a supported and enabled acr value");
                 permissionDenied();
                 return;
             }
@@ -338,9 +332,19 @@ public class AuthorizeAction {
     }
 
     private SessionId handleAcrChange(SessionId session, List<Prompt> prompts) {
-        if (session != null && prompts.contains(Prompt.LOGIN)) { // change session state only if prompt=none
+        if (session != null) {
             if (session.getState() == SessionIdState.AUTHENTICATED) {
-                session.getSessionAttributes().put("prompt", prompt);
+
+                String sessionPrompts;
+                if (prompts.contains(Prompt.LOGIN)) {
+                    sessionPrompts = prompt;
+                } else {
+                    prompts.add(Prompt.LOGIN);
+                    sessionPrompts = session.getSessionAttributes().get("prompt");
+                    sessionPrompts = StringUtils.isEmpty(sessionPrompts) ? "" : (sessionPrompts + " ");
+                    sessionPrompts = sessionPrompts + Prompt.LOGIN.getParamName();
+                }
+                session.getSessionAttributes().put("prompt", sessionPrompts);
                 session.setState(SessionIdState.UNAUTHENTICATED);
 
                 // Update Remote IP
