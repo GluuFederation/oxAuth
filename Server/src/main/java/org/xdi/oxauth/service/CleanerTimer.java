@@ -21,6 +21,7 @@ import org.xdi.oxauth.service.fido.u2f.DeviceRegistrationService;
 import org.xdi.oxauth.service.fido.u2f.RequestService;
 import org.xdi.oxauth.uma.service.UmaPctService;
 import org.xdi.oxauth.uma.service.UmaPermissionService;
+import org.xdi.oxauth.uma.service.UmaResourceService;
 import org.xdi.oxauth.uma.service.UmaRptService;
 import org.xdi.service.cdi.async.Asynchronous;
 import org.xdi.service.cdi.event.Scheduled;
@@ -74,6 +75,9 @@ public class CleanerTimer {
     private UmaPermissionService umaPermissionService;
 
     @Inject
+    private UmaResourceService umaResourceService;
+
+    @Inject
     private SessionIdService sessionIdService;
 
     @Inject
@@ -124,6 +128,7 @@ public class CleanerTimer {
             this.umaRptService.cleanup(now);
             this.umaPermissionService.cleanup(now);
             this.umaPctService.cleanup(now);
+            this.umaResourceService.cleanup(now);
 
             processU2fRequests();
             processU2fDeviceRegistrations();
