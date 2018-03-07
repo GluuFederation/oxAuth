@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -94,8 +93,8 @@ public class IntrospectionWebService {
                             final User user = grantOfIntrospectionToken.getUser();
 
                             response.setActive(tokenToIntrospect.isValid());
-                            response.setExpiresAt(dateToSeconds(tokenToIntrospect.getExpirationDate()));
-                            response.setIssuedAt(dateToSeconds(tokenToIntrospect.getCreationDate()));
+                            response.setExpiresAt(ServerUtil.dateToSeconds(tokenToIntrospect.getExpirationDate()));
+                            response.setIssuedAt(ServerUtil.dateToSeconds(tokenToIntrospect.getCreationDate()));
                             response.setAcrValues(tokenToIntrospect.getAuthMode());
                             response.setScopes(grantOfIntrospectionToken.getScopes() != null ? grantOfIntrospectionToken.getScopes() : new ArrayList<String>()); // #433
                             response.setClientId(grantOfIntrospectionToken.getClientId());
@@ -166,7 +165,4 @@ public class IntrospectionWebService {
         return null;
     }
 
-    public static Integer dateToSeconds(Date date) {
-        return date != null ? (int) (date.getTime() / 1000) : null;
-    }
 }
