@@ -204,7 +204,7 @@ public class AuthorizeAction {
             session = sessionIdService.assertAuthenticatedSessionCorrespondsToNewRequest(session, acrValues);
         } catch (AcrChangedException e) {
             log.debug("There is already existing session which has another acr then {}, session: {}", acrValues, session.getId());
-            if (e.isMethodEnabled()) {
+            if (e.isForceReAuthentication()) {
                 session = handleAcrChange(session, prompts);
             } else {
                 log.error("ACR is changed, please provide a supported and enabled acr value");
@@ -335,16 +335,10 @@ public class AuthorizeAction {
         if (session != null) {
             if (session.getState() == SessionIdState.AUTHENTICATED) {
 
-                String sessionPrompts;
-                if (prompts.contains(Prompt.LOGIN)) {
-                    sessionPrompts = prompt;
-                } else {
+                if (!prompts.contains(Prompt.LOGIN)) {
                     prompts.add(Prompt.LOGIN);
-                    sessionPrompts = session.getSessionAttributes().get("prompt");
-                    sessionPrompts = StringUtils.isEmpty(sessionPrompts) ? "" : (sessionPrompts + " ");
-                    sessionPrompts = sessionPrompts + Prompt.LOGIN.getParamName();
                 }
-                session.getSessionAttributes().put("prompt", sessionPrompts);
+                session.getSessionAttributes().put("prompt", org.xdi.oxauth.model.util.StringUtils.implode(prompts, " "));
                 session.setState(SessionIdState.UNAUTHENTICATED);
 
                 // Update Remote IP
