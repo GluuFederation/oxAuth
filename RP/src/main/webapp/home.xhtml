@@ -921,16 +921,14 @@
 
 		</h:form>
 
-		<script type="text/javascript">
+<script type="text/javascript">
     //<![CDATA[
-    if (self.document.location.hash) {
-        var hash = self.document.location.hash.substring(1);
-        hash = decodeURI(hash.replace(/\+/g, " "));
-        var params = hash.split("&");
-
-        for (var i = 0; i < params.length; i++) {
+          var query = window.location.href;
+          var tokens= query.match(/\S[^?]*(?:\?+|$)/g);
+          var parameters=tokens[1];
+          var params = parameters.split("&");
+          for (var i = 0; i < params.length; i++) {
             var param = params[i].split("=");
-
             if (param[0] == "code") {
                 document.getElementById("mainForm:code").value = param[1];
             } else if (param[0] == "access_token") {
@@ -952,7 +950,6 @@
                 rp.src = rpIFrame;
             }
         }
-    }
     //]]>
 </script>
 
