@@ -11,6 +11,7 @@ from org.xdi.oxauth.service import UserService, AuthenticationService
 from org.xdi.service import MailService
 from org.xdi.util import ArrayHelper
 from org.xdi.util import StringHelper
+from java.util import Arrays
 
 import duo_web
 import json
@@ -181,12 +182,15 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
 
     def getExtraParametersForStep(self, configurationAttributes, step):
+        if step == 2:
+            return Arrays.asList("duo_count_login_steps", "cas2_user_uid")
+
         return None
 
     def getCountAuthenticationSteps(self, configurationAttributes):
         identity = CdiUtil.bean(Identity)
         if (identity.isSetWorkingParameter("duo_count_login_steps")):
-            return identity.getWorkingParameter("duo_count_login_steps")
+            return int(identity.getWorkingParameter("duo_count_login_steps"))
 
         return 2
 
