@@ -49,9 +49,9 @@ public class AppConfiguration implements Configuration {
     private Boolean umaRptAsJwt = false;
     private int umaRptLifetime;
     private int umaPctLifetime;
+    private int umaResourceLifetime;
     private Boolean umaAddScopesAutomatically;
     private Boolean umaValidateClaimToken = false;
-    private int umaResourceLifetime;
 
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;

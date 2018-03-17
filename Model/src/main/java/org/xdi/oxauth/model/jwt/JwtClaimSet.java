@@ -239,12 +239,12 @@ public abstract class JwtClaimSet {
         claims.put(key, subClaimObject);
     }
 
-    public void removeClaim(String key) {
-        claims.remove(key);
-    }
-
     public void setClaim(String key, JSONObject values) {
         claims.put(key, values);
+    }
+
+    public void removeClaim(String key) {
+        claims.remove(key);
     }
 
     public JSONObject toJsonObject() throws InvalidJwtException {
