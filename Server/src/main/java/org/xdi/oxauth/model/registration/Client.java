@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version July 18, 2017
+ * @version March 20, 2018
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -179,6 +179,9 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxDisabled")
     private boolean disabled;
+
+    @LdapAttribute(name = "oxAuthAuthorizedOrigins")
+    private String[] authorizedOrigins;
 
     public AuthenticationMethod getAuthenticationMethod() {
         return AuthenticationMethod.fromString(tokenEndpointAuthMethod);
@@ -1086,6 +1089,14 @@ public class Client implements Serializable {
 
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
+    }
+
+    public String[] getAuthorizedOrigins() {
+        return authorizedOrigins;
+    }
+
+    public void setAuthorizedOrigins(String[] authorizedOrigins) {
+        this.authorizedOrigins = authorizedOrigins;
     }
 
     public static Client instance() {
