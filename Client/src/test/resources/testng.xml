@@ -270,7 +270,7 @@
         </classes>
     </test>
 
-    <test name="Introspection test (HTTP)" enabled="true">
+    <test name="Introspection test (HTTP)" enabled="false">
         <classes>
             <class name="org.xdi.oxauth.ws.rs.IntrospectionWsHttpTest"/>
         </classes>
