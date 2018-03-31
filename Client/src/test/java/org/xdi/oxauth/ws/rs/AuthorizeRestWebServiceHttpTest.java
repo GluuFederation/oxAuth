@@ -33,7 +33,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
  * Functional tests for Authorize Web Services (HTTP)
  *
  * @author Javier Rojas Blum
- * @version April 2, 2018
+ * @version March 31, 2018
  */
 public class AuthorizeRestWebServiceHttpTest extends BaseTest {
 
