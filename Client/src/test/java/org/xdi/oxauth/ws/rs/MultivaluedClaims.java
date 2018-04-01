@@ -43,7 +43,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version October 26, 2017
+ * @version March 31, 2018
  */
 public class MultivaluedClaims extends BaseTest {
 
@@ -1417,7 +1417,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider();
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -1513,7 +1513,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -1610,7 +1610,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -1707,7 +1707,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -1805,7 +1805,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -1908,7 +1908,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2011,7 +2011,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2114,7 +2114,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2217,7 +2217,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2320,7 +2320,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Request authorization
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2422,7 +2422,7 @@ public class MultivaluedClaims extends BaseTest {
         String clientSecret = registerResponse.getClientSecret();
 
         // 2. Request authorization
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2520,7 +2520,7 @@ public class MultivaluedClaims extends BaseTest {
         String clientSecret = registerResponse.getClientSecret();
 
         // 2. Request authorization
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2630,7 +2630,7 @@ public class MultivaluedClaims extends BaseTest {
         JSONObject jwks = JwtUtil.getJSONWebKeys(jwksUri);
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2740,7 +2740,7 @@ public class MultivaluedClaims extends BaseTest {
         JSONObject jwks = JwtUtil.getJSONWebKeys(jwksUri);
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
@@ -2850,7 +2850,7 @@ public class MultivaluedClaims extends BaseTest {
         JSONObject jwks = JwtUtil.getJSONWebKeys(jwksUri);
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
 
-        List<String> scopes = Arrays.asList("openid");
+        List<String> scopes = Arrays.asList("openid", "profile");
         String nonce = UUID.randomUUID().toString();
         String state = UUID.randomUUID().toString();
 
