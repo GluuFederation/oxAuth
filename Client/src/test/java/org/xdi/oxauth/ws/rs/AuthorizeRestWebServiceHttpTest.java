@@ -33,7 +33,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
  * Functional tests for Authorize Web Services (HTTP)
  *
  * @author Javier Rojas Blum
- * @version March 31, 2018
+ * @version April 2, 2018
  */
 public class AuthorizeRestWebServiceHttpTest extends BaseTest {
 
@@ -2657,7 +2657,7 @@ public class AuthorizeRestWebServiceHttpTest extends BaseTest {
      * If a client has only openid scope and pairwise id, person should not have to authorize.
      */
     @Parameters({"userId", "userSecret", "redirectUris", "redirectUri", "sectorIdentifierUri"})
-    @Test
+    //@Test // Before run this test, set skipAuthorizationForOpenIdScopeAndPairwiseId = true
     public void requestAuthorizationForOpenIdScopeAndPairwiseId(
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
             final String sectorIdentifierUri) throws Exception {
