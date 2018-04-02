@@ -184,7 +184,7 @@
     "oxId":"https://${server.name}/oxid/service/gluu/inum",
     "dynamicRegistrationEnabled":true,
     "dynamicRegistrationExpirationTime":${config.client.dynamic-registration-expiration-time},
-    "dynamicRegistrationPersistClientAuthorizations":true,
+    "dynamicRegistrationPersistClientAuthorizations":false,
     "trustedClientEnabled":true,
     "skipAuthorizationForOpenIdScopeAndPairwiseId": true,
     "dynamicRegistrationScopesParamEnabled":true,

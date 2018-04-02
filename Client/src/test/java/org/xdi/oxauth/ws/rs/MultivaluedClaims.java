@@ -43,7 +43,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version October 26, 2017
+ * @version April 2, 2018
  */
 public class MultivaluedClaims extends BaseTest {
 
