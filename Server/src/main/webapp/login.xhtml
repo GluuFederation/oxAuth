@@ -146,6 +146,7 @@
 									rendered="#{sessionIdService.notSessionIdAuthenticated}">
 									
 						<h:messages style="color:red;" />
+                            <h:inputHidden id="platform"/>
 						
 						  <div class="form-group">
 							<h:outputLabel styleClass="col-sm-4 control-label"	for="username" value="#{msgs['login.username']}" />
@@ -166,6 +167,7 @@
 								<h:outputLabel styleClass="col-sm-4 control-label" for="rememberme" value="#{msgs['login.rememberMe']}" />
 								<div class="col-sm-8">
 									<input type="checkbox" value="rememberme" id="rememberme"/>
+                                    <h:inputHidden id="platform"/>
 								</div>
 							</div>
 						  
