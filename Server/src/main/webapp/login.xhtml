@@ -276,7 +276,7 @@
                     checkRemembeMe();
                 });
 
-    			document.getElementById("loginForm:platform").value = JSON.stringify(platform);
+                fillPlatformField();
     		});
 
     		function checkRemembeMe() {
@@ -291,6 +291,21 @@
                     localStorage.chkbx = '';
                 }
 			}
+
+            function fillPlatformField() {
+                //Fix browser version to contain major.minor portion only
+                try {
+                    re = /^([^\.]+\.[^\.]+)\..+/;
+                    //This will remember "33.0" in "33.0.1.2.3"
+                    result = re.exec(platform.version);
+                    if (result != null) {
+                        //There was a match against the regexp
+                        platform.version=result[1];
+                    }
+                } catch (e) {
+                }
+    			document.getElementById("loginForm:platform").value = JSON.stringify(platform);
+            }
         </script>
 	</ui:define>
 </ui:composition>
