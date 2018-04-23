@@ -1170,7 +1170,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         try:
             encService = CdiUtil.bean(EncryptionService)
-            #devicesInfo = encService.decrypt()
+            devicesInfo = encService.decrypt(devicesInfo)
             devicesInfo = json.loads(devicesInfo)
 
             partialMatch = False
@@ -1235,7 +1235,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 devicesInfo.append(obj)
 
             enc = json.dumps(devicesInfo, separators=(',',':'))
-            #enc = encService.encrypt(enc)
+            enc = encService.encrypt(enc)
             identity.setWorkingParameter("trustedDevicesInfo", enc)
         except:
             print "Cred-manager. process2FAPolicy. Error!", sys.exc_info()[1]
