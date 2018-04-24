@@ -41,7 +41,6 @@ from org.gluu.jsf2.message import FacesMessages
 from javax.faces.application import FacesMessage
 
 from com.google.android.gcm.server import Sender, Message
-from org.xdi.oxauth.service import EncryptionService
 from com.notnoop.apns import APNS
 from org.xdi.oxauth.service.push.sns import PushPlatform, PushSnsService
 from org.gluu.oxnotify.client import NotifyClientFactory
