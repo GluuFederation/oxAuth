@@ -111,8 +111,15 @@ class PersonAuthentication(PersonAuthenticationType):
         try:
             return user_profile[remote_attr]
         except Exception, err:
-            print("Passport-social: Exception inside getUserValueFromJwt " + str(err))
+            print "Passport-social: Exception inside getUserValueFromJwt : %s" %err
             return None
+
+    def makeAllUserProfilekeyLowerCase(self, user_profile):
+        data = {}
+        for key in user_profile.keys():
+            data[key.lower()] = user_profile[key]
+
+        return data     
 
     def authenticate(self, configurationAttributes, requestParameters, step):
         extensionResult = self.extensionAuthenticate(configurationAttributes, requestParameters, step)
@@ -176,6 +183,11 @@ class PersonAuthentication(PersonAuthenticationType):
                 return False
             
             user_profile = json.loads(user_profile_json)
+
+
+            # lower case user_profile keys(Necessary maximaze attribute retrieval)
+            user_profile = self.makeAllUserProfilekeyLowerCase(user_profile)
+
                 
             # Store user profile in session
             print "Passport-social: Authenticate for step 1. User profile: '%s'" % user_profile_json
@@ -228,11 +240,15 @@ class PersonAuthentication(PersonAuthenticationType):
 
                         if (localAttribute != None) and (localAttribute != "provider") and (localAttributeValue != "undefined"):
                             try:
-                                value = foundUser.getAttributeValues(str(localAttribute))[0]
+                                value = None
+                                values= foundUser.getAttributeValues(str(localAttribute));
+                                if values != None:
+                                    value = values[0]
                                 if value != localAttributeValue:
                                     foundUser.setAttribute(localAttribute, localAttributeValue)
                             except Exception, err:
-                                print("Error in update Attribute " + str(err))
+                                print "Error in update Attribute %s " %localAttribute
+                                print("Error message: " + str(err))
 
                     try:
                         foundUserName = foundUser.getUserId()
