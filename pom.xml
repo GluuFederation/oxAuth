@@ -17,6 +17,7 @@
 		<oxcore.version>3.1.4-SNAPSHOT</oxcore.version>
 		<oxeleven.version>3.1.4-SNAPSHOT</oxeleven.version>
 		<oxnotify.version>3.1.4-SNAPSHOT</oxnotify.version>
+		<oxlicense.version>3.1.4-SNAPSHOT</oxlicense.version>
 
 		<jackson.version>2.9.5</jackson.version>
 		<jackson.databind.version>2.9.5</jackson.databind.version>
@@ -179,6 +180,16 @@
 				<groupId>org.gluu</groupId>
 				<artifactId>oxnotify-model</artifactId>
 				<version>${oxnotify.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.xdi</groupId>
+				<artifactId>oxlicense-client</artifactId>
+				<version>${oxlicense.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.xdi</groupId>
+				<artifactId>oxlicense-validator</artifactId>
+				<version>${oxlicense.version}</version>
 			</dependency>
 
 			<!-- Weld -->
