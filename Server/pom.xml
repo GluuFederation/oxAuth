@@ -336,6 +336,12 @@
 			<artifactId>rewrite-config-prettyfaces</artifactId>
 		</dependency>
 
+			<!-- OmniFaces -->
+		<dependency>
+			<groupId>org.omnifaces</groupId>
+			<artifactId>omnifaces</artifactId>
+		</dependency>
+
 		<!-- Commons libs -->
 		<dependency>
 			<groupId>org.antlr</groupId>
