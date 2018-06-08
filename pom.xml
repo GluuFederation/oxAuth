@@ -268,13 +268,6 @@
 			    <version>3.4.1.Final</version>
 			</dependency>
 
-			<!-- OmniFaces -->
-			<dependency>
-			    <groupId>org.omnifaces</groupId>
-			    <artifactId>omnifaces</artifactId>
-			    <version>${omnifaces.version}</version>
-			</dependency>
-
 			<!-- Commons libs -->
 			<dependency>
 				<groupId>commons-codec</groupId>
