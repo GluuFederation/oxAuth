@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -149,6 +149,9 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxAuthScope")
     private String[] scopes;
+
+    @LdapAttribute(name = "oxAuthClaim")
+    private String[] claims;
 
     @LdapAttribute(name = "oxAuthTrustedClient")
     private boolean trustedClient;
@@ -989,6 +992,14 @@ public class Client implements Serializable {
 
     public void setScopes(String[] scopes) {
         this.scopes = scopes;
+    }
+
+    public String[] getClaims() {
+        return claims;
+    }
+
+    public void setClaims(String[] claims) {
+        this.claims = claims;
     }
 
     public boolean getTrustedClient() {

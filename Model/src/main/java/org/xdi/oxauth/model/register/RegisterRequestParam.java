@@ -13,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 
 public enum RegisterRequestParam {
@@ -228,6 +228,11 @@ public enum RegisterRequestParam {
      * @deprecated This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
      */
     SCOPES("scopes"),
+
+    /**
+     * String containing a space-separated list of claims that can be requested individually.
+     */
+    CLAIMS("claims"),
 
     /**
      * String containing a space-separated list of scope values.
