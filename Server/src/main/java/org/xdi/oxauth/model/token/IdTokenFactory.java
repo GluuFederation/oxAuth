@@ -62,7 +62,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 5, 2017
+ * @version June 30, 2018
  */
 @Stateless
 @Named
@@ -254,10 +254,11 @@ public class IdTokenFactory {
             }
 
             String userInum = authorizationGrant.getUser().getAttribute("inum");
+            String clientId = authorizationGrant.getClientId();
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
-                    userInum, sectorIdentifierUri);
+                    userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
@@ -438,10 +439,11 @@ public class IdTokenFactory {
             }
 
             String userInum = authorizationGrant.getUser().getAttribute("inum");
+            String clientId = authorizationGrant.getClientId();
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
-                    userInum, sectorIdentifierUri);
+                    userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
