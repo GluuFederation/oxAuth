@@ -302,9 +302,9 @@
                         //There was a match against the regexp
                         platform.version=result[1];
                     }
+    			    document.getElementById("loginForm:platform").value = JSON.stringify(platform);
                 } catch (e) {
                 }
-    			document.getElementById("loginForm:platform").value = JSON.stringify(platform);
             }
         </script>
 	</ui:define>
