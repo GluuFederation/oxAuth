@@ -103,7 +103,7 @@ public class IntrospectionWebService {
                             response.setAcrValues(grantOfIntrospectionToken.getAcrValues());
                             response.setScopes(grantOfIntrospectionToken.getScopes() != null ? grantOfIntrospectionToken.getScopes() : new ArrayList<String>()); // #433
                             response.setClientId(grantOfIntrospectionToken.getClientId());
-                            response.setSub(getSub(grantOfIntrospectionToken));
+                            response.setSubject(getSub(grantOfIntrospectionToken));
                             response.setUsername(user != null ? user.getAttribute("displayName") : null);
                             response.setIssuer(appConfiguration.getIssuer());
                             response.setAudience(grantOfIntrospectionToken.getClientId());

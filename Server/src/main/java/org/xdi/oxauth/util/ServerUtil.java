@@ -33,6 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -235,6 +236,10 @@ public class ServerUtil {
     	URL parsedUrl2 = new URL(url2);
     	
     	return parsedUrl1.getPath().endsWith(parsedUrl2.getPath());
+    }
+
+    public static Integer dateToSeconds(Date date) {
+        return date != null ? (int) (date.getTime() / 1000) : null;
     }
 
 }

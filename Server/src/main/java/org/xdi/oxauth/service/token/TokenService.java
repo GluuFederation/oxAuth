@@ -44,6 +44,13 @@ public class TokenService {
         return null;
     }
 
+    public AuthorizationGrant getAuthorizationGrantByPrefix(String authorization, String prefix) {
+        if (StringUtils.startsWithIgnoreCase(authorization, prefix)) {
+            return authorizationGrantList.getAuthorizationGrantByAccessToken(authorization.substring(prefix.length()));
+        }
+        return null;
+    }
+
     public String getClientDn(String p_authorization) {
         final AuthorizationGrant grant = getAuthorizationGrant(p_authorization);
         if (grant != null) {
