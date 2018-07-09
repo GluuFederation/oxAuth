@@ -553,6 +553,11 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- Test: Arquillian container and extensions -->
 		<dependency>
