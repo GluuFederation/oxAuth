@@ -1,7 +1,7 @@
 package org.xdi.oxauth.uma.service;
 
+import com.google.common.collect.Lists;
 import com.ocpsoft.pretty.faces.util.StringUtils;
-import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.JsonLogic;
@@ -88,7 +88,7 @@ public class UmaExpressionService {
                     List<Boolean> evaluatedResults = new ArrayList<Boolean>();
                     for (String scopeId : dataScopes) {
                         log.trace("Evaluating scope result for scope: " + scopeId + " ...");
-                        boolean b = evaluateByScopes(filterByScopeDns(scriptMap, permission.getScopeDns()));
+                        boolean b = evaluateByScopes(filterByScopeDns(scriptMap, Lists.newArrayList(scopeIdToDnMap.get(scopeId))));
                         log.trace("Evaluated scope result: " + b + ", scope: " + scopeId);
                         evaluatedResults.add(b);
                     }
