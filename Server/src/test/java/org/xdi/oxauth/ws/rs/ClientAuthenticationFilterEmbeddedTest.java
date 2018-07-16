@@ -81,7 +81,7 @@ public class ClientAuthenticationFilterEmbeddedTest extends BaseTest {
 
 		showResponse("requestClientRegistrationWithCustomAttributes", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
