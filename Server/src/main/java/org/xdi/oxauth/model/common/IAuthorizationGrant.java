@@ -6,12 +6,14 @@
 
 package org.xdi.oxauth.model.common;
 
+import com.google.common.base.Function;
 import org.xdi.oxauth.model.authorize.JwtAuthorizationRequest;
 import org.xdi.oxauth.model.exception.InvalidClaimException;
 import org.xdi.oxauth.model.exception.InvalidJweException;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
 import org.xdi.oxauth.model.ldap.TokenLdap;
 import org.xdi.oxauth.model.registration.Client;
+import org.xdi.oxauth.model.token.JsonWebResponse;
 import org.xdi.util.security.StringEncrypter;
 
 import java.security.InvalidKeyException;
@@ -47,7 +49,7 @@ public interface IAuthorizationGrant {
     public RefreshToken createRefreshToken();
 
     public IdToken createIdToken(String nonce, AuthorizationCode authorizationCode, AccessToken accessToken,
-                                 AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims)
+                                 AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing)
             throws SignatureException, StringEncrypter.EncryptionException, InvalidJwtException, InvalidJweException,
             InvalidClaimException, InvalidKeyException, NoSuchAlgorithmException;
 
