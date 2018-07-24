@@ -1,3 +1,3 @@
-# ThumbSignIn_WebPackage
+# ThumbSignIn UI Files
 
-This Project contains the UI files to handle ThumbSignIn autentication and registration flow.
+This folder contains the UI files to handle ThumbSignIn autentication and registration flow.
