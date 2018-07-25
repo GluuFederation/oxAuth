@@ -45,7 +45,7 @@ import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
  * Functional tests for User Info Web Services (embedded)
  *
  * @author Javier Rojas Blum
- * @version July 19, 2018
+ * @version July 25, 2018
  */
 public class UserInfoRestWebServiceEmbeddedTest extends BaseTest {
 
@@ -415,7 +415,7 @@ public class UserInfoRestWebServiceEmbeddedTest extends BaseTest {
 
         List<ResponseType> responseTypes = new ArrayList<ResponseType>();
         responseTypes.add(ResponseType.TOKEN);
-        List<String> scopes = Arrays.asList("profile");
+        List<String> scopes = Arrays.asList("picture");
         String nonce = UUID.randomUUID().toString();
 
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
