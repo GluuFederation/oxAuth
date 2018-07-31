@@ -1,12 +1,6 @@
 package org.xdi.oxauth.service;
 
-import java.net.URI;
-import java.util.List;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-
+import com.unboundid.ldap.sdk.Filter;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
 import org.xdi.ldap.model.SimpleBranch;
@@ -16,11 +10,15 @@ import org.xdi.oxauth.model.ldap.PairwiseIdentifier;
 import org.xdi.oxauth.model.util.SubjectIdentifierGenerator;
 import org.xdi.util.StringHelper;
 
-import com.unboundid.ldap.sdk.Filter;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.net.URI;
+import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version July 31, 2016
+ * @version June 30, 2018
  */
 @Stateless
 @Named
@@ -57,7 +55,7 @@ public class PairwiseIdentifierService {
         }
     }
 
-    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifierUri) throws Exception {
+    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifierUri, String clientId) throws Exception {
         PairwiseIdType pairwiseIdType = PairwiseIdType.fromString(appConfiguration.getPairwiseIdType());
         String sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
 
@@ -65,7 +63,10 @@ public class PairwiseIdentifierService {
             prepareBranch(userInum);
 
             String baseDnForPairwiseIdentifiers = getBaseDnForPairwiseIdentifiers(userInum);
-            Filter filter = Filter.createEqualityFilter("oxSectorIdentifier", sectorIdentifier);
+            Filter sectorIdentifierFilter = Filter.createEqualityFilter("oxSectorIdentifier", sectorIdentifier);
+            Filter clientIdFilter = Filter.createEqualityFilter("oxAuthClientId", clientId);
+
+            Filter filter = Filter.createANDFilter(sectorIdentifierFilter, clientIdFilter);
 
             List<PairwiseIdentifier> entries = ldapEntryManager.findEntries(baseDnForPairwiseIdentifiers, PairwiseIdentifier.class, filter);
             if (entries != null && !entries.isEmpty()) {
@@ -81,11 +82,12 @@ public class PairwiseIdentifierService {
         } else { // PairwiseIdType.ALGORITHMIC
             String key = appConfiguration.getPairwiseCalculationKey();
             String salt = appConfiguration.getPairwiseCalculationSalt();
+            String localAccountId = userInum + clientId;
 
             String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(
-                    sectorIdentifierUri, userInum, key, salt, appConfiguration);
+                    sectorIdentifierUri, localAccountId, key, salt, appConfiguration);
 
-            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
+            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
             pairwiseIdentifier.setId(calculatedSub);
 
             return pairwiseIdentifier;

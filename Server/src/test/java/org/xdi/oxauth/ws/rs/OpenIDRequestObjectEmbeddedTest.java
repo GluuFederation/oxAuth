@@ -323,7 +323,7 @@ public class OpenIDRequestObjectEmbeddedTest extends BaseTest {
 		Builder request = null;
 		try {
 			List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN);
-			List<String> scopes = Arrays.asList("openid");
+			List<String> scopes = Arrays.asList("openid", "profile");
 			String nonce = UUID.randomUUID().toString();
 
 			AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId2, scopes,
@@ -1066,7 +1066,7 @@ public class OpenIDRequestObjectEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodAlgNoneStep1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId3 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}

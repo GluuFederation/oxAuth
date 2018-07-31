@@ -87,7 +87,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS256Step1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId1 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
@@ -191,7 +191,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS384Step1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId2 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
@@ -295,7 +295,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS512Step1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId3 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
@@ -399,7 +399,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS256X509CertStep1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId4 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
@@ -504,7 +504,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS384X509CertStep1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId5 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}
@@ -608,7 +608,7 @@ public class OpenIDRequestObjectWithRSAlgEmbeddedTest extends BaseTest {
 
 		showResponse("requestParameterMethodRS512X509CertStep1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId6 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}

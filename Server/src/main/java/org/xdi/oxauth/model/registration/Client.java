@@ -7,6 +7,7 @@
 package org.xdi.oxauth.model.registration;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gluu.site.ldap.persistence.annotation.*;
 import org.xdi.ldap.model.CustomAttribute;
 import org.xdi.oxauth.model.common.AuthenticationMethod;
@@ -21,7 +22,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -71,6 +72,9 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "displayName")
     private String clientName;
+
+    @LdapAttribute(name = "oxIdTokenTokenBindingCnf")
+    private String idTokenTokenBindingCnf;
 
     @LdapAttribute(name = "oxAuthLogoURI")
     private String logoUri;
@@ -149,6 +153,9 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxAuthScope")
     private String[] scopes;
+
+    @LdapAttribute(name = "oxAuthClaim")
+    private String[] claims;
 
     @LdapAttribute(name = "oxAuthTrustedClient")
     private boolean trustedClient;
@@ -493,6 +500,18 @@ public class Client implements Serializable {
      */
     public void setClientName(String clientName) {
         this.clientName = clientName;
+    }
+
+    public String getIdTokenTokenBindingCnf() {
+        return idTokenTokenBindingCnf;
+    }
+
+    public void setIdTokenTokenBindingCnf(String idTokenTokenBindingCnf) {
+        this.idTokenTokenBindingCnf = idTokenTokenBindingCnf;
+    }
+
+    public boolean isTokenBindingSupported() {
+        return StringUtils.isNotBlank(idTokenTokenBindingCnf);
     }
 
     /**
@@ -989,6 +1008,14 @@ public class Client implements Serializable {
 
     public void setScopes(String[] scopes) {
         this.scopes = scopes;
+    }
+
+    public String[] getClaims() {
+        return claims;
+    }
+
+    public void setClaims(String[] claims) {
+        this.claims = claims;
     }
 
     public boolean getTrustedClient() {

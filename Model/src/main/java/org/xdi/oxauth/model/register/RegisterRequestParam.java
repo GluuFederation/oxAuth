@@ -13,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 
 public enum RegisterRequestParam {
@@ -228,6 +228,16 @@ public enum RegisterRequestParam {
      * @deprecated This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
      */
     SCOPES("scopes"),
+
+    /**
+     * String containing a space-separated list of claims that can be requested individually.
+     */
+    CLAIMS("claims"),
+
+    /**
+     * Optional string value specifying the JWT Confirmation Method member name (e.g. tbh) that the Relying Party expects when receiving Token Bound ID Tokens. The presence of this parameter indicates that the Relying Party supports Token Binding of ID Tokens. If omitted, the default is that the Relying Party does not support Token Binding of ID Tokens.
+     */
+    ID_TOKEN_TOKEN_BINDING_CNF("id_token_token_binding_cnf"),
 
     /**
      * String containing a space-separated list of scope values.

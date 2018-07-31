@@ -72,7 +72,7 @@ public class JwkRestWebServiceEmbeddedTest extends BaseTest {
 
             JwtClaims claims = new JwtClaims();
             claims.setClaim("test_claim", jobj);
-            assertEquals(jobj, claims.toJsonObject());
+            assertEquals(jobj, claims.toJsonObject().get("test_claim"));
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -83,7 +83,7 @@ public class JwkRestWebServiceEmbeddedTest extends BaseTest {
         try {
             JwtClaims claims = new JwtClaims();
             claims.setClaim("test_claim", 123);
-            assertEquals("{\"test_claim\":123}", claims.toJsonObject());
+            assertEquals("{\"test_claim\":123}", claims.toJsonObject().toString());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -94,7 +94,7 @@ public class JwkRestWebServiceEmbeddedTest extends BaseTest {
         try {
             JwtClaims claims = new JwtClaims();
             claims.setClaim("test_claim", Arrays.asList(123, 456, 789));
-            assertEquals("{\"test_claim\":[123,456,789]}", claims.toJsonObject());
+            assertEquals("{\"test_claim\":[123,456,789]}", claims.toJsonObject().toString());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -105,7 +105,7 @@ public class JwkRestWebServiceEmbeddedTest extends BaseTest {
         try {
             JwtClaims claims = new JwtClaims();
             claims.setClaim("test_claim", Arrays.asList("qwe", "asd", "zxc"));
-            assertEquals("{\"test_claim\":[\"qwe\",\"asd\",\"zxc\"]}", claims.toJsonObject());
+            assertEquals("{\"test_claim\":[\"qwe\",\"asd\",\"zxc\"]}", claims.toJsonObject().toString());
         } catch (Exception ex) {
             fail(ex.getMessage());
         }

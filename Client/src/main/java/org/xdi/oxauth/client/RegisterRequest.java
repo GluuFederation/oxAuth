@@ -32,7 +32,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toJSONArray;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 public class RegisterRequest extends BaseRequest {
 
@@ -53,6 +53,7 @@ public class RegisterRequest extends BaseRequest {
     private String jwksUri;
     private String jwks;
     private String sectorIdentifierUri;
+    private String idTokenTokenBindingCnf;
     private SubjectType subjectType;
     private SignatureAlgorithm idTokenSignedResponseAlg;
     private KeyEncryptionAlgorithm idTokenEncryptedResponseAlg;
@@ -83,6 +84,11 @@ public class RegisterRequest extends BaseRequest {
      */
     private List<String> scope;
 
+    /**
+     * String containing a space-separated list of claims that can be requested individually.
+     */
+    private List<String> claims;
+
     private Date clientSecretExpiresAt;
     private Map<String, String> customAttributes;
 
@@ -107,6 +113,8 @@ public class RegisterRequest extends BaseRequest {
         this.requestUris = new ArrayList<String>();
         this.authorizedOrigins = new ArrayList<String>();
         this.scopes = new ArrayList<String>();
+        this.scope = new ArrayList<String>();
+        this.claims = new ArrayList<String>();
         this.customAttributes = new HashMap<String, String>();
     }
 
@@ -299,6 +307,13 @@ public class RegisterRequest extends BaseRequest {
         this.applicationType = applicationType;
     }
 
+    public String getIdTokenTokenBindingCnf() {
+        return idTokenTokenBindingCnf;
+    }
+
+    public void setIdTokenTokenBindingCnf(String idTokenTokenBindingCnf) {
+        this.idTokenTokenBindingCnf = idTokenTokenBindingCnf;
+    }
 
     /**
      * Returns a list of e-mail addresses for people allowed to administer the information
@@ -863,6 +878,14 @@ public class RegisterRequest extends BaseRequest {
         this.scope = scope;
     }
 
+    public List<String> getClaims() {
+        return claims;
+    }
+
+    public void setClaims(List<String> claims) {
+        this.claims = claims;
+    }
+
     public String getHttpMethod() {
         return httpMethod;
     }
@@ -1008,6 +1031,12 @@ public class RegisterRequest extends BaseRequest {
         if (scope != null && !scope.isEmpty()) {
             parameters.put(SCOPE.toString(), implode(scope, " "));
         }
+        if (StringUtils.isNotBlank(idTokenTokenBindingCnf)) {
+            parameters.put(ID_TOKEN_TOKEN_BINDING_CNF.toString(), idTokenTokenBindingCnf);
+        }
+        if (claims != null && !claims.isEmpty()) {
+            parameters.put(CLAIMS.toString(), implode(claims, " "));
+        }
         if (clientSecretExpiresAt != null) {
             parameters.put(CLIENT_SECRET_EXPIRES_AT_.toString(), Long.toString(clientSecretExpiresAt.getTime()));
         }
@@ -1127,6 +1156,17 @@ public class RegisterRequest extends BaseRequest {
             }
         }
 
+        final List<String> claims = new ArrayList<String>();
+        if (requestObject.has(CLAIMS.toString())) {
+            String claimsString = requestObject.getString(CLAIMS.toString());
+            String[] claimsArray = claimsString.split(" ");
+            for (String c : claimsArray) {
+                if (StringUtils.isNotBlank(c)) {
+                    claims.add(c);
+                }
+            }
+        }
+
         final List<String> frontChannelLogoutUris = new ArrayList<String>();
         if (requestObject.has(FRONT_CHANNEL_LOGOUT_URI.toString())) {
             try {
@@ -1185,12 +1225,14 @@ public class RegisterRequest extends BaseRequest {
         result.setRedirectUris(redirectUris);
         result.setScopes(scope);
         result.setScope(scope);
+        result.setClaims(claims);
         result.setResponseTypes(new ArrayList<ResponseType>(responseTypes));
         result.setGrantTypes(new ArrayList<GrantType>(grantTypes));
         result.setApplicationType(requestObject.has(APPLICATION_TYPE.toString()) ?
                 ApplicationType.fromString(requestObject.getString(APPLICATION_TYPE.toString())) : ApplicationType.WEB);
         result.setContacts(contacts);
         result.setClientName(requestObject.optString(CLIENT_NAME.toString()));
+        result.setIdTokenTokenBindingCnf(requestObject.optString(ID_TOKEN_TOKEN_BINDING_CNF.toString(), ""));
         result.setLogoUri(requestObject.optString(LOGO_URI.toString()));
         result.setClientUri(requestObject.optString(CLIENT_URI.toString()));
         result.setPolicyUri(requestObject.optString(POLICY_URI.toString()));
@@ -1227,6 +1269,9 @@ public class RegisterRequest extends BaseRequest {
         }
         if (StringUtils.isNotBlank(clientName)) {
             parameters.put(CLIENT_NAME.toString(), clientName);
+        }
+        if (StringUtils.isNotBlank(idTokenTokenBindingCnf)) {
+            parameters.put(ID_TOKEN_TOKEN_BINDING_CNF.toString(), idTokenTokenBindingCnf);
         }
         if (StringUtils.isNotBlank(logoUri)) {
             parameters.put(LOGO_URI.toString(), logoUri);
@@ -1317,6 +1362,9 @@ public class RegisterRequest extends BaseRequest {
         }
         if (scope != null && !scope.isEmpty()) {
             parameters.put(SCOPE.toString(), implode(scope, " "));
+        }
+        if (claims != null && !claims.isEmpty()) {
+            parameters.put(CLAIMS.toString(), implode(claims, " "));
         }
         if (clientSecretExpiresAt != null) {
             parameters.put(CLIENT_SECRET_EXPIRES_AT_.toString(), clientSecretExpiresAt.getTime());

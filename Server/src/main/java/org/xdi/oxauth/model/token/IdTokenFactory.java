@@ -6,6 +6,7 @@
 
 package org.xdi.oxauth.model.token;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -62,7 +63,7 @@ import java.util.*;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 5, 2017
+ * @version June 30, 2018
  */
 @Stateless
 @Named
@@ -94,7 +95,7 @@ public class IdTokenFactory {
 
     public Jwt generateSignedIdToken(IAuthorizationGrant authorizationGrant, String nonce,
                                      AuthorizationCode authorizationCode, AccessToken accessToken,
-                                     Set<String> scopes, boolean includeIdTokenClaims) throws Exception {
+                                     Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
 
         JwtSigner jwtSigner = JwtSigner.newJwtSigner(appConfiguration, webKeysConfiguration, authorizationGrant.getClient());
         Jwt jwt = jwtSigner.newJwt();
@@ -107,6 +108,10 @@ public class IdTokenFactory {
 
         jwt.getClaims().setExpirationTime(expiration);
         jwt.getClaims().setIssuedAt(issuedAt);
+
+        if (preProcessing != null) {
+            preProcessing.apply(jwt);
+        }
 
         if (authorizationGrant.getAcrValues() != null) {
             jwt.getClaims().setClaim(JwtClaimName.AUTHENTICATION_CONTEXT_CLASS_REFERENCE, authorizationGrant.getAcrValues());
@@ -221,22 +226,26 @@ public class IdTokenFactory {
                 GluuAttribute gluuAttribute = attributeService.getByClaimName(claim.getName());
 
                 if (gluuAttribute != null) {
-                    String ldapClaimName = gluuAttribute.getName();
-                    Object attribute = authorizationGrant.getUser().getAttribute(ldapClaimName, optional);
-                    if (attribute != null) {
-                        if (attribute instanceof JSONArray) {
-                            JSONArray jsonArray = (JSONArray) attribute;
-                            List<String> values = new ArrayList<String>();
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                String value = jsonArray.optString(i);
-                                if (value != null) {
-                                    values.add(value);
+                    Client client = authorizationGrant.getClient();
+
+                    if (validateRequesteClaim(gluuAttribute, client.getClaims(), scopes)) {
+                        String ldapClaimName = gluuAttribute.getName();
+                        Object attribute = authorizationGrant.getUser().getAttribute(ldapClaimName, optional);
+                        if (attribute != null) {
+                            if (attribute instanceof JSONArray) {
+                                JSONArray jsonArray = (JSONArray) attribute;
+                                List<String> values = new ArrayList<String>();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    String value = jsonArray.optString(i);
+                                    if (value != null) {
+                                        values.add(value);
+                                    }
                                 }
+                                jwt.getClaims().setClaim(claim.getName(), values);
+                            } else {
+                                String value = (String) attribute;
+                                jwt.getClaims().setClaim(claim.getName(), value);
                             }
-                            jwt.getClaims().setClaim(claim.getName(), values);
-                        } else {
-                            String value = (String) attribute;
-                            jwt.getClaims().setClaim(claim.getName(), value);
                         }
                     }
                 }
@@ -254,10 +263,11 @@ public class IdTokenFactory {
             }
 
             String userInum = authorizationGrant.getUser().getAttribute("inum");
+            String clientId = authorizationGrant.getClientId();
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
-                    userInum, sectorIdentifierUri);
+                    userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
@@ -309,7 +319,7 @@ public class IdTokenFactory {
 
     public Jwe generateEncryptedIdToken(
             IAuthorizationGrant authorizationGrant, String nonce, AuthorizationCode authorizationCode,
-            AccessToken accessToken, Set<String> scopes, boolean includeIdTokenClaims) throws Exception {
+            AccessToken accessToken, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
         Jwe jwe = new Jwe();
 
         // Header
@@ -331,6 +341,10 @@ public class IdTokenFactory {
 
         jwe.getClaims().setExpirationTime(expiration);
         jwe.getClaims().setIssuedAt(issuedAt);
+
+        if (preProcessing != null) {
+            preProcessing.apply(jwe);
+        }
 
         if (authorizationGrant.getAcrValues() != null) {
             jwe.getClaims().setClaim(JwtClaimName.AUTHENTICATION_CONTEXT_CLASS_REFERENCE, authorizationGrant.getAcrValues());
@@ -405,22 +419,26 @@ public class IdTokenFactory {
                 GluuAttribute gluuAttribute = attributeService.getByClaimName(claim.getName());
 
                 if (gluuAttribute != null) {
-                    String ldapClaimName = gluuAttribute.getName();
-                    Object attribute = authorizationGrant.getUser().getAttribute(ldapClaimName, optional);
-                    if (attribute != null) {
-                        if (attribute instanceof JSONArray) {
-                            JSONArray jsonArray = (JSONArray) attribute;
-                            List<String> values = new ArrayList<String>();
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                String value = jsonArray.optString(i);
-                                if (value != null) {
-                                    values.add(value);
+                    Client client = authorizationGrant.getClient();
+
+                    if (validateRequesteClaim(gluuAttribute, client.getClaims(), scopes)) {
+                        String ldapClaimName = gluuAttribute.getName();
+                        Object attribute = authorizationGrant.getUser().getAttribute(ldapClaimName, optional);
+                        if (attribute != null) {
+                            if (attribute instanceof JSONArray) {
+                                JSONArray jsonArray = (JSONArray) attribute;
+                                List<String> values = new ArrayList<String>();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    String value = jsonArray.optString(i);
+                                    if (value != null) {
+                                        values.add(value);
+                                    }
                                 }
+                                jwe.getClaims().setClaim(claim.getName(), values);
+                            } else {
+                                String value = attribute.toString();
+                                jwe.getClaims().setClaim(claim.getName(), value);
                             }
-                            jwe.getClaims().setClaim(claim.getName(), values);
-                        } else {
-                            String value = attribute.toString();
-                            jwe.getClaims().setClaim(claim.getName(), value);
                         }
                     }
                 }
@@ -438,10 +456,11 @@ public class IdTokenFactory {
             }
 
             String userInum = authorizationGrant.getUser().getAttribute("inum");
+            String clientId = authorizationGrant.getClientId();
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
-                    userInum, sectorIdentifierUri);
+                    userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
@@ -500,17 +519,43 @@ public class IdTokenFactory {
 
     public JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce, AuthorizationCode authorizationCode, AccessToken accessToken,
-            Set<String> scopes, boolean includeIdTokenClaims)
+            Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing)
             throws Exception {
         final Client grantClient = grant.getClient();
         if (grantClient != null && grantClient.getIdTokenEncryptedResponseAlg() != null
                 && grantClient.getIdTokenEncryptedResponseEnc() != null) {
             return generateEncryptedIdToken(
-                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims);
+                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims, preProcessing);
         } else {
             return generateSignedIdToken(
-                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims);
+                    grant, nonce, authorizationCode, accessToken, scopes, includeIdTokenClaims, preProcessing);
         }
+    }
+
+    public boolean validateRequesteClaim(GluuAttribute gluuAttribute, String[] clientAllowedClaims, Collection<String> scopes) {
+        if (gluuAttribute != null) {
+            if (clientAllowedClaims != null) {
+                for (int i = 0; i < clientAllowedClaims.length; i++) {
+                    if (gluuAttribute.getDn().equals(clientAllowedClaims[i])) {
+                        return true;
+                    }
+                }
+            }
+
+            for (String scopeName : scopes) {
+                org.xdi.oxauth.model.common.Scope scope = scopeService.getScopeByDisplayName(scopeName);
+
+                if (scope != null && scope.getOxAuthClaims() != null) {
+                    for (String claimDn : scope.getOxAuthClaims()) {
+                        if (gluuAttribute.getDisplayName().equals(attributeService.getAttributeByDn(claimDn).getDisplayName())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 }

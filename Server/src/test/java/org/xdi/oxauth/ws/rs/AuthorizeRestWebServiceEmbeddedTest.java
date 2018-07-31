@@ -30,7 +30,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static org.testng.Assert.*;
-import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
 
 /**
  * Functional tests for Authorize Web Services (embedded)
@@ -1017,7 +1016,7 @@ public class AuthorizeRestWebServiceEmbeddedTest extends BaseTest {
 
 		showResponse("requestAuthorizationCodeWithoutRedirectUriStep1", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = new ResponseAsserter(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId2 = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}

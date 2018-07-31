@@ -70,6 +70,11 @@ public class ClientAuthenticationFilterEmbeddedTest extends BaseTest {
 			registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 			registerRequest.addCustomAttribute("myCustomAttr1", customAttrValue1);
 
+	        List<GrantType> grantTypes = Arrays.asList(
+	                GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS
+	        );
+	        registerRequest.setGrantTypes(grantTypes);
+
 			registerRequestContent = registerRequest.getJSONParameters().toString(4);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -81,7 +86,7 @@ public class ClientAuthenticationFilterEmbeddedTest extends BaseTest {
 
 		showResponse("requestClientRegistrationWithCustomAttributes", response, entity);
 
-		ResponseAsserter responseAsserter = ResponseAsserter.of(response);
+		ResponseAsserter responseAsserter = ResponseAsserter.of(response.getStatus(), entity);
 		responseAsserter.assertRegisterResponse();
 		clientId = responseAsserter.getJson().getJson().getString(RegisterResponseParam.CLIENT_ID.toString());
 	}

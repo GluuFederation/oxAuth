@@ -29,7 +29,7 @@ import static org.xdi.oxauth.model.util.StringUtils.implode;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version March 20, 2018
+ * @version June 20, 2018
  */
 public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse> {
 
@@ -119,6 +119,9 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                 }
                 if (StringUtils.isNotBlank(getRequest().getClientName())) {
                     requestBody.put(CLIENT_NAME.toString(), getRequest().getClientName());
+                }
+                if (StringUtils.isNotBlank(getRequest().getIdTokenTokenBindingCnf())) {
+                    requestBody.put(ID_TOKEN_TOKEN_BINDING_CNF.toString(), getRequest().getIdTokenTokenBindingCnf());
                 }
                 if (StringUtils.isNotBlank(getRequest().getLogoUri())) {
                     requestBody.put(LOGO_URI.toString(), getRequest().getLogoUri());
@@ -214,6 +217,11 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                 } else if (getRequest().getScope() != null && !getRequest().getScope().isEmpty()) {
                     String spaceSeparatedScope = implode(getRequest().getScope(), " ");
                     requestBody.put(SCOPE.toString(), spaceSeparatedScope);
+                }
+
+                if (getRequest().getClaims() != null && !getRequest().getClaims().isEmpty()) {
+                    String spaceSeparatedClaims = implode(getRequest().getClaims(), " ");
+                    requestBody.put(CLAIMS.toString(), spaceSeparatedClaims);
                 }
 
                 // Custom params

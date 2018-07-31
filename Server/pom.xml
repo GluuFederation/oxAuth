@@ -140,9 +140,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Dgluu.base=${project.build.directory}
+					<argLine>-Xms1024m -Xmx1536m -XX:MaxMetaspaceSize=512m -XX:+DisableExplicitGC
+						-Dgluu.base=${project.build.directory}
 						-Dserver.base=${project.build.directory}
 						-Dlog.base=${project.build.directory}
+						-Dgluu.disable.scheduler=true
+ 
 					</argLine>
 				</configuration>
 			</plugin>
@@ -553,6 +556,11 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- Test: Arquillian container and extensions -->
 		<dependency>
@@ -569,6 +577,34 @@
 			<groupId>org.eu.ingwar.tools</groupId>
 			<artifactId>arquillian-suite-extension</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.reflections</groupId>
+		    <artifactId>reflections</artifactId>
+		    <version>0.9.10</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- We have to explicitly specify version because arquillian-suite-extension  depends on 1.1.11-->
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-test-impl-base</artifactId>
+			<version>1.4.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-spi</artifactId>
+			<version>1.4.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-test-spi</artifactId>
+			<version>1.4.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.testenricher</groupId>
+			<artifactId>arquillian-testenricher-cdi</artifactId>
+			<version>1.4.0.Final</version>
 		</dependency>
 
 		<!-- Test: Shrinkwrap -->
