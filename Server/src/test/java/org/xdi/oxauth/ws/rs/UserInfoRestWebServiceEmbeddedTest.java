@@ -45,7 +45,7 @@ import static org.xdi.oxauth.model.register.RegisterResponseParam.*;
  * Functional tests for User Info Web Services (embedded)
  *
  * @author Javier Rojas Blum
- * @version July 25, 2018
+ * @version August 1, 2018
  */
 public class UserInfoRestWebServiceEmbeddedTest extends BaseTest {
 
@@ -396,91 +396,6 @@ public class UserInfoRestWebServiceEmbeddedTest extends BaseTest {
         showResponse("requestUserInfoInvalidSchema", response, entity);
 
         assertEquals(response.getStatus(), 400, "Unexpected response code.");
-        assertNotNull(entity, "Unexpected result: " + entity);
-        try {
-            JSONObject jsonObj = new JSONObject(entity);
-            assertTrue(jsonObj.has("error"), "The error type is null");
-            assertTrue(jsonObj.has("error_description"), "The error description is null");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            fail(e.getMessage() + "\nResponse was: " + entity);
-        }
-    }
-
-    @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
-    public void requestUserInfoInsufficientScope(final String authorizePath, final String userId,
-                                                 final String userSecret, final String redirectUri) throws Exception {
-        final String state = UUID.randomUUID().toString();
-
-        List<ResponseType> responseTypes = new ArrayList<ResponseType>();
-        responseTypes.add(ResponseType.TOKEN);
-        List<String> scopes = Arrays.asList("picture");
-        String nonce = UUID.randomUUID().toString();
-
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
-                redirectUri, nonce);
-        authorizationRequest.setState(state);
-        authorizationRequest.getPrompts().add(Prompt.NONE);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
-
-        Builder request = ResteasyClientBuilder.newClient()
-                .target(url.toString() + authorizePath + "?" + authorizationRequest.getQueryString()).request();
-        request.header("Authorization", "Basic " + authorizationRequest.getEncodedCredentials());
-        request.header("Accept", MediaType.TEXT_PLAIN);
-
-        Response response = request.get();
-        String entity = response.readEntity(String.class);
-
-        showResponse("requestUserInfoInsufficientScope step 1", response, entity);
-
-        assertEquals(response.getStatus(), 302, "Unexpected response code.");
-        assertNotNull(response.getLocation(), "Unexpected result: " + response.getLocation());
-
-        if (response.getLocation() != null) {
-            try {
-                URI uri = new URI(response.getLocation().toString());
-                assertNotNull(uri.getFragment(), "Fragment is null");
-
-                Map<String, String> params = QueryStringDecoder.decode(uri.getFragment());
-
-                assertNotNull(params.get(AuthorizeResponseParam.ACCESS_TOKEN), "The access token is null");
-                assertNotNull(params.get(AuthorizeResponseParam.TOKEN_TYPE), "The token type is null");
-                assertNotNull(params.get(AuthorizeResponseParam.EXPIRES_IN), "The expires in value is null");
-                assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope must be null");
-                assertNull(params.get("refresh_token"), "The refresh_token must be null");
-                assertNotNull(params.get(AuthorizeResponseParam.STATE), "The state is null");
-                assertEquals(params.get(AuthorizeResponseParam.STATE), state);
-
-                accessToken2 = params.get(AuthorizeResponseParam.ACCESS_TOKEN);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                fail("Response URI is not well formed");
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail(e.getMessage());
-            }
-        }
-    }
-
-    @Parameters({"userInfoPath"})
-    @Test(dependsOnMethods = "requestUserInfoInsufficientScope")
-    public void requestUserInfoInsufficientScopeStep2(final String userInfoPath) throws Exception {
-        Builder request = ResteasyClientBuilder.newClient().target(url.toString() + userInfoPath).request();
-
-        request.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-
-        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken2);
-        userInfoRequest.setAuthorizationMethod(AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER);
-
-        Response response = request
-                .post(Entity.form(new MultivaluedHashMap<String, String>(userInfoRequest.getParameters())));
-        String entity = response.readEntity(String.class);
-
-        showResponse("requestUserInfoInsufficientScope step 2", response, entity);
-
-        assertEquals(response.getStatus(), 403, "Unexpected response code.");
         assertNotNull(entity, "Unexpected result: " + entity);
         try {
             JSONObject jsonObj = new JSONObject(entity);

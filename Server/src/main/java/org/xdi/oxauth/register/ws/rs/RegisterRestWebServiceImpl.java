@@ -640,7 +640,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         }
 
-        Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
+        if (claimNames != null && claimNames.length > 0) {
+            Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
+        }
 
         return responseJsonObject;
     }

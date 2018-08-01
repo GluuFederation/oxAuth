@@ -35,7 +35,7 @@ import static org.testng.Assert.*;
  * Functional tests for Authorize Web Services (embedded)
  *
  * @author Javier Rojas Blum
- * @version December 12, 2016
+ * @version August 1, 2018
  */
 public class AuthorizeRestWebServiceEmbeddedTest extends BaseTest {
 
@@ -672,52 +672,6 @@ public class AuthorizeRestWebServiceEmbeddedTest extends BaseTest {
 				e.printStackTrace();
 				fail("Response URI is not well formed");
 			}
-		}
-	}
-
-	@Parameters({ "authorizePath", "userId", "userSecret", "redirectUri" })
-	@Test(dependsOnMethods = "dynamicClientRegistration")
-	public void requestAuthorizationWithoutScope(final String authorizePath, final String userId,
-			final String userSecret, final String redirectUri) throws Exception {
-		final String state = UUID.randomUUID().toString();
-		final String nonce = UUID.randomUUID().toString();
-
-		List<ResponseType> responseTypes = Arrays.asList(ResponseType.CODE, ResponseType.ID_TOKEN);
-		List<String> scopes = new ArrayList<String>();
-
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId1, scopes,
-				redirectUri, nonce);
-		authorizationRequest.setState(state);
-		authorizationRequest.getPrompts().add(Prompt.NONE);
-		authorizationRequest.setAuthUsername(userId);
-		authorizationRequest.setAuthPassword(userSecret);
-
-		Builder request = ResteasyClientBuilder.newClient()
-				.target(url.toString() + authorizePath + "?" + authorizationRequest.getQueryString()).request();
-		request.header("Authorization", "Basic " + authorizationRequest.getEncodedCredentials());
-		request.header("Accept", MediaType.TEXT_PLAIN);
-
-		Response response = request.get();
-		String entity = response.readEntity(String.class);
-
-		showResponse("requestAuthorizationWithoutScope", response, entity);
-
-		assertEquals(response.getStatus(), 302, "Unexpected response code.");
-		assertNotNull(response.getLocation(), "Unexpected result: " + response.getLocation());
-
-		try {
-			URI uri = new URI(response.getLocation().toString());
-			assertNotNull(uri.getFragment(), "Query string is null");
-
-			Map<String, String> params = QueryStringDecoder.decode(uri.getFragment());
-
-			assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
-			assertNotNull(params.get(AuthorizeResponseParam.ID_TOKEN), "The id token is null");
-			assertNotNull(params.get(AuthorizeResponseParam.STATE), "The state is null");
-			assertEquals(params.get(AuthorizeResponseParam.STATE), state);
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			fail("Response URI is not well formed");
 		}
 	}
 
