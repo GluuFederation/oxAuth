@@ -6,7 +6,6 @@
 
 package org.xdi.oxauth.uma.ws.rs;
 
-import com.ocpsoft.pretty.faces.util.StringUtils;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -24,6 +23,7 @@ import org.xdi.oxauth.uma.service.UmaRptService;
 import org.xdi.oxauth.uma.service.UmaScopeService;
 import org.xdi.oxauth.uma.service.UmaValidationService;
 import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.util.StringHelper;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -102,7 +102,7 @@ public class UmaRptIntrospectionWS {
             if (!rptPermissions.isEmpty()) {
                 UmaPermission permission = rptPermissions.iterator().next();
                 String pctCode = permission.getAttributes().get(UmaPermission.PCT);
-                if (StringUtils.isNotBlank(pctCode)) {
+                if (StringHelper.isNotEmpty(pctCode)) {
                     UmaPCT pct = pctService.getByCode(pctCode);
                     if (pct != null) {
                         statusResponse.setPctClaims(pct.getClaims().toMap());

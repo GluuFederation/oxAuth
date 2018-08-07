@@ -1,7 +1,15 @@
 package org.xdi.oxauth.uma.service;
 
-import com.google.common.collect.Lists;
-import com.ocpsoft.pretty.faces.util.StringUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.core.Response;
+
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.JsonLogic;
@@ -15,15 +23,9 @@ import org.xdi.oxauth.service.external.ExternalUmaRptPolicyService;
 import org.xdi.oxauth.uma.authorization.UmaAuthorizationContext;
 import org.xdi.oxauth.uma.authorization.UmaScriptByScope;
 import org.xdi.oxauth.uma.authorization.UmaWebException;
+import org.xdi.util.StringHelper;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Lists;
 
 /**
  * @author yuriyz
@@ -51,7 +53,7 @@ public class UmaExpressionService {
     public void evaluate(Map<UmaScriptByScope, UmaAuthorizationContext> scriptMap, List<UmaPermission> permissions) {
         for (UmaPermission permission : permissions) {
             UmaResource resource = resourceService.getResourceById(permission.getResourceId());
-            if (StringUtils.isNotBlank(resource.getScopeExpression())) {
+            if (StringHelper.isNotEmpty(resource.getScopeExpression())) {
                 evaluateScopeExpression(scriptMap, permission, resource);
             } else {
                 if (!evaluateByScopes(filterByScopeDns(scriptMap, permission.getScopeDns()))) {
