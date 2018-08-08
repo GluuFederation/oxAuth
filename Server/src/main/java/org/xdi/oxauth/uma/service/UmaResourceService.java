@@ -14,6 +14,7 @@ import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
 import org.xdi.ldap.model.SimpleBranch;
+import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.uma.persistence.UmaResource;
@@ -236,7 +237,7 @@ public class UmaResourceService {
         }
 
         try {
-            cacheService.put(Integer.toString(RESOURCE_CACHE_EXPIRATION_IN_SECONDS), resource.getDn(), resource);
+            cacheService.put(Integer.toString(RESOURCE_CACHE_EXPIRATION_IN_SECONDS), resource.getDn(), resource, Constants.SKIP_CACHE_PUT_FOR_NATIVE_PERSISTENCE);
         } catch (Exception e) {
             log.error("Failed to put client in cache, client:" + resource, e);
         }
