@@ -23,6 +23,8 @@ import org.xdi.oxauth.uma.service.UmaPctService;
 import org.xdi.oxauth.uma.service.UmaPermissionService;
 import org.xdi.oxauth.uma.service.UmaResourceService;
 import org.xdi.oxauth.uma.service.UmaRptService;
+import org.xdi.service.CacheService;
+import org.xdi.service.cache.NativePersistenceCacheProvider;
 import org.xdi.service.cdi.async.Asynchronous;
 import org.xdi.service.cdi.event.Scheduled;
 import org.xdi.service.timer.event.TimerEvent;
@@ -81,6 +83,9 @@ public class CleanerTimer {
     private SessionIdService sessionIdService;
 
     @Inject
+    private CacheService cacheService;
+
+    @Inject
     @Named("u2fRequestService")
     private RequestService u2fRequestService;
 
@@ -134,6 +139,11 @@ public class CleanerTimer {
             processU2fDeviceRegistrations();
 
             processMetricEntries();
+
+            if (cacheService.isNativePersistenceCacheProvider()) {
+                ((NativePersistenceCacheProvider) cacheService.getCacheProvider()).cleanup(now, BATCH_SIZE);
+
+            }
         } finally {
             this.isActive.set(false);
         }
