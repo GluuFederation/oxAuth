@@ -15,6 +15,7 @@ import javax.inject.Named;
 
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
+import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.service.CacheService;
 import org.xdi.util.StringHelper;
@@ -175,8 +176,8 @@ public class ScopeService {
     	}
 
     	try {
-            cacheService.put(CACHE_SCOPE_NAME, getScopeNameCacheKey(scope.getDisplayName()), scope);
-            cacheService.put(CACHE_SCOPE_NAME, getScopeDnCacheKey(scope.getDn()), scope);
+            cacheService.put(CACHE_SCOPE_NAME, getScopeNameCacheKey(scope.getDisplayName()), scope, Constants.SKIP_CACHE_PUT_FOR_NATIVE_PERSISTENCE);
+            cacheService.put(CACHE_SCOPE_NAME, getScopeDnCacheKey(scope.getDn()), scope, Constants.SKIP_CACHE_PUT_FOR_NATIVE_PERSISTENCE);
         } catch (Exception ex) {
             log.error("Failed to put scope in cache, scope: '{}'", scope, ex);
         }

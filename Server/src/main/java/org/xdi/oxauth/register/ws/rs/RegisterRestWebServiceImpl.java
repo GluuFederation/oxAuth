@@ -59,7 +59,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toList;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version June 20, 2018
+ * @version August 2, 2018
  */
 @Path("/")
 public class RegisterRestWebServiceImpl implements RegisterRestWebService {
@@ -161,6 +161,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                         client.setClientId(inum);
                         client.setClientSecret(clientService.encryptSecret(generatedClientSecret));
                         client.setRegistrationAccessToken(HandleTokenFactory.generateHandleToken());
+                        client.setIdTokenTokenBindingCnf(r.getIdTokenTokenBindingCnf());
 
                         final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
                         client.setClientIdIssuedAt(calendar.getTime());
@@ -200,6 +201,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
                             JSONObject jsonObject = getJSONObject(client, appConfiguration.getLegacyDynamicRegistrationScopeParam());
                             builder.entity(jsonObject.toString(4).replace("\\/", "/"));
+
+                            log.info("Client registered: clientId = {}, applicationType = {}, clientName = {}, redirectUris = {}, sectorIdentifierUri = {}",
+                                    client.getClientId(), client.getApplicationType(), client.getClientName(), client.getRedirectUris(), client.getSectorIdentifierUri());
 
                             oAuth2AuditLog.setClientId(client.getClientId());
                             oAuth2AuditLog.setScope(clientScopesToString(client));
@@ -639,7 +643,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         }
 
-        Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
+        if (claimNames != null && claimNames.length > 0) {
+            Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
+        }
 
         return responseJsonObject;
     }

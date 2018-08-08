@@ -50,6 +50,7 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     private AccessToken longLivedAccessToken;
     private IdToken idToken;
     private AuthorizationCode authorizationCode;
+    private String tokenBindingHash;
     private String nonce;
     private String codeChallenge;
     private String codeChallengeMethod;
@@ -107,6 +108,14 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     @Override
     public void setAuthorizationCode(AuthorizationCode authorizationCode) {
         this.authorizationCode = authorizationCode;
+    }
+
+    public String getTokenBindingHash() {
+        return tokenBindingHash;
+    }
+
+    public void setTokenBindingHash(String tokenBindingHash) {
+        this.tokenBindingHash = tokenBindingHash;
     }
 
     @Override
@@ -454,7 +463,7 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
                 + client + ", grantId='" + grantId + '\'' + ", nonce='" + nonce + '\'' + ", acrValues='" + acrValues
                 + '\'' + ", sessionDn='" + sessionDn + '\'' + ", codeChallenge='" + codeChallenge + '\''
                 + ", codeChallengeMethod='" + codeChallengeMethod + '\'' + ", authenticationTime=" + authenticationTime
-                + ", scopes=" + scopes + ", authorizationGrantType=" + authorizationGrantType
+                + ", scopes=" + scopes + ", authorizationGrantType=" + authorizationGrantType + ", tokenBindingHash=" + tokenBindingHash
                 + ", claims=" + claims + '}';
     }
 }
