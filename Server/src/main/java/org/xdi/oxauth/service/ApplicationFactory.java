@@ -12,10 +12,12 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.xdi.model.SmtpConfiguration;
 import org.xdi.oxauth.crypto.signature.SHA256withECDSASignatureVerification;
 import org.xdi.oxauth.model.appliance.GluuAppliance;
+import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.service.cache.CacheConfiguration;
 import org.xdi.service.cache.InMemoryConfiguration;
 
@@ -34,7 +36,11 @@ public class ApplicationFactory {
     @Inject
     private ApplianceService applianceService;
 
-    @Produces @ApplicationScoped @Named("sha256withECDSASignatureVerification")
+	@Inject
+	private StaticConfiguration staticConfiguration;
+
+
+	@Produces @ApplicationScoped @Named("sha256withECDSASignatureVerification")
     public SHA256withECDSASignatureVerification getBouncyCastleSignatureVerification() {
         return new SHA256withECDSASignatureVerification();
     }
@@ -51,6 +57,8 @@ public class ApplicationFactory {
 			cacheConfiguration.setInMemoryConfiguration(new InMemoryConfiguration());
 
 			log.info("IN-MEMORY cache configuration is created.");
+		} else {
+			cacheConfiguration.getNativePersistenceConfiguration().setBaseDn(StringUtils.remove(staticConfiguration.getBaseDn().getUmaBase(), "ou=uma,").trim());
 		}
 		log.info("Cache configuration: " + cacheConfiguration);
 		return cacheConfiguration;
