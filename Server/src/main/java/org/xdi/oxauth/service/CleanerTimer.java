@@ -27,6 +27,7 @@ import org.xdi.service.CacheService;
 import org.xdi.service.cache.NativePersistenceCacheProvider;
 import org.xdi.service.cdi.async.Asynchronous;
 import org.xdi.service.cdi.event.Scheduled;
+import org.xdi.service.cdi.util.CdiUtil;
 import org.xdi.service.timer.event.TimerEvent;
 import org.xdi.service.timer.schedule.TimerSchedule;
 
@@ -81,9 +82,6 @@ public class CleanerTimer {
 
     @Inject
     private SessionIdService sessionIdService;
-
-    @Inject
-    private CacheService cacheService;
 
     @Inject
     @Named("u2fRequestService")
@@ -148,6 +146,7 @@ public class CleanerTimer {
 
     private void processCache(Date now) {
         try {
+            CacheService cacheService = CdiUtil.bean(CacheService.class);
             if (cacheService.isNativePersistenceCacheProvider()) {
                 ((NativePersistenceCacheProvider) cacheService.getCacheProvider()).cleanup(now, BATCH_SIZE);
             }
