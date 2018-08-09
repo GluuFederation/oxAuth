@@ -82,7 +82,7 @@
 							<div class="col-sm-offset-3 col-sm-9">
 							  <div class="forgot_link">
 								<a href="/identity/person/passwordReminder.htm">
-								  <h:outputText value="Forgot your Password?" />
+								  <h:outputText value="#{msgs['login.forgotYourPassword']}" />
 								</a>
 							  </div>
 							</div>
@@ -183,7 +183,7 @@
 							<div class="col-sm-offset-3 col-sm-9">
 							  <div class="forgot_link">
 								<a href="/identity/person/passwordReminder.htm">
-								  <h:outputText value="Forgot your Password?" />
+								  <h:outputText value="#{msgs['login.forgotYourPassword']}" />
 								</a>
 							  </div>
 							</div>
@@ -191,19 +191,18 @@
 						  </h:panelGroup>
 						</h:form>
 						<div align="center">
-                                                    <ui:repeat value="#{identity.getWorkingParameter('download_url').entrySet().toArray()}" var="_entry">
-                                                        <ui:param name="app_name" value="#{_entry.key}"/>
-                                                        <ui:param name="app_link" value="#{_entry.value}"/>
-                                                        <h:outputLink value="#{app_link}" title="#{app_name}"><h:graphicImage value="img/#{app_name}.png" /></h:outputLink>
-                                                    </ui:repeat>
-                                                </div>
-
+							<ui:repeat value="#{identity.getWorkingParameter('download_url').entrySet().toArray()}" var="_entry">
+								<ui:param name="app_name" value="#{_entry.key}"/>
+								<ui:param name="app_link" value="#{_entry.value}"/>
+								<h:outputLink value="#{app_link}" title="#{app_name}"><h:graphicImage value="img/#{app_name}.png" /></h:outputLink>
+							</ui:repeat>
+						</div>
 						</div>
 						<h:panelGroup layout="block" rendered="#{external_registration_uri != Null}">
 						 <div class="reg_link">
-								<a href="#{external_registration_uri}">
-								 <h:outputText value="Register Now   " />
-								</a>
+							 <a href="#{external_registration_uri}">
+								 <h:outputText value="Register Now " />
+							 </a>
 						</div>
 						</h:panelGroup>
 					</div>
@@ -219,7 +218,7 @@
 			<div class="row">
 				<div class="col-md-12">
 				  <div class="padding_spc">
-					<p><h:outputText value="#{msgs['common.gluuInc']}" />  | <a target="_blank" href="https://github.com/GluuFederation/oxAuth/blob/master/LICENSE"><h:outputText value="#{msgs['common.caution']}" escape="false" /></a>
+					<p><h:outputText value="#{msgs['common.gluuInc']}" /> | <a target="_blank" href="https://github.com/GluuFederation/oxAuth/blob/master/LICENSE"><h:outputText value="#{msgs['common.caution']}" escape="false" /></a>
 					<h:panelGroup rendered='#{!empty client.policyUri}'>
 					| <a target="_blank" href="#{client.policyUri}"><h:outputText value="#{msgs['common.privacyPolicy']}" escape="false" /></a>
 					</h:panelGroup>
