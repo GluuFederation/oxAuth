@@ -12,6 +12,7 @@ import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.fido.u2f.*;
 import org.xdi.oxauth.model.fido.u2f.exception.BadInputException;
@@ -32,6 +33,8 @@ import org.xdi.util.StringHelper;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import java.util.List;
 
 /**
@@ -46,6 +49,9 @@ public class U2fRegistrationWS {
 
     @Inject
     private Logger log;
+
+    @Inject
+    private AppConfiguration appConfiguration;
 
     @Inject
     private UserService userService;
@@ -76,6 +82,10 @@ public class U2fRegistrationWS {
     public Response startRegistration(@QueryParam("username") String userName, @QueryParam("application") String appId, @QueryParam("session_id") String sessionId, @QueryParam("enrollment_code") String enrollmentCode) {
         // Parameter username is deprecated. We uses it only to determine is it's one or two step workflow
         try {
+            if (appConfiguration.getDisableU2fEndpoint()) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+
             log.debug("Startig registration with username '{}' for appId '{}'. session_id '{}', enrollment_code '{}'", userName, appId, sessionId, enrollmentCode);
 
             String userInum = null;
@@ -148,6 +158,10 @@ public class U2fRegistrationWS {
     public Response finishRegistration(@FormParam("username") String userName, @FormParam("tokenResponse") String registerResponseString) {
         String sessionId = null;
         try {
+            if (appConfiguration.getDisableU2fEndpoint()) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+
             log.debug("Finishing registration for username '{}' with response '{}'", userName, registerResponseString);
 
             RegisterResponse registerResponse = ServerUtil.jsonMapperWithWrapRoot().readValue(registerResponseString, RegisterResponse.class);
