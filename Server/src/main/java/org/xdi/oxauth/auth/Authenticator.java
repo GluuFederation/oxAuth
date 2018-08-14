@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
@@ -42,6 +43,7 @@ import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.RequestParameterService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
+import org.xdi.util.Pair;
 import org.xdi.util.StringHelper;
 
 /**
@@ -434,16 +436,20 @@ public class Authenticator {
 				.executeExternalGetExtraParametersForStep(customScriptConfiguration, step);
 
 		// Load extra parameters set
-		Set<String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
+		Map<String, String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
 
 		if (extraParameters != null) {
 			for (String extraParameter : extraParameters) {
 				if (authenticationService.isParameterExists(extraParameter)) {
-					// Store parameter name
-					authExternalAttributes.add(extraParameter);
+                    Pair<String, String> extraParameterValueWithType = requestParameterService.getParameterValueWithType(extraParameter);
+					String extraParameterValue = extraParameterValueWithType.getFirst();
+                    String extraParameterType = extraParameterValueWithType.getSecond();
 
-					String extraParameterValue = requestParameterService.getParameterValue(extraParameter);
+                    // Store parameter name and value
 					sessionIdAttributes.put(extraParameter, extraParameterValue);
+
+					// Store parameter name and type
+                    authExternalAttributes.put(extraParameter, extraParameterType);
 				}
 			}
 		}
@@ -452,30 +458,34 @@ public class Authenticator {
 		setExternalScriptExtraParameters(sessionIdAttributes, authExternalAttributes);
 	}
 
-	private Set<String> getExternalScriptExtraParameters(Map<String, String> sessionIdAttributes) {
+	private Map<String, String> getExternalScriptExtraParameters(Map<String, String> sessionIdAttributes) {
 		String authExternalAttributesString = sessionIdAttributes.get(AUTH_EXTERNAL_ATTRIBUTES);
-		Set<String> authExternalAttributes = new HashSet<String>();
+		Map<String, String> authExternalAttributes = new HashMap<String, String>();
 		try {
-			List<String> list = Util.jsonArrayStringAsList(authExternalAttributesString);
-			authExternalAttributes = new HashSet<String>(list);
+		    authExternalAttributes = Util.jsonObjectArrayStringAsMap(authExternalAttributesString);
 		} catch (JSONException ex) {
-			logger.error("Failed to convert list of auth_external_attributes to list");
+			logger.error("Failed to convert JSON array of auth_external_attributes to Map<String, String>");
 		}
 
 		return authExternalAttributes;
 	}
 
 	private void setExternalScriptExtraParameters(Map<String, String> sessionIdAttributes,
-			Set<String> authExternalAttributes) {
-		String authExternalAttributesString = Util.listToJsonArray(authExternalAttributes).toString();
+			Map<String, String> authExternalAttributes) {
+		String authExternalAttributesString = null;
+        try {
+            authExternalAttributesString = Util.mapAsString(authExternalAttributes);
+        } catch (JSONException ex) {
+            logger.error("Failed to convert Map<String, String> of auth_external_attributes to JSON array");
+        }
 
 		sessionIdAttributes.put(AUTH_EXTERNAL_ATTRIBUTES, authExternalAttributesString);
 	}
 
 	private void clearExternalScriptExtraParameters(Map<String, String> sessionIdAttributes) {
-		Set<String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
+		Map<String, String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
 
-		for (String authExternalAttribute : authExternalAttributes) {
+		for (String authExternalAttribute : authExternalAttributes.keySet()) {
 			sessionIdAttributes.remove(authExternalAttribute);
 		}
 
@@ -483,13 +493,18 @@ public class Authenticator {
 	}
 
 	private void setIdentityWorkingParameters(Map<String, String> sessionIdAttributes) {
-		Set<String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
+		Map<String, String> authExternalAttributes = getExternalScriptExtraParameters(sessionIdAttributes);
 
 		HashMap<String, Object> workingParameters = identity.getWorkingParameters();
-		for (String authExternalAttribute : authExternalAttributes) {
-			if (sessionIdAttributes.containsKey(authExternalAttribute)) {
-				String authExternalAttributeValue = sessionIdAttributes.get(authExternalAttribute);
-				workingParameters.put(authExternalAttribute, authExternalAttributeValue);
+		for (Entry<String, String> authExternalAttributeEntry : authExternalAttributes.entrySet()) {
+		    String authExternalAttributeName = authExternalAttributeEntry.getKey();
+            String authExternalAttributeType = authExternalAttributeEntry.getValue();
+
+            if (sessionIdAttributes.containsKey(authExternalAttributeName)) {
+				String authExternalAttributeValue = sessionIdAttributes.get(authExternalAttributeName);
+				Object typedValue = requestParameterService.getTypedValue(authExternalAttributeValue, authExternalAttributeType);
+				
+				workingParameters.put(authExternalAttributeName, typedValue);
 			}
 		}
 	}
