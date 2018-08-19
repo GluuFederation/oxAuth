@@ -6,6 +6,7 @@
 
 package org.xdi.oxauth.service;
 
+import org.xdi.model.ApplicationType;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 
@@ -66,6 +67,11 @@ public class MetricService extends org.xdi.service.metric.MetricService {
         }
 
         return this.appConfiguration.getMetricReporterEnabled();
+    }
+
+    @Override
+    public ApplicationType getApplicationType() {
+        return ApplicationType.OX_AUTH;
     }
 
 }

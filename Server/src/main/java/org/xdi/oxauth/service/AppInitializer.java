@@ -34,6 +34,7 @@ import org.xdi.service.PythonService;
 import org.xdi.service.cdi.async.Asynchronous;
 import org.xdi.service.cdi.event.ConfigurationUpdate;
 import org.xdi.service.cdi.event.LdapConfigurationReload;
+import org.xdi.service.cdi.event.LoggerUpdateEvent;
 import org.xdi.service.cdi.event.Scheduled;
 import org.xdi.service.cdi.util.CdiUtil;
 import org.xdi.service.custom.lib.CustomLibrariesLoader;
@@ -167,8 +168,6 @@ public class AppInitializer {
     	createConnectionProvider();
         configurationFactory.create();
 
-        loggerService.configure();
-
         LdapEntryManager localLdapEntryManager = ldapEntryManagerInstance.get();
         List<GluuLdapConfiguration> ldapAuthConfigs = loadLdapAuthConfigs(localLdapEntryManager);
         createAuthConnectionProviders(ldapAuthConfigs);
@@ -189,6 +188,7 @@ public class AppInitializer {
         // Schedule timer tasks
         metricService.initTimer();
         configurationFactory.initTimer();
+        loggerService.initTimer();
         ldapStatusTimer.initTimer();
         cleanerTimer.initTimer();
         customScriptManager.initTimer(supportedCustomScriptTypes);
@@ -612,32 +612,6 @@ public class AppInitializer {
 		Object clazzObject = mapper.readValue(json, clazz);
 
 		return clazzObject;
-	}
-	
-	public void updateLoggingSeverity(@Observes @ConfigurationUpdate AppConfiguration appConfiguration) {
-		String loggingLevel = appConfiguration.getLoggingLevel();
-		if (StringHelper.isEmpty(loggingLevel)) {
-			return;
-		}
-
-		log.info("Setting loggers level to: '{}'", loggingLevel);
-		
-		LoggerContext loggerContext = LoggerContext.getContext(false);
-
-		if (StringHelper.equalsIgnoreCase("DEFAULT", loggingLevel)) {
-			log.info("Reloading log4j configuration");
-			loggerContext.reconfigure();
-			return;
-		}
-
-		Level level = Level.toLevel(loggingLevel, Level.INFO);
-
-		for (org.apache.logging.log4j.core.Logger logger : loggerContext.getLoggers()) {
-			String loggerName = logger.getName();
-			if (loggerName.startsWith("org.xdi.service") || loggerName.startsWith("org.xdi.oxauth") || loggerName.startsWith("org.gluu") || level == Level.OFF) {
-				logger.setLevel(level);
-			}
-		}
 	}
 	
 	private class LdapConnectionProviders {
