@@ -106,6 +106,9 @@ public class AuthenticationService {
 
     @Inject
     private RequestParameterService requestParameterService;
+    
+    @Inject
+    private AuthenticationProtectionService authenticationProtectionService;
 
     /**
      * Authenticate user.
@@ -144,6 +147,11 @@ public class AuthenticationService {
         }
 
         metricService.incCounter(metricType);
+
+        if (authenticationProtectionService.isEnabled()) {
+            authenticationProtectionService.storeAttempt(userName, authenticated);
+            authenticationProtectionService.doDelayIfNeeded(userName);
+        }
 
         return authenticated;
     }
@@ -236,6 +244,12 @@ public class AuthenticationService {
 
         metricService.incCounter(metricType);
 
+        
+        if (authenticationProtectionService.isEnabled()) {
+            authenticationProtectionService.storeAttempt(keyValue, authenticated);
+            authenticationProtectionService.doDelayIfNeeded(keyValue);
+        }
+
         return authenticated;
     }
 
@@ -327,6 +341,11 @@ public class AuthenticationService {
         }
 
         metricService.incCounter(metricType);
+
+        if (authenticationProtectionService.isEnabled()) {
+            authenticationProtectionService.storeAttempt(userName, authenticated);
+            authenticationProtectionService.doDelayIfNeeded(userName);
+        }
 
         return authenticated;
     }
