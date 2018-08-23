@@ -117,7 +117,8 @@ public class Authenticator {
         }
     }
 
-    public String authenticateWithOutcome(HttpServletRequest servletRequest) {
+    public String authenticateWithOutcome() {
+        HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
         boolean result = authenticateImpl(servletRequest, true, false);
         if (result) {
             return Constants.RESULT_SUCCESS;
