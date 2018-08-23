@@ -29,7 +29,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -151,8 +150,8 @@ public class UmaResourceRegistrationWS {
             @ApiParam(value = "Resource description object ID", required = true)
             String rsid) {
         try {
-            umaValidationService.assertHasProtectionScope(authorization);
-
+            final AuthorizationGrant authorizationGrant = umaValidationService.assertHasProtectionScope(authorization);
+            umaValidationService.validateRestrictedByClient(authorizationGrant.getClientDn(), rsid);
             log.debug("Getting resource description: '{}'", rsid);
 
             final org.xdi.oxauth.model.uma.persistence.UmaResource ldapResource = resourceService.getResourceById(rsid);
@@ -263,7 +262,8 @@ public class UmaResourceRegistrationWS {
         try {
             log.debug("Deleting resource descriptions'");
 
-            umaValidationService.assertHasProtectionScope(authorization);
+            final AuthorizationGrant authorizationGrant = umaValidationService.assertHasProtectionScope(authorization);
+            umaValidationService.validateRestrictedByClient(authorizationGrant.getClientDn(), rsid);
             resourceService.remove(rsid);
 
             return Response.status(Response.Status.NO_CONTENT).build();
@@ -278,15 +278,11 @@ public class UmaResourceRegistrationWS {
         }
     }
 
-    private Response putResourceImpl(Response.Status status, String authorization, String rsid,
-                                     UmaResource resource) throws IllegalAccessException, InvocationTargetException, IOException {
+    private Response putResourceImpl(Response.Status status, String authorization, String rsid, UmaResource resource) throws IOException {
         log.trace("putResourceImpl, rsid: {}, status:", rsid, status.name());
 
-        umaValidationService.assertHasProtectionScope(authorization);
+        AuthorizationGrant authorizationGrant = umaValidationService.assertHasProtectionScope(authorization);
         umaValidationService.validateResource(resource);
-
-        String patToken = tokenService.getTokenFromAuthorizationParameter(authorization);
-        AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByAccessToken(patToken);
 
         String userDn = authorizationGrant.getUserDn();
         String clientDn = authorizationGrant.getClientDn();
@@ -296,6 +292,7 @@ public class UmaResourceRegistrationWS {
         if (status == Response.Status.CREATED) {
             resourceDn = addResource(rsid, resource, userDn, clientDn);
         } else {
+            umaValidationService.validateRestrictedByClient(clientDn, rsid);
             resourceDn = updateResource(rsid, resource);
         }
 
@@ -310,8 +307,7 @@ public class UmaResourceRegistrationWS {
                 build();
     }
 
-    private String addResource(String rsid, UmaResource resource, String userDn,
-                               String clientDn) throws IllegalAccessException, InvocationTargetException {
+    private String addResource(String rsid, UmaResource resource, String userDn, String clientDn) {
         log.debug("Adding new resource: '{}'", rsid);
 
         final String resourceDn = resourceService.getDnForResource(rsid);
@@ -348,7 +344,7 @@ public class UmaResourceRegistrationWS {
         return creationCalender.getTime();
     }
 
-    private String updateResource(String rsid, UmaResource resource) throws IllegalAccessException, InvocationTargetException {
+    private String updateResource(String rsid, UmaResource resource) {
         log.debug("Updating resource description: '{}'.", rsid);
 
         org.xdi.oxauth.model.uma.persistence.UmaResource ldapResource = resourceService.getResourceById(rsid);
