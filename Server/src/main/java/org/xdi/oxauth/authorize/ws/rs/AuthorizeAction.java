@@ -46,7 +46,10 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,7 +61,7 @@ import java.util.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version June 20, 2018
+ * @version @version August 28, 2018
  */
 @RequestScoped
 @Named
@@ -177,7 +180,7 @@ public class AuthorizeAction {
         }
     }
 
-    public void checkPermissionGranted() {
+    public void checkPermissionGranted() throws IOException {
         if ((clientId == null) || clientId.isEmpty()) {
             log.error("Permission denied. client_id should be not empty.");
             permissionDenied();
@@ -288,7 +291,11 @@ public class AuthorizeAction {
         }
 
         if (StringUtils.isBlank(redirectionUriService.validateRedirectionUri(clientId, redirectUri))) {
-            permissionDenied();
+            ExternalContext externalContext = facesContext.getExternalContext();
+            externalContext.setResponseStatus(HttpServletResponse.SC_BAD_REQUEST);
+            externalContext.setResponseContentType(MediaType.APPLICATION_JSON);
+            externalContext.getResponseOutputWriter().write(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_REDIRECT_URI, state));
+            facesContext.responseComplete();
         }
 
         final User user = userService.getUserByDn(session.getUserDn());
