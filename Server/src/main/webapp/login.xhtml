@@ -53,8 +53,6 @@
 						<h:panelGroup
 									rendered="#{sessionIdService.notSessionIdAuthenticated}">
 
-						<h:messages style="color:red;" />
-
 						  <div class="form-group">
 							<h:outputLabel styleClass="col-sm-3 control-label"	for="username" value="#{msgs['login.username']}" />
 							<div class="col-sm-9">
@@ -139,13 +137,13 @@
 			<div class="login_bx_1">
 				<div class="row">
 					<div class="col-md-6_1 col-sm-5_1 ">
-					   <div class="left_form_bx">
+					   <div class="left_form_bx" >
 					   
 						<h:form id="loginForm"  class="form-horizontal">
 						<h:panelGroup
 									rendered="#{sessionIdService.notSessionIdAuthenticated}">
 									
-						<h:messages style="color:red;" />
+						<h:messages class="text-center" style ="color:red;margin:8px;" infoClass="text-center" errorClass="text-center"/>
                             <h:inputHidden id="platform"/>
 						
 						  <div class="form-group">
@@ -213,7 +211,7 @@
 		</div>
 	</div>
 	
-	<div class="foot_bor">
+	<div class="footer-copyright text-center py-3">
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12">
