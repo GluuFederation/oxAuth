@@ -10,3 +10,5 @@ This module has 2 properties:
    Allowed values: integer value greater that 0
    Example: 3
    Default value: 3
+3) lock_expiration_time - Specify the time in seconds when lock will be expired
+   Default value: 180
