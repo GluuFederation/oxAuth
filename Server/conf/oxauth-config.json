@@ -264,5 +264,5 @@
         "customParam3"
     ],
     "legacyDynamicRegistrationScopeParam": false,
-    "openidScopeBackwardCompatibility": true
+    "openidScopeBackwardCompatibility": false
 }
