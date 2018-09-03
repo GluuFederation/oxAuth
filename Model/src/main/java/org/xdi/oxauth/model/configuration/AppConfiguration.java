@@ -173,7 +173,7 @@ public class AppConfiguration implements Configuration {
     private Boolean disableJdkLogger = true;
     private Set<String> authorizationRequestCustomAllowedParameters;
     private Boolean legacyDynamicRegistrationScopeParam;
-    private Boolean openidScopeBackwardCompatibility;
+    private Boolean openidScopeBackwardCompatibility = false;
     private Boolean disableU2fEndpoint = false;
 
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
