@@ -53,7 +53,7 @@ import java.util.Arrays;
  *
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version August 23, 2017
+ * @version September 3, 2018
  */
 @Path("/")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
@@ -259,7 +259,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     }
 
                     IdToken idToken = null;
-                    if (clientCredentialsGrant.getScopes().contains("openid")) {
+                    if (appConfiguration.getOpenidScopeBackwardCompatibility() && clientCredentialsGrant.getScopes().contains("openid")) {
                         boolean includeIdTokenClaims = Boolean.TRUE.equals(
                                 appConfiguration.getLegacyIdTokenClaims());
                         idToken = clientCredentialsGrant.createIdToken(
@@ -303,7 +303,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         }
 
                         IdToken idToken = null;
-                        if (resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
+                        if (appConfiguration.getOpenidScopeBackwardCompatibility() && resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
                             boolean includeIdTokenClaims = Boolean.TRUE.equals(
                                     appConfiguration.getLegacyIdTokenClaims());
                             idToken = resourceOwnerPasswordCredentialsGrant.createIdToken(

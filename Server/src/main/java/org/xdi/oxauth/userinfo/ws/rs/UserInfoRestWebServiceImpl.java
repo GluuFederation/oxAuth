@@ -68,7 +68,7 @@ import java.util.*;
  * Provides interface for User Info REST web services
  *
  * @author Javier Rojas Blum
- * @version June 30, 2018
+ * @version September 3, 2018
  */
 @Path("/")
 public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
@@ -142,8 +142,14 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
                 } else if (authorizationGrant.getAuthorizationGrantType() == AuthorizationGrantType.CLIENT_CREDENTIALS) {
                     builder = Response.status(403);
                     builder.entity(errorResponseFactory.getErrorAsJson(UserInfoErrorResponseType.INSUFFICIENT_SCOPE));
-                } else if (!authorizationGrant.getScopes().contains(DefaultScope.OPEN_ID.toString())
+                } else if (appConfiguration.getOpenidScopeBackwardCompatibility()
+                        && !authorizationGrant.getScopes().contains(DefaultScope.OPEN_ID.toString())
                         && !authorizationGrant.getScopes().contains(DefaultScope.PROFILE.toString())) {
+                    builder = Response.status(403);
+                    builder.entity(errorResponseFactory.getErrorAsJson(UserInfoErrorResponseType.INSUFFICIENT_SCOPE));
+                    oAuth2AuditLog.updateOAuth2AuditLog(authorizationGrant, false);
+                } else if (!appConfiguration.getOpenidScopeBackwardCompatibility()
+                        && !authorizationGrant.getScopes().contains(DefaultScope.OPEN_ID.toString())) {
                     builder = Response.status(403);
                     builder.entity(errorResponseFactory.getErrorAsJson(UserInfoErrorResponseType.INSUFFICIENT_SCOPE));
                     oAuth2AuditLog.updateOAuth2AuditLog(authorizationGrant, false);
