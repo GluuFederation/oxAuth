@@ -7,7 +7,6 @@
 package org.xdi.oxauth.model.crypto;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
@@ -57,11 +56,9 @@ import static org.xdi.oxauth.model.jwk.JWKParameter.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version August 28, 2017
+ * @version September 10, 2018
  */
 public class OxAuthCryptoProvider extends AbstractCryptoProvider {
-
-    private static final Logger LOG = Logger.getLogger(OxAuthCryptoProvider.class);
 
     private KeyStore keyStore;
     private String keyStoreFile;
@@ -252,6 +249,8 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 return null;
             }
             publicKey = certificate.getPublicKey();
+
+            checkKeyExpiration(alias);
         } catch (KeyStoreException e) {
             e.printStackTrace();
         }
@@ -270,6 +269,8 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             return null;
         }
         PrivateKey privateKey = (PrivateKey) key;
+
+        checkKeyExpiration(alias);
 
         return privateKey;
     }
@@ -332,4 +333,13 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         return null;
     }
 
+
+    private void checkKeyExpiration(String alias) {
+        try {
+            Date expirationDate = ((X509Certificate) keyStore.getCertificate(alias)).getNotAfter();
+            checkKeyExpiration(alias, expirationDate.getTime());
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
+    }
 }
