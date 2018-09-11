@@ -121,6 +121,7 @@ public class AuthenticationService {
         log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", userName, System.identityHashCode(credentials));
 
         boolean authenticated = false;
+        boolean protectionServiceEnabled = authenticationProtectionService.isEnabled();
 
         com.codahale.metrics.Timer.Context timerContext = metricService.getTimer(MetricType.OXAUTH_USER_AUTHENTICATION_RATE).time();
         try {
@@ -148,7 +149,7 @@ public class AuthenticationService {
 
         metricService.incCounter(metricType);
 
-        if (authenticationProtectionService.isEnabled()) {
+        if (protectionServiceEnabled) {
             authenticationProtectionService.storeAttempt(userName, authenticated);
             authenticationProtectionService.doDelayIfNeeded(userName);
         }
@@ -219,6 +220,7 @@ public class AuthenticationService {
         }
 
         boolean authenticated = false;
+        boolean protectionServiceEnabled = authenticationProtectionService.isEnabled();
 
         com.codahale.metrics.Timer.Context timerContext = metricService.getTimer(MetricType.OXAUTH_USER_AUTHENTICATION_RATE).time();
         try {
@@ -234,6 +236,11 @@ public class AuthenticationService {
         } finally {
             timerContext.stop();
         }
+        String userId = null;
+        if ((identity.getUser() != null) && StringHelper.isNotEmpty(identity.getUser().getUserId())) {
+            userId = identity.getUser().getUserId();
+        }
+        setAuthenticatedUserSessionAttribute(userId, authenticated);
 
         MetricType metricType;
         if (authenticated) {
@@ -245,7 +252,7 @@ public class AuthenticationService {
         metricService.incCounter(metricType);
 
         
-        if (authenticationProtectionService.isEnabled()) {
+        if (protectionServiceEnabled) {
             authenticationProtectionService.storeAttempt(keyValue, authenticated);
             authenticationProtectionService.doDelayIfNeeded(keyValue);
         }
@@ -314,6 +321,7 @@ public class AuthenticationService {
         log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", userName, System.identityHashCode(credentials));
 
         boolean authenticated = false;
+        boolean protectionServiceEnabled = authenticationProtectionService.isEnabled();
 
         com.codahale.metrics.Timer.Context timerContext = metricService.getTimer(MetricType.OXAUTH_USER_AUTHENTICATION_RATE).time();
         try {
@@ -342,7 +350,7 @@ public class AuthenticationService {
 
         metricService.incCounter(metricType);
 
-        if (authenticationProtectionService.isEnabled()) {
+        if (protectionServiceEnabled) {
             authenticationProtectionService.storeAttempt(userName, authenticated);
             authenticationProtectionService.doDelayIfNeeded(userName);
         }
