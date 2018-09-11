@@ -277,6 +277,8 @@ public class Authenticator {
             }
 
             if (!result && (overridenNextStep == -1)) {
+                // Force session lastUsedAt update if authentication attempt is failed
+                sessionIdService.updateSessionId(sessionId);
                 return false;
             }
 
@@ -368,6 +370,9 @@ public class Authenticator {
                     // Redirect to authorization workflow
                     logger.debug("Sending event to trigger user redirection: '{}'", credentials.getUsername());
                     authenticationService.onSuccessfulLogin(eventSessionId);
+                } else {
+                    // Force session lastUsedAt update if authentication attempt is failed
+                    sessionIdService.updateSessionId(sessionId);
                 }
 
                 logger.info("Authentication success for User: '{}'", credentials.getUsername());
