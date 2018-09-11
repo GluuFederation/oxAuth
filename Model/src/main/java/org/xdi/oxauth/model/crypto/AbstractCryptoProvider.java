@@ -43,7 +43,7 @@ import static org.xdi.oxauth.model.jwk.JWKParameter.*;
  */
 public abstract class AbstractCryptoProvider {
 
-    protected static final Logger LOG = Logger.getLogger(OxAuthCryptoProvider.class);
+    protected static final Logger LOG = Logger.getLogger(AbstractCryptoProvider.class);
 
     public abstract JSONObject generateKey(SignatureAlgorithm signatureAlgorithm, Long expirationTime) throws Exception;
 
