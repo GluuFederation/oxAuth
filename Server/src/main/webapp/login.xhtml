@@ -41,7 +41,7 @@
 		</div>
 	</header>
 		<!-- end header-->
-	<div class="bs-docs-section">
+	<div class="bs-docs-section" style="border-top: 2px solid #1ab26b !important;">
 		<div class="container">
 			<h:panelGroup  rendered="false"> 
 			<div class="login_bx">
@@ -134,18 +134,15 @@
 			</h:panelGroup>
 			
 			<h:panelGroup  rendered="true"> 
-			<div class="login_bx_1">
+			<div class="login_bx_1" style="border-radius:10px; margin-top:0px; background: white;">
 				<div class="row">
 					<div class="col-md-6_1 col-sm-5_1 ">
-					   <div class="left_form_bx" >
-					   
+					   <div class="left_form_bx" style="padding-top: 20px; padding-left: 10px;padding-right: 5px; padding-bottom: 20px;" >
 						<h:form id="loginForm"  class="form-horizontal">
-						<h:panelGroup
-									rendered="#{sessionIdService.notSessionIdAuthenticated}">
-									
-						<h:messages class="text-center" style ="color:red;margin:8px;" infoClass="text-center" errorClass="text-center"/>
+						   <h:messages class="text-center" style ="color:red;margin:8px;" infoClass="text-center" errorClass="text-center"/>
                             <h:inputHidden id="platform"/>
-						
+						<h:panelGroup
+									rendered="#{sessionIdService.notSessionIdAuthenticated}">						
 						  <div class="form-group">
 							<h:outputLabel styleClass="col-sm-4 control-label"	for="username" value="#{msgs['login.username']}" />
 							<div class="col-sm-8">
@@ -169,8 +166,8 @@
 							</div>
 						  
 						  <div class="form-group">
-							<div class="col-sm-offset-3 col-sm-9">
-							  <h:commandButton id="loginButton" styleClass="btn btn-primary"
+							<div class="col-sm-offset-4 col-sm-8">
+							  <h:commandButton id="loginButton" styleClass="btn btn-primary col-sm-12"
 													value="#{msgs['login.login']}"
 											   onclick="checkRemembeMe()"
 													action="#{authenticator.authenticate}" />
@@ -178,9 +175,9 @@
 						  </div>
 						  
 						  <div class="form-group">
-							<div class="col-sm-offset-3 col-sm-9">
+							<div class="col-sm-offset-6 col-sm-6">
 							  <div class="forgot_link">
-								<a href="/identity/person/passwordReminder.htm">
+								<a href="/identity/person/passwordReminder.htm" style="color:blue;">
 								  <h:outputText value="#{msgs['login.forgotYourPassword']}" />
 								</a>
 							  </div>
@@ -211,11 +208,11 @@
 		</div>
 	</div>
 	
-	<div class="footer-copyright text-center py-3">
-		<div class="container">
+	<div class="footer-copyright text-center py-3" style="background:#1ab26b; position: fixed;left: 0;bottom: 0;width: 100%;text-align: center;">
+		<div class="footer">
 			<div class="row">
 				<div class="col-md-12">
-				  <div class="padding_spc">
+				  <div class="padding_spc" style="padding-bottom: 5px;padding-top: 5px;">
 					<p><h:outputText value="#{msgs['common.gluuInc']}" /> | <a target="_blank" href="https://github.com/GluuFederation/oxAuth/blob/master/LICENSE"><h:outputText value="#{msgs['common.caution']}" escape="false" /></a>
 					<h:panelGroup rendered='#{!empty client.policyUri}'>
 					| <a target="_blank" href="#{client.policyUri}"><h:outputText value="#{msgs['common.privacyPolicy']}" escape="false" /></a>
