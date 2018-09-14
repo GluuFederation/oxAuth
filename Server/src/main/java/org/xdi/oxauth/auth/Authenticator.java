@@ -9,6 +9,7 @@ package org.xdi.oxauth.auth;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.jsf2.service.FacesService;
+import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
@@ -109,7 +110,9 @@ public class Authenticator {
      * @return Returns <code>true</code> if the authentication succeed
      */
     public boolean authenticate() {
+    	logger.info("Start authentication 1");
         HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
+        logger.info("Start authentication 2");
         if (!authenticateImpl(servletRequest, true, false)) {
             return authenticationFailed();
         } else {
@@ -142,6 +145,7 @@ public class Authenticator {
         try {
             logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
                     + ", credentials.username: " + credentials.getUsername() + ")");
+            logger.info("Start authentication 3");
             if (StringHelper.isNotEmpty(credentials.getUsername())
                     && (skipPassword || StringHelper.isNotEmpty(credentials.getPassword()))
                     && servletRequest != null && servletRequest.getRequestURI().endsWith("/token")) {
@@ -154,6 +158,7 @@ public class Authenticator {
                 }
             }
         } catch (Exception ex) {
+        	logger.info("Start authentication error");
             logger.error(ex.getMessage(), ex);
         }
 
