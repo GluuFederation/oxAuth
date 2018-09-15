@@ -9,7 +9,6 @@ package org.xdi.oxauth.auth;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.jsf2.service.FacesService;
-import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
@@ -56,7 +55,9 @@ import java.util.Map.Entry;
 @Named
 public class Authenticator {
 
-    private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
+    private static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+
+	private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
     @Inject
     private Logger logger;
@@ -110,9 +111,7 @@ public class Authenticator {
      * @return Returns <code>true</code> if the authentication succeed
      */
     public boolean authenticate() {
-    	logger.info("Start authentication 1");
         HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
-        logger.info("Start authentication 2");
         if (!authenticateImpl(servletRequest, true, false)) {
             return authenticationFailed();
         } else {
@@ -145,7 +144,6 @@ public class Authenticator {
         try {
             logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
                     + ", credentials.username: " + credentials.getUsername() + ")");
-            logger.info("Start authentication 3");
             if (StringHelper.isNotEmpty(credentials.getUsername())
                     && (skipPassword || StringHelper.isNotEmpty(credentials.getPassword()))
                     && servletRequest != null && servletRequest.getRequestURI().endsWith("/token")) {
@@ -158,7 +156,6 @@ public class Authenticator {
                 }
             }
         } catch (Exception ex) {
-        	logger.info("Start authentication error");
             logger.error(ex.getMessage(), ex);
         }
 
@@ -228,7 +225,7 @@ public class Authenticator {
         Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             logger.error("Failed to get session attributes");
-            authenticationFailedSessionInvalid();
+            authenticationSessionExpired();
             return false;
         }
 
@@ -528,7 +525,7 @@ public class Authenticator {
         } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
             addMessage(FacesMessage.SEVERITY_ERROR, "login.youDontHavePermission");
         } else if (Constants.RESULT_EXPIRED.equals(result)) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+            addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         }
 
         return result;
@@ -707,8 +704,13 @@ public class Authenticator {
 
     private void authenticationFailedSessionInvalid() {
         this.addedErrorMessage = true;
-        addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+        addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         facesService.redirect("/error.xhtml");
+    }
+    
+    private void authenticationSessionExpired() {
+        this.addedErrorMessage = true;
+        facesService.redirect("/expiredSession.xhtml");
     }
 
     private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {
