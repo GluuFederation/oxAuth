@@ -622,13 +622,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                 clientService.updatAccessTime(client, false);
                                 oAuth2AuditLog.setSuccess(true);
 
-                                builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse, httpRequest);
-
                                 if (appConfiguration.getCustomHeadersWithAuthorizationResponse()) {
                                     for (String key : customResponseHeaders.keySet()) {
+                                        redirectUriResponse.addResponseParameter(key, customResponseHeaders.get(key));
                                         builder.header(key, customResponseHeaders.get(key));
                                     }
                                 }
+
+                                builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse, httpRequest);
                             }
                         } else { // Invalid redirectUri
                             builder = error(Response.Status.BAD_REQUEST,
