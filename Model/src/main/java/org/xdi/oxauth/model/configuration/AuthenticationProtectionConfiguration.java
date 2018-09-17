@@ -1,10 +1,13 @@
 package org.xdi.oxauth.model.configuration;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * Brute Force authentication configuration
  *
  * @author Yuriy Movchan Date: 08/22/2018
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthenticationProtectionConfiguration {
 
     private int attemptExpiration;
