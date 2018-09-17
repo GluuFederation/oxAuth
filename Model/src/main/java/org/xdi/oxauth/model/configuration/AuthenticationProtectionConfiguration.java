@@ -8,7 +8,6 @@ package org.xdi.oxauth.model.configuration;
 public class AuthenticationProtectionConfiguration {
 
     private int attemptExpiration;
-    private int maximumAllowedAttempts;
     private int maximumAllowedAttemptsWithoutDelay;
 
     private int delayTime;
@@ -21,14 +20,6 @@ public class AuthenticationProtectionConfiguration {
 
     public final void setAttemptExpiration(int attemptExpiration) {
         this.attemptExpiration = attemptExpiration;
-    }
-
-    public final int getMaximumAllowedAttempts() {
-        return maximumAllowedAttempts;
-    }
-
-    public final void setMaximumAllowedAttempts(int maximumAllowedAttempts) {
-        this.maximumAllowedAttempts = maximumAllowedAttempts;
     }
 
     public final int getMaximumAllowedAttemptsWithoutDelay() {
