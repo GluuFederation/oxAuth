@@ -78,6 +78,10 @@ class PersonAuthentication(PersonAuthenticationType):
                 print "Current user status %s" %userSatus
                 countInvalidLogin = StringHelper.toInteger(countInvalidLoginArributeValue, 0)
 
+                if userSatus == "inactive":
+                     facesMessages.add(FacesMessage.SEVERITY_ERROR, "Your account has been locked. Please contact your system administrator")
+                return False
+
                 if countInvalidLogin < self.maximumInvalidLoginAttemps:
                     countInvalidLogin = countInvalidLogin + 1
                     remainingAttempts=self.maximumInvalidLoginAttemps-countInvalidLogin
@@ -87,7 +91,7 @@ class PersonAuthentication(PersonAuthenticationType):
                         facesMessages.add(FacesMessage.SEVERITY_INFO, StringHelper.toString(remainingAttempts)+" more attempt(s) before account is LOCKED!")
                     
 
-                if countInvalidLogin >= self.maximumInvalidLoginAttemps:
+                if countInvalidLogin >= self.maximumInvalidLoginAttemps :
                     self.lockUser(user_name, self.maximumInvalidLoginAttemps)
                     self.setUserAttributeValue(user_name, self.invalidLoginCountAttribute, StringHelper.toString("0"))
                     facesMessages.add(FacesMessage.SEVERITY_ERROR, "Your account has been locked due to too many failed login attempts. Please contact your system administrator")

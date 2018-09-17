@@ -55,7 +55,9 @@ import java.util.Map.Entry;
 @Named
 public class Authenticator {
 
-    private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
+    private static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+
+	private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
     @Inject
     private Logger logger;
@@ -223,7 +225,7 @@ public class Authenticator {
         Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             logger.error("Failed to get session attributes");
-            authenticationFailedSessionInvalid();
+            authenticationSessionExpired();
             return false;
         }
 
@@ -523,7 +525,7 @@ public class Authenticator {
         } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
             addMessage(FacesMessage.SEVERITY_ERROR, "login.youDontHavePermission");
         } else if (Constants.RESULT_EXPIRED.equals(result)) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+            addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         }
 
         return result;
@@ -702,8 +704,13 @@ public class Authenticator {
 
     private void authenticationFailedSessionInvalid() {
         this.addedErrorMessage = true;
-        addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+        addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         facesService.redirect("/error.xhtml");
+    }
+    
+    private void authenticationSessionExpired() {
+        this.addedErrorMessage = true;
+        facesService.redirect("/expiredSession.xhtml");
     }
 
     private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {

@@ -18,7 +18,6 @@ public class AuthenticationProtectionService extends org.xdi.service.security.pr
 
     private static final int DEFAULT_ATTEMPT_EXPIRATION = 15; // 15 seconds
 
-    private static final int DEFAULT_MAXIMUM_ALLOWED_ATTEMPTS = 10; // 10 attempts
     private static final int DEFAULT_MAXIMUM_ALLOWED_ATTEMPTS_WITHOUT_DELAY = 4; // 4 attempts
 
     private static final int DEFAULT_DELAY_TIME = 2; // 5 seconds
@@ -33,13 +32,11 @@ public class AuthenticationProtectionService extends org.xdi.service.security.pr
         AuthenticationProtectionConfiguration authenticationProtectionConfiguration = appConfiguration.getAuthenticationProtectionConfiguration();
         if (authenticationProtectionConfiguration == null) {
             this.attemptExpiration = DEFAULT_ATTEMPT_EXPIRATION;
-            this.maximumAllowedAttempts = DEFAULT_MAXIMUM_ALLOWED_ATTEMPTS;
             this.maximumAllowedAttemptsWithoutDelay = DEFAULT_MAXIMUM_ALLOWED_ATTEMPTS_WITHOUT_DELAY;
 
             this.delayTime = DEFAULT_DELAY_TIME;
         } else {
             this.attemptExpiration = authenticationProtectionConfiguration.getAttemptExpiration();
-            this.maximumAllowedAttempts = authenticationProtectionConfiguration.getMaximumAllowedAttempts();
             this.maximumAllowedAttemptsWithoutDelay = authenticationProtectionConfiguration.getMaximumAllowedAttemptsWithoutDelay();
 
             this.delayTime = authenticationProtectionConfiguration.getDelayTime();
