@@ -1,11 +1,13 @@
 package org.xdi.oxauth.service;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.configuration.AuthenticationProtectionConfiguration;
+import org.xdi.service.cdi.event.ConfigurationUpdate;
 
 /**
  * Brute Force authentication protection service implementation
@@ -29,6 +31,10 @@ public class AuthenticationProtectionService extends org.xdi.service.security.pr
 
     @Override
     protected void init() {
+        updateConfiguration(appConfiguration);
+    }
+
+    public void updateConfiguration(@Observes @ConfigurationUpdate AppConfiguration appConfiguration) {
         AuthenticationProtectionConfiguration authenticationProtectionConfiguration = appConfiguration.getAuthenticationProtectionConfiguration();
         if (authenticationProtectionConfiguration == null) {
             this.attemptExpiration = DEFAULT_ATTEMPT_EXPIRATION;
@@ -41,7 +47,6 @@ public class AuthenticationProtectionService extends org.xdi.service.security.pr
 
             this.delayTime = authenticationProtectionConfiguration.getDelayTime();
         }
-
     }
 
     @Override
