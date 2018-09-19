@@ -8,6 +8,7 @@ package org.xdi.oxauth.auth;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.FacesService;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
@@ -91,6 +92,9 @@ public class Authenticator {
 
     @Inject
     private FacesService facesService;
+    
+    @Inject
+    private FacesMessages facesMessages;
 
     @Inject
     private LanguageBean languageBean;
@@ -225,7 +229,7 @@ public class Authenticator {
         Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             logger.error("Failed to get session attributes");
-            authenticationSessionExpired();
+            authenticationFailedSessionInvalid();
             return false;
         }
 
@@ -707,11 +711,6 @@ public class Authenticator {
         addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         facesService.redirect("/error.xhtml");
     }
-    
-    private void authenticationSessionExpired() {
-        this.addedErrorMessage = true;
-        facesService.redirect("/expiredSession.xhtml");
-    }
 
     private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {
         String key = String.format("auth_step_passed_%d", authStep);
@@ -743,9 +742,8 @@ public class Authenticator {
     }
 
     public void addMessage(Severity severity, String summary) {
-        String msg = languageBean.getMessage(summary);
-        FacesMessage message = new FacesMessage(severity, msg, null);
-        facesContext.addMessage(null, message);
+        String message = languageBean.getMessage(summary);
+        facesMessages.add(severity, message);
     }
 
     public String getMaskMobilenumber(String mobile_number) {
