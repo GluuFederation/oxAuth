@@ -13,6 +13,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
+import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
 import org.slf4j.Logger;
 import org.xdi.ldap.model.SearchScope;
 import org.xdi.oxauth.audit.ApplicationAuditLogger;
@@ -375,6 +376,14 @@ public class GrantService {
     }
 
     public void cleanUp() {
+        try {
+            cleanUpImpl();
+        } catch (EntryPersistenceException ex) {
+            log.error("Failed to process grant clean up properly", ex);
+        }
+    }
+
+    private void cleanUpImpl() {
 
         // Cleaning oxAuthToken
         BatchOperation<TokenLdap> tokenBatchService = new BatchOperation<TokenLdap>(ldapEntryManager) {
