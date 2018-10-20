@@ -6,7 +6,7 @@
 	<groupId>org.xdi</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>3.1.5-SNAPSHOT</version>
+	<version>3.1.5-exper-plugin-SNAPSHOT</version>
 	<name>oxAuth</name>
 	<url>http://www.gluu.org</url>
 
@@ -97,6 +97,8 @@
 		<module>RP</module>
 		<module>RP-Demo</module>
 		<module>Server</module>
+		<module>server-core</module>
+		<module>server-plugin</module>
 	</modules>
 
 	<dependencyManagement>
