@@ -97,6 +97,7 @@
 		<module>RP</module>
 		<module>RP-Demo</module>
 		<module>Server</module>
+		<module>server-interface</module>
 		<module>server-core</module>
 		<module>server-plugin</module>
 	</modules>
