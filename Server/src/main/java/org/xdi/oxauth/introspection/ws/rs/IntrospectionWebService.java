@@ -21,6 +21,7 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.token.TokenService;
 import org.xdi.oxauth.util.ServerUtil;
+import org.xdi.util.Pair;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -40,6 +41,8 @@ import java.util.ArrayList;
         "   takes a single parameter representing the token (and optionally " +
         "   further authentication) and returns a JSON document representing the meta information surrounding the token.")
 public class IntrospectionWebService {
+
+    public static final Pair<AuthorizationGrant, Boolean> EMPTY = new Pair<AuthorizationGrant, Boolean>(null, false);
 
     @Inject
     private Logger log;
@@ -80,14 +83,15 @@ public class IntrospectionWebService {
         try {
             log.trace("Introspect token, authorization: {}, token to introsppect: {}, tokenTypeHint:", p_authorization, p_token, tokenTypeHint);
             if (StringUtils.isNotBlank(p_authorization) && StringUtils.isNotBlank(p_token)) {
-                final AuthorizationGrant authorizationGrant = getAuthorizationGrant(p_authorization, p_token);
+                final Pair<AuthorizationGrant, Boolean> pair = getAuthorizationGrant(p_authorization, p_token);
+                final AuthorizationGrant authorizationGrant = pair.getFirst();
                 if (authorizationGrant != null) {
                     final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getTokenFromAuthorizationParameter(p_authorization));
 
-                    if (authorizationAccessToken != null && authorizationAccessToken.isValid()) {
+                    if ((authorizationAccessToken != null && authorizationAccessToken.isValid()) || pair.getSecond()) {
                         if (ServerUtil.isTrue(appConfiguration.getIntrospectionAccessTokenMustHaveUmaProtectionScope())) { // #562 - make uma_protection optional
                             if (!authorizationGrant.getScopesAsString().contains(UmaScopeType.PROTECTION.getValue())) {
-                                log.trace("access_token used to access introspection endpoint does not has uma_protection scope, however in oxauth configuration `checkUmaProtectionScopePresenceDuringIntrospection` is true");
+                                log.trace("access_token used to access introspection endpoint does not have uma_protection scope, however in oxauth configuration `checkUmaProtectionScopePresenceDuringIntrospection` is true");
                                 return Response.status(Response.Status.UNAUTHORIZED).entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED) + " access_token does not have uma_protection scope which is required by OP configuration.").build();
                             }
                         }
@@ -135,22 +139,22 @@ public class IntrospectionWebService {
         return Response.status(Response.Status.BAD_REQUEST).entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST)).build();
     }
 
-    private AuthorizationGrant getAuthorizationGrant(String authorization, String accessToken) throws UnsupportedEncodingException {
+    private Pair<AuthorizationGrant, Boolean> getAuthorizationGrant(String authorization, String accessToken) throws UnsupportedEncodingException {
         AuthorizationGrant grant = tokenService.getAuthorizationGrantByPrefix(authorization, "Bearer ");
         if (grant != null) {
             final String authorizationAccessToken = authorization.substring("Bearer ".length());
             final AbstractToken accessTokenObject = grant.getAccessToken(authorizationAccessToken);
             if (accessTokenObject != null && accessTokenObject.isValid()) {
-                return grant;
+                return new Pair<AuthorizationGrant, Boolean>(grant, false);
             } else {
                 log.error("Access token is not valid: " + authorizationAccessToken);
-                return null;
+                return EMPTY;
             }
         }
 
         grant = tokenService.getAuthorizationGrantByPrefix(authorization, "Basic ");
         if (grant != null) {
-            return grant;
+            return new Pair<AuthorizationGrant, Boolean>(grant, false);
         }
         if (StringUtils.startsWithIgnoreCase(authorization, "Basic ")) {
 
@@ -164,21 +168,18 @@ public class IntrospectionWebService {
                 String clientId = URLDecoder.decode(token.substring(0, delim), Util.UTF8_STRING_ENCODING);
                 String password = URLDecoder.decode(token.substring(delim + 1), Util.UTF8_STRING_ENCODING);
                 if (clientService.authenticate(clientId, password)) {
-                    final AuthorizationGrant grantOfIntrospectionToken = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-                    if (grantOfIntrospectionToken != null) {
-                        if (!grantOfIntrospectionToken.getClientId().equals(clientId)) {
-                            log.trace("Failed to match grant object clientId and client id provided during authentication.");
-                            return null;
-                        }
-                        return authorizationGrantList.getAuthorizationGrantByAccessToken(encodedCredentials);
+                    grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
+                    if (grant != null && !grant.getClientId().equals(clientId)) {
+                        log.trace("Failed to match grant object clientId and client id provided during authentication.");
+                        return EMPTY;
                     }
+                    return new Pair<AuthorizationGrant, Boolean>(grant, true);
                 } else {
                     log.trace("Failed to perform basic authentication for client: " + clientId);
                 }
-
             }
         }
-        return grant;
+        return EMPTY;
     }
 
 }
