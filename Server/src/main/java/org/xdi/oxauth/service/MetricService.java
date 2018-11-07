@@ -6,6 +6,7 @@
 
 package org.xdi.oxauth.service;
 
+import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.xdi.model.ApplicationType;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
@@ -42,6 +43,9 @@ public class MetricService extends org.xdi.service.metric.MetricService {
 	@Inject
     private StaticConfiguration staticConfiguration;
 
+	@Inject
+    private LdapEntryManager ldapEntryManager;
+
     public void initTimer() {
     	initTimer(this.appConfiguration.getMetricReporterInterval());
     }
@@ -72,6 +76,11 @@ public class MetricService extends org.xdi.service.metric.MetricService {
     @Override
     public ApplicationType getApplicationType() {
         return ApplicationType.OX_AUTH;
+    }
+
+    @Override
+    public LdapEntryManager getEntryManager() {
+        return ldapEntryManager;
     }
 
 }
