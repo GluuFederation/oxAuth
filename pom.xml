@@ -386,9 +386,14 @@
 				<version>1.54</version>
 			</dependency>
 			<dependency>
-			    <groupId>com.nimbusds</groupId>
-			    <artifactId>nimbus-jose-jwt</artifactId>
-			    <version>6.2</version>
+				<groupId>com.nimbusds</groupId>
+				<artifactId>nimbus-jose-jwt</artifactId>
+				<version>6.0.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bitbucket.b_c</groupId>
+				<artifactId>jose4j</artifactId>
+				<version>0.6.4</version>
 			</dependency>
 
 			<!-- Net -->
