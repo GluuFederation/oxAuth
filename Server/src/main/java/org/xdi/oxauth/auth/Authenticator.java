@@ -273,12 +273,6 @@ public class Authenticator {
 					credentials.getUsername(), this.authStep, result, System.identityHashCode(credentials));
 
 			int overridenNextStep = -1;
-			logger.info("#########################################################################");
-			logger.info("#########################################################################");
-			logger.info("#########################################################################");
-			logger.info("#########################################################################");
-			logger.info("++++++++++++++++++++++++++++++++++++++++++CURRENT ACR:" + this.authAcr);
-			logger.info("++++++++++++++++++++++++++++++++++++++++++CURRENT STEP:" + this.authStep);
 			int apiVersion = externalAuthenticationService.executeExternalGetApiVersion(customScriptConfiguration);
 			if (apiVersion > 1) {
 				logger.trace("According to API version script supports steps overriding");
