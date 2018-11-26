@@ -23,7 +23,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "static")
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Vetoed
 public class StaticConfiguration implements Configuration {
 
     @XmlElement(name = "base-dn")

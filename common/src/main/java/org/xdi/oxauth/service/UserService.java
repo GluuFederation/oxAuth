@@ -6,23 +6,6 @@
 
 package org.xdi.oxauth.service;
 
-import com.unboundid.ldap.sdk.Filter;
-import org.gluu.site.ldap.persistence.LdapEntryManager;
-import org.slf4j.Logger;
-import org.xdi.ldap.model.CustomAttribute;
-import org.xdi.ldap.model.GluuStatus;
-import org.xdi.oxauth.model.common.User;
-import org.xdi.oxauth.model.config.StaticConfiguration;
-import org.xdi.oxauth.model.configuration.AppConfiguration;
-import org.xdi.oxauth.model.token.PersistentJwt;
-import org.xdi.oxauth.model.util.Util;
-import org.xdi.util.ArrayHelper;
-import org.xdi.util.StringHelper;
-
-import javax.annotation.Nullable;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -30,13 +13,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.gluu.site.ldap.persistence.LdapEntryManager;
+import org.slf4j.Logger;
+import org.xdi.ldap.model.CustomAttribute;
+import org.xdi.ldap.model.GluuStatus;
+import org.xdi.oxauth.model.common.User;
+import org.xdi.oxauth.model.config.StaticConfiguration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
+import org.xdi.oxauth.model.util.Util;
+import org.xdi.util.ArrayHelper;
+import org.xdi.util.StringHelper;
+
+import com.unboundid.ldap.sdk.Filter;
+
 /**
  * Provides operations with users.
  *
  * @author Javier Rojas Blum Date: 11.30.2011
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UserService {
 
 	public static final String[] USER_OBJECT_CLASSES = new String[] { "gluuPerson" };
@@ -353,7 +354,7 @@ public class UserService {
 		
 		customAttribute.setValue(attributeValue);
 	}
-
+/**
     // this method must be called only if app mode = MEMORY, in ldap case it's anyway persisted in ldap.
     public boolean saveLongLivedToken(String userId, PersistentJwt longLivedToken) {
         log.debug("Saving long-lived access token: userId = {}", userId);
@@ -381,7 +382,7 @@ public class UserService {
 
         return succeed;
     }
-
+*/
     public List<User> getUsersWithPersistentJwts() {
         String baseDN = staticConfiguration.getBaseDn().getPeople();
         Filter filter = Filter.createPresenceFilter("oxAuthPersistentJWT");

@@ -9,10 +9,12 @@ package org.xdi.oxauth.idgen.ws.rs;
 
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.common.IdType;
+import org.xdi.oxauth.service.api.IdGenerator;
 import org.xdi.oxauth.service.external.ExternalIdGeneratorService;
 import org.xdi.util.StringHelper;
 
 import javax.ejb.Stateless;
+import javax.enterprise.inject.Vetoed;
 import javax.inject.Inject;
 import javax.inject.Named;
 
