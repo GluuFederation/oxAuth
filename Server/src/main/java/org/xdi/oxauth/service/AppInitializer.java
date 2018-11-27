@@ -24,6 +24,7 @@ import org.xdi.oxauth.model.auth.AuthenticationMode;
 import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.config.oxIDPAuthConf;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
+import org.xdi.oxauth.model.event.ApplicationInitializedEvent;
 import org.xdi.oxauth.model.util.SecurityProviderUtility;
 import org.xdi.oxauth.service.cdi.event.AuthConfigurationEvent;
 import org.xdi.oxauth.service.cdi.event.ReloadAuthScript;
@@ -32,6 +33,7 @@ import org.xdi.oxauth.service.logger.LoggerService;
 import org.xdi.oxauth.service.status.ldap.LdapStatusTimer;
 import org.xdi.service.PythonService;
 import org.xdi.service.cdi.async.Asynchronous;
+import org.xdi.service.cdi.event.ApplicationInitialized;
 import org.xdi.service.cdi.event.ConfigurationUpdate;
 import org.xdi.service.cdi.event.LdapConfigurationReload;
 import org.xdi.service.cdi.event.LoggerUpdateEvent;
@@ -92,6 +94,9 @@ public class AppInitializer {
 
 	@Inject
 	private Event<String> event;
+
+    @Inject
+    private Event<ApplicationInitializedEvent> eventApplicationInitialized;
 
 	@Inject
 	private Event<TimerEvent> timerEvent;
@@ -194,6 +199,9 @@ public class AppInitializer {
         customScriptManager.initTimer(supportedCustomScriptTypes);
         keyGeneratorTimer.initTimer();
         initTimer();
+
+        // Notify plugins about finish application initialization
+        eventApplicationInitialized.select(ApplicationInitialized.Literal.APPLICATION).fire(new ApplicationInitializedEvent());
 	}
 
     protected void initSchedulerService() {

@@ -50,6 +50,7 @@ import org.gluu.oxauth.fido2.service.DataMapperService;
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.configuration.Fido2Configuration;
+import org.xdi.service.cdi.event.ApplicationInitialized;
 import org.xdi.util.StringHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -89,7 +90,7 @@ public class MdsTocService {
         this.tocEntries = Collections.synchronizedMap(new HashMap());
     }
 
-    public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
+    public void init(@Observes @ApplicationInitialized(ApplicationScoped.class) Object init) {
         tocEntries.putAll(parseTOCs());
     }
 
@@ -119,9 +120,9 @@ public class MdsTocService {
                 try {
                     maps.add(parseTOC(mdsTocRootCertFile, filePath));
                 } catch (IOException e) {
-                    log.warn("Can't access or open path " + path);
+                    log.warn("Can't access or open path " + path, e);
                 } catch (ParseException e) {
-                    log.warn("Can't parse path " + path);
+                    log.warn("Can't parse path " + path, e);
                 }
             }
         } catch (Exception e) {
@@ -131,7 +132,7 @@ public class MdsTocService {
                 try {
                     directoryStream.close();
                 } catch (IOException e) {
-                    log.warn("Something wrong with directory stream", e);
+                    log.warn("Something wrong with directory stream");
                 }
             }
         }
@@ -143,9 +144,9 @@ public class MdsTocService {
         try {
             return parseTOC(mdsTocRootCertFile, FileSystems.getDefault().getPath(mdsTocFileLocation));
         } catch (IOException e) {
-            throw new Fido2RPRuntimeException("Unable to read TOC at " + mdsTocFileLocation);
+            throw new Fido2RPRuntimeException("Unable to read TOC at " + mdsTocFileLocation, e);
         } catch (ParseException e) {
-            throw new Fido2RPRuntimeException("Unable to parse TOC at " + mdsTocFileLocation);
+            throw new Fido2RPRuntimeException("Unable to parse TOC at " + mdsTocFileLocation, e);
         }
     }
 
@@ -166,10 +167,10 @@ public class MdsTocService {
                     return Collections.emptyMap();
                 }
             } catch (JOSEException e) {
-                log.warn("Unable to verify JWS object using algorithm {} for file {} {} ", algorithm, path, e.getMessage());
+                log.warn("Unable to verify JWS object using algorithm {} for file {} {} ", algorithm, path, e);
                 return Collections.emptyMap();
-            } catch (Fido2RPRuntimeException ex) {
-                log.warn("Unable to verify JWS object using algorithm {} for file {} {}", algorithm, path, ex.getMessage());
+            } catch (Fido2RPRuntimeException e) {
+                log.warn("Unable to verify JWS object using algorithm {} for file {} {}", algorithm, path, e);
                 return Collections.emptyMap();
             }
             this.digester = resolveDigester(algorithm);
@@ -178,7 +179,7 @@ public class MdsTocService {
             log.info("Legal header {}", toc.get("legalHeader"));
             ArrayNode entries = (ArrayNode) toc.get("entries");
             int numberOfEntries = toc.get("no").asInt();
-            log.info("Number of entries {} {}", numberOfEntries, entries.size());
+            log.info("Property 'no' value: {}. Number of entries: {}", numberOfEntries, entries.size());
             Iterator<JsonNode> iter = entries.elements();
             Map<String, JsonNode> tocEntries = new HashMap<>();
             while (iter.hasNext()) {
@@ -212,7 +213,7 @@ public class MdsTocService {
         try {
             x509TrustedCertificates.add(cryptoUtils.getCertificate(Files.newInputStream(path)));
         } catch (IOException e) {
-            throw new Fido2RPRuntimeException("Unable to read the root cert " + path);
+            throw new Fido2RPRuntimeException("Unable to read the root cert " + path, e);
         }
         X509Certificate verifiedCert = certificateValidator.verifyAttestationCertificates(x509CertificateChain, x509TrustedCertificates);
 
@@ -222,7 +223,7 @@ public class MdsTocService {
                 verifier = new ECDSAVerifier((ECPublicKey) verifiedCert.getPublicKey());
                 return verifier;
             } catch (JOSEException e) {
-                throw new Fido2RPRuntimeException("Unable to create verifier for algorithm " + algorithm);
+                throw new Fido2RPRuntimeException("Unable to create verifier for algorithm " + algorithm, e);
             }
         } else {
             throw new Fido2RPRuntimeException("Don't know what to do with " + algorithm);
