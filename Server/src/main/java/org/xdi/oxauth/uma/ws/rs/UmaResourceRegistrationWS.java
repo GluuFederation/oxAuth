@@ -26,6 +26,7 @@ import org.xdi.oxauth.util.ServerUtil;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
@@ -303,6 +304,7 @@ public class UmaResourceRegistrationWS {
         response.setId(ldapUpdatedResource.getId());
 
         return Response.status(status).
+                type(MediaType.APPLICATION_JSON_TYPE).
                 entity(ServerUtil.asJson(response)).
                 build();
     }
