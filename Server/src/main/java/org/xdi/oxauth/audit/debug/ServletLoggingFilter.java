@@ -70,7 +70,7 @@ public class ServletLoggingFilter implements Filter {
         ResponseWrapper responseWrapper = new ResponseWrapper(httpResponse);
 
         log.debug(getRequestDescription(requestWrapper));
-        chain.doFilter(requestWrapper, responseWrapper);
+        chain.doFilter(httpRequest, httpResponse);
         log.debug(getResponseDescription(responseWrapper));
     }
 
