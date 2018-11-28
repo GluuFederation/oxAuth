@@ -20,14 +20,15 @@ import org.xdi.oxauth.audit.ApplicationAuditLogger;
 import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.common.AuthorizationGrant;
-import org.xdi.oxauth.model.common.ClientTokens;
 import org.xdi.oxauth.model.common.CacheGrant;
+import org.xdi.oxauth.model.common.ClientTokens;
 import org.xdi.oxauth.model.common.SessionTokens;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.ldap.Grant;
 import org.xdi.oxauth.model.ldap.TokenLdap;
 import org.xdi.oxauth.model.ldap.TokenType;
+import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.util.TokenHashUtil;
 import org.xdi.service.CacheService;
 
@@ -41,7 +42,7 @@ import static org.xdi.oxauth.util.ServerUtil.isTrue;
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version November 11, 2016
+ * @version November 28, 2018
  */
 @Stateless
 @Named
@@ -130,7 +131,13 @@ public class GrantService {
                     expiration = Integer.toString(appConfiguration.getRefreshTokenLifetime());
                     break;
                 case ACCESS_TOKEN:
-                    expiration = Integer.toString(appConfiguration.getAccessTokenLifetime());
+                    int lifetime = appConfiguration.getAccessTokenLifetime();
+                    Client client = clientService.getClient(token.getClientId());
+                    // oxAuth #830 Client-specific access token expiration
+                    if (client != null && client.getAccessTokenLifetime() != null && client.getAccessTokenLifetime() > 0) {
+                        lifetime = client.getAccessTokenLifetime();
+                    }
+                    expiration = Integer.toString(lifetime);
                     break;
             }
 

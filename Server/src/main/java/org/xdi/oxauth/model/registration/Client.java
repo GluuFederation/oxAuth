@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version June 20, 2018
+ * @version November 28, 2018
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -177,6 +177,9 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxRefreshTokenLifetime")
     private Integer refreshTokenLifetime;
+
+    @LdapAttribute(name = "oxAccessTokenLifetime")
+    private Integer accessTokenLifetime;
 
     @LdapAttributesList(name = "name", value = "values", sortByName = true)
     private List<CustomAttribute> customAttributes = new ArrayList<CustomAttribute>();
@@ -1114,6 +1117,14 @@ public class Client implements Serializable {
 
     public void setRefreshTokenLifetime(Integer refreshTokenLifetime) {
         this.refreshTokenLifetime = refreshTokenLifetime;
+    }
+
+    public Integer getAccessTokenLifetime() {
+        return accessTokenLifetime;
+    }
+
+    public void setAccessTokenLifetime(Integer accessTokenLifetime) {
+        this.accessTokenLifetime = accessTokenLifetime;
     }
 
     public List<CustomAttribute> getCustomAttributes() {

@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version September 6, 2017
+ * @version November 28, 2018
  */
 
 public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant {
@@ -272,6 +272,10 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     @Override
     public AccessToken createAccessToken() {
         int lifetime = appConfiguration.getAccessTokenLifetime();
+        // oxAuth #830 Client-specific access token expiration
+        if (client != null && client.getAccessTokenLifetime() != null && client.getAccessTokenLifetime() > 0) {
+            lifetime = client.getAccessTokenLifetime();
+        }
         AccessToken accessToken = new AccessToken(lifetime);
 
         accessToken.setAuthMode(getAcrValues());
