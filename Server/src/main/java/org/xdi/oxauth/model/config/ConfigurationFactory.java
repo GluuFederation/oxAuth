@@ -67,7 +67,7 @@ public class ConfigurationFactory {
 	@Inject
 	private Event<String> event;
 
-	@Inject @Named(AppInitializer.LDAP_ENTRY_MANAGER_NAME)
+	@Inject
 	private Instance<LdapEntryManager> ldapEntryManagerInstance;
 	
 	@Inject
