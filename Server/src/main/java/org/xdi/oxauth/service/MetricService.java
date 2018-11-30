@@ -6,16 +6,17 @@
 
 package org.xdi.oxauth.service;
 
-import org.gluu.site.ldap.persistence.LdapEntryManager;
-import org.xdi.model.ApplicationType;
-import org.xdi.oxauth.model.config.StaticConfiguration;
-import org.xdi.oxauth.model.configuration.AppConfiguration;
-
 import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import org.gluu.site.ldap.persistence.LdapEntryManager;
+import org.xdi.model.ApplicationType;
+import org.xdi.oxauth.model.config.StaticConfiguration;
+import org.xdi.oxauth.model.configuration.AppConfiguration;
+import org.xdi.service.metric.inject.ReportMetric;
 
 /**
  * Store and retrieve metric
@@ -43,8 +44,8 @@ public class MetricService extends org.xdi.service.metric.MetricService {
 	@Inject
     private StaticConfiguration staticConfiguration;
 
-	@Inject
-    private LdapEntryManager ldapEntryManager;
+	@Inject @Named(AppInitializer.LDAP_METRIC_ENTRY_MANAGER_NAME) @ReportMetric 
+    private LdapEntryManager ldapMetricEntryManager;
 
     public void initTimer() {
     	initTimer(this.appConfiguration.getMetricReporterInterval());
@@ -80,7 +81,7 @@ public class MetricService extends org.xdi.service.metric.MetricService {
 
     @Override
     public LdapEntryManager getEntryManager() {
-        return ldapEntryManager;
+        return ldapMetricEntryManager;
     }
 
 }
