@@ -415,10 +415,12 @@ public class AppInitializer {
     }
 
 	private void closeLdapEntryManager(LdapEntryManager oldLdapEntryManager, String entryManagerName) {
-		// Close existing connections
-    	log.debug("Attempting to destroy {}:{} with provider {}", entryManagerName, oldLdapEntryManager, oldLdapEntryManager.getLdapOperationService().getConnectionProvider());
-    	oldLdapEntryManager.destroy();
-        log.debug("Destroyed {}:{} with provider {}", entryManagerName, oldLdapEntryManager, oldLdapEntryManager.getLdapOperationService().getConnectionProvider());
+        // Close existing connections
+        if ((oldLdapEntryManager != null) && (oldLdapEntryManager.getLdapOperationService() != null)) {
+            log.debug("Attempting to destroy {}:{} with provider {}", entryManagerName, oldLdapEntryManager, oldLdapEntryManager.getLdapOperationService().getConnectionProvider());
+            oldLdapEntryManager.destroy();
+            log.debug("Destroyed {}:{} with provider {}", entryManagerName, oldLdapEntryManager, oldLdapEntryManager.getLdapOperationService().getConnectionProvider());
+        }
 	}
 
     public void recreateLdapAuthEntryManagers(List<GluuLdapConfiguration> newLdapAuthConfigs) {
