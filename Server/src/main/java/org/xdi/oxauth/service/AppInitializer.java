@@ -55,6 +55,7 @@ import org.xdi.service.cdi.event.Scheduled;
 import org.xdi.service.cdi.util.CdiUtil;
 import org.xdi.service.custom.lib.CustomLibrariesLoader;
 import org.xdi.service.custom.script.CustomScriptManager;
+import org.xdi.service.ldap.LdapConnectionProviders;
 import org.xdi.service.ldap.LdapConnectionService;
 import org.xdi.service.metric.inject.ReportMetric;
 import org.xdi.service.timer.QuartzSchedulerManager;
@@ -674,24 +675,6 @@ public class AppInitializer {
 		Object clazzObject = mapper.readValue(json, clazz);
 
 		return clazzObject;
-	}
-	
-	private class LdapConnectionProviders {
-		private LdapConnectionService connectionProvider;
-		private LdapConnectionService connectionBindProvider;
-
-		public LdapConnectionProviders(LdapConnectionService connectionProvider, LdapConnectionService connectionBindProvider) {
-			this.connectionProvider = connectionProvider;
-			this.connectionBindProvider = connectionBindProvider;
-		}
-
-		public LdapConnectionService getConnectionProvider() {
-			return connectionProvider;
-		}
-
-		public LdapConnectionService getConnectionBindProvider() {
-			return connectionBindProvider;
-		}
 	}
 
 }
