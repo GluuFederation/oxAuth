@@ -693,14 +693,5 @@ public class AppInitializer {
 			return connectionBindProvider;
 		}
 	}
-	
-	public class LdapMetricEntryManager extends LdapEntryManager {
-
-	    public LdapMetricEntryManager() {}
-
-        public LdapMetricEntryManager(OperationsFacade operationsFacade) {
-            super(operationsFacade);
-        }
-    }
 
 }
