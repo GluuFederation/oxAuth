@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version November 28, 2018
+ * @version December 4, 2018
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -198,6 +198,15 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxAuthAuthorizedOrigins")
     private String[] authorizedOrigins;
+
+    @LdapAttribute(name = "oxSoftwareId")
+    private String softwareId;
+
+    @LdapAttribute(name = "oxSoftwareVersion")
+    private String softwareVersion;
+
+    @LdapAttribute(name = "oxSoftwareStatement")
+    private String softwareStatement;
 
     public boolean isAccessTokenAsJwt() {
         return accessTokenAsJwt;
@@ -1157,6 +1166,30 @@ public class Client implements Serializable {
 
     public void setAuthorizedOrigins(String[] authorizedOrigins) {
         this.authorizedOrigins = authorizedOrigins;
+    }
+
+    public String getSoftwareId() {
+        return softwareId;
+    }
+
+    public void setSoftwareId(String softwareId) {
+        this.softwareId = softwareId;
+    }
+
+    public String getSoftwareVersion() {
+        return softwareVersion;
+    }
+
+    public void setSoftwareVersion(String softwareVersion) {
+        this.softwareVersion = softwareVersion;
+    }
+
+    public String getSoftwareStatement() {
+        return softwareStatement;
+    }
+
+    public void setSoftwareStatement(String softwareStatement) {
+        this.softwareStatement = softwareStatement;
     }
 
     public static Client instance() {
