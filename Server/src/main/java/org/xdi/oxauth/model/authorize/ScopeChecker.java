@@ -46,6 +46,11 @@ public class ScopeChecker {
         final String[] scopesRequested = scope.split(" ");
         final String[] scopesAllowed = client.getScopes();
 
+        // ocAuth #955
+        if (scopesAllowed == null) {
+            return grantedScopes;
+        }
+
         for (String scopeRequested : scopesRequested) {
             if (StringUtils.isNotBlank(scopeRequested)) {
                 for (String scopeAllowedDn : scopesAllowed) {
