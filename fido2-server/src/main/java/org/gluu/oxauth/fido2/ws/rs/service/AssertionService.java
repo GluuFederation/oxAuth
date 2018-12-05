@@ -160,20 +160,27 @@ public class AssertionService {
         ObjectNode credentialUserEntityNode = assertionOptionsResponseNode.putObject("user");
         credentialUserEntityNode.put("name", username);
 
-        ObjectNode publicKeyCredentialRpEntityNode = assertionOptionsResponseNode.putObject("rp");
-        publicKeyCredentialRpEntityNode.put("name", "ACME Dawid");
-        publicKeyCredentialRpEntityNode.put("id", appConfiguration.getIssuer());
+//        ObjectNode publicKeyCredentialRpEntityNode = assertionOptionsResponseNode.putObject("rp");
+//        publicKeyCredentialRpEntityNode.put("name", "ACME Dawid");
+//        publicKeyCredentialRpEntityNode.put("id", appConfiguration.getIssuer());
         ArrayNode publicKeyCredentialDescriptors = assertionOptionsResponseNode.putArray("allowCredentials");
 
+        boolean foundPublicKeys = false;
         for (Fido2RegistrationData registration : registrations) {
             if (StringUtils.isEmpty(registration.getPublicKeyId())) {
-                throw new Fido2RPRuntimeException("Can't find associated key. Have you registered");
+                continue;
             }
+
+            foundPublicKeys = true;
             ObjectNode publicKeyCredentialDescriptorNode = publicKeyCredentialDescriptors.addObject();
             publicKeyCredentialDescriptorNode.put("type", "public-key");
             ArrayNode authenticatorTransportNode = publicKeyCredentialDescriptorNode.putArray("transports");
             authenticatorTransportNode.add("usb").add("ble").add("nfc");
             publicKeyCredentialDescriptorNode.put("id", registration.getPublicKeyId());
+        }
+
+        if (!foundPublicKeys) {
+            throw new Fido2RPRuntimeException("Can't find associated key. Have you registered");
         }
 
         assertionOptionsResponseNode.put("status", "ok");
