@@ -187,6 +187,9 @@ public class Client implements Serializable {
     @LdapCustomObjectClass
     private String[] customObjectClasses;
 
+    @LdapAttribute(name = "oxRptAsJwt")
+    private boolean rptAsJwt = false;
+
     @LdapAttribute(name = "oxAccessTokenAsJwt")
     private boolean accessTokenAsJwt = false;
 
@@ -207,6 +210,14 @@ public class Client implements Serializable {
 
     @LdapAttribute(name = "oxSoftwareStatement")
     private String softwareStatement;
+
+    public boolean isRptAsJwt() {
+        return rptAsJwt;
+    }
+
+    public void setRptAsJwt(boolean rptAsJwt) {
+        this.rptAsJwt = rptAsJwt;
+    }
 
     public boolean isAccessTokenAsJwt() {
         return accessTokenAsJwt;
