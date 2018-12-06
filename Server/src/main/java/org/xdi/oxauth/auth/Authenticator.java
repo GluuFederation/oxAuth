@@ -681,10 +681,31 @@ public class Authenticator {
     }
 
     private void authenticationFailedSessionInvalid() {
+	    sendRemoteSessionInvalidError();
+	}
+
+	private void sendLocalSessionInvalidError() {
         this.addedErrorMessage = true;
-        addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+        addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
         facesService.redirect("/error.xhtml");
-    }
+	}
+	
+	private void sendRemoteSessionInvalidError() {
+	    HttpServletRequest httpRequest = (HttpServletRequest) externalContext.getRequest();
+	    String redirectUri = sessionIdService.getRpOriginIdCookie(httpRequest);
+        
+        if (StringHelper.isEmpty(redirectUri)) {
+            Log.error("Failed to get either redirect_uri from cookies");
+            authenticationFailedSessionInvalid();
+            return;
+        }
+        
+        RedirectUri redirectUriResponse = new RedirectUri(redirectUri, null, null);
+        redirectUriResponse.parseQueryString(errorResponseFactory.getErrorAsQueryString(
+                AuthorizeErrorResponseType.SESSION_SELECTION_REQUIRED, null));
+        redirectUriResponse.addResponseParameter("hint", "Create authorization request to start new authentication session.");
+        facesService.redirectToExternalURL(redirectUriResponse.toString());
+ 	}
 
     private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {
         String key = String.format("auth_step_passed_%d", authStep);
