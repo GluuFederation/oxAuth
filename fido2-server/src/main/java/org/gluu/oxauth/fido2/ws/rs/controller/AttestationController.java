@@ -29,8 +29,8 @@ import org.gluu.oxauth.fido2.ws.rs.service.AttestationService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@Path("/fido2/attestation")
 @ApplicationScoped
+@Path("/fido2/attestation")
 public class AttestationController {
 
     @Inject

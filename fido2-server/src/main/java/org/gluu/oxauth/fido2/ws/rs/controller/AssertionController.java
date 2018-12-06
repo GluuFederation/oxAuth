@@ -15,17 +15,21 @@ package org.gluu.oxauth.fido2.ws.rs.controller;
 
 import java.io.IOException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.gluu.oxauth.fido2.service.DataMapperService;
 import org.gluu.oxauth.fido2.ws.rs.service.AssertionService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+@ApplicationScoped
 @Path("/fido2/assertion")
 public class AssertionController {
 
@@ -39,16 +43,23 @@ public class AssertionController {
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @Path("/options")
-    public JsonNode register(String content) throws IOException {
+    public Response register(String content) throws IOException {
         JsonNode params = dataMapperService.readTree(content);
-        return assertionService.options(params);
+        JsonNode result = assertionService.options(params);
+
+        ResponseBuilder builder = Response.ok().entity(result.toString());
+        return builder.build();
     }
 
     @POST
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @Path("/result")
-    public JsonNode verify(JsonNode params) {
-        return assertionService.verify(params);
+    public Response verify(String content) throws IOException {
+        JsonNode params = dataMapperService.readTree(content);
+        JsonNode result = assertionService.verify(params);
+
+        ResponseBuilder builder = Response.ok().entity(result.toString());
+        return builder.build();
     }
 }
