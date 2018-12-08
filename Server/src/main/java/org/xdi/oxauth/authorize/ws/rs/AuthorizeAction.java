@@ -62,7 +62,7 @@ import java.util.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version @version August 28, 2018
+ * @version December 8, 2018
  */
 @RequestScoped
 @Named
@@ -281,8 +281,7 @@ public class AuthorizeAction {
             }
 
             this.sessionId = unauthenticatedSession.getId();
-            sessionIdService.createSessionIdCookie(this.sessionId, unauthenticatedSession.getSessionState(), false);
-            sessionIdService.creatRpOriginIdCookie(redirectUri);
+            sessionIdService.createSessionIdCookie(this.sessionId, unauthenticatedSession.getSessionState(), unauthenticatedSession.getOPBrowserState(), false);
 
             Map<String, Object> loginParameters = new HashMap<String, Object>();
             if (requestParameterMap.containsKey(AuthorizeRequestParam.LOGIN_HINT)) {

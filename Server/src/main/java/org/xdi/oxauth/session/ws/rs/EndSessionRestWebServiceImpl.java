@@ -49,7 +49,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
  * @author Yuriy Zabrovarnyy
- * @version August 9, 2017
+ * @version December 8, 2018
  */
 @Path("/")
 public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
@@ -104,7 +104,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         // yuriyz : we have to re-visit this since it doesn't look safe to redirect error to uri which is not validated.
         if (pair.getFirst() == null && pair.getSecond() == null && StringUtils.isNotBlank(postLogoutRedirectUri) && allowPostLogoutRedirect(postLogoutRedirectUri)) {
             try {
-            	String error = errorResponseFactory.getErrorAsJson(EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION);
+                String error = errorResponseFactory.getErrorAsJson(EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION);
                 return Response.temporaryRedirect(new URI(postLogoutRedirectUri)).entity(error).build();
             } catch (URISyntaxException e) {
                 log.error("Can't perform redirect", e);
@@ -131,7 +131,8 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     private void validateSessionIdRequestParameter(String sessionId) {
         // session_id is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(sessionId)) {
-            SessionId sessionIdObject = sessionIdService.getSessionId(sessionId);;
+            SessionId sessionIdObject = sessionIdService.getSessionId(sessionId);
+            ;
             if (sessionIdObject == null) {
                 final String reason = "session_id parameter in request is not valid. Logout is rejected. session_id parameter in request can be skipped or otherwise valid value must be provided.";
                 log.error(reason);
@@ -201,7 +202,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             //see https://github.com/GluuFederation/oxAuth/issues/575
             return new Pair<SessionId, AuthorizationGrant>(null, null);
         }
-        
+
         // Clean up authorization session
         removeConsentSessionId(httpRequest, httpResponse);
 
@@ -298,6 +299,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             log.error(e.getMessage(), e);
         } finally {
             sessionIdService.removeSessionIdCookie(httpResponse);
+            sessionIdService.removeOPBrowserStateCookie(httpResponse);
         }
         return ldapSessionId;
     }
@@ -372,9 +374,9 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         oAuth2AuditLog.setSuccess(true);
 
         if (authorizationGrant != null) {
-	        oAuth2AuditLog.setClientId(authorizationGrant.getClientId());
-	        oAuth2AuditLog.setScope(StringUtils.join(authorizationGrant.getScopes(), " "));
-	        oAuth2AuditLog.setUsername(authorizationGrant.getUserId());
+            oAuth2AuditLog.setClientId(authorizationGrant.getClientId());
+            oAuth2AuditLog.setScope(StringUtils.join(authorizationGrant.getScopes(), " "));
+            oAuth2AuditLog.setUsername(authorizationGrant.getUserId());
         } else if (sessionId != null) {
             oAuth2AuditLog.setClientId(sessionId.getPermissionGrantedMap().getClientIds(true).toString());
             oAuth2AuditLog.setScope(sessionId.getSessionAttributes().get(AuthorizeRequestParam.SCOPE));

@@ -64,7 +64,7 @@ import static org.xdi.oxauth.model.util.StringUtils.implode;
  * Implementation for request authorization through REST web services.
  *
  * @author Javier Rojas Blum
- * @version January 17, 2018
+ * @version December 8, 2018
  */
 @Path("/")
 @Api(value = "/oxauth/authorize", description = "Authorization Endpoint")
@@ -111,10 +111,10 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
     @Inject
     private AppConfiguration appConfiguration;
-    
+
     @Inject
     private ConfigurationFactory сonfigurationFactory;
-    
+
     @Context
     private HttpServletRequest servletRequest;
 
@@ -430,7 +430,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                                 sessionUser = sessionIdService.generateAuthenticatedSessionId(httpRequest, userDn, prompt);
                                                 sessionUser.setSessionAttributes(requestParameterMap);
 
-                                                sessionIdService.createSessionIdCookie(sessionUser.getId(), sessionUser.getSessionState(), httpResponse, false);
+                                                sessionIdService.createSessionIdCookie(sessionUser.getId(), sessionUser.getSessionState(), sessionUser.getOPBrowserState(), httpResponse, false);
                                                 sessionIdService.updateSessionId(sessionUser);
                                                 user = userService.getUserByDn(sessionUser.getUserDn());
                                             } else {
