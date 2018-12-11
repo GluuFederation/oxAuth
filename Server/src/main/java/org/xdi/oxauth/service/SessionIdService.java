@@ -467,7 +467,6 @@ public class SessionIdService {
             final String sid = UUID.randomUUID().toString();
             final String salt = UUID.randomUUID().toString();
             final String clientId = sessionIdAttributes.get("client_id");
-            ;
             final String opbs = UUID.randomUUID().toString();
             final String sessionState = JwtUtil.bytesToHex(JwtUtil.getMessageDigestSHA256(
                     clientId + " " + appConfiguration.getIssuer() + " " + opbs + " " + salt)) + "." + salt;
