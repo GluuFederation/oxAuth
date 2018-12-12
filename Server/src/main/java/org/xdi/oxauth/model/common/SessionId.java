@@ -16,10 +16,12 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
+import static org.xdi.oxauth.service.SessionIdService.OP_BROWSER_STATE;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version August 9, 2017
+ * @version December 8, 2018
  */
 @Named("sessionUser")
 @LdapEntry
@@ -125,6 +127,10 @@ public class SessionId implements Serializable {
 
     public void setSessionState(String sessionState) {
         this.sessionState = sessionState;
+    }
+
+    public String getOPBrowserState() {
+        return sessionAttributes.get(OP_BROWSER_STATE);
     }
 
     public String getId() {

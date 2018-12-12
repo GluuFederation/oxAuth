@@ -17,6 +17,8 @@ public class Fido2Configuration {
 
     private String certificationServerMetadataFolder;
 
+    private boolean disable;
+
     public String getCertificationServerMetadataFolder() {
         return certificationServerMetadataFolder;
     }
@@ -47,6 +49,14 @@ public class Fido2Configuration {
 
     public void setMdsTocFilesFolder(String mdsTocFilesFolder) {
         this.mdsTocFilesFolder = mdsTocFilesFolder;
+    }
+
+    public boolean isDisable() {
+        return disable;
+    }
+
+    public void setDisable(boolean disable) {
+        this.disable = disable;
     }
 
 }

@@ -6,6 +6,20 @@
 
 package org.xdi.oxauth.auth;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.application.FacesMessage.Severity;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.jsf2.message.FacesMessages;
@@ -15,6 +29,7 @@ import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.model.security.Credentials;
 import org.xdi.oxauth.i18n.LanguageBean;
+import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.User;
@@ -26,24 +41,12 @@ import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.security.Identity;
 import org.xdi.oxauth.service.AuthenticationService;
 import org.xdi.oxauth.service.ClientService;
+import org.xdi.oxauth.service.ErrorHandlerService;
 import org.xdi.oxauth.service.RequestParameterService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
 import org.xdi.util.Pair;
 import org.xdi.util.StringHelper;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.application.FacesMessage.Severity;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Authenticator component
@@ -56,7 +59,8 @@ import java.util.Map.Entry;
 @Named
 public class Authenticator {
 
-	private static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+	public static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+	public static final String AUTHENTICATION_ERROR_MESSAGE = "login.failedToAuthenticate";
 
 	private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
@@ -102,11 +106,12 @@ public class Authenticator {
 	@Inject
 	private RequestParameterService requestParameterService;
 
+	@Inject
+	private ErrorHandlerService errorHandlerService;
+
 	private String authAcr;
 
 	private Integer authStep;
-
-	private boolean addedErrorMessage;
 
 	/**
 	 * Tries to authenticate an user, returns <code>true</code> if the
@@ -116,60 +121,90 @@ public class Authenticator {
 	 */
 	public boolean authenticate() {
 		HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
-		if (!authenticateImpl(servletRequest, true, false)) {
-			return authenticationFailed();
-		} else {
-			return true;
-		}
+        String result = authenticateImpl(servletRequest, true, false);
+
+		if (Constants.RESULT_SUCCESS.equals(result)) {
+		    return true;
+        } else if (Constants.RESULT_FAILURE.equals(result)) {
+            authenticationFailed();
+        } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
+            handlePermissionsError();
+        } else if (Constants.RESULT_EXPIRED.equals(result)) {
+            handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            }
+        }
+
+		return false;
 	}
 
 	public String authenticateWithOutcome() {
 		HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
-		boolean result = authenticateImpl(servletRequest, true, false);
-		if (result) {
-			return Constants.RESULT_SUCCESS;
-		} else {
-			addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
-			return Constants.RESULT_FAILURE;
-		}
+		String result = authenticateImpl(servletRequest, true, false);
 
+		if (Constants.RESULT_SUCCESS.equals(result)) {
+        } else if (Constants.RESULT_FAILURE.equals(result)) {
+            authenticationFailed();
+        } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
+            handlePermissionsError();
+        } else if (Constants.RESULT_EXPIRED.equals(result)) {
+            handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            }
+        }
+		
+		return result;
 	}
 
 	public boolean authenticateWebService(HttpServletRequest servletRequest, boolean skipPassword) {
-		return authenticateImpl(servletRequest, false, skipPassword);
+	    String result = authenticateImpl(servletRequest, false, skipPassword);
+        return Constants.RESULT_SUCCESS.equals(result);
 	}
 
 	public boolean authenticateWebService(HttpServletRequest servletRequest) {
-		return authenticateImpl(servletRequest, false, false);
+		String result = authenticateImpl(servletRequest, false, false);
+		return Constants.RESULT_SUCCESS.equals(result);
 	}
 
-	public boolean authenticateImpl(HttpServletRequest servletRequest, boolean interactive, boolean skipPassword) {
-		boolean authenticated = false;
+	public String authenticateImpl(HttpServletRequest servletRequest, boolean interactive, boolean skipPassword) {
+		String result = Constants.RESULT_FAILURE;
 		try {
 			logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
 					+ ", credentials.username: " + credentials.getUsername() + ")");
 			if (StringHelper.isNotEmpty(credentials.getUsername())
 					&& (skipPassword || StringHelper.isNotEmpty(credentials.getPassword())) && servletRequest != null
 					&& servletRequest.getRequestURI().endsWith("/token")) {
-				authenticated = clientAuthentication(credentials, interactive, skipPassword);
+				boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
+                if (authenticated) {
+                    result = Constants.RESULT_SUCCESS;
+                }
 			} else {
 				if (interactive) {
-					authenticated = userAuthenticationInteractive();
+				    result = userAuthenticationInteractive();
 				} else {
-					authenticated = userAuthenticationService();
+				    boolean authenticated = userAuthenticationService();
+				    if (authenticated) {
+				        result = Constants.RESULT_SUCCESS;
+				    }
 				}
 			}
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
 
-		if (authenticated) {
+		if (Constants.RESULT_SUCCESS.equals(result)) {
 			logger.trace("Authentication successfully for '{}'", credentials.getUsername());
-			return true;
+			return result;
 		}
 
 		logger.info("Authentication failed for '{}'", credentials.getUsername());
-		return false;
+		return result;
 	}
 
 	public boolean clientAuthentication(Credentials credentials, boolean interactive, boolean skipPassword) {
@@ -224,13 +259,12 @@ public class Authenticator {
 		logger.info(sb.toString());
 	}
 
-	private boolean userAuthenticationInteractive() {
+	private String userAuthenticationInteractive() {
 		SessionId sessionId = sessionIdService.getSessionId();
 		Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
 		if (sessionIdAttributes == null) {
 			logger.error("Failed to get session attributes");
-			authenticationFailedSessionInvalid();
-			return false;
+			return Constants.RESULT_EXPIRED;
 		}
 
 		// Set current state into identity to allow use in login form and
@@ -244,8 +278,7 @@ public class Authenticator {
 			initCustomAuthenticatorVariables(sessionIdAttributes);
 			if ((this.authStep == null) || StringHelper.isEmpty(this.authAcr)) {
 				logger.error("Failed to determine authentication mode");
-				authenticationFailedSessionInvalid();
-				return false;
+				return Constants.RESULT_FAILURE;
 			}
 
 			CustomScriptConfiguration customScriptConfiguration = externalAuthenticationService
@@ -253,7 +286,7 @@ public class Authenticator {
 			if (customScriptConfiguration == null) {
 				logger.error("Failed to get CustomScriptConfiguration for acr: '{}', auth_step: '{}'", this.authAcr,
 						this.authStep);
-				return false;
+				return Constants.RESULT_FAILURE;
 			}
 
 			// Check if all previous steps had passed
@@ -261,7 +294,7 @@ public class Authenticator {
 			if (!passedPreviousSteps) {
 				logger.error("There are authentication steps not marked as passed. acr: '{}', auth_step: '{}'",
 						this.authAcr, this.authStep);
-				return false;
+				return Constants.RESULT_FAILURE;
 			}
 
 			// Restore identity working parameters from session
@@ -284,7 +317,7 @@ public class Authenticator {
 			if (!result && (overridenNextStep == -1)) {
 				// Force session lastUsedAt update if authentication attempt is failed
 				sessionIdService.updateSessionId(sessionId);
-				return false;
+				return Constants.RESULT_AUTHENTICATION_FAILED;
 			}
 
 			boolean overrideCurrentStep = false;
@@ -325,7 +358,7 @@ public class Authenticator {
 				String redirectTo = externalAuthenticationService
 						.executeExternalGetPageForStep(customScriptConfiguration, nextStep);
 				if (StringHelper.isEmpty(redirectTo) || redirectTo == null) {
-					redirectTo = "/error.xhtml";
+					return Constants.RESULT_FAILURE;
 				}
 
 				// Store/Update extra parameters in session attributes map
@@ -342,14 +375,14 @@ public class Authenticator {
 				if (sessionId != null) {
 					boolean updateResult = updateSession(sessionId, sessionIdAttributes);
 					if (!updateResult) {
-						return false;
+						return Constants.RESULT_EXPIRED;
 					}
 				}
 
 				logger.trace("Redirect to page: '{}'", redirectTo);
 				facesService.redirectWithExternal(redirectTo, null);
 
-				return true;
+				return Constants.RESULT_SUCCESS;
 			}
 
 			if (this.authStep == countAuthenticationSteps) {
@@ -362,7 +395,7 @@ public class Authenticator {
 				authenticationService.onSuccessfulLogin(eventSessionId);
 
 				logger.info("Authentication success for User: '{}'", credentials.getUsername());
-				return true;
+				return Constants.RESULT_SUCCESS;
 			}
 		} else {
 			if (StringHelper.isNotEmpty(credentials.getUsername())) {
@@ -381,12 +414,28 @@ public class Authenticator {
 				}
 
 				logger.info("Authentication success for User: '{}'", credentials.getUsername());
-				return true;
+				return Constants.RESULT_SUCCESS;
 			}
 		}
-
-		return false;
+		
+		return Constants.RESULT_FAILURE;
 	}
+
+    protected void handleSessionInvalid() {
+        errorHandlerService.handleError(INVALID_SESSION_MESSAGE, AuthorizeErrorResponseType.AUTHENTICATION_SESSION_INVALID, "Create authorization request to start new authentication session.");
+    }
+
+    protected void handleScriptError() {
+        handleScriptError(AUTHENTICATION_ERROR_MESSAGE);
+    }
+
+    protected void handleScriptError(String facesMessageId) {
+        errorHandlerService.handleError(facesMessageId, AuthorizeErrorResponseType.INVALID_AUTHENTICATION_METHOD, "Contact administrator to fix specific ACR method issue.");
+    }
+
+    protected void handlePermissionsError() {
+        errorHandlerService.handleError("login.youDontHavePermission", AuthorizeErrorResponseType.ACCESS_DENIED, "Contact administrator to grant access to resource.");
+    }
 
 	private boolean updateSession(SessionId sessionId, Map<String, String> sessionIdAttributes) {
 		sessionId.setSessionAttributes(sessionIdAttributes);
@@ -526,11 +575,11 @@ public class Authenticator {
 
 		if (Constants.RESULT_SUCCESS.equals(result)) {
 		} else if (Constants.RESULT_FAILURE.equals(result)) {
-			addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+	        handleScriptError();
 		} else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
-			addMessage(FacesMessage.SEVERITY_ERROR, "login.youDontHavePermission");
+            handlePermissionsError();
 		} else if (Constants.RESULT_EXPIRED.equals(result)) {
-			addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
+		    handleSessionInvalid();
 		}
 
 		return result;
@@ -701,21 +750,9 @@ public class Authenticator {
 	}
 
 	private boolean authenticationFailed() {
-		if (!this.addedErrorMessage) {
-			if (this.authAcr.equalsIgnoreCase("twilio_sms") && this.authStep == 2) {
-				facesMessages.add(FacesMessage.SEVERITY_ERROR, "Incorrect Twilio code, please try again.");
-			} else {
-				addMessage(FacesMessage.SEVERITY_ERROR, "login.errorMessage");
-			}
-
-		}
-		return false;
-	}
-
-	private void authenticationFailedSessionInvalid() {
-		this.addedErrorMessage = true;
-		addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
-		facesService.redirect("/error.xhtml");
+	    addMessage(FacesMessage.SEVERITY_ERROR, "login.errorMessage");
+        handleScriptError(null);
+        return false;
 	}
 
 	private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {

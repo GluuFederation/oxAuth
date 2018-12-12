@@ -5,25 +5,22 @@
 	<title>
 		oxAuth - RP iFrame
 	</title>
-	<script type="text/javascript" src="js/crypto-js-3.1.9-1/crypto-js.js"></script>
 	<script>
         //<![CDATA[
-        var rpOrigin = window.location.origin;
         var opOrigin = null;
         var clientId = null;
-        var op_browser_state = null;
+        var sessionState = null;
         var mes = null;
         var timerId = null;
 
         function loadParams() {
             opOrigin = document.getElementById("opOrigin").value;
             clientId = document.getElementById("clientId").value;
-            op_browser_state = document.getElementById("sessionState").value;
+            sessionState = document.getElementById("sessionState").value;
         }
 
         function updateMes() {
-            var salt = CryptoJS.lib.WordArray.random(128 / 8);
-            mes = clientId + ' ' + CryptoJS.SHA256(clientId + ' ' + rpOrigin + ' ' + op_browser_state + ' ' + salt) + "." + salt;
+			mes = clientId + ' ' + sessionState;
         }
 
         function checkSession() {
