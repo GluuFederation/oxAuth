@@ -310,6 +310,27 @@ public class SessionIdService {
         return null;
     }
 
+    public void creatRpOriginIdCookie(String rpOriginId) {
+        try {
+            final Object response = externalContext.getResponse();
+            if (response instanceof HttpServletResponse) {
+                final HttpServletResponse httpResponse = (HttpServletResponse) response;
+                creatRpOriginIdCookie(rpOriginId, httpResponse);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void creatRpOriginIdCookie(String rpOriginId, HttpServletResponse httpResponse) {
+        String header = RP_ORIGIN_ID_COOKIE_NAME + "=" + rpOriginId;
+        header += "; Path=" + configurationFactory.getContextPath();
+        header += "; Secure";
+        header += "; HttpOnly";
+
+        createCookie(header, httpResponse);
+    }
+
     public void createSessionIdCookie(String sessionId, String sessionState, String opbs, HttpServletResponse httpResponse, String  cookieName) {
         String header = cookieName + "=" + sessionId;
         header += "; Path=/";

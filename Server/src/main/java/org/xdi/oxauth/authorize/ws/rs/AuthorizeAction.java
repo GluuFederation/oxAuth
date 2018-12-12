@@ -282,6 +282,7 @@ public class AuthorizeAction {
 
             this.sessionId = unauthenticatedSession.getId();
             sessionIdService.createSessionIdCookie(this.sessionId, unauthenticatedSession.getSessionState(), unauthenticatedSession.getOPBrowserState(), false);
+            sessionIdService.creatRpOriginIdCookie(redirectUri);
 
             Map<String, Object> loginParameters = new HashMap<String, Object>();
             if (requestParameterMap.containsKey(AuthorizeRequestParam.LOGIN_HINT)) {
