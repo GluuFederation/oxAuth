@@ -39,6 +39,8 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.ServletContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -113,6 +115,9 @@ public class ConfigurationFactory {
 	private ErrorResponseFactory errorResponseFactory;
 	private String cryptoConfigurationSalt;
 
+	private String contextPath;
+    private String facesMapping;
+
 	private AtomicBoolean isActive;
 
 	private String prevLdapFileName;
@@ -145,6 +150,17 @@ public class ConfigurationFactory {
 			this.isActive.set(false);
 		}
 	}
+
+    public void onServletContextActivation(@Observes ServletContext context) {
+        this.contextPath = context.getContextPath();
+        this.facesMapping = "";
+        String[] mappings = context.getServletRegistration("Faces Servlet").getMappings().toArray(new String[0]);
+        if (mappings.length == 0) {
+            return;
+        }
+
+        this.facesMapping = mappings[0].replaceAll("\\*", "");
+    }
 
 	public void create() {
 		if (!createFromLdap(true)) {
@@ -554,5 +570,13 @@ public class ConfigurationFactory {
 
 		return null;
 	}
+
+	public String getFacesMapping() {
+        return facesMapping;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
 
 }

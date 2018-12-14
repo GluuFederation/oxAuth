@@ -22,12 +22,14 @@ import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.FacesService;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.model.security.Credentials;
 import org.xdi.oxauth.i18n.LanguageBean;
+import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.User;
@@ -38,8 +40,8 @@ import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.security.Identity;
 import org.xdi.oxauth.service.AuthenticationService;
-import org.xdi.oxauth.service.AuthorizeService;
 import org.xdi.oxauth.service.ClientService;
+import org.xdi.oxauth.service.ErrorHandlerService;
 import org.xdi.oxauth.service.RequestParameterService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
@@ -55,6 +57,9 @@ import org.xdi.util.StringHelper;
 @RequestScoped
 @Named
 public class Authenticator {
+    
+    public static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+    public static final String AUTHENTICATION_ERROR_MESSAGE = "login.failedToAuthenticate";
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
@@ -86,6 +91,9 @@ public class Authenticator {
     private FacesContext facesContext;
 
     @Inject
+    private FacesMessages facesMessages;
+
+    @Inject
     private ExternalContext externalContext;
 
     @Inject
@@ -97,11 +105,12 @@ public class Authenticator {
     @Inject
     private RequestParameterService requestParameterService;
 
+    @Inject
+    private ErrorHandlerService errorHandlerService;
+
     private String authAcr;
 
     private Integer authStep;
-
-    private boolean addedErrorMessage;
 
     /**
      * Tries to authenticate an user, returns <code>true</code> if the
@@ -110,59 +119,86 @@ public class Authenticator {
      * @return Returns <code>true</code> if the authentication succeed
      */
     public boolean authenticate() {
-        if (!authenticateImpl(true, false)) {
-            return authenticationFailed();
-        } else {
+        String result = authenticateImpl(true, false);
+        if (Constants.RESULT_SUCCESS.equals(result)) {
             return true;
+        } else if (Constants.RESULT_FAILURE.equals(result)) {
+            authenticationFailed();
+        } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
+            handlePermissionsError();
+        } else if (Constants.RESULT_EXPIRED.equals(result)) {
+            handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
         }
+            
+        return false;
     }
 
     public String authenticateWithOutcome() {
-        boolean result = authenticateImpl(true, false);
-        if (result) {
-            return Constants.RESULT_SUCCESS;
-        } else {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
-            return Constants.RESULT_FAILURE;
+        String result = authenticateImpl(true, false);
+        if (Constants.RESULT_SUCCESS.equals(result)) {
+        } else if (Constants.RESULT_FAILURE.equals(result)) {
+            authenticationFailed();
+        } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
+            handlePermissionsError();
+        } else if (Constants.RESULT_EXPIRED.equals(result)) {
+            handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            }
         }
 
+        return result;
     }
 
     public boolean authenticateWebService(boolean skipPassword) {
-        return authenticateImpl(false, skipPassword);
+        String result = authenticateImpl(false, skipPassword);
+        return Constants.RESULT_SUCCESS.equals(result);
     }
 
     public boolean authenticateWebService() {
-        return authenticateImpl(false, false);
+        String result = authenticateImpl(false, false);
+        return Constants.RESULT_SUCCESS.equals(result);
     }
 
-    public boolean authenticateImpl(boolean interactive, boolean skipPassword) {
-        boolean authenticated = false;
+    public String authenticateImpl(boolean interactive, boolean skipPassword) {
+        String result = Constants.RESULT_FAILURE;
         try {
             log.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
                     + ", credentials.username: " + credentials.getUsername() + ")");
             if (StringHelper.isNotEmpty(credentials.getUsername())
                     && (skipPassword || StringHelper.isNotEmpty(credentials.getPassword()))
                     && credentials.getUsername().startsWith("@!")) {
-                authenticated = clientAuthentication(credentials, interactive, skipPassword);
+                boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
+                if (authenticated) {
+                    result = Constants.RESULT_SUCCESS;
+                }
             } else {
                 if (interactive) {
-                    authenticated = userAuthenticationInteractive();
+                    result = userAuthenticationInteractive();
                 } else {
-                    authenticated = userAuthenticationService();
+                    boolean authenticated = userAuthenticationService();
+                    if (authenticated) {
+                        result = Constants.RESULT_SUCCESS;
+                    }
                 }
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
 
-        if (authenticated) {
+        if (Constants.RESULT_SUCCESS.equals(result)) {
             log.trace("Authentication successfully for '{}'", credentials.getUsername());
-            return true;
+            return result;
         }
 
         log.info("Authentication failed for '{}'", credentials.getUsername());
-        return false;
+        return result;
     }
 
     public boolean clientAuthentication(Credentials credentials, boolean interactive, boolean skipPassword) {
@@ -217,13 +253,12 @@ public class Authenticator {
         log.info(sb.toString());
     }
 
-    private boolean userAuthenticationInteractive() {
+    private String userAuthenticationInteractive() {
         SessionId sessionId = sessionIdService.getSessionId();
         Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
         if (sessionIdAttributes == null) {
             log.error("Failed to get session attributes");
-            authenticationFailedSessionInvalid();
-            return false;
+            return Constants.RESULT_EXPIRED;
         }
 
         // Set current state into identity to allow use in login form and
@@ -237,8 +272,7 @@ public class Authenticator {
             initCustomAuthenticatorVariables(sessionIdAttributes);
             if ((this.authStep == null) || StringHelper.isEmpty(this.authAcr)) {
                 log.error("Failed to determine authentication mode");
-                authenticationFailedSessionInvalid();
-                return false;
+                return Constants.RESULT_FAILURE;
             }
 
             CustomScriptConfiguration customScriptConfiguration = externalAuthenticationService
@@ -246,7 +280,7 @@ public class Authenticator {
             if (customScriptConfiguration == null) {
                 log.error("Failed to get CustomScriptConfiguration for acr: '{}', auth_step: '{}'", this.authAcr,
                         this.authStep);
-                return false;
+                return Constants.RESULT_FAILURE;
             }
 
             // Check if all previous steps had passed
@@ -254,7 +288,7 @@ public class Authenticator {
             if (!passedPreviousSteps) {
                 log.error("There are authentication steps not marked as passed. acr: '{}', auth_step: '{}'",
                         this.authAcr, this.authStep);
-                return false;
+                return Constants.RESULT_FAILURE;
             }
 
             // Restore identity working parameters from session
@@ -276,7 +310,7 @@ public class Authenticator {
             }
 
             if (!result && (overridenNextStep == -1)) {
-                return false;
+                return Constants.RESULT_AUTHENTICATION_FAILED;
             }
 
             boolean overrideCurrentStep = false;
@@ -316,8 +350,8 @@ public class Authenticator {
 
                 String redirectTo = externalAuthenticationService
                         .executeExternalGetPageForStep(customScriptConfiguration, nextStep);
-                if (StringHelper.isEmpty(redirectTo)) {
-                    redirectTo = "/login.xhtml";
+                if (StringHelper.isEmpty(redirectTo) || redirectTo == null) {
+                    return Constants.RESULT_FAILURE;
                 }
 
                 // Store/Update extra parameters in session attributes map
@@ -334,14 +368,14 @@ public class Authenticator {
                 if (sessionId != null) {
                     boolean updateResult = updateSession(sessionId, sessionIdAttributes);
                     if (!updateResult) {
-                        return false;
+                        return Constants.RESULT_EXPIRED;
                     }
                 }
 
                 log.trace("Redirect to page: '{}'", redirectTo);
     			facesService.redirectWithExternal(redirectTo, null);
 
-    			return true;
+    			return Constants.RESULT_SUCCESS;
             }
 
             if (this.authStep == countAuthenticationSteps) {
@@ -355,7 +389,7 @@ public class Authenticator {
                 authenticationService.onSuccessfulLogin(eventSessionId);
 
                 log.info("Authentication success for User: '{}'", credentials.getUsername());
-                return true;
+                return Constants.RESULT_SUCCESS;
             }
         } else {
             if (StringHelper.isNotEmpty(credentials.getUsername())) {
@@ -371,11 +405,27 @@ public class Authenticator {
                 }
 
                 log.info("Authentication success for User: '{}'", credentials.getUsername());
-                return true;
+                return Constants.RESULT_SUCCESS;
             }
         }
 
-        return false;
+        return Constants.RESULT_FAILURE;
+    }
+
+    protected void handleSessionInvalid() {
+        errorHandlerService.handleError(INVALID_SESSION_MESSAGE, AuthorizeErrorResponseType.AUTHENTICATION_SESSION_INVALID, "Create authorization request to start new authentication session.");
+    }
+
+    protected void handleScriptError() {
+        handleScriptError(AUTHENTICATION_ERROR_MESSAGE);
+    }
+
+    protected void handleScriptError(String facesMessageId) {
+        errorHandlerService.handleError(facesMessageId, AuthorizeErrorResponseType.INVALID_AUTHENTICATION_METHOD, "Contact administrator to fix specific ACR method issue.");
+    }
+
+    protected void handlePermissionsError() {
+        errorHandlerService.handleError("login.youDontHavePermission", AuthorizeErrorResponseType.ACCESS_DENIED, "Contact administrator to grant access to resource.");
     }
 
     private boolean updateSession(SessionId sessionId, Map<String, String> sessionIdAttributes) {
@@ -500,11 +550,11 @@ public class Authenticator {
 
         if (Constants.RESULT_SUCCESS.equals(result)) {
         } else if (Constants.RESULT_FAILURE.equals(result)) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            handleScriptError();
         } else if (Constants.RESULT_NO_PERMISSIONS.equals(result)) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.youDontHavePermission");
+            handlePermissionsError();
         } else if (Constants.RESULT_EXPIRED.equals(result)) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
+            handleSessionInvalid();
         }
 
         return result;
@@ -674,38 +724,10 @@ public class Authenticator {
     }
 
     private boolean authenticationFailed() {
-        if (!this.addedErrorMessage) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "login.errorMessage");
-        }
+        addMessage(FacesMessage.SEVERITY_ERROR, "login.errorMessage");
+        handleScriptError(null);
         return false;
     }
-
-    private void authenticationFailedSessionInvalid() {
-	    sendRemoteSessionInvalidError();
-	}
-
-	private void sendLocalSessionInvalidError() {
-        this.addedErrorMessage = true;
-        addMessage(FacesMessage.SEVERITY_ERROR, INVALID_SESSION_MESSAGE);
-        facesService.redirect("/error.xhtml");
-	}
-	
-	private void sendRemoteSessionInvalidError() {
-	    HttpServletRequest httpRequest = (HttpServletRequest) externalContext.getRequest();
-	    String redirectUri = sessionIdService.getRpOriginIdCookie(httpRequest);
-        
-        if (StringHelper.isEmpty(redirectUri)) {
-            Log.error("Failed to get either redirect_uri from cookies");
-            authenticationFailedSessionInvalid();
-            return;
-        }
-        
-        RedirectUri redirectUriResponse = new RedirectUri(redirectUri, null, null);
-        redirectUriResponse.parseQueryString(errorResponseFactory.getErrorAsQueryString(
-                AuthorizeErrorResponseType.SESSION_SELECTION_REQUIRED, null));
-        redirectUriResponse.addResponseParameter("hint", "Create authorization request to start new authentication session.");
-        facesService.redirectToExternalURL(redirectUriResponse.toString());
- 	}
 
     private void markAuthStepAsPassed(Map<String, String> sessionIdAttributes, Integer authStep) {
         String key = String.format("auth_step_passed_%d", authStep);

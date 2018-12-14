@@ -13,6 +13,7 @@ import org.gluu.site.ldap.persistence.exception.EntryPersistenceException;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
+import org.xdi.oxauth.auth.Authenticator;
 import org.xdi.oxauth.i18n.LanguageBean;
 import org.xdi.oxauth.model.auth.AuthenticationMode;
 import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
@@ -116,6 +117,9 @@ public class AuthorizeAction {
 
     @Inject
     private RequestParameterService requestParameterService;
+
+    @Inject
+    private ErrorHandlerService errorHandlerService;
 
     // OAuth 2.0 request parameters
     private String scope;
@@ -726,6 +730,14 @@ public class AuthorizeAction {
         } catch (UnsupportedEncodingException iee) {
             throw new RuntimeException(iee);
         }
+    }
+
+    protected void handleSessionInvalid() {
+        errorHandlerService.handleError(Authenticator.INVALID_SESSION_MESSAGE, AuthorizeErrorResponseType.AUTHENTICATION_SESSION_INVALID, "Create authorization request to start new authentication session.");
+    }
+
+    protected void handleScriptError(String facesMessageId) {
+        errorHandlerService.handleError(Authenticator.AUTHENTICATION_ERROR_MESSAGE, AuthorizeErrorResponseType.INVALID_AUTHENTICATION_METHOD, "Contact administrator to fix specific ACR method issue.");
     }
 
 }

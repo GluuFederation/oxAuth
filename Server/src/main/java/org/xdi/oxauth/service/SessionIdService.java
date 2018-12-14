@@ -38,6 +38,7 @@ import org.xdi.oxauth.model.audit.OAuth2AuditLog;
 import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
+import org.xdi.oxauth.model.config.ConfigurationFactory;
 import org.xdi.oxauth.model.config.StaticConfiguration;
 import org.xdi.oxauth.model.config.WebKeysConfiguration;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
@@ -90,6 +91,9 @@ public class SessionIdService {
 
     @Inject
     private WebKeysConfiguration webKeysConfiguration;
+
+    @Inject
+    private ConfigurationFactory configurationFactory;
 
     @Inject
     private FacesContext facesContext;
@@ -247,8 +251,25 @@ public class SessionIdService {
         return getValueFromCookie(request, SESSION_STATE_COOKIE_NAME);
     }
 
-    public String getRpOriginIdCookie(HttpServletRequest request) {
-        return getValueFromCookie(request, RP_ORIGIN_ID_COOKIE_NAME);
+    public String getRpOriginIdCookie() {
+        return getValueFromCookie(RP_ORIGIN_ID_COOKIE_NAME);
+    }
+
+    public String getValueFromCookie(String cookieName) {
+        try {
+            if (facesContext == null) {
+                return null;
+            }
+            final HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
+            if (request != null) {
+                return getValueFromCookie(request, cookieName);
+            } else {
+                log.error("Faces context returns null for http request object.");
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     public String getValueFromCookie(HttpServletRequest request, String cookieName) {
@@ -301,7 +322,7 @@ public class SessionIdService {
 
     public void creatRpOriginIdCookie(String rpOriginId, HttpServletResponse httpResponse) {
         String header = RP_ORIGIN_ID_COOKIE_NAME + "=" + rpOriginId;
-        header += "; Path=/";
+        header += "; Path=/" + configurationFactory.getContextPath();;
         header += "; Secure";
         header += "; HttpOnly";
 
