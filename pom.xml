@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>3.1.2.Final</oxcore.version>
+		<oxcore.version>3.1.2.sp2</oxcore.version>
 		<oxeleven.version>3.1.2.Final</oxeleven.version>
 		<oxnotify.version>3.1.2.Final</oxnotify.version>
 
