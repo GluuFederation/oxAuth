@@ -132,6 +132,7 @@ public class Authenticator {
             // Do nothing to keep compatibility with older versions
             if (facesMessages.getMessages().size() == 0) {
                 addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            }
         }
             
         return false;
