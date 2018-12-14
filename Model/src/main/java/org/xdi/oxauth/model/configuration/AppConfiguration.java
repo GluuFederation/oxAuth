@@ -10,6 +10,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.common.WebKeyStorage;
+import org.xdi.oxauth.model.error.ErrorHandlingMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,6 +165,8 @@ public class AppConfiguration implements Configuration {
     private Boolean disableJdkLogger = true;
     private Set<String> authorizationRequestCustomAllowedParameters;
     private Boolean legacyDynamicRegistrationScopeParam;
+
+    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
 
     public Boolean getDisableJdkLogger() {
         return disableJdkLogger;
@@ -1305,4 +1308,13 @@ public class AppConfiguration implements Configuration {
     public void setLegacyDynamicRegistrationScopeParam(Boolean legacyDynamicRegistrationScopeParam) {
         this.legacyDynamicRegistrationScopeParam = legacyDynamicRegistrationScopeParam;
     }
+
+    public ErrorHandlingMethod getErrorHandlingMethod() {
+        return errorHandlingMethod;
+    }
+
+    public void setErrorHandlingMethod(ErrorHandlingMethod errorHandlingMethod) {
+        this.errorHandlingMethod = errorHandlingMethod;
+    }
+
 }
