@@ -19,6 +19,7 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -28,21 +29,23 @@ import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
 import org.xdi.model.security.Credentials;
 import org.xdi.oxauth.i18n.LanguageBean;
+import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
+import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.security.Identity;
 import org.xdi.oxauth.service.AuthenticationService;
-import org.xdi.oxauth.service.AuthorizeService;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.RequestParameterService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
+import org.xdi.oxauth.util.RedirectUri;
 import org.xdi.util.StringHelper;
 
 /**
@@ -55,6 +58,8 @@ import org.xdi.util.StringHelper;
 @RequestScoped
 @Named
 public class Authenticator {
+    
+    private static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
@@ -97,6 +102,9 @@ public class Authenticator {
     @Inject
     private RequestParameterService requestParameterService;
 
+    @Inject
+    private ErrorResponseFactory errorResponseFactory;
+    
     private String authAcr;
 
     private Integer authStep;
@@ -695,7 +703,7 @@ public class Authenticator {
 	    String redirectUri = sessionIdService.getRpOriginIdCookie(httpRequest);
         
         if (StringHelper.isEmpty(redirectUri)) {
-            Log.error("Failed to get either redirect_uri from cookies");
+            log.error("Failed to get either redirect_uri from cookies");
             authenticationFailedSessionInvalid();
             return;
         }
