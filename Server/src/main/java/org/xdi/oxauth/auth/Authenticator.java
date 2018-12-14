@@ -19,10 +19,10 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.FacesService;
 import org.slf4j.Logger;
 import org.xdi.model.AuthenticationScriptUsageType;
@@ -35,7 +35,6 @@ import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
-import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.util.Util;
@@ -46,7 +45,6 @@ import org.xdi.oxauth.service.ErrorHandlerService;
 import org.xdi.oxauth.service.RequestParameterService;
 import org.xdi.oxauth.service.SessionIdService;
 import org.xdi.oxauth.service.external.ExternalAuthenticationService;
-import org.xdi.oxauth.util.RedirectUri;
 import org.xdi.util.StringHelper;
 
 /**
@@ -60,8 +58,8 @@ import org.xdi.util.StringHelper;
 @Named
 public class Authenticator {
     
-    private static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
-    private static final String AUTHENTICATION_ERROR_MESSAGE = "login.failedToAuthenticate";
+    public static final String INVALID_SESSION_MESSAGE = "login.errorSessionInvalidMessage";
+    public static final String AUTHENTICATION_ERROR_MESSAGE = "login.failedToAuthenticate";
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
 
@@ -91,6 +89,9 @@ public class Authenticator {
 
     @Inject
     private FacesContext facesContext;
+
+    @Inject
+    private FacesMessages facesMessages;
 
     @Inject
     private ExternalContext externalContext;
@@ -127,8 +128,12 @@ public class Authenticator {
             handlePermissionsError();
         } else if (Constants.RESULT_EXPIRED.equals(result)) {
             handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
         }
-
+            
         return false;
     }
 
@@ -141,6 +146,11 @@ public class Authenticator {
             handlePermissionsError();
         } else if (Constants.RESULT_EXPIRED.equals(result)) {
             handleSessionInvalid();
+        } else if (Constants.RESULT_AUTHENTICATION_FAILED.equals(result)) {
+            // Do nothing to keep compatibility with older versions
+            if (facesMessages.getMessages().size() == 0) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "login.failedToAuthenticate");
+            }
         }
 
         return result;
@@ -300,7 +310,7 @@ public class Authenticator {
             }
 
             if (!result && (overridenNextStep == -1)) {
-                return Constants.RESULT_NO_PERMISSIONS;
+                return Constants.RESULT_AUTHENTICATION_FAILED;
             }
 
             boolean overrideCurrentStep = false;
