@@ -1,11 +1,11 @@
 package org.xdi.oxauth.model.common;
 
 import com.google.common.base.Preconditions;
-import com.ocpsoft.pretty.faces.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import org.xdi.util.StringHelper;
 
 /**
  * @author yuriyz
@@ -37,7 +37,7 @@ public class ClientTokens implements Serializable {
     }
 
     public String cacheKey() {
-        Preconditions.checkState(StringUtils.isNotBlank(clientId));
+        Preconditions.checkState(StringHelper.isNotEmpty(clientId));
         return clientId + "_tokens";
     }
 

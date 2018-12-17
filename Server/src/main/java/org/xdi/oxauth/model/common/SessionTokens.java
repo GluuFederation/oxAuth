@@ -1,7 +1,7 @@
 package org.xdi.oxauth.model.common;
 
 import com.google.common.base.Preconditions;
-import com.ocpsoft.pretty.faces.util.StringUtils;
+import org.xdi.util.StringHelper;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -38,7 +38,7 @@ public class SessionTokens implements Serializable {
     }
 
     public String cacheKey() {
-        Preconditions.checkState(StringUtils.isNotBlank(sessionDn));
+        Preconditions.checkState(StringHelper.isNotEmpty(sessionDn));
         return sessionDn + "_tokens";
     }
 

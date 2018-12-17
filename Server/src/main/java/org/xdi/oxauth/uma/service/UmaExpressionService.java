@@ -1,6 +1,5 @@
 package org.xdi.oxauth.uma.service;
 
-import com.ocpsoft.pretty.faces.util.StringUtils;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
@@ -15,6 +14,7 @@ import org.xdi.oxauth.service.external.ExternalUmaRptPolicyService;
 import org.xdi.oxauth.uma.authorization.UmaAuthorizationContext;
 import org.xdi.oxauth.uma.authorization.UmaScriptByScope;
 import org.xdi.oxauth.uma.authorization.UmaWebException;
+import org.xdi.util.StringHelper;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -51,7 +51,7 @@ public class UmaExpressionService {
     public void evaluate(Map<UmaScriptByScope, UmaAuthorizationContext> scriptMap, List<UmaPermission> permissions) {
         for (UmaPermission permission : permissions) {
             UmaResource resource = resourceService.getResourceById(permission.getResourceId());
-            if (StringUtils.isNotBlank(resource.getScopeExpression())) {
+            if (StringHelper.isNotEmpty(resource.getScopeExpression())) {
                 evaluateScopeExpression(scriptMap, permission, resource);
             } else {
                 if (!evaluateByScopes(filterByScopeDns(scriptMap, permission.getScopeDns()))) {
