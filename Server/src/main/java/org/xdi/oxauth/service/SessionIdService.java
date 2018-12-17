@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
@@ -63,7 +64,7 @@ import com.unboundid.ldap.sdk.ResultCode;
  * @author Javier Rojas Blum
  * @version August 9, 2017
  */
-@Stateless
+@RequestScoped
 @Named
 public class SessionIdService {
 
