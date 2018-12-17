@@ -180,8 +180,11 @@ public class AssertionService {
             throw new Fido2RPRuntimeException("Can't find associated key. Have you registered");
         }
 
-        assertionOptionsResponseNode.put("status", "ok");
         assertionOptionsResponseNode.put("userVerification", userVerification);
+        
+        if (params.hasNonNull("extensions")) {
+            assertionOptionsResponseNode.set("extensions", params.get("extensions"));
+        }
 
         String host;
         try {
