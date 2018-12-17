@@ -322,7 +322,7 @@ public class SessionIdService {
 
     public void creatRpOriginIdCookie(String rpOriginId, HttpServletResponse httpResponse) {
         String header = RP_ORIGIN_ID_COOKIE_NAME + "=" + rpOriginId;
-        header += "; Path=/" + configurationFactory.getContextPath();;
+        header += "; Path=" + configurationFactory.getContextPath();
         header += "; Secure";
         header += "; HttpOnly";
 
