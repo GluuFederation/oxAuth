@@ -119,7 +119,7 @@ public class AssertionService {
         String clientDataOrigin = clientDataJSONNode.get("origin").asText();
 
         Fido2AuthenticationEntry authenticationEntity = authenticationsRepository.findByChallenge(clientDataChallenge).parallelStream().findFirst()
-                .orElseThrow(() -> new Fido2RPRuntimeException("Can't find matching request"));
+                .orElseThrow(() -> new Fido2RPRuntimeException(String.format("Can't find matching request by challenge '%s'", clientDataChallenge)));
         
         Fido2AuthenticationData authenticationData = authenticationEntity.getAuthenticationData();
 
@@ -128,7 +128,7 @@ public class AssertionService {
         domainVerifier.verifyDomain(authenticationData.getDomain(), clientDataOrigin);
 
         Fido2RegistrationEntry registrationEntry = registrationsRepository.findByPublicKeyId(keyId)
-                .orElseThrow(() -> new Fido2RPRuntimeException("Couldn't find the key"));
+                .orElseThrow(() -> new Fido2RPRuntimeException(String.format("Couldn't find the key by PublicKeyId '%s'", keyId)));
         Fido2RegistrationData registrationData = registrationEntry.getRegistrationData();
 
         authenticatorAuthorizationVerifier.verifyAuthenticatorAssertionResponse(response, registrationData, authenticationData);
