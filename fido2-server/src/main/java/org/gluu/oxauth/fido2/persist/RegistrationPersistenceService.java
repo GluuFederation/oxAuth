@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import org.gluu.oxauth.fido2.exception.Fido2RPRuntimeException;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationData;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationEntry;
+import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationStatus;
 import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
@@ -205,8 +206,7 @@ public class RegistrationPersistenceService {
 
             private Filter getFilter() {
                 // Build unfinished request expiration filter
-                Filter authenticationStatusFilter = Filter.createORFilter(Filter.createNOTFilter(Filter.createPresenceFilter("oxStatus")),
-                        Filter.createNOTFilter(Filter.createEqualityFilter("oxStatus", "registerted")));
+                Filter authenticationStatusFilter = Filter.createNOTFilter(Filter.createEqualityFilter("oxStatus", Fido2RegistrationStatus.registered.getValue()));
 
                 Filter exirationDateFilter = Filter.createLessOrEqualFilter("creationDate",
                         StaticUtils.encodeGeneralizedTime(unfinishedRequestExpirationDate));

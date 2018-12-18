@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import org.gluu.oxauth.fido2.exception.Fido2RPRuntimeException;
 import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationData;
 import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationEntry;
+import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationStatus;
 import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
@@ -100,6 +101,7 @@ public class AuthenticationPersistenceService {
         authenticationEntity.setAuthenticationStatus(authenticationData.getStatus());
 
         ldapEntryManager.merge(authenticationEntity);
+        System.err.println("Updated: " + authenticationEntity.getDn());
     }
 
     public void addBranch(final String baseDn) {
@@ -184,8 +186,7 @@ public class AuthenticationPersistenceService {
 
             private Filter getFilter() {
                 // Build unfinished request expiration filter
-                Filter authenticationStatusFilter1 = Filter.createORFilter(Filter.createNOTFilter(Filter.createPresenceFilter("oxStatus")),
-                        Filter.createNOTFilter(Filter.createEqualityFilter("oxStatus", "registerted")));
+                Filter authenticationStatusFilter1 = Filter.createNOTFilter(Filter.createEqualityFilter("oxStatus", Fido2AuthenticationStatus.authenticated.getValue()));
 
                 Filter exirationDateFilter1 = Filter.createLessOrEqualFilter("creationDate",
                         StaticUtils.encodeGeneralizedTime(unfinishedRequestExpirationDate));
@@ -193,8 +194,7 @@ public class AuthenticationPersistenceService {
                 Filter unfinishedRequestFilter = Filter.createANDFilter(authenticationStatusFilter1, exirationDateFilter1);
 
                 // Build authentication history expiration filter
-                Filter authenticationStatusFilter2 = Filter.createORFilter(Filter.createNOTFilter(Filter.createPresenceFilter("oxStatus")),
-                        Filter.createEqualityFilter("oxStatus", "registerted"));
+                Filter authenticationStatusFilter2 = Filter.createEqualityFilter("oxStatus", Fido2AuthenticationStatus.authenticated.getValue());
 
                 Filter exirationDateFilter2 = Filter.createLessOrEqualFilter("creationDate",
                         StaticUtils.encodeGeneralizedTime(authenticationHistoryExpirationDate));
