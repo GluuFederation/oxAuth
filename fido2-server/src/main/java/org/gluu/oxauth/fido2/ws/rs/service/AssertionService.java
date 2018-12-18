@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.fido2.exception.Fido2RPRuntimeException;
 import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationData;
 import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationEntry;
+import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationStatus;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationData;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.fido2.persist.AuthenticationPersistenceService;
@@ -134,9 +134,9 @@ public class AssertionService {
         authenticatorAuthorizationVerifier.verifyAuthenticatorAssertionResponse(response, registrationData, authenticationData);
 
         authenticationData.setW3cAuthenticatorAssertionResponse(response.toString());
+        authenticationData.setStatus(Fido2AuthenticationStatus.authenticated);
 
         authenticationsRepository.update(authenticationEntity);
-        registrationsRepository.update(registrationEntry);
 
         authenticateResponseNode.put("status", "ok");
         authenticateResponseNode.put("errorMessage", "");
@@ -204,14 +204,16 @@ public class AssertionService {
             host = appConfiguration.getIssuer();
         }
 
-        Fido2AuthenticationData entity = new Fido2AuthenticationData();
-        entity.setUsername(username);
-        entity.setChallenge(challenge);
-        entity.setDomain(host);
-        entity.setW3cCredentialRequestOptions(assertionOptionsResponseNode.toString());
-        entity.setUserVerificationOption(userVerification);
+        Fido2AuthenticationData authenticationData = new Fido2AuthenticationData();
+        authenticationData.setUsername(username);
+        authenticationData.setChallenge(challenge);
+        authenticationData.setDomain(host);
+        authenticationData.setW3cCredentialRequestOptions(assertionOptionsResponseNode.toString());
+        authenticationData.setUserVerificationOption(userVerification);
+        authenticationData.setStatus(Fido2AuthenticationStatus.pending);
 
-        authenticationsRepository.save(entity);
+        authenticationsRepository.save(authenticationData);
+
         assertionOptionsResponseNode.put("status", "ok");
         assertionOptionsResponseNode.put("errorMessage", "");
 
