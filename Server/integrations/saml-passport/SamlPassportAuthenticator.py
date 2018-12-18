@@ -8,7 +8,7 @@ from org.gluu.jsf2.service import FacesService
 from org.gluu.jsf2.message import FacesMessages
 
 from org.xdi.oxauth.model.common import User, WebKeyStorage
-from org.xdi.oxauth.model.config import ConfigurationFactory
+from org.xdi.oxauth.model.config import ConfigurationFactory, StaticConfiguration
 from org.xdi.oxauth.model.configuration import AppConfiguration
 from org.xdi.oxauth.model.crypto import CryptoProviderFactory
 from org.xdi.oxauth.model.jwt import Jwt, JwtClaimName
@@ -22,7 +22,7 @@ from org.xdi.config.oxtrust import LdapOxPassportConfiguration
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.service.cdi.util import CdiUtil
 from org.xdi.util import StringHelper
-from java.util import ArrayList, Arrays, Collections
+from java.util import ArrayList, Arrays, Collections, HashSet
 
 from javax.faces.application import FacesMessage
 from javax.faces.context import FacesContext
@@ -51,6 +51,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         # Re-read the strategies config
         self.parseProviderConfigs()
+        self.peopleDN = CdiUtil.bean(StaticConfiguration).getBaseDn().getPeople()
 
         return success
 
@@ -478,11 +479,11 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
 
         uidRemoteAttr = user_profile[uidRemoteAttr]
-        # This is for backwards compat. Should it be passport-saml-provider:...??
         externalUid = "passport-%s:%s" % ("saml", uidRemoteAttr)
 
         userService = CdiUtil.bean(UserService)
-        userByUid = userService.getUserByAttribute("oxExternalUid", externalUid)
+        uidIDP =  uidRemoteAttr + ":" + provider
+        userByUid = self.getUserByExternalUid(externalUid, uidIDP)
 
         mailRemoteAttr = self.getRemoteAttr("mail")
         email = None
@@ -545,10 +546,10 @@ class PersonAuthentication(PersonAuthenticationType):
             if doUpdate:
                 username = userByUid.getUserId()
                 print "Passport. attemptAuthentication. Updating user %s" % username
-                self.updateUser(userByUid, user_profile, userService)
+                self.updateUser(userByUid, uidIDP, user_profile, userService)
             elif doAdd:
                 print "Passport. attemptAuthentication. Creating user %s" % externalUid
-                newUser = self.addUser(externalUid, user_profile, userService)
+                newUser = self.addUser(externalUid, uidIDP, user_profile, userService)
                 username = newUser.getUserId()
         except:
             print "Exception: ", sys.exc_info()[1]
@@ -562,6 +563,29 @@ class PersonAuthentication(PersonAuthenticationType):
             logged_in = CdiUtil.bean(AuthenticationService).authenticate(username)
             print "Passport. attemptAuthentication. Authentication for %s returned %s" % (username, logged_in)
             return logged_in
+
+
+    def getUserByExternalUid(self, externalUid, uidIdpToFind):
+
+        sampleUser = User()
+        sampleUser.setDn(self.peopleDN)
+        sampleUser.setAttribute("oxExternalUid", externalUid)
+        candidates = CdiUtil.bean(UserService).getUsersBySample(sampleUser, 10)
+
+        sampleUser = None
+        for user in candidates:
+            uidIdps = user.getAttributeValues("oxUidIDP")
+            if uidIdps == None:
+                if sampleUser == None:
+                    # Assume this user is the best candidate so far, but keep searching
+                    sampleUser = user
+            else:
+                for uidIdp in uidIdps:
+                    if uidIdp == uidIdpToFind:
+                        # Match found, abort search now
+                        sampleUser = user
+                        break
+        return sampleUser
 
 
     def setEmailMessageError(self):
@@ -590,18 +614,25 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
 
-    def addUser(self, externalUid, profile, userService):
+    def addUser(self, externalUid, uidIDP, profile, userService):
 
         newUser = User()
         #Fill user attrs
         newUser.setAttribute("oxExternalUid", externalUid)
+        newUser.setAttribute("oxUidIDP", uidIDP)
         self.fillUser(newUser, profile)
         newUser = userService.addUser(newUser, True)
         return newUser
 
 
-    def updateUser(self, foundUser, profile, userService):
+    def updateUser(self, foundUser, uidIDP, profile, userService):
         self.fillUser(foundUser, profile)
+        list = foundUser.getAttributeValues("oxUidIDP")
+        list = ArrayList() if list == None else ArrayList(list)
+        # Adding is needed because upgraded installations may not have set oxUidIDP
+        list.add(uidIDP)
+        # HashSet ensures there is no attribute duplicity, thus no exception thrown
+        user.setAttribute("oxUidIDP", ArrayList(HashSet(list)))
         userService.updateUser(foundUser)
 
 
@@ -617,6 +648,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 localAttr = mapping[remoteAttr]
                 print "Remote (%s), Local (%s) = %s" % (remoteAttr, localAttr, values)
                 foundUser.setAttribute(localAttr, values)
+
 
     def isInboundFlow(self, identity):
         sessionId = identity.getSessionId()
@@ -634,6 +666,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return False
 
+
     def isInboundJwt(self, value):
         if value == None:
             return False
@@ -647,6 +680,7 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
 
         return True
+
 
     # This routine converts a value into an array of flat string values. Examples:
     # "" --> []
