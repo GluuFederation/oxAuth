@@ -29,6 +29,7 @@ import org.gluu.oxauth.fido2.exception.Fido2RPRuntimeException;
 import org.gluu.oxauth.fido2.model.auth.CredAndCounterData;
 import org.gluu.oxauth.fido2.model.cert.PublicKeyCredentialDescriptor;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationData;
+import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationStatus;
 import org.gluu.oxauth.fido2.persist.AuthenticationPersistenceService;
 import org.gluu.oxauth.fido2.persist.RegistrationPersistenceService;
@@ -117,15 +118,16 @@ public class AttestationService {
         log.info("Challenge {}", clientDataChallenge);
         // String clientDataOrigin = clientDataJSONNode.get("origin").asText();
 
-        List<Fido2RegistrationData> registrationEntries = registrationsRepository.findAllByChallenge(clientDataChallenge);
-        Fido2RegistrationData credentialFound = registrationEntries.parallelStream().findAny()
-                .orElseThrow(() -> new Fido2RPRuntimeException("Can't find request with matching challenge and domain"));
+        List<Fido2RegistrationEntry> registrationEntries = registrationsRepository.findAllByChallenge(clientDataChallenge);
+        Fido2RegistrationEntry credentialEntryFound = registrationEntries.parallelStream().findAny()
+                .orElseThrow(() -> new Fido2RPRuntimeException(String.format("Can't find request with matching challenge '%s' and domain", clientDataChallenge)));
+        
+        Fido2RegistrationData credentialFound = credentialEntryFound.getRegistrationData();
 
         domainVerifier.verifyDomain(credentialFound.getDomain(), clientDataJSONNode.get("origin").asText());
         CredAndCounterData attestationData = authenticatorAttestationVerifier.verifyAuthenticatorAttestationResponse(response, credentialFound);
 
         credentialFound.setUncompressedECPoint(attestationData.getUncompressedEcPoint());
-        credentialFound.setStatus(Fido2RegistrationStatus.REGISTERED);
         credentialFound.setW3cAuthenticatorAttenstationResponse(response.toString());
         credentialFound.setSignatureAlgorithm(attestationData.getSignatureAlgorithm());
         credentialFound.setCounter(attestationData.getCounters());
@@ -135,7 +137,9 @@ public class AttestationService {
             credentialFound.setPublicKeyId(keyId);
         }
         credentialFound.setType("public-key");
-        registrationsRepository.save(credentialFound);
+        credentialFound.setStatus(Fido2RegistrationStatus.registered);
+
+        registrationsRepository.update(credentialEntryFound);
 
         ((ObjectNode) params).put("errorMessage", "");
         ((ObjectNode) params).put("status", "ok");
@@ -179,7 +183,7 @@ public class AttestationService {
         credentialCreationOptionsNode.put("challenge", challenge);
         log.info("Challenge {}", challenge);
         ObjectNode credentialRpEntityNode = credentialCreationOptionsNode.putObject("rp");
-        credentialRpEntityNode.put("name", "Mastercard RP");
+        credentialRpEntityNode.put("name", "oxAuth RP");
         credentialRpEntityNode.put("id", documentDomain);
 
         ObjectNode credentialUserEntityNode = credentialCreationOptionsNode.putObject("user");
@@ -202,11 +206,11 @@ public class AttestationService {
         }
         credentialCreationOptionsNode.set("authenticatorSelection", params.get("authenticatorSelection"));
 
-        List<Fido2RegistrationData> existingRegistrations = registrationsRepository.findAllByUsername(username);
+        List<Fido2RegistrationEntry> existingRegistrations = registrationsRepository.findAllByUsername(username);
         List<JsonNode> excludedKeys = existingRegistrations.parallelStream()
-                .filter(f -> ((f.getType() != null) && (f.getPublicKeyId() != null)))
+                .filter(f -> (Fido2RegistrationStatus.registered.equals(f.getRegistrationData().getStatus())))
                 .map(f -> dataMapperService.convertValue(
-                        new PublicKeyCredentialDescriptor(f.getType(), f.getPublicKeyId()),
+                        new PublicKeyCredentialDescriptor(f.getRegistrationData().getType(), f.getRegistrationData().getPublicKeyId()),
                         JsonNode.class))
                 .collect(Collectors.toList());
 
@@ -221,7 +225,10 @@ public class AttestationService {
         entity.setDomain(host);
         entity.setW3cCredentialCreationOptions(credentialCreationOptionsNode.toString());
         entity.setAttestationConveyancePreferenceType(attestationConveyancePreference);
+        entity.setStatus(Fido2RegistrationStatus.pending);
+
         registrationsRepository.save(entity);
+
         return credentialCreationOptionsNode;
     }
 }

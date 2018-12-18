@@ -6,6 +6,8 @@
 
 package org.xdi.oxauth.service;
 
+import org.gluu.oxauth.fido2.persist.AuthenticationPersistenceService;
+import org.gluu.oxauth.fido2.persist.RegistrationPersistenceService;
 import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
@@ -88,6 +90,12 @@ public class CleanerTimer {
     @Inject
     @Named("u2fRequestService")
     private RequestService u2fRequestService;
+    
+    @Inject
+    private AuthenticationPersistenceService authenticationPersistenceService;
+    
+    @Inject
+    private RegistrationPersistenceService registrationPersistenceService;
 
     @Inject
     private MetricService metricService;
@@ -139,6 +147,9 @@ public class CleanerTimer {
 
             processU2fRequests();
             processU2fDeviceRegistrations();
+
+            this.registrationPersistenceService.cleanup(now, BATCH_SIZE);
+            this.authenticationPersistenceService.cleanup(now, BATCH_SIZE);
 
             processMetricEntries();
         } finally {
