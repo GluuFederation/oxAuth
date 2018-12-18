@@ -107,25 +107,18 @@ public class RegistrationPersistenceService {
 
         Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
         final String id = UUID.randomUUID().toString();
-        
-        registrationData.setCreatedDate(now);
-        registrationData.setCreatedBy(userName);
 
         String dn = getDnForRegistrationEntry(userInum, id);
         Fido2RegistrationEntry registrationEntry = new Fido2RegistrationEntry(dn, id, now, null, userInum, registrationData.getPublicKeyId(), registrationData);
         registrationEntry.setRegistrationStatus(registrationData.getStatus());
-        updateRegistrationAttributes(registrationEntry);
+        
+        registrationData.setCreatedDate(now);
+        registrationData.setCreatedBy(userName);
 
         ldapEntryManager.persist(registrationEntry);
     }
 
     public void update(Fido2RegistrationEntry registrationEntry) {
-        updateRegistrationAttributes(registrationEntry);
-
-        ldapEntryManager.merge(registrationEntry);
-    }
-
-    private void updateRegistrationAttributes(Fido2RegistrationEntry registrationEntry) {
         Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
 
         Fido2RegistrationData registrationData = registrationEntry.getRegistrationData();
@@ -133,6 +126,8 @@ public class RegistrationPersistenceService {
         registrationData.setUpdatedBy(registrationData.getUsername());
 
         registrationEntry.setRegistrationStatus(registrationData.getStatus());
+
+        ldapEntryManager.merge(registrationEntry);
     }
 
     public void addBranch(final String baseDn) {

@@ -118,7 +118,7 @@ public class AssertionService {
         String clientDataChallenge = clientDataJSONNode.get("challenge").asText();
         String clientDataOrigin = clientDataJSONNode.get("origin").asText();
 
-        Fido2AuthenticationEntry authenticationEntity = authenticationsRepository.findByChallenge(clientDataChallenge).parallelStream().findAny()
+        Fido2AuthenticationEntry authenticationEntity = authenticationsRepository.findByChallenge(clientDataChallenge).parallelStream().findFirst()
                 .orElseThrow(() -> new Fido2RPRuntimeException("Can't find matching request"));
         
         Fido2AuthenticationData authenticationData = authenticationEntity.getAuthenticationData();
@@ -134,8 +134,10 @@ public class AssertionService {
         authenticatorAuthorizationVerifier.verifyAuthenticatorAssertionResponse(response, registrationData, authenticationData);
 
         authenticationData.setW3cAuthenticatorAssertionResponse(response.toString());
+
         authenticationsRepository.update(authenticationEntity);
         registrationsRepository.update(registrationEntry);
+
         authenticateResponseNode.put("status", "ok");
         authenticateResponseNode.put("errorMessage", "");
         return authenticateResponseNode;

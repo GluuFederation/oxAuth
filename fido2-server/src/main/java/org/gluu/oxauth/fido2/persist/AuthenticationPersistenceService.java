@@ -80,23 +80,18 @@ public class AuthenticationPersistenceService {
         Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
         final String id = UUID.randomUUID().toString();
 
+        String dn = getDnForAuthenticationEntry(userInum, id);
+        Fido2AuthenticationEntry authenticationEntity = new Fido2AuthenticationEntry(dn, authenticationData.getId(), now, null, userInum, authenticationData);
+        authenticationEntity.setAuthenticationStatus(authenticationData.getStatus());
+
         authenticationData.setCreatedDate(now);
         authenticationData.setCreatedBy(userName);
 
-        String dn = getDnForAuthenticationEntry(userInum, id);
-        Fido2AuthenticationEntry authenticationEntity = new Fido2AuthenticationEntry(dn, authenticationData.getId(), now, null, userInum, authenticationData);
-        updateAuthenticationAttributes(authenticationEntity);
 
         ldapEntryManager.persist(authenticationEntity);
     }
 
     public void update(Fido2AuthenticationEntry authenticationEntity) {
-        updateAuthenticationAttributes(authenticationEntity);
-
-        ldapEntryManager.merge(authenticationEntity);
-    }
-
-    private void updateAuthenticationAttributes(Fido2AuthenticationEntry authenticationEntity) {
         Date now = new GregorianCalendar(TimeZone.getTimeZone("UTC")).getTime();
 
         Fido2AuthenticationData authenticationData = authenticationEntity.getAuthenticationData();
@@ -104,6 +99,8 @@ public class AuthenticationPersistenceService {
         authenticationData.setUpdatedBy(authenticationData.getUsername());
 
         authenticationEntity.setAuthenticationStatus(authenticationData.getStatus());
+
+        ldapEntryManager.merge(authenticationEntity);
     }
 
     public void addBranch(final String baseDn) {
