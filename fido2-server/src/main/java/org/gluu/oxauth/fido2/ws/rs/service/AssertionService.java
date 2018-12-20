@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -25,7 +26,10 @@ import javax.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.fido2.exception.Fido2RPRuntimeException;
 import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationData;
+import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationEntry;
+import org.gluu.oxauth.fido2.model.entry.Fido2AuthenticationStatus;
 import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationData;
+import org.gluu.oxauth.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.fido2.persist.AuthenticationPersistenceService;
 import org.gluu.oxauth.fido2.persist.RegistrationPersistenceService;
 import org.gluu.oxauth.fido2.service.Base64Service;
@@ -114,21 +118,26 @@ public class AssertionService {
         String clientDataChallenge = clientDataJSONNode.get("challenge").asText();
         String clientDataOrigin = clientDataJSONNode.get("origin").asText();
 
-        Fido2AuthenticationData authenticationEntity = authenticationsRepository.findByChallenge(clientDataChallenge)
-                .orElseThrow(() -> new Fido2RPRuntimeException("Can't find matching request"));
+        Fido2AuthenticationEntry authenticationEntity = authenticationsRepository.findByChallenge(clientDataChallenge).parallelStream().findFirst()
+                .orElseThrow(() -> new Fido2RPRuntimeException(String.format("Can't find matching request by challenge '%s'", clientDataChallenge)));
+        
+        Fido2AuthenticationData authenticationData = authenticationEntity.getAuthenticationData();
 
         // challengeVerifier.verifyChallenge(authenticationEntity.getChallenge(),
         // challenge, clientDataChallenge);
-        domainVerifier.verifyDomain(authenticationEntity.getDomain(), clientDataOrigin);
+        domainVerifier.verifyDomain(authenticationData.getDomain(), clientDataOrigin);
 
-        Fido2RegistrationData registration = registrationsRepository.findByPublicKeyId(keyId)
-                .orElseThrow(() -> new Fido2RPRuntimeException("Couldn't find the key"));
+        Fido2RegistrationEntry registrationEntry = registrationsRepository.findByPublicKeyId(keyId)
+                .orElseThrow(() -> new Fido2RPRuntimeException(String.format("Couldn't find the key by PublicKeyId '%s'", keyId)));
+        Fido2RegistrationData registrationData = registrationEntry.getRegistrationData();
 
-        authenticatorAuthorizationVerifier.verifyAuthenticatorAssertionResponse(response, registration, authenticationEntity);
+        authenticatorAuthorizationVerifier.verifyAuthenticatorAssertionResponse(response, registrationData, authenticationData);
 
-        authenticationEntity.setW3cAuthenticatorAssertionResponse(response.toString());
-        authenticationsRepository.save(authenticationEntity);
-        registrationsRepository.save(registration);
+        authenticationData.setW3cAuthenticatorAssertionResponse(response.toString());
+        authenticationData.setStatus(Fido2AuthenticationStatus.authenticated);
+
+        authenticationsRepository.update(authenticationEntity);
+
         authenticateResponseNode.put("status", "ok");
         authenticateResponseNode.put("errorMessage", "");
         return authenticateResponseNode;
@@ -149,10 +158,12 @@ public class AssertionService {
         log.info("Options {} ", username);
 
         ObjectNode assertionOptionsResponseNode = dataMapperService.createObjectNode();
-        List<Fido2RegistrationData> registrations = registrationsRepository.findAllByUsername(username);
-        if (registrations.isEmpty()) {
+        List<Fido2RegistrationEntry> registrationEntries = registrationsRepository.findAllByUsername(username);
+        if (registrationEntries.isEmpty()) {
             throw new Fido2RPRuntimeException("No record of registration. Have you registered");
         }
+        
+        List<Fido2RegistrationData> registrations = registrationEntries.parallelStream().map(f -> f.getRegistrationData()).collect(Collectors.toList());
 
         String challenge = challengeGenerator.getChallenge();
         assertionOptionsResponseNode.put("challenge", challenge);
@@ -193,14 +204,16 @@ public class AssertionService {
             host = appConfiguration.getIssuer();
         }
 
-        Fido2AuthenticationData entity = new Fido2AuthenticationData();
-        entity.setUsername(username);
-        entity.setChallenge(challenge);
-        entity.setDomain(host);
-        entity.setW3cCredentialRequestOptions(assertionOptionsResponseNode.toString());
-        entity.setUserVerificationOption(userVerification);
+        Fido2AuthenticationData authenticationData = new Fido2AuthenticationData();
+        authenticationData.setUsername(username);
+        authenticationData.setChallenge(challenge);
+        authenticationData.setDomain(host);
+        authenticationData.setW3cCredentialRequestOptions(assertionOptionsResponseNode.toString());
+        authenticationData.setUserVerificationOption(userVerification);
+        authenticationData.setStatus(Fido2AuthenticationStatus.pending);
 
-        authenticationsRepository.save(entity);
+        authenticationsRepository.save(authenticationData);
+
         assertionOptionsResponseNode.put("status", "ok");
         assertionOptionsResponseNode.put("errorMessage", "");
 
