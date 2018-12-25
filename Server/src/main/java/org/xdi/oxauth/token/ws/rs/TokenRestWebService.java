@@ -9,6 +9,7 @@ package org.xdi.oxauth.token.ws.rs;
 import com.wordnik.swagger.annotations.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -102,5 +103,6 @@ public interface TokenRestWebService {
             @FormParam("rpt")
             String rptCode,
             @Context HttpServletRequest request,
+            @Context HttpServletResponse response,
             @Context SecurityContext sec);
 }
