@@ -36,14 +36,6 @@
 					<skipTests>false</skipTests>  <!-- set it to false when test sources appear -->
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-			</plugin>
 		</plugins>
 	</build>
 </project>
