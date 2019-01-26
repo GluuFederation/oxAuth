@@ -6,6 +6,20 @@
 
 package org.xdi.oxauth.service;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.ejb.DependsOn;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.gluu.oxauth.fido2.persist.AuthenticationPersistenceService;
 import org.gluu.oxauth.fido2.persist.RegistrationPersistenceService;
 import org.gluu.site.ldap.persistence.BatchOperation;
@@ -24,22 +38,12 @@ import org.xdi.oxauth.uma.service.UmaPctService;
 import org.xdi.oxauth.uma.service.UmaPermissionService;
 import org.xdi.oxauth.uma.service.UmaResourceService;
 import org.xdi.oxauth.uma.service.UmaRptService;
-import org.xdi.service.CacheService;
-import org.xdi.service.cache.NativePersistenceCacheProvider;
+import org.xdi.service.cache.CacheProvider;
 import org.xdi.service.cdi.async.Asynchronous;
 import org.xdi.service.cdi.event.CleanerEvent;
 import org.xdi.service.cdi.event.Scheduled;
 import org.xdi.service.timer.event.TimerEvent;
 import org.xdi.service.timer.schedule.TimerSchedule;
-
-import javax.ejb.DependsOn;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -85,7 +89,7 @@ public class CleanerTimer {
     private SessionIdService sessionIdService;
 
     @Inject
-    private CacheService cacheService;
+    private CacheProvider cacheProvider;
 
     @Inject
     @Named("u2fRequestService")
@@ -159,9 +163,7 @@ public class CleanerTimer {
 
     private void processCache(Date now) {
         try {
-            if (cacheService.getCacheProvider() instanceof NativePersistenceCacheProvider) {
-                ((NativePersistenceCacheProvider) cacheService.getCacheProvider()).cleanup(now, BATCH_SIZE);
-            }
+            cacheProvider.cleanup(now);
         } catch (Exception e) {
             log.error("Failed to clean up cache.", e);
         }
