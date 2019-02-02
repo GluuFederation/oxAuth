@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>
+        oxAuth - IDP iFrame
+    </title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/iframe.js"></script>
+    <script>
+        //<![CDATA[
+        (function () {
+            function IFrame(origin, rpcToken, clearCache) {
+                console.log("IFrame(origin, rpcToken, clearCache) (" + origin + ", " + rpcToken + ", " + clearCache + ")");
+
+                if (!origin) {
+                    console.error("Error: The iFrame parameter origin is required.");
+                    return;
+                }
+                if (!rpcToken) {
+                    console.error("Error: The iFrame parameter rpcToken is required.");
+                    return;
+                }
+
+                this.origin = origin;
+                this.rpcToken = rpcToken;
+                this.clearCache = clearCache;
+
+                // If clearCache=1 included, then all cached data for current origin will be cleared.
+                // TODO: If clearCache == 1, then all cached data for current origin will be cleared.
+
+                console.log("IDP IFrame Loaded");
+
+                // Send an idpReady event to the client origin.
+                this.idpReady();
+            }
+
+            //////////
+            // RPCs
+
+            /**
+             * Registers a client to the IDP IFrame, so that IDP IFrame knows
+             * that the target client is running on the container page.
+             */
+            IFrame.prototype.monitorClient = function (params, id, rpcToken) {
+                console.log("monitorClient(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                if (params.clientId == null) {
+                    console.error("JSON message is not valid. Client ID cannot be null");
+                }
+
+                var result = clients.add(params.clientId);
+
+                if (id != null) {
+                    var response = {
+                        id: id,
+                        result: result,
+                        rpcToken: rpcToken
+                    };
+
+                    return response;
+                }
+            }
+
+            /**
+             * Gets the persistent login hint of bound user and the disabled
+             * state in the session selector of current RP.
+             */
+            IFrame.prototype.getSessionSelector = function (params, id, rpcToken) {
+                console.log("getSessionSelector(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                var path = 'gluu/oxauth';
+
+                var policy = params.policy || 'default';
+                var domain = params.domain;
+                var crossSubDomains = params.crossSubDomains || false;
+
+                // TODO: Validate params
+                // TODO: Validate against policy, and origin of container page
+
+                var key = [path,
+                    encodeURIComponent(policy),
+                    encodeURIComponent(domain),
+                    crossSubDomains ? '1' : '0'
+                ].join('/');
+
+                var val = window.localStorage.getItem(key);
+
+                if (val) {
+                    val = JSON.parse(val);
+                }
+
+                if (id != null) {
+                    var response = {
+                        id: id,
+                        result: val,
+                        rpcToken: rpcToken
+                    };
+
+                    return response;
+                }
+            }
+
+            /**
+             * Changes the bound user or the disabled state in the session
+             * selector of current RP.
+             */
+            IFrame.prototype.setSessionSelector = function (params, id, rpcToken) {
+                console.log("setSessionSelector(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                var path = 'gluu/oxauth';
+
+                var policy = params.policy || 'default';
+                var domain = params.domain;
+                var crossSubDomains = params.crossSubDomains || false;
+                var hint = params.hint;
+                var disabled = params.disabled || false;
+
+                var key = [path,
+                    encodeURIComponent(policy),
+                    encodeURIComponent(domain),
+                    crossSubDomains ? '1' : '0'
+                ].join('/');
+                var val = JSON.stringify({hint: hint, disabled: disabled});
+
+                var result = false;
+                try {
+                    localStorage.setItem(key, val);
+                    result = true;
+                } catch (ex) {
+                    result = false;
+                }
+
+                if (id != null) {
+                    var response = {
+                        id: id,
+                        result: result,
+                        rpcToken: rpcToken
+                    };
+
+                    return response;
+                }
+            }
+
+            /**
+             * Loads access token or ID token from the IDP IFrame.  The tokens
+             * may be loaded from the cache in the IDP IFrame.
+             */
+            IFrame.prototype.getTokenResponse = function (params, id, rpcToken) {
+                console.log("getTokenResponse(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                var path = 'gluu/oxauth';
+                var key = [path,
+                    encodeURIComponent(params.clientId),
+                    encodeURIComponent(params.loginHint)
+                ].join('/');
+
+                // TODO: Check for forceRefresh param
+                if (sessionStorage.getItem(key)) {
+                    // TODO: scopes, response types, expires date MUST be taken into account.
+                    console.log("Response cached in Session Storage");
+                    console.log(sessionStorage.getItem(key));
+
+                    var result = JSON.parse(sessionStorage.getItem(key));
+                    if (id != null) {
+                        var message = {
+                            id: id,
+                            result: result,
+                            rpcToken: rpcToken
+                        };
+
+                        parent.postMessage(message, origin);
+                    }
+
+                    // Send an authResult event to the client origin.
+                    this.authResult(id, params.clientId, result.login_hint, result.access_token);
+                } else {
+                    var q = params.request;
+                    q.client_id = params.clientId;
+                    //q.redirect_uri = "storagerelay://https/localhostssl?id=" + id;
+                    q.redirect_uri = issuer + "/idpcallback.htm";
+                    q.nonce = nonceGenerator.generateNonce();
+                    q.login_hint = params.loginHint;
+                    q.ss_domain = params.sessionSelector.domain;
+                    q.origin = origin;
+                    q.state = id;
+
+                    var url = issuer + "/restv1/authorize"+ '?' + q.toQueryString();
+
+                    window.open(url, "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=200,width=800,height=600");
+                }
+            }
+
+            /**
+             * Lists all IDP sessions. The response may be loaded from the cache
+             * in the IDP IFrame.
+             */
+            IFrame.prototype.listIdpSessions = function (params, id, rpcToken) {
+                console.log("listIdpSessions(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                var q = {
+                    client_id: params.clientId,
+                    ss_domain: params.sessionSelector.domain,
+                    scope: params.request.scope,
+                    origin: origin
+                };
+
+                var url = "https://ce.gluu.info:8443/restv1/list_sessions"
+                    + '?' + q.toQueryString();
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function (e) {
+                    switch (xhr.readyState) {
+                        case 4:  // DONE
+                            if (xhr.status != 200) {
+                                // TODO: Handle error responses
+                                return cb(null);
+                            }
+
+                            // TODO: try/catch
+                            var sessions = JSON.parse(xhr.responseText);
+
+                            // TODO: Need to add the following to the result:
+                            // first_issued_at
+                            // expires_at
+                            // scope
+                            return cb(null, sessions);
+                            break;
+
+                            /*if (id != null) {
+                                var response = {
+                                    id: "599-211931.20572639475",
+                                    result: {
+                                        sessions: [{
+                                            login_hint: "AJMrCA...",
+                                            email: "test at gmail.com",
+                                            displayName: "James Zhao",
+                                            photoUrl: "https://someUrl",
+                                            session_state: {
+                                                extraQueryParams: {authuser: "0"}
+                                            }
+                                        }, {
+                                            session_state: {
+                                                extraQueryParams: {authuser: "1"}
+                                            }
+                                        }],
+                                        first_issued_at: 1420605596916,
+                                        expires_at: 1420609196916,
+                                        scope: "openid email"
+                                    },
+                                    rpcToken: "12345678"
+                                };
+
+                                return response;
+                            }
+                            break;*/
+                    }
+                };
+
+                xhr.open('GET', url + '?' + q.toQueryString());
+                xhr.send();
+            }
+
+            /**
+             * Revokes all granted permissions for the client.
+             */
+            IFrame.prototype.revoke = function (params, id, rpcToken) {
+                console.log("revoke(params, id, rpcToken) (" + JSON.stringify(params) + ", " + id + ", " + rpcToken + ")");
+
+                var removeKeys = [];
+                for (var i = 0; i < sessionStorage.length; i++) {
+                    var key = sessionStorage.key(i);
+                    var keyArray = key.split('/');
+                    if (keyArray.length != 4) {
+                        console.log('Invalid session storage key.');
+                    } else {
+                        var clientId = decodeURIComponent(keyArray[2]);
+                        if (clientId == params.clientId) {
+                            removeKeys.push(key);
+                        }
+                    }
+                }
+                for (var i = 0; i < removeKeys.length; i++) {
+                    sessionStorage.removeItem(removeKeys[i]);
+                }
+
+                if (id != null) {
+                    var response = {
+                        id: id,
+                        result: true,
+                        rpcToken: rpcToken
+                    };
+
+                    return response;
+                }
+            }
+
+            //////////
+            // Events
+
+            // after provisioning, the IDP IFrame sends an idpReady event to
+            // the client origin.
+            // Only after the idpReady event is received can the container page
+            // send messages to the IDP IFrame.
+            IFrame.prototype.idpReady = function () {
+                var containerOrigin = this.origin;
+
+                var message = {
+                    method: "fireIdpEvent",
+                    params: {
+                        type: "idpReady"
+                    },
+                    rpcToken: this.rpcToken
+                };
+
+                parent.postMessage(message, containerOrigin);
+
+                window.setInterval(checkCookie, 100); // run every 100 ms
+            }
+
+            // In popup mode, after an authorization decision is made on the IDP
+            // consent page in the popup window, the container page in the main
+            // window will receive an authResult event, which holds the
+            // authorization response.
+            IFrame.prototype.authResult = function (id, clientId, loginHint, accessToken) {
+                var containerOrigin = this.origin;
+
+                var message = {
+                    method: "fireIdpEvent",
+                    params: {
+                        type: "authResult",
+                        clientId: clientId,
+                        id: id,
+                        authResult: {
+                            login_hint: loginHint,
+                            access_token: accessToken
+                        }
+                    },
+                    rpcToken: this.rpcToken
+                };
+
+                parent.postMessage(message, containerOrigin);
+            }
+
+            // TODO
+            IFrame.prototype.sessionStateChanged = function () {
+                var containerOrigin = this.origin;
+
+                var message = {
+                    method: "fireIdpEvent",
+                    params: {
+                        type: "sessionStateChanged",
+                        clientId: "685319905637.apps.googleusercontent.com",
+                        user: "AOu8...",
+                        sessionState: {
+                            extraQueryParams: {authuser: "0"}
+                        }
+                    },
+                    rpcToken: this.rpcToken
+                };
+
+                parent.postMessage(message, containerOrigin);
+            }
+
+            // TODO
+            IFrame.prototype.sessionSelectorChange = function () {
+                var containerOrigin = this.origin;
+
+                var message = {
+                    method: "fireIdpEvent",
+                    params: {
+                        type: "sessionSelectorChanged",
+                        newValue:{
+                            hint: "AOEu8...",
+                            disabled: false
+                        },
+                        domain: "https://fi-idpiframe-app.appspot.com",
+                        crossSubDomains: true
+                    },
+                    rpcToken: this.rpcToken
+                };
+
+                parent.postMessage(message, containerOrigin);
+            }
+
+            var checkCookie = function() {
+
+                var lastCookie = document.cookie; // 'static' memory between function calls
+
+                return function() {
+                    var currentCookie = document.cookie;
+                    if (currentCookie != lastCookie) {
+                        // something useful like parse cookie, run a callback fn, etc.
+                        //alert("Cookie changed!")
+
+                        lastCookie = currentCookie; // store latest cookie
+                    }
+                };
+            }();
+
+            //////////
+            // Init
+
+            window.addEventListener("message", function (e) {
+                if (event.origin !== iframe.origin) {
+                    return;
+                }
+
+                var message = e.data;
+
+                if (!message.hasOwnProperty("method")
+                    || !message.hasOwnProperty("params")
+                    || !message.hasOwnProperty("rpcToken")) {
+                    console.error("JSON message is not valid");
+                    return;
+                }
+
+                var response = null;
+                switch (message.method) {
+                    case "monitorClient":
+                        response = iframe.monitorClient(message.params, message.id, message.rpcToken);
+                        break;
+                    case "getSessionSelector":
+                        response = iframe.getSessionSelector(message.params, message.id, message.rpcToken);
+                        break;
+                    case "setSessionSelector":
+                        response = iframe.setSessionSelector(message.params, message.id, message.rpcToken);
+                        break;
+                    case "getTokenResponse":
+                        response = iframe.getTokenResponse(message.params, message.id, message.rpcToken);
+                        break;
+                    case "listIdpSessions":
+                        response = iframe.listIdpSessions(message.params, message.id, message.rpcToken);
+                        break;
+                    case "revoke":
+                        response = iframe.revoke(message.params, message.id, message.rpcToken);
+                        break;
+                    default:
+                        console.error("Method is not valid.");
+                }
+
+                if (response != null) {
+                    e.source.postMessage(response, e.origin);
+                }
+            });
+
+            // The IDP IFrame in the main window will listen on storage events.
+            window.addEventListener("storage", function (e) {
+                // To differentiate the event generated when deleting the item,
+                // storage event with empty 'newValue' will be ignored.
+                if (e.newValue == null) {
+                    return;
+                }
+
+                var key = e.key.split('/');
+                if (key.length != 6) {
+                    console.log('Invalid storage key while relaying authorization response');
+                    return;
+                }
+
+                // After receiving a storage event, the IDP IFrame will parse the
+                // client ID and origin from the 'key' field.  If this is the right
+                // target, the response will be parsed from the 'newValue' field.
+                // TODO: check the target
+                var origin = decodeURIComponent(key[3]);
+                var clientId = decodeURIComponent(key[4]);
+                var id = decodeURIComponent(key[5]);
+                var result = JSON.parse(e.newValue);
+
+                var sessionStorageKey = ['gluu/oxauth',
+                    encodeURIComponent(clientId),
+                    encodeURIComponent(result.login_hint)
+                ].join('/');
+                sessionStorage.setItem(sessionStorageKey, JSON.stringify(result));
+
+                if (id != null) {
+                    var message = {
+                        id: id,
+                        result: result,
+                        rpcToken: rpcToken
+                    };
+
+                    parent.postMessage(message, origin);
+                }
+
+                 // Send an authResult event to the client origin.
+                iframe.authResult(id, clientId, result.login_hint, result.access_token);
+            });
+
+            var nonceGenerator = new NonceGenerator();
+
+            function NonceGenerator() { }
+
+            NonceGenerator.prototype.generateNonce = function () {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+            }
+
+            var issuer = this.origin;
+            var origin = null;
+            var rpcToken = null;
+            var clearCache = 0;
+            var hash = window.location.hash.substring(1); // slice off leading `#`
+            var params = hash.split("&");
+            for (var i = 0; i < params.length; i++) {
+                var param = params[i].split("=");
+
+                if (param[0] == "origin") {
+                    origin = param[1];
+                } else if (param[0] == "rpcToken") {
+                    rpcToken = param[1];
+                } else if (param[0] == "clearCache") {
+                    clearCache = param[1];
+                }
+            }
+
+            var iframe = new IFrame(origin, rpcToken, clearCache);
+        })();
+        //]]>
+    </script>
+</head>
+<body></body>
+</html>

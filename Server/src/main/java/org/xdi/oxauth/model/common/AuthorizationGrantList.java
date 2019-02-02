@@ -6,17 +6,6 @@
 
 package org.xdi.oxauth.model.common;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.xdi.oxauth.model.authorize.JwtAuthorizationRequest;
@@ -32,11 +21,21 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.oxauth.util.TokenHashUtil;
 import org.xdi.service.CacheService;
 
+import javax.enterprise.context.Dependent;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Component to hold in memory authorization grant objects.
  *
  * @author Javier Rojas Blum
- * @version September 6, 2017
+ * @version February 1, 2019
  */
 @Dependent
 public class AuthorizationGrantList implements IAuthorizationGrantList {
@@ -95,6 +94,14 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @Override
     public ImplicitGrant createImplicitGrant(User user, Client client, Date authenticationTime) {
         ImplicitGrant grant = grantInstance.select(ImplicitGrant.class).get();
+        grant.init(user, client, authenticationTime);
+
+        return grant;
+    }
+
+    @Override
+    public PermissionGrant createPermissionGrant(User user, Client client, Date authenticationTime) {
+        PermissionGrant grant = grantInstance.select(PermissionGrant.class).get();
         grant.init(user, client, authenticationTime);
 
         return grant;
@@ -191,7 +198,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     public String extractClientIdFromTokenDn(String p_dn) {
         Matcher m = clientInumPattern.matcher(p_dn);
         if (m.matches()) {
-        	return m.group(1);
+            return m.group(1);
         }
 
         return "";

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8"/>
+    <title>
+        oxAuth - Container Page
+    </title>
+    <script>
+        var domain = "https://ce.gluu.info:8443";
+        var isIdpReady = false;
+        var rpcToken = null;
+
+        function monitorClient() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var clientId = document.getElementById("clientId").value;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "monitorClient",
+                    params: {
+                        clientId: clientId
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        function getSessionSelector() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "getSessionSelector",
+                    params: {
+                        crossSubDomains: true,
+                        domain: domain
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        function setSessionSelector() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var loginHint = document.getElementById("loginHint").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "setSessionSelector",
+                    params: {
+                        crossSubDomains: true,
+                        domain: domain,
+                        hint: loginHint,
+                        disabled: false
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        function getTokenResponse() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var clientId = document.getElementById("clientId").value;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var loginHint = document.getElementById("loginHint").value;
+                var scope = document.getElementById("scope").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "getTokenResponse",
+                    params: {
+                        clientId: clientId,
+                        loginHint: loginHint,
+                        sessionSelector: {
+                            domain: domain
+                        },
+                        request: {
+                            response_type: "token id_token permission",
+                            scope: scope
+                        },
+                        forceRefresh: false
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        function listIdpSessions() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var clientId = document.getElementById("clientId").value;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var scope = document.getElementById("scope").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "listIdpSessions",
+                    params: {
+                        clientId: clientId,
+                        sessionSelector: {
+                            domain: domain
+                        },
+                        request: {
+                            scope: scope
+                        },
+                        forceRefresh: false
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        function revoke() {
+            if (isIdpReady) {
+                var win = document.getElementById("idpiframeId").contentWindow;
+                var clientId = document.getElementById("clientId").value;
+                var accessToken = document.getElementById("accessToken").value;
+                var idpOrigin = document.getElementById("idpOrigin").value;
+                var requestId = idGenerator.generateId();
+
+                var message = {
+                    method: "revoke",
+                    params: {
+                        clientId: clientId,
+                        token: accessToken
+                    },
+                    id: requestId,
+                    rpcToken: rpcToken
+                };
+
+                win.postMessage(message, idpOrigin);
+            } else {
+                console.info("IDP is not ready");
+            }
+        }
+
+        /* Events: */
+        function idpReady(_rpcToken) {
+            isIdpReady = true;
+            rpcToken = _rpcToken;
+
+            console.info("IDP is ready");
+        }
+
+        function sessionStateChanged(params, rpcToken) {
+            console.log("sessionStateChanged(params, rpcToken) (" + JSON.stringify(params) + ", " + rpcToken + ")");
+        }
+
+        function sessionSelectorChanged(params, rpcToken) {
+            console.log("sessionSelectorChanged(params, rpcToken) (" + JSON.stringify(params) + ", " + rpcToken + ")");
+        }
+
+        function authResult(params, rpcToken) {
+            console.log("authResult(params, rpcToken) (" + JSON.stringify(params) + ", " + rpcToken + ")");
+
+            document.getElementById("loginHint").value = params.authResult.login_hint;
+            document.getElementById("accessToken").value = params.authResult.access_token;
+        }
+
+        function rpcResponse(id, result, rpcToken) {
+            console.log("rpcResponse(id, result, rpcToken) (" + id + ", " + JSON.stringify(result) + ", " + rpcToken + ")");
+        }
+
+        window.addEventListener("message", function (e) {
+            var idpOrigin = document.getElementById("idpOrigin").value;
+            if (event.origin !== idpOrigin) {
+                return;
+            }
+
+            var message = e.data;
+
+            if (!message.hasOwnProperty("method")
+                || !message.hasOwnProperty("params")
+                || !message.hasOwnProperty("rpcToken")) {
+                if (!message.hasOwnProperty("id")
+                    || !message.hasOwnProperty("result")
+                    || !message.hasOwnProperty("rpcToken")) {
+                    console.error("JSON message is not valid.");
+                    return;
+                } else {
+                    rpcResponse(message.id, message.result, message.rpcToken);
+                    return;
+                }
+            }
+
+            if (message.method !== "fireIdpEvent") {
+                console.error("Method is not valid.");
+                return;
+            }
+
+            switch (message.params.type) {
+                case "idpReady":
+                    idpReady(message.rpcToken);
+                    break;
+                case "sessionStateChanged":
+                    sessionStateChanged(message.params, message.rpcToken);
+                    break;
+                case "sessionSelectorChanged":
+                    sessionSelectorChanged(message.params, message.rpcToken);
+                    break;
+                case "authResult":
+                    authResult(message.params, message.rpcToken);
+                    break;
+                default:
+                    console.error("The Event Type is not valid.");
+                }
+        });
+
+        var idGenerator = new IdGenerator();
+
+        function IdGenerator() {
+        }
+
+        IdGenerator.prototype.generateId = function () {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                s4() + '-' + s4() + s4() + s4();
+        }
+    </script>
+</head>
+
+<body>
+<p>oxAuth - Container Page</p>
+
+<div>
+    <div>
+        <label for="idpOrigin">IDP Origin</label>
+    </div>
+    <div>
+        <input id="idpOrigin" value="https://ce.gluu.info:8443" style="width: 400px"/>
+    </div>
+    <br>
+    <div>
+        <label for="clientId">Client ID</label>
+    </div>
+    <div>
+        <input id="clientId" value="@!90CC.2E38.774C.610B!0001!FD3B.B0A0!0008!CC15.8BB2.997D.46A7"
+               style="width: 400px"/>
+    </div>
+    <br>
+    <div>
+        <label for="accessToken">Access Token</label>
+    </div>
+    <div>
+        <input id="accessToken" value="" style="width: 400px"/>
+    </div>
+    <br>
+    <div>
+        <label for="loginHint">Login Hint</label>
+    </div>
+    <div>
+        <input id="loginHint" value="" style="width: 400px"/>
+    </div>
+    <br>
+    <div>
+        <label for="scope">Scope</label>
+    </div>
+    <div>
+        <input id="scope" value="profile email" style="width: 400px"/>
+    </div>
+</div>
+<br>
+    <div>
+        <button onclick="monitorClient()">Monitor Client</button>
+        <button onclick="getSessionSelector()">Get Session Selector</button>
+        <button onclick="setSessionSelector()">Set Session Selector</button>
+        <button onclick="getTokenResponse()">Get Token Response</button>
+        <button onclick="listIdpSessions()">List IDP Sessions</button>
+        <button onclick="revoke()">Revoke</button>
+    </div>
+
+</br>
+
+<iframe id="idpiframeId" style="position: absolute; width: 1px; height: 1px; left: -9999px;"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+        src="https://ce.gluu.info:8443/idpiframe.htm#origin=https://localhostssl&rpcToken=111-222-333"/>
+</body>
+
+</html>

@@ -64,7 +64,7 @@ import static org.xdi.oxauth.model.util.StringUtils.implode;
  * Implementation for request authorization through REST web services.
  *
  * @author Javier Rojas Blum
- * @version December 8, 2018
+ * @version February 1, 2019
  */
 @Path("/")
 @Api(value = "/oxauth/authorize", description = "Authorization Endpoint")
@@ -551,24 +551,43 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
                                 AuthorizationCode authorizationCode = null;
                                 if (responseTypes.contains(ResponseType.CODE)) {
-                                    authorizationGrant = authorizationGrantList.createAuthorizationCodeGrant(user, client,
-                                            sessionUser.getAuthenticationTime());
-                                    authorizationGrant.setNonce(nonce);
-                                    authorizationGrant.setJwtAuthorizationRequest(jwtAuthorizationRequest);
-                                    authorizationGrant.setTokenBindingHash(TokenBindingMessage.getTokenBindingIdHashFromTokenBindingMessage(tokenBindingHeader, client.getIdTokenTokenBindingCnf()));
-                                    authorizationGrant.setScopes(scopes);
-                                    authorizationGrant.setCodeChallenge(codeChallenge);
-                                    authorizationGrant.setCodeChallengeMethod(codeChallengeMethod);
-                                    authorizationGrant.setClaims(claims);
+                                    if (authorizationGrant == null) {
+                                        authorizationGrant = authorizationGrantList.createAuthorizationCodeGrant(user, client,
+                                                sessionUser.getAuthenticationTime());
+                                        authorizationGrant.setNonce(nonce);
+                                        authorizationGrant.setJwtAuthorizationRequest(jwtAuthorizationRequest);
+                                        authorizationGrant.setTokenBindingHash(TokenBindingMessage.getTokenBindingIdHashFromTokenBindingMessage(tokenBindingHeader, client.getIdTokenTokenBindingCnf()));
+                                        authorizationGrant.setScopes(scopes);
+                                        authorizationGrant.setCodeChallenge(codeChallenge);
+                                        authorizationGrant.setCodeChallengeMethod(codeChallengeMethod);
+                                        authorizationGrant.setClaims(claims);
 
-                                    // Store acr_values
-                                    authorizationGrant.setAcrValues(acrValuesStr);
-                                    authorizationGrant.setSessionDn(sessionUser.getDn());
-                                    authorizationGrant.save(); // call save after object modification!!!
-
+                                        // Store acr_values
+                                        authorizationGrant.setAcrValues(acrValuesStr);
+                                        authorizationGrant.setSessionDn(sessionUser.getDn());
+                                        authorizationGrant.save(); // call save after object modification!!!
+                                    }
                                     authorizationCode = authorizationGrant.getAuthorizationCode();
 
                                     redirectUriResponse.addResponseParameter("code", authorizationCode.getCode());
+                                }
+
+                                if (responseTypes.contains(ResponseType.PERMISSION)) {
+                                    if (authorizationGrant == null) {
+                                        authorizationGrant = authorizationGrantList.createPermissionGrant(user, client,
+                                                sessionUser.getAuthenticationTime());
+                                        authorizationGrant.setNonce(nonce);
+                                        authorizationGrant.setJwtAuthorizationRequest(jwtAuthorizationRequest);
+                                        authorizationGrant.setScopes(scopes);
+
+                                        // Store acr_values
+                                        authorizationGrant.setAcrValues(acrValuesStr);
+                                        authorizationGrant.setSessionDn(sessionUser.getDn());
+                                        authorizationGrant.save(); // call save after object modification!!!
+                                    }
+
+                                    redirectUriResponse.addResponseParameter(AuthorizeResponseParam.CLIENT_ID, client.getClientId());
+                                    redirectUriResponse.addResponseParameter(AuthorizeResponseParam.LOGIN_HINT, user.getUserId());
                                 }
 
                                 AccessToken newAccessToken = null;

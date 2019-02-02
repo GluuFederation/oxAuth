@@ -7,6 +7,11 @@
 package org.xdi.oxauth.ws.rs;
 
 import com.google.common.collect.Lists;
+import org.apache.http.client.CookieStore;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.xdi.oxauth.BaseTest;
@@ -17,7 +22,6 @@ import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
 import org.xdi.oxauth.model.util.StringUtils;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +33,7 @@ import static org.testng.Assert.*;
  * Functional tests for End Session Web Services (HTTP)
  *
  * @author Javier Rojas Blum
- * @version August 9, 2017
+ * @version February 1, 2019
  */
 public class EndSessionRestWebServiceHttpTest extends BaseTest {
 
@@ -39,6 +43,11 @@ public class EndSessionRestWebServiceHttpTest extends BaseTest {
             final String userId, final String userSecret, final String redirectUri, final String redirectUris,
             final String postLogoutRedirectUri, final String logoutUri, final String sectorIdentifierUri) throws Exception {
         showTitle("requestEndSession by id_token");
+
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CookieStore cookieStore = new BasicCookieStore();
+        httpClient.setCookieStore(cookieStore);
+        ClientExecutor clientExecutor = new ApacheHttpClient4Executor(httpClient);
 
         // 1. OpenID Connect Dynamic Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",

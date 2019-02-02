@@ -6,14 +6,15 @@
 
 package org.xdi.oxauth.model.common;
 
+import org.xdi.oxauth.model.registration.Client;
+
 import java.util.Date;
 import java.util.List;
 
-import org.xdi.oxauth.model.registration.Client;
-
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 08/01/2013
+ * @author Javier Rojas Blum
+ * @version February 1, 2019
  */
 
 public interface IAuthorizationGrantList {
@@ -25,6 +26,8 @@ public interface IAuthorizationGrantList {
     public AuthorizationCodeGrant createAuthorizationCodeGrant(User user, Client client, Date authenticationTime);
 
     public ImplicitGrant createImplicitGrant(User user, Client client, Date authenticationTime);
+
+    public PermissionGrant createPermissionGrant(User user, Client client, Date authenticationTime);
 
     public ClientCredentialsGrant createClientCredentialsGrant(User user, Client client);
 

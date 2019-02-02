@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>
+        oxAuth - IDP Callback
+    </title>
+    <script>
+        //<![CDATA[
+        (function () {
+            var code = null;
+            var accessToken = null;
+            var idToken = null;
+            var scope = null;
+            var sessionState = null;
+            var expiresIn = null;
+            var loginHint = null;
+            var clientId = null;
+            var state = null;
+
+            if (self.document.location.hash) {
+                var hash = self.document.location.hash.substring(1);
+                hash = decodeURI(hash.replace(/\+/g, " "));
+                var params = hash.split("&");
+
+                for (var i = 0; i < params.length; i++) {
+                    var param = params[i].split("=");
+
+                    if (param[0] == "code") {
+                        code = decodeURIComponent(param[1]);
+                    } else if (param[0] == "access_token") {
+                        accessToken = decodeURIComponent(param[1]);
+                    } else if (param[0] == "id_token") {
+                        idToken = decodeURIComponent(param[1]);
+                    } else if (param[0] == "scope") {
+                        scope = decodeURIComponent(param[1]);
+                    } else if (param[0] == "session_state") {
+                        sessionState = decodeURIComponent(param[1]);
+                    } else if (param[0] == "expires_in") {
+                        expiresIn = decodeURIComponent(param[1]);
+                    } else if (param[0] == "login_hint") {
+                        loginHint = decodeURIComponent(param[1]);
+                    } else if (param[0] == "client_id") {
+                        clientId = decodeURIComponent(param[1]);
+                    } else if (param[0] == "state") {
+                        state = decodeURIComponent(param[1]);
+                    }
+                }
+
+                // storagerelay://https/localhostssl?id=123
+                var origin = "https://localhostssl";
+
+                var result = {
+                    token_type: "Bearer",
+                    access_token: accessToken,
+                    scope: scope,
+                    login_hint: loginHint,
+                    id_token: idToken,
+                    session_state: {
+                        extraQueryParams: {
+                            authuser: "0"
+                        }
+                    },
+                    first_issued_at: 1420598000330,
+                    expires_at: 1420601600330,
+                    expires_in: expiresIn,
+                };
+
+                // In the popup window, after an authorization decision is made, the
+                // authorization response is wrapped into a string and written into
+                // localStorage under the key that is generated from the storagerelay URI.
+                var tmpLocalStoragekey = ['tmp/oauth/relay',
+                    encodeURIComponent(origin),
+                    encodeURIComponent(clientId),
+                    encodeURIComponent(state)
+                ].join('/');
+                localStorage.setItem(tmpLocalStoragekey, JSON.stringify(result));
+
+                // Then the item should be deleted after a small delay.  After
+                // that, the popup window can be closed.
+                window.setTimeout(function () {
+                    localStorage.removeItem(tmpLocalStoragekey);
+                    window.close();
+                }, 200);
+            }
+        })();
+        //]]>
+    </script>
+</head>
+<body></body>
+</html>

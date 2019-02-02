@@ -7,8 +7,11 @@
 package org.xdi.oxauth.client;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.ClientRequest;
 import org.xdi.oxauth.model.session.EndSessionErrorResponseType;
 import org.xdi.oxauth.model.session.EndSessionRequestParam;
 import org.xdi.oxauth.model.session.EndSessionResponseParam;
@@ -23,9 +26,11 @@ import java.util.Map;
  * authorization server via REST Services.
  *
  * @author Javier Rojas Blum
- * @version August 9, 2017
+ * @version February 1, 2019
  */
 public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionResponse> {
+
+    private static final Logger LOG = Logger.getLogger(EndSessionClient.class);
 
     private static final String mediaType = MediaType.TEXT_PLAIN;
 
@@ -64,6 +69,35 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
      * @return The service response.
      */
     public EndSessionResponse exec() {
+        EndSessionResponse response = null;
+
+        try {
+            initClientRequest();
+            response = exec_();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            closeConnection();
+        }
+
+        return response;
+    }
+
+    public EndSessionResponse exec(ClientExecutor clientExecutor) {
+        EndSessionResponse response = null;
+
+        try {
+            clientRequest = new ClientRequest(getUrl(), clientExecutor);
+            response = exec_();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        // Do not close the connection for this case.
+
+        return response;
+    }
+
+    private EndSessionResponse exec_() {
         // Prepare request parameters
         initClientRequest();
         clientRequest.accept(mediaType);

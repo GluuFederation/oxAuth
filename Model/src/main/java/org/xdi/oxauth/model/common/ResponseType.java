@@ -29,7 +29,7 @@ import java.util.Map;
  * </p>
  *
  * @author Javier Rojas Blum
- * @version July 18, 2017
+ * @version February 1, 2019
  */
 public enum ResponseType implements HasParamName, LdapEnum {
 
@@ -44,7 +44,12 @@ public enum ResponseType implements HasParamName, LdapEnum {
     /**
      * Include an ID Token in the authorization response.
      */
-    ID_TOKEN("id_token", "ID Token");
+    ID_TOKEN("id_token", "ID Token"),
+
+    /**
+     * Used to request approval from end user for the IDP IFrame based implicit flow.
+     */
+    PERMISSION("permission", "Permission");
 
     private final String value;
     private final String displayName;
