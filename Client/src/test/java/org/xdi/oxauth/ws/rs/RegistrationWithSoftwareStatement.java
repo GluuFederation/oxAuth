@@ -54,7 +54,7 @@ public class RegistrationWithSoftwareStatement extends BaseTest {
         showTitle("requestClientAssociate1");
 
         String softwareId = UUID.randomUUID().toString();
-        String softwareVersion = "version_3.1.5";
+        String softwareVersion = "version_3.1.6";
 
         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
         SoftwareStatement softwareStatement = new SoftwareStatement(SignatureAlgorithm.RS256, cryptoProvider);

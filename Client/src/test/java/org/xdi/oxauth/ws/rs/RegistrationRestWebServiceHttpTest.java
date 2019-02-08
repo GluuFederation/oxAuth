@@ -170,7 +170,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         showTitle("requestClientAssociate3");
 
         String softwareId = UUID.randomUUID().toString();
-        String softwareVersion = "version_3.1.5";
+        String softwareVersion = "version_3.1.6";
 
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                 StringUtils.spaceSeparatedToList(redirectUris));
