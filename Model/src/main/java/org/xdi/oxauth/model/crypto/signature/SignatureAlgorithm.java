@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version August 28, 2017
+ * @version February 8, 2019
  */
 public enum SignatureAlgorithm {
 
@@ -28,7 +28,10 @@ public enum SignatureAlgorithm {
     RS512("RS512", SignatureAlgorithmFamily.RSA, "SHA512WITHRSA"),
     ES256("ES256", SignatureAlgorithmFamily.EC, "SHA256WITHECDSA", ECEllipticCurve.P_256),
     ES384("ES384", SignatureAlgorithmFamily.EC, "SHA384WITHECDSA", ECEllipticCurve.P_384),
-    ES512("ES512", SignatureAlgorithmFamily.EC, "SHA512WITHECDSA", ECEllipticCurve.P_521);
+    ES512("ES512", SignatureAlgorithmFamily.EC, "SHA512WITHECDSA", ECEllipticCurve.P_521),
+    PS256("PS256", SignatureAlgorithmFamily.RSA, "SHA256withRSAandMGF1"),
+    PS384("PS384", SignatureAlgorithmFamily.RSA, "SHA384withRSAandMGF1"),
+    PS512("PS512", SignatureAlgorithmFamily.RSA, "SHA512withRSAandMGF1");
 
     private final String name;
     private final SignatureAlgorithmFamily family;
@@ -45,19 +48,11 @@ public enum SignatureAlgorithm {
     }
 
     SignatureAlgorithm(String name, SignatureAlgorithmFamily family, String algorithm) {
-        this.name = name;
-        this.family = family;
-        this.algorithm = algorithm;
-        this.curve = null;
-        this.jwtType = JwtType.JWT;
+        this(name, family, algorithm, null);
     }
 
     SignatureAlgorithm(String name) {
-        this.name = name;
-        this.family = null;
-        this.algorithm = null;
-        this.curve = null;
-        this.jwtType = JwtType.JWT;
+        this(name, null, null, null);
     }
 
     public String getName() {

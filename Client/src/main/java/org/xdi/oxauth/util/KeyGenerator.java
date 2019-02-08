@@ -33,13 +33,13 @@ import static org.xdi.oxauth.model.jwk.JWKParameter.*;
  * Command example:
  * java -cp bcprov-jdk15on-1.54.jar:.jar:bcpkix-jdk15on-1.54.jar:commons-cli-1.2.jar:commons-codec-1.5.jar:commons-lang-2.6.jar:jettison-1.3.jar:log4j-1.2.14.jar:oxauth-model.jar:oxauth.jar org.xdi.oxauth.util.KeyGenerator -h
  * <p/>
- * KeyGenerator -sig_keys RS256 RS384 RS512 ES256 ES384 ES512 -enc_keys RS256 RS384 RS512 ES256 ES384 ES512 -keystore /Users/JAVIER/tmp/mykeystore.jks -keypasswd secret -dnname "CN=oxAuth CA Certificates" -expiration 365
+ * KeyGenerator -sig_keys RS256 RS384 RS512 ES256 ES384 ES512 PS256 PS384 PS512 -enc_keys RS256 RS384 RS512 ES256 ES384 ES512 PS256 PS384 PS512 -keystore /Users/JAVIER/tmp/mykeystore.jks -keypasswd secret -dnname "CN=oxAuth CA Certificates" -expiration 365
  * <p/>
  * KeyGenerator -sig_keys RS256 RS384 RS512 ES256 ES384 ES512 -enc_keys RS256 RS384 RS512 ES256 ES384 ES512 -ox11 https://ce.gluu.info:8443/oxeleven/rest/generateKey -expiration 365 -at xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version December 4, 2017
+ * @version February 8, 2019
  */
 public class KeyGenerator {
 
@@ -71,11 +71,11 @@ public class KeyGenerator {
             this.args = args;
 
             Option signingKeysOption = new Option(SIGNING_KEYS, true,
-                    "Signature keys to generate. (RS256 RS384 RS512 ES256 ES384 ES512).");
+                    "Signature keys to generate. (RS256 RS384 RS512 ES256 ES384 ES512 PS256 PS384 PS512).");
             signingKeysOption.setArgs(Option.UNLIMITED_VALUES);
 
             Option encryptionKeysOption = new Option(ENCRYPTION_KEYS, true,
-                    "Encryption keys to generate. (RS256 RS384 RS512 ES256 ES384 ES512).");
+                    "Encryption keys to generate. (RS256 RS384 RS512 ES256 ES384 ES512 PS256 PS384 PS512).");
             encryptionKeysOption.setArgs(Option.UNLIMITED_VALUES);
 
             options.addOption(signingKeysOption);
