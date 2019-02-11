@@ -36,10 +36,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.*;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -56,7 +56,7 @@ import static org.xdi.oxauth.model.jwk.JWKParameter.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version September 10, 2018
+ * @version February 8, 2019
  */
 public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
@@ -164,7 +164,6 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             PrivateKey privateKey = getPrivateKey(alias);
 
             Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BC");
-            //Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm());
             signature.initSign(privateKey);
             signature.update(signingInput.getBytes());
 
@@ -197,7 +196,6 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 byte[] signature = Base64Util.base64urldecode(encodedSignature);
 
                 Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BC");
-                //Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm());
                 verifier.initVerify(publicKey);
                 verifier.update(signingInput.getBytes());
                 verified = verifier.verify(signature);
@@ -314,7 +312,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         return Collections.list(this.keyStore.aliases());
     }
 
-    public SignatureAlgorithm getSignatureAlgorithm(String alias) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+    public SignatureAlgorithm getSignatureAlgorithm(String alias) throws KeyStoreException {
         Certificate[] chain = keyStore.getCertificateChain(alias);
         if ((chain == null) || chain.length == 0) {
             return null;

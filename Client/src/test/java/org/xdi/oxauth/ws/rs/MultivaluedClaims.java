@@ -43,7 +43,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version July 4, 2018
+ * @version February 8, 2019
  */
 public class MultivaluedClaims extends BaseTest {
 
@@ -919,6 +919,279 @@ public class MultivaluedClaims extends BaseTest {
         ECDSASigner ecdsaSigner = new ECDSASigner(SignatureAlgorithm.ES512, publicKey);
 
         assertTrue(ecdsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "sectorIdentifierUri"})
+    @Test
+    public void authorizationRequestWithMultivaluedClaimPS256(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String sectorIdentifierUri) throws Exception {
+        showTitle("authorizationRequestWithMultivaluedClaimPS256");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS256);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS256);
+        registerRequest.addCustomAttribute("oxIncludeClaimsInIdToken", "true");
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        List<String> scopes = Arrays.asList("openid", "test");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS256, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "sectorIdentifierUri"})
+    @Test
+    public void authorizationRequestWithMultivaluedClaimPS384(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String sectorIdentifierUri) throws Exception {
+        showTitle("authorizationRequestWithMultivaluedClaimPS384");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS384);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS384);
+        registerRequest.addCustomAttribute("oxIncludeClaimsInIdToken", "true");
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        List<String> scopes = Arrays.asList("openid", "test");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS384, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "sectorIdentifierUri"})
+    @Test
+    public void authorizationRequestWithMultivaluedClaimPS512(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String sectorIdentifierUri) throws Exception {
+        showTitle("authorizationRequestWithMultivaluedClaimPS512");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS512);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS512);
+        registerRequest.addCustomAttribute("oxIncludeClaimsInIdToken", "true");
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        List<String> scopes = Arrays.asList("openid", "test");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS512, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
 
         // 4. Request user info
         UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
@@ -2380,6 +2653,318 @@ public class MultivaluedClaims extends BaseTest {
         ECDSASigner ecdsaSigner = new ECDSASigner(SignatureAlgorithm.ES512, publicKey);
 
         assertTrue(ecdsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "dnName", "keyStoreFile", "keyStoreSecret",
+            "sectorIdentifierUri", "PS256_keyId", "clientJwksUri"})
+    @Test
+    public void authorizationRequestObjectWithMultivaluedClaimPS256(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String dnName, final String keyStoreFile, final String keyStoreSecret,
+            final String sectorIdentifierUri, final String keyId, final String clientJwksUri) throws Exception {
+        showTitle("authorizationRequestObjectWithMultivaluedClaimPS256");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS256);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS256);
+        registerRequest.setRequestObjectSigningAlg(SignatureAlgorithm.PS256);
+        registerRequest.setJwksUri(clientJwksUri);
+        registerRequest.setClaims(Arrays.asList("member_of"));
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
+
+        List<String> scopes = Arrays.asList("openid");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        JwtAuthorizationRequest jwtAuthorizationRequest = new JwtAuthorizationRequest(authorizationRequest, SignatureAlgorithm.PS256, cryptoProvider);
+        jwtAuthorizationRequest.setKeyId(keyId);
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim(JwtClaimName.AUTHENTICATION_TIME, ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addUserInfoClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        String authJwt = jwtAuthorizationRequest.getEncodedJwt();
+        authorizationRequest.setRequest(authJwt);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS256, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "dnName", "keyStoreFile", "keyStoreSecret",
+            "sectorIdentifierUri", "PS384_keyId", "clientJwksUri"})
+    @Test
+    public void authorizationRequestObjectWithMultivaluedClaimPS384(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String dnName, final String keyStoreFile, final String keyStoreSecret,
+            final String sectorIdentifierUri, final String keyId, final String clientJwksUri) throws Exception {
+        showTitle("authorizationRequestObjectWithMultivaluedClaimPS384");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS384);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS384);
+        registerRequest.setRequestObjectSigningAlg(SignatureAlgorithm.PS384);
+        registerRequest.setJwksUri(clientJwksUri);
+        registerRequest.setClaims(Arrays.asList("member_of"));
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
+
+        List<String> scopes = Arrays.asList("openid");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        JwtAuthorizationRequest jwtAuthorizationRequest = new JwtAuthorizationRequest(authorizationRequest, SignatureAlgorithm.PS384, cryptoProvider);
+        jwtAuthorizationRequest.setKeyId(keyId);
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim(JwtClaimName.AUTHENTICATION_TIME, ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addUserInfoClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        String authJwt = jwtAuthorizationRequest.getEncodedJwt();
+        authorizationRequest.setRequest(authJwt);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS384, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
+
+        // 4. Request user info
+        UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
+        UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
+        userInfoClient.setRequest(userInfoRequest);
+        userInfoClient.setJwksUri(jwksUri);
+        UserInfoResponse userInfoResponse = userInfoClient.exec();
+
+        showClient(userInfoClient);
+        assertEquals(userInfoResponse.getStatus(), 200, "Unexpected response code: " + userInfoResponse.getStatus());
+        assertNotNull(userInfoResponse.getClaim(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(userInfoResponse.getClaim("member_of"));
+        assertTrue(userInfoResponse.getClaim("member_of").size() > 1);
+    }
+
+    @Parameters({"userId", "userSecret", "redirectUri", "redirectUris", "dnName", "keyStoreFile", "keyStoreSecret",
+            "sectorIdentifierUri", "PS512_keyId", "clientJwksUri"})
+    @Test
+    public void authorizationRequestObjectWithMultivaluedClaimPS512(
+            final String userId, final String userSecret, final String redirectUri, final String redirectUris,
+            final String dnName, final String keyStoreFile, final String keyStoreSecret,
+            final String sectorIdentifierUri, final String keyId, final String clientJwksUri) throws Exception {
+        showTitle("authorizationRequestObjectWithMultivaluedClaimPS512");
+
+        List<ResponseType> responseTypes = Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN);
+
+        // 1. Register client
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+                StringUtils.spaceSeparatedToList(redirectUris));
+        registerRequest.setResponseTypes(responseTypes);
+        registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        registerRequest.setIdTokenSignedResponseAlg(SignatureAlgorithm.PS512);
+        registerRequest.setUserInfoSignedResponseAlg(SignatureAlgorithm.PS512);
+        registerRequest.setRequestObjectSigningAlg(SignatureAlgorithm.PS512);
+        registerRequest.setJwksUri(clientJwksUri);
+        registerRequest.setClaims(Arrays.asList("member_of"));
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientIdIssuedAt());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String clientId = registerResponse.getClientId();
+
+        // 2. Request authorization
+        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStoreFile, keyStoreSecret, dnName);
+
+        List<String> scopes = Arrays.asList("openid");
+        String nonce = UUID.randomUUID().toString();
+        String state = UUID.randomUUID().toString();
+
+        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
+        authorizationRequest.setState(state);
+
+        JwtAuthorizationRequest jwtAuthorizationRequest = new JwtAuthorizationRequest(authorizationRequest, SignatureAlgorithm.PS512, cryptoProvider);
+        jwtAuthorizationRequest.setKeyId(keyId);
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim(JwtClaimName.AUTHENTICATION_TIME, ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addIdTokenClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        jwtAuthorizationRequest.addUserInfoClaim(new Claim("member_of", ClaimValue.createEssential(true)));
+        String authJwt = jwtAuthorizationRequest.getEncodedJwt();
+        authorizationRequest.setRequest(authJwt);
+
+        AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
+        authorizeClient.setRequest(authorizationRequest);
+
+        AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
+                authorizationEndpoint, authorizationRequest, userId, userSecret);
+
+        assertNotNull(authorizationResponse.getLocation(), "The location is null");
+        assertNotNull(authorizationResponse.getAccessToken(), "The accessToken is null");
+        assertNotNull(authorizationResponse.getTokenType(), "The tokenType is null");
+        assertNotNull(authorizationResponse.getIdToken(), "The idToken is null");
+        assertNotNull(authorizationResponse.getState(), "The state is null");
+
+        String idToken = authorizationResponse.getIdToken();
+        String accessToken = authorizationResponse.getAccessToken();
+
+        // 3. Validate id_token
+        Jwt jwt = Jwt.parse(idToken);
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.TYPE));
+        assertNotNull(jwt.getHeader().getClaimAsString(JwtHeaderName.ALGORITHM));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUDIENCE));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.EXPIRATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ISSUED_AT));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.SUBJECT_IDENTIFIER));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.ACCESS_TOKEN_HASH));
+        assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.AUTHENTICATION_TIME));
+        assertNotNull(jwt.getClaims().getClaimAsStringList("member_of"));
+        assertTrue(jwt.getClaims().getClaimAsStringList("member_of").size() > 1);
+
+        RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
+                jwksUri,
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID));
+        RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.PS512, publicKey);
+
+        assertTrue(rsaSigner.validate(jwt));
 
         // 4. Request user info
         UserInfoRequest userInfoRequest = new UserInfoRequest(accessToken);
