@@ -22,6 +22,7 @@ import org.xdi.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.RSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.jwe.Jwe;
+import org.xdi.oxauth.model.jwk.Algorithm;
 import org.xdi.oxauth.model.jws.ECDSASigner;
 import org.xdi.oxauth.model.jws.HMACSigner;
 import org.xdi.oxauth.model.jws.PlainTextSignature;
@@ -43,7 +44,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version June 20, 2018
+ * @version February 12, 2019
  */
 public class IndividualClaimsRequestsTest extends BaseTest {
 
@@ -1991,7 +1992,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization
@@ -2146,7 +2147,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization
@@ -2301,7 +2302,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA_OAEP);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization

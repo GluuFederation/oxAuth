@@ -13,8 +13,8 @@ import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.AbstractCryptoProvider;
 import org.xdi.oxauth.model.crypto.CryptoProviderFactory;
+import org.xdi.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithmFamily;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
 import org.xdi.oxauth.model.jwt.Jwt;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version August 28, 2017
+ * @version February 12, 2019
  */
 public class ClientAssertion {
 
@@ -99,8 +99,8 @@ public class ClientAssertion {
                                 }
 
                                 if (jwtType != null && signatureAlgorithm != null && signatureAlgorithm.getFamily() != null &&
-                                        ((authenticationMethod == AuthenticationMethod.CLIENT_SECRET_JWT && SignatureAlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily()))
-                                                || (authenticationMethod == AuthenticationMethod.PRIVATE_KEY_JWT && (SignatureAlgorithmFamily.RSA.equals(signatureAlgorithm.getFamily()) || SignatureAlgorithmFamily.EC.equals(signatureAlgorithm.getFamily()))))) {
+                                        ((authenticationMethod == AuthenticationMethod.CLIENT_SECRET_JWT && AlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily()))
+                                                || (authenticationMethod == AuthenticationMethod.PRIVATE_KEY_JWT && (AlgorithmFamily.RSA.equals(signatureAlgorithm.getFamily()) || AlgorithmFamily.EC.equals(signatureAlgorithm.getFamily()))))) {
                                     if (client.getTokenEndpointAuthSigningAlg() == null || SignatureAlgorithm.fromString(client.getTokenEndpointAuthSigningAlg()).equals(signatureAlgorithm)) {
                                         clientSecret = clientService.decryptSecret(client.getClientSecret());
 

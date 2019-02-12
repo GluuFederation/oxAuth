@@ -22,6 +22,7 @@ import org.xdi.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.RSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.jwe.Jwe;
+import org.xdi.oxauth.model.jwk.Algorithm;
 import org.xdi.oxauth.model.jws.ECDSASigner;
 import org.xdi.oxauth.model.jws.HMACSigner;
 import org.xdi.oxauth.model.jws.PlainTextSignature;
@@ -43,7 +44,7 @@ import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
- * @version February 8, 2019
+ * @version February 12, 2019
  */
 public class MultivaluedClaims extends BaseTest {
 
@@ -1380,7 +1381,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "clientJwksUri", "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret",
+            "clientJwksUri", "RSA1_5_keyId", "keyStoreFile", "keyStoreSecret",
             "sectorIdentifierUri"})
     @Test
     public void authorizationRequestWithMultivaluedClaimAlgRSA15EncA128CBCPLUSHS256(
@@ -1472,7 +1473,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "clientJwksUri", "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret",
+            "clientJwksUri", "RSA1_5_keyId", "keyStoreFile", "keyStoreSecret",
             "sectorIdentifierUri"})
     @Test
     public void authorizationRequestWithMultivaluedClaimAlgRSA15EncA256CBCPLUSHS512(
@@ -1564,7 +1565,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "clientJwksUri", "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret",
+            "clientJwksUri", "RSA_OAEP_keyId", "keyStoreFile", "keyStoreSecret",
             "sectorIdentifierUri"})
     @Test
     public void authorizationRequestWithMultivaluedClaimAlgRSAOAEPEncA256GCM(
@@ -3179,7 +3180,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "dnName", "keyStoreFile", "keyStoreSecret", "RS256_enc_keyId",
+            "dnName", "keyStoreFile", "keyStoreSecret", "RSA1_5_keyId",
             "clientJwksUri", "sectorIdentifierUri"})
     @Test
     public void authorizationRequestObjectWithMultivaluedClaimAlgRSA15EncA128CBCPLUSHS256(
@@ -3221,7 +3222,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization
@@ -3290,7 +3291,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "dnName", "keyStoreFile", "keyStoreSecret", "RS256_enc_keyId",
+            "dnName", "keyStoreFile", "keyStoreSecret", "RSA1_5_keyId",
             "clientJwksUri", "sectorIdentifierUri"})
     @Test
     public void authorizationRequestObjectWithMultivaluedClaimAlgRSA15EncA256CBCPLUSHS512(
@@ -3332,7 +3333,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization
@@ -3401,7 +3402,7 @@ public class MultivaluedClaims extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUri", "redirectUris",
-            "dnName", "keyStoreFile", "keyStoreSecret", "RS256_enc_keyId",
+            "dnName", "keyStoreFile", "keyStoreSecret", "RSA_OAEP_keyId",
             "clientJwksUri", "sectorIdentifierUri"})
     @Test
     public void authorizationRequestObjectWithMultivaluedClaimAlgRSAOAEPEncA256GCM(
@@ -3443,7 +3444,7 @@ public class MultivaluedClaims extends BaseTest {
         // 2. Choose encryption key
         JwkClient jwkClient = new JwkClient(jwksUri);
         JwkResponse jwkResponse = jwkClient.exec();
-        String serverKeyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+        String serverKeyId = jwkResponse.getKeyId(Algorithm.RSA_OAEP);
         assertNotNull(serverKeyId);
 
         // 3. Request authorization

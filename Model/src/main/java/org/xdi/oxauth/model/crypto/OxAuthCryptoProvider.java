@@ -22,8 +22,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.xdi.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithmFamily;
+import org.xdi.oxauth.model.jwk.Algorithm;
 import org.xdi.oxauth.model.jwk.Use;
 import org.xdi.oxauth.model.util.Base64Util;
 import org.xdi.oxauth.model.util.Util;
@@ -56,7 +57,7 @@ import static org.xdi.oxauth.model.jwk.JWKParameter.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version February 8, 2019
+ * @version February 12, 2019
  */
 public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
@@ -93,18 +94,23 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     }
 
     @Override
-    public JSONObject generateKey(SignatureAlgorithm signatureAlgorithm, Long expirationTime) throws Exception {
+    public JSONObject generateKey(Algorithm algorithm, Long expirationTime) throws Exception {
 
         KeyPairGenerator keyGen = null;
 
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.fromString(algorithm.getParamName());;
         if (signatureAlgorithm == null) {
+            signatureAlgorithm = SignatureAlgorithm.RS256;
+        }
+
+        if (algorithm == null) {
             throw new RuntimeException("The signature algorithm parameter cannot be null");
-        } else if (SignatureAlgorithmFamily.RSA.equals(signatureAlgorithm.getFamily())) {
-            keyGen = KeyPairGenerator.getInstance(signatureAlgorithm.getFamily().toString(), "BC");
+        } else if (AlgorithmFamily.RSA.equals(algorithm.getFamily())) {
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BC");
             keyGen.initialize(2048, new SecureRandom());
-        } else if (SignatureAlgorithmFamily.EC.equals(signatureAlgorithm.getFamily())) {
+        } else if (AlgorithmFamily.EC.equals(algorithm.getFamily())) {
             ECGenParameterSpec eccgen = new ECGenParameterSpec(signatureAlgorithm.getCurve().getAlias());
-            keyGen = KeyPairGenerator.getInstance(signatureAlgorithm.getFamily().toString(), "BC");
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BC");
             keyGen.initialize(eccgen, new SecureRandom());
         } else {
             throw new RuntimeException("The provided signature algorithm parameter is not supported");
@@ -128,10 +134,10 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         PublicKey publicKey = keyPair.getPublic();
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(KEY_TYPE, signatureAlgorithm.getFamily());
+        jsonObject.put(KEY_TYPE, algorithm.getFamily());
         jsonObject.put(KEY_ID, alias);
         jsonObject.put(KEY_USE, Use.SIGNATURE);
-        jsonObject.put(ALGORITHM, signatureAlgorithm.getName());
+        jsonObject.put(ALGORITHM, algorithm.getParamName());
         jsonObject.put(EXPIRATION_TIME, expirationTime);
         if (publicKey instanceof RSAPublicKey) {
             RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
@@ -154,7 +160,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     public String sign(String signingInput, String alias, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception {
         if (signatureAlgorithm == SignatureAlgorithm.NONE) {
             return "";
-        } else if (SignatureAlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily())) {
+        } else if (AlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily())) {
             SecretKey secretKey = new SecretKeySpec(sharedSecret.getBytes(Util.UTF8_STRING_ENCODING), signatureAlgorithm.getAlgorithm());
             Mac mac = Mac.getInstance(signatureAlgorithm.getAlgorithm());
             mac.init(secretKey);
@@ -177,7 +183,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
         if (signatureAlgorithm == SignatureAlgorithm.NONE) {
             return Util.isNullOrEmpty(encodedSignature);
-        } else if (SignatureAlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily())) {
+        } else if (AlgorithmFamily.HMAC.equals(signatureAlgorithm.getFamily())) {
             String expectedSignature = sign(signingInput, null, sharedSecret, signatureAlgorithm);
             return expectedSignature.equals(encodedSignature);
         } else { // EC or RSA

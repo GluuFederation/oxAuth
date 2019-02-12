@@ -21,6 +21,7 @@ import org.xdi.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.xdi.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.xdi.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.xdi.oxauth.model.jwk.Algorithm;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.util.Base64Util;
@@ -44,7 +45,7 @@ import static org.testng.Assert.*;
  * Functional tests for OpenID Request Object (HTTP)
  *
  * @author Javier Rojas Blum
- * @version February 8, 2019
+ * @version February 12, 2019
  */
 public class OpenIDRequestObjectHttpTest extends BaseTest {
 
@@ -2450,7 +2451,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
             // 2. Choose encryption key
             JwkClient jwkClient = new JwkClient(jwksUri);
             JwkResponse jwkResponse = jwkClient.exec();
-            String keyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+            String keyId = jwkResponse.getKeyId(Algorithm.RSA_OAEP);
             assertNotNull(keyId);
 
             // 3. Request authorization
@@ -2547,7 +2548,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
             // 2. Choose encryption key
             JwkClient jwkClient = new JwkClient(jwksUri);
             JwkResponse jwkResponse = jwkClient.exec();
-            String keyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+            String keyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
             assertNotNull(keyId);
 
             // 3. Request authorization
@@ -2644,7 +2645,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
             // 2. Choose encryption key
             JwkClient jwkClient = new JwkClient(jwksUri);
             JwkResponse jwkResponse = jwkClient.exec();
-            String keyId = jwkResponse.getKeyId(SignatureAlgorithm.RS256);
+            String keyId = jwkResponse.getKeyId(Algorithm.RSA1_5);
             assertNotNull(keyId);
 
             // 3. Request authorization

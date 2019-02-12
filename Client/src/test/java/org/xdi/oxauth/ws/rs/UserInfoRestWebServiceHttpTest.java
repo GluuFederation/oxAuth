@@ -36,7 +36,7 @@ import static org.testng.Assert.*;
  * Functional tests for User Info Web Services (HTTP)
  *
  * @author Javier Rojas Blum
- * @version February 8, 2019
+ * @version February 12, 2019
  */
 public class UserInfoRestWebServiceHttpTest extends BaseTest {
 
@@ -1287,7 +1287,7 @@ public class UserInfoRestWebServiceHttpTest extends BaseTest {
     }
 
     @Parameters({"redirectUris", "redirectUri", "userId", "userSecret",
-            "clientJwksUri", "sectorIdentifierUri", "RS256_enc_keyId", "keyStoreFile",
+            "clientJwksUri", "sectorIdentifierUri", "RSA_OAEP_keyId", "keyStoreFile",
             "keyStoreSecret"})
     @Test
     public void requestUserInfoAlgRSAOAEPEncA256GCM(
@@ -1355,7 +1355,7 @@ public class UserInfoRestWebServiceHttpTest extends BaseTest {
     }
 
     @Parameters({"redirectUris", "redirectUri", "userId", "userSecret",
-            "clientJwksUri", "sectorIdentifierUri", "RS256_enc_keyId", "keyStoreFile",
+            "clientJwksUri", "sectorIdentifierUri", "RSA1_5_keyId", "keyStoreFile",
             "keyStoreSecret"})
     @Test
     public void requestUserInfoAlgRSA15EncA128CBCPLUSHS256(
@@ -1423,7 +1423,7 @@ public class UserInfoRestWebServiceHttpTest extends BaseTest {
     }
 
     @Parameters({"redirectUris", "redirectUri", "userId", "userSecret",
-            "clientJwksUri", "sectorIdentifierUri", "RS256_enc_keyId", "keyStoreFile",
+            "clientJwksUri", "sectorIdentifierUri", "RSA1_5_keyId", "keyStoreFile",
             "keyStoreSecret"})
     @Test
     public void requestUserInfoAlgRSA15EncA256CBCPLUSHS512(
