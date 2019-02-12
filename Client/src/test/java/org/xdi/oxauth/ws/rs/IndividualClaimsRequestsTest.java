@@ -1936,7 +1936,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUris", "redirectUri", "sectorIdentifierUri", "dnName", "keyStoreFile",
-            "keyStoreSecret", "RS256_enc_keyId", "clientJwksUri"})
+            "keyStoreSecret", "RSA1_5_keyId", "clientJwksUri"})
     @Test
     public void requestClaimsIndividuallyRequestObjectEncryptionAlgRSA1_5EncA128CBC_PLUS_HS256UserInfoEncryptedResponseAlgRSA1_5EncA128CBC_PLUS_HS256(
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
@@ -2091,7 +2091,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUris", "redirectUri", "sectorIdentifierUri", "dnName", "keyStoreFile",
-            "keyStoreSecret", "RS256_enc_keyId", "clientJwksUri"})
+            "keyStoreSecret", "RSA1_5_keyId", "clientJwksUri"})
     @Test
     public void requestClaimsIndividuallyRequestObjectEncryptionAlgRSA1_5EncA256CBC_PLUS_HS512UserInfoEncryptedResponseAlgRSA1_5EncA256CBC_PLUS_HS512(
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
@@ -2246,7 +2246,7 @@ public class IndividualClaimsRequestsTest extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUris", "redirectUri", "sectorIdentifierUri", "dnName", "keyStoreFile",
-            "keyStoreSecret", "RS256_enc_keyId", "clientJwksUri"})
+            "keyStoreSecret", "RSA_OAEP_keyId", "clientJwksUri"})
     @Test
     public void requestClaimsIndividuallyRequestObjectEncryptionAlgRSA_OAEPEncA256GCMUserInfoEncryptedResponseAlgRSA_OAEPEncA256GCM(
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
