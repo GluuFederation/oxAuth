@@ -155,8 +155,8 @@ public class SessionIdService {
                         throw new AcrChangedException(false);
                     }
 
+                    reinitLogin(session, false);
                     if (sessionAcrLevel < currentAcrLevel) {
-                        reinitLogin(session, false);
                         throw new AcrChangedException();
                     }
                 }
