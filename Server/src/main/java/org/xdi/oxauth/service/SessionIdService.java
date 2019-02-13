@@ -155,7 +155,7 @@ public class SessionIdService {
                         throw new AcrChangedException(false);
                     }
 
-                    reinitLogin(session, false);
+                    updateSessionAuthorizationData(session, false);
                     if (sessionAcrLevel < currentAcrLevel) {
                         throw new AcrChangedException();
                     }
@@ -164,34 +164,39 @@ public class SessionIdService {
                 return session; // we don't want to reinit login because we have stronger acr (avoid overriding)
             }
 
-            reinitLogin(session, false);
+            updateSessionAuthorizationData(session, false);
         }
 
         return session;
     }
 
-    public void reinitLogin(SessionId session, boolean force) {
+    public void updateSessionAuthorizationData(SessionId session, boolean force) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
         final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
         if (force || !currentSessionAttributes.equals(sessionAttributes)) {
             sessionAttributes.putAll(currentSessionAttributes);
-
-            // Reinit login
-            sessionAttributes.put("c", "1");
-
-            for (Iterator<Entry<String, String>> it = currentSessionAttributes.entrySet().iterator(); it.hasNext(); ) {
-                Entry<String, String> currentSessionAttributesEntry = it.next();
-                String name = currentSessionAttributesEntry.getKey();
-                if (name.startsWith("auth_step_passed_")) {
-                    it.remove();
-                }
-            }
 
             session.setSessionAttributes(currentSessionAttributes);
 
             boolean updateResult = updateSessionId(session, true, true, true);
             if (!updateResult) {
                 log.debug("Failed to update session entry: '{}'", session.getId());
+            }
+        }
+    }
+
+    public void reinitLogin(SessionId session) {
+        final Map<String, String> sessionAttributes = session.getSessionAttributes();
+        final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
+
+        // Reinit login
+        sessionAttributes.put("c", "1");
+
+        for (Iterator<Entry<String, String>> it = currentSessionAttributes.entrySet().iterator(); it.hasNext(); ) {
+            Entry<String, String> currentSessionAttributesEntry = it.next();
+            String name = currentSessionAttributesEntry.getKey();
+            if (name.startsWith("auth_step_passed_")) {
+                it.remove();
             }
         }
     }
