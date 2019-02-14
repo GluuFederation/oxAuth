@@ -6,7 +6,7 @@
 	<groupId>org.xdi</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>3.1.5.Final</version>
+	<version>3.1.5.sp1</version>
 	<name>oxAuth</name>
 	<url>http://www.gluu.org</url>
 
