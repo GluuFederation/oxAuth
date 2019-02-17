@@ -1,6 +1,7 @@
 package org.gluu.oxauth.server.plugin;
 
 import org.gluu.oxauth.server.interfaces.Interceptable;
+import org.gluu.oxauth.server.interfaces.InterceptorInterface;
 
 import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
@@ -13,11 +14,22 @@ import javax.interceptor.InvocationContext;
 @Interceptor
 @Interceptable
 @Priority(2)
-public class ServerFlowServiceInterceptor {
+public class ServerFlowServiceInterceptor implements InterceptorInterface {
 
     @AroundInvoke
-    public Object manageTransaction(InvocationContext ctx) throws Exception {
+    public Object handle(InvocationContext ctx) throws Exception {
         System.out.println("Interceptor from server-plugin.");
-        return ctx.proceed();
+        String a = (String) ctx.getParameters()[0];
+        Integer b = (Integer) ctx.getParameters()[1];
+
+        final boolean result = handle(a, b);
+        ctx.proceed();
+        return result;
+    }
+
+    @Override
+    public boolean handle(String a, Integer b) {
+        System.out.println("Plugin - a: " + a + ", b: " + b);
+        return true;
     }
 }

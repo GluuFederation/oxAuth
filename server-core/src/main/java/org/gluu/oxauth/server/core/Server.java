@@ -18,7 +18,8 @@ public class Server {
     public void start(@Observes ContainerInitialized event) {
         int n = 0;
         while (n < 1000) {
-            serverFlowService.handle("server");
+            final boolean result = serverFlowService.handle("serverA", 3);
+            System.out.println("result: " + result);
 
             try {
                 Thread.sleep(4000);

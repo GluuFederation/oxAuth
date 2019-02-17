@@ -1,6 +1,7 @@
 package org.gluu.oxauth.server.core;
 
 import org.gluu.oxauth.server.interfaces.Interceptable;
+import org.gluu.oxauth.server.interfaces.InterceptorInterface;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -8,10 +9,11 @@ import javax.enterprise.context.ApplicationScoped;
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-public class ServerFlowService {
+public class ServerFlowService implements InterceptorInterface {
 
     @Interceptable
-    public void handle(String param) {
-        System.out.println(param);
+    public boolean handle(String a, Integer b) {
+        System.out.println("Server - a: " + a + ", b: " + b);
+        return false;
     }
 }
