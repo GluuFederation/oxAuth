@@ -6,7 +6,7 @@
 	<groupId>org.xdi</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>3.1.4.1.Final</version>
+	<version>3.1.4.sp2</version>
 	<name>oxAuth</name>
 	<url>http://www.gluu.org</url>
 
@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>3.1.4.Final</oxcore.version>
+		<oxcore.version>3.1.4.sp2</oxcore.version>
 		<oxeleven.version>3.1.4.Final</oxeleven.version>
 		<oxnotify.version>3.1.4.Final</oxnotify.version>
 		<oxlicense.version>3.1.4.Final</oxlicense.version>
