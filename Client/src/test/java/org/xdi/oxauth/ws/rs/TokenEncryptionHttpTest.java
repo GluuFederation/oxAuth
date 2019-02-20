@@ -34,7 +34,7 @@ import static org.testng.Assert.*;
 public class TokenEncryptionHttpTest extends BaseTest {
 
     @Parameters({"userId", "userSecret", "redirectUris", "clientJwksUri",
-            "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
+            "RSA_OAEP_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
     //@Test // Before run this test, set openidScopeBackwardCompatibility to true
     @Deprecated
     public void requestIdTokenAlgRSAOAEPEncA256GCM(
@@ -113,7 +113,7 @@ public class TokenEncryptionHttpTest extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUris", "clientJwksUri",
-            "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
+            "RSA1_5_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
     //@Test // Before run this test, set openidScopeBackwardCompatibility to true
     @Deprecated
     public void requestIdTokenAlgRSA15EncA128CBCPLUSHS256(
@@ -192,7 +192,7 @@ public class TokenEncryptionHttpTest extends BaseTest {
     }
 
     @Parameters({"userId", "userSecret", "redirectUris", "clientJwksUri",
-            "RS256_enc_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
+            "RSA1_5_keyId", "keyStoreFile", "keyStoreSecret", "sectorIdentifierUri"})
     //@Test // Before run this test, set openidScopeBackwardCompatibility to true
     @Deprecated
     public void requestIdTokenAlgRSA15EncA256CBCPLUSHS512(
