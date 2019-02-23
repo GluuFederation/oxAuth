@@ -115,13 +115,49 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
     public TokenResponse execResourceOwnerPasswordCredentialsGrant(
             String username, String password, String scope,
             String clientId, String clientSecret) {
+
+        return execResourceOwnerPasswordCredentialsGrant(username,password,scope,
+            clientId,clientSecret,null);
+    }
+
+    /**
+     * <p>
+     * Executes the call to the REST Service requesting the authorization and
+     * processes the response.
+     * </p>
+     * <p>
+     * The resource owner password credentials grant type is suitable in cases
+     * where the resource owner has a trust relationship with the client, such
+     * as its device operating system or a highly privileged application. The
+     * authorization server should take special care when enabling this grant
+     * type, and only allow it when other flows are not viable.
+     * </p>
+     * <p>
+     * The grant type is suitable for clients capable of obtaining the resource
+     * owner's credentials (username and password, typically using an
+     * interactive form). It is also used to migrate existing clients using
+     * direct authentication schemes such as HTTP Basic or Digest authentication
+     * to OAuth by converting the stored credentials to an access token.
+     * </p>
+     *
+     * @param username     The resource owner username. This parameter is required.
+     * @param password     The resource owner password. This parameter is required.
+     * @param scope        The scope of the access request. This parameter is optional.
+     * @param clientId     The client identifier.
+     * @param clientSecret The client secret.
+     * @param acr          The name of the custom authentication script (oxAuth specific)
+     * @return The token response.
+     */
+     public TokenResponse execResourceOwnerPasswordCredentialsGrant(
+            String username, String password, String scope,
+            String clientId, String clientSecret,String acr) {
         setRequest(new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS));
         getRequest().setUsername(username);
         getRequest().setPassword(password);
         getRequest().setScope(scope);
         getRequest().setAuthUsername(clientId);
         getRequest().setAuthPassword(clientSecret);
-
+        getRequest().setAcr(acr);
         return exec();
     }
 

@@ -77,6 +77,7 @@ public class TokenRequest extends BaseRequest {
     private String refreshToken;
     private String audience;
     private String codeVerifier;
+    private String acr;
 
     private SignatureAlgorithm algorithm;
     private String sharedKey;
@@ -282,6 +283,24 @@ public class TokenRequest extends BaseRequest {
         this.sharedKey = sharedKey;
     }
 
+    /**
+     * Gets the acr.
+     *
+     * @return The acr
+     */
+    public String getAcr() {
+        return this.acr;
+    }
+
+    /**
+     * Sets the acr 
+     */
+    public void setAcr(String acr) {
+        this.acr = acr;
+    }
+
+
+
     @Deprecated
     public void setRsaPrivateKey(RSAPrivateKey rsaPrivateKey) {
         this.rsaPrivateKey = rsaPrivateKey;
@@ -390,6 +409,11 @@ public class TokenRequest extends BaseRequest {
                 queryStringBuilder.append("&");
                 queryStringBuilder.append("refresh_token=").append(refreshToken);
             }
+            if(acr != null && !acr.isEmpty()) {
+                queryStringBuilder.append("&");
+                queryStringBuilder.append("acr=").append(acr);
+            }
+
             if (getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_POST) {
                 if (getAuthUsername() != null && !getAuthUsername().isEmpty()) {
                     queryStringBuilder.append("&");
@@ -445,6 +469,9 @@ public class TokenRequest extends BaseRequest {
         }
         if (scope != null && !scope.isEmpty()) {
             parameters.put("scope", scope);
+        }
+        if( acr != null && !acr.isEmpty()) {
+            parameters.put("acr",acr);
         }
         if (assertion != null && !assertion.isEmpty()) {
             parameters.put("assertion", assertion);
