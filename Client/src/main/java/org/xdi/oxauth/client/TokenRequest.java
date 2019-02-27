@@ -19,6 +19,7 @@ import org.xdi.oxauth.model.jwt.Jwt;
 import org.xdi.oxauth.model.jwt.JwtType;
 import org.xdi.oxauth.model.token.ClientAssertionType;
 import org.xdi.oxauth.model.uma.UmaScopeType;
+import org.xdi.oxauth.model.util.Util;
 
 import javax.ws.rs.core.MediaType;
 import java.io.UnsupportedEncodingException;
@@ -77,7 +78,7 @@ public class TokenRequest extends BaseRequest {
     private String refreshToken;
     private String audience;
     private String codeVerifier;
-    private String acr;
+    private List<String> acrValues;
 
     private SignatureAlgorithm algorithm;
     private String sharedKey;
@@ -284,22 +285,25 @@ public class TokenRequest extends BaseRequest {
     }
 
     /**
-     * Gets the acr.
+     * Gets the acr values.
      *
-     * @return The acr
+     * @return The acr values
      */
-    public String getAcr() {
-        return this.acr;
+    public List<String> getAcrValues() {
+        return this.acrValues;
     }
 
     /**
-     * Sets the acr 
+     * Sets the acr values 
+     * @param The acr values 
      */
-    public void setAcr(String acr) {
-        this.acr = acr;
+    public void setAcrValues(List<String> acrValues) {
+        this.acrValues = acrValues;
     }
 
-
+    public String getAcrValuesAsString() {
+        return Util.listAsString(this.acrValues);
+    }
 
     @Deprecated
     public void setRsaPrivateKey(RSAPrivateKey rsaPrivateKey) {
@@ -409,9 +413,9 @@ public class TokenRequest extends BaseRequest {
                 queryStringBuilder.append("&");
                 queryStringBuilder.append("refresh_token=").append(refreshToken);
             }
-            if(acr != null && !acr.isEmpty()) {
+            if(acrValues != null && !acrValues.isEmpty()) {
                 queryStringBuilder.append("&");
-                queryStringBuilder.append("acr=").append(acr);
+                queryStringBuilder.append("acr_values=").append(getAcrValuesAsString());
             }
 
             if (getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_POST) {
@@ -470,8 +474,8 @@ public class TokenRequest extends BaseRequest {
         if (scope != null && !scope.isEmpty()) {
             parameters.put("scope", scope);
         }
-        if( acr != null && !acr.isEmpty()) {
-            parameters.put("acr",acr);
+        if(acrValues != null && !acrValues.isEmpty()) {
+            parameters.put("acr_values",getAcrValuesAsString());
         }
         if (assertion != null && !assertion.isEmpty()) {
             parameters.put("assertion", assertion);

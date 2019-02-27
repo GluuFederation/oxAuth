@@ -12,6 +12,7 @@ import org.xdi.oxauth.model.common.AuthenticationMethod;
 import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.token.ClientAssertionType;
 
+import java.util.List;
 import javax.ws.rs.HttpMethod;
 
 /**
@@ -145,19 +146,19 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
      * @param scope        The scope of the access request. This parameter is optional.
      * @param clientId     The client identifier.
      * @param clientSecret The client secret.
-     * @param acr          The name of the custom authentication script (oxAuth specific)
+     * @param acrValues    The list of acr values
      * @return The token response.
      */
      public TokenResponse execResourceOwnerPasswordCredentialsGrant(
             String username, String password, String scope,
-            String clientId, String clientSecret,String acr) {
+            String clientId, String clientSecret,List<String> acrValues) {
         setRequest(new TokenRequest(GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS));
         getRequest().setUsername(username);
         getRequest().setPassword(password);
         getRequest().setScope(scope);
         getRequest().setAuthUsername(clientId);
         getRequest().setAuthPassword(clientSecret);
-        getRequest().setAcr(acr);
+        getRequest().setAcrValues(acrValues);
         return exec();
     }
 
@@ -254,6 +255,9 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
     public TokenResponse exec() {
         // Prepare request parameters
         initClientRequest();
+
+        final String acrValuesAsString = getRequest().getAcrValuesAsString();
+
         if (request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC
                 && request.hasCredentials()) {
             clientRequest.header("Authorization", "Basic " + request.getEncodedCredentials());
@@ -287,6 +291,9 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
         }
         if (StringUtils.isNotBlank(getRequest().getRefreshToken())) {
             clientRequest.formParameter("refresh_token", getRequest().getRefreshToken());
+        }
+        if(StringUtils.isNotBlank(acrValuesAsString)) {
+            clientRequest.formParameter("acr_values",acrValuesAsString);
         }
         if (getRequest().getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_POST) {
             if (getRequest().getAuthUsername() != null && !getRequest().getAuthUsername().isEmpty()) {
