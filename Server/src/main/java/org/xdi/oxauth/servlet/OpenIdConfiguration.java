@@ -12,6 +12,8 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.xdi.model.GluuAttribute;
+import org.xdi.oxauth.ciba.CIBAConfigurationProxy;
+import org.xdi.oxauth.ciba.CIBASupportProxy;
 import org.xdi.oxauth.model.common.GrantType;
 import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.common.Scope;
@@ -38,7 +40,7 @@ import static org.xdi.oxauth.model.util.StringUtils.implode;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan Date: 2016/04/26
- * @version January 16, 2019
+ * @version February 27, 2019
  */
 @WebServlet(urlPatterns = "/.well-known/openid-configuration")
 public class OpenIdConfiguration extends HttpServlet {
@@ -62,6 +64,12 @@ public class OpenIdConfiguration extends HttpServlet {
 
     @Inject
     private ExternalDynamicScopeService externalDynamicScopeService;
+
+    @Inject
+    private CIBASupportProxy cibaSupportProxy;
+
+    @Inject
+    private CIBAConfigurationProxy cibaConfigurationProxy;
 
 
     /**
@@ -106,7 +114,9 @@ public class OpenIdConfiguration extends HttpServlet {
 
             JSONArray grantTypesSupported = new JSONArray();
             for (GrantType grantType : appConfiguration.getGrantTypesSupported()) {
-                grantTypesSupported.put(grantType);
+                if (grantType != GrantType.CIBA || cibaSupportProxy.isCIBASupported()) {
+                    grantTypesSupported.put(grantType);
+                }
             }
             if (grantTypesSupported.length() > 0) {
                 jsonObj.put(GRANT_TYPES_SUPPORTED, grantTypesSupported);
@@ -283,6 +293,9 @@ public class OpenIdConfiguration extends HttpServlet {
             jsonObj.put(FRONTCHANNEL_LOGOUT_SUPPORTED, Boolean.TRUE);
             jsonObj.put(FRONTCHANNEL_LOGOUT_SESSION_SUPPORTED, Boolean.TRUE);
             jsonObj.put(FRONT_CHANNEL_LOGOUT_SESSION_SUPPORTED, appConfiguration.getFrontChannelLogoutSessionSupported());
+
+            // CIBA Configuration
+            cibaConfigurationProxy.processConfiguration(jsonObj);
 
             out.println(jsonObj.toString(4).replace("\\/", "/"));
         } catch (JSONException e) {

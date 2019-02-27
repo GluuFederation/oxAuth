@@ -100,8 +100,9 @@
 		<module>fido2-server</module>
 		<module>fido2-client</module>
 		<module>oxauth-mtls</module>
+		<module>oxauth-ciba</module>
 		<module>Server</module>
-	</modules>
+    </modules>
 
 	<dependencyManagement>
 		<dependencies>

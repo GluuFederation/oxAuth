@@ -23,7 +23,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version January 16, 2019
+ * @version February 27, 2019
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration implements Configuration {
@@ -187,6 +187,12 @@ public class AppConfiguration implements Configuration {
     private Fido2Configuration fido2Configuration;
 
     private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
+
+    // CIBA
+    private String backchannelAuthenticationEndpoint;
+    private List<String> backchannelTokenDeliveryModesSupported;
+    private List<String> backchannelAuthenticationRequestSigningAlgValuesSupported;
+    private String backchannelUserCodeParameterSupported;
 
     public Boolean getDisableJdkLogger() {
         return disableJdkLogger;
@@ -1470,4 +1476,35 @@ public class AppConfiguration implements Configuration {
         this.errorHandlingMethod = errorHandlingMethod;
     }
 
+    public String getBackchannelAuthenticationEndpoint() {
+        return backchannelAuthenticationEndpoint;
+    }
+
+    public void setBackchannelAuthenticationEndpoint(String backchannelAuthenticationEndpoint) {
+        this.backchannelAuthenticationEndpoint = backchannelAuthenticationEndpoint;
+    }
+
+    public List<String> getBackchannelTokenDeliveryModesSupported() {
+        return backchannelTokenDeliveryModesSupported;
+    }
+
+    public void setBackchannelTokenDeliveryModesSupported(List<String> backchannelTokenDeliveryModesSupported) {
+        this.backchannelTokenDeliveryModesSupported = backchannelTokenDeliveryModesSupported;
+    }
+
+    public List<String> getBackchannelAuthenticationRequestSigningAlgValuesSupported() {
+        return backchannelAuthenticationRequestSigningAlgValuesSupported;
+    }
+
+    public void setBackchannelAuthenticationRequestSigningAlgValuesSupported(List<String> backchannelAuthenticationRequestSigningAlgValuesSupported) {
+        this.backchannelAuthenticationRequestSigningAlgValuesSupported = backchannelAuthenticationRequestSigningAlgValuesSupported;
+    }
+
+    public String getBackchannelUserCodeParameterSupported() {
+        return backchannelUserCodeParameterSupported;
+    }
+
+    public void setBackchannelUserCodeParameterSupported(String backchannelUserCodeParameterSupported) {
+        this.backchannelUserCodeParameterSupported = backchannelUserCodeParameterSupported;
+    }
 }

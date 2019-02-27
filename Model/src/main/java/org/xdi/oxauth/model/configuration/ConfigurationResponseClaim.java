@@ -8,7 +8,7 @@ package org.xdi.oxauth.model.configuration;
 
 /**
  * @author Javier Rojas Blum
- * @version January 16, 2019
+ * @version February 27, 2019
  */
 public interface ConfigurationResponseClaim {
 
@@ -61,4 +61,10 @@ public interface ConfigurationResponseClaim {
     String FRONTCHANNEL_LOGOUT_SESSION_SUPPORTED = "frontchannel_logout_session_supported";
     String AUTH_LEVEL_MAPPING = "auth_level_mapping";
     String FRONT_CHANNEL_LOGOUT_SESSION_SUPPORTED = "frontchannel_logout_session_supported";
+
+    // CIBA
+    String BACKCHANNEL_AUTHENTICATION_ENDPOINT = "backchannel_authentication_endpoint";
+    String BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED = "backchannel_token_delivery_modes_supported";
+    String BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG_VALUES_SUPPORTED = "backchannel_authentication_request_signing_alg_values_supported";
+    String BACKCHANNEL_USER_CODE_PAREMETER_SUPPORTED = "backchannel_user_code_parameter_supported";
 }
