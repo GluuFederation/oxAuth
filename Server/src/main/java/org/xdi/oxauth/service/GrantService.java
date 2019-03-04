@@ -155,20 +155,8 @@ public class GrantService {
         }
 
         prepareGrantBranch(token.getGrantId(), token.getClientId());
-        try {
-            ldapEntryManager.persist(token);
-        } catch (EntryPersistenceException ex) {
-            // Cover case when cleaner removed sub-entry in parallel with this
-            if (ex.getCause() instanceof LDAPException) {
-                LDAPException ldapException = (LDAPException) ex.getCause();
-                if (com.unboundid.ldap.sdk.ResultCode.NO_SUCH_OBJECT.equals(ldapException.getResultCode())) {
-                    prepareGrantBranch(token.getGrantId(), token.getClientId());
-                    ldapEntryManager.persist(token);
-                }
-            } else {
-                throw ex;
-            }
-        }
+
+        ldapEntryManager.persist(token);
     }
 
     public ClientTokens getCacheClientTokens(String clientId) {
@@ -444,7 +432,7 @@ public class GrantService {
             private Filter getFilter() {
                 try {
                     Calendar calendar = Calendar.getInstance();
-                    calendar.add(Calendar.SECOND, 60);
+                    calendar.add(Calendar.SECOND, -60);
                     return Filter.create(String.format("(&(oxAuthCreation<=%s)(|(numsubordinates=0)(hasSubordinates=FALSE)))", StaticUtils.encodeGeneralizedTime(calendar.getTime())));
                 } catch (LDAPException e) {
                     log.trace(e.getMessage(), e);
