@@ -10,12 +10,10 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.xdi.oxauth.model.common.AuthenticationMethod;
-import org.xdi.oxauth.model.common.GrantType;
-import org.xdi.oxauth.model.common.ResponseType;
-import org.xdi.oxauth.model.common.SubjectType;
+import org.xdi.oxauth.model.common.*;
 import org.xdi.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.xdi.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
+import org.xdi.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 import org.xdi.oxauth.model.register.RegisterRequestParam;
@@ -32,7 +30,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toJSONArray;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
- * @version December 4, 2018
+ * @version March 25, 2019
  */
 public class RegisterRequest extends BaseRequest {
 
@@ -81,6 +79,10 @@ public class RegisterRequest extends BaseRequest {
     private String softwareId;
     private String softwareVersion;
     private String softwareStatement;
+    private BackchannelTokenDeliveryMode backchannelTokenDeliveryMode;
+    private String backchannelClientNotificationEndpoint;
+    private AsymmetricSignatureAlgorithm backchannelAuthenticationRequestSigningAlg;
+    private Boolean backchannelUserCodeParameter;
 
     /**
      * @deprecated This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
@@ -987,6 +989,38 @@ public class RegisterRequest extends BaseRequest {
         this.softwareStatement = softwareStatement;
     }
 
+    public BackchannelTokenDeliveryMode getBackchannelTokenDeliveryMode() {
+        return backchannelTokenDeliveryMode;
+    }
+
+    public void setBackchannelTokenDeliveryMode(BackchannelTokenDeliveryMode backchannelTokenDeliveryMode) {
+        this.backchannelTokenDeliveryMode = backchannelTokenDeliveryMode;
+    }
+
+    public String getBackchannelClientNotificationEndpoint() {
+        return backchannelClientNotificationEndpoint;
+    }
+
+    public void setBackchannelClientNotificationEndpoint(String backchannelClientNotificationEndpoint) {
+        this.backchannelClientNotificationEndpoint = backchannelClientNotificationEndpoint;
+    }
+
+    public AsymmetricSignatureAlgorithm getBackchannelAuthenticationRequestSigningAlg() {
+        return backchannelAuthenticationRequestSigningAlg;
+    }
+
+    public void setBackchannelAuthenticationRequestSigningAlg(AsymmetricSignatureAlgorithm backchannelAuthenticationRequestSigningAlg) {
+        this.backchannelAuthenticationRequestSigningAlg = backchannelAuthenticationRequestSigningAlg;
+    }
+
+    public Boolean getBackchannelUserCodeParameter() {
+        return backchannelUserCodeParameter;
+    }
+
+    public void setBackchannelUserCodeParameter(Boolean backchannelUserCodeParameter) {
+        this.backchannelUserCodeParameter = backchannelUserCodeParameter;
+    }
+
     public String getHttpMethod() {
         return httpMethod;
     }
@@ -1161,6 +1195,18 @@ public class RegisterRequest extends BaseRequest {
         }
         if (StringUtils.isNotBlank(softwareStatement)) {
             parameters.put(SOFTWARE_STATEMENT.toString(), softwareStatement);
+        }
+        if (backchannelTokenDeliveryMode != null) {
+            parameters.put(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString(), backchannelTokenDeliveryMode.toString());
+        }
+        if (StringUtils.isNotBlank(backchannelClientNotificationEndpoint)) {
+            parameters.put(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString(), backchannelClientNotificationEndpoint);
+        }
+        if (backchannelAuthenticationRequestSigningAlg != null) {
+            parameters.put(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString(), backchannelAuthenticationRequestSigningAlg.toString());
+        }
+        if (backchannelUserCodeParameter) {
+            parameters.put(BACKCHANNEL_USER_CODE_PARAMETER.toString(), backchannelUserCodeParameter.toString());
         }
 
         // Custom params
@@ -1365,6 +1411,13 @@ public class RegisterRequest extends BaseRequest {
         result.setSoftwareId(requestObject.optString(SOFTWARE_ID.toString()));
         result.setSoftwareVersion(requestObject.optString(SOFTWARE_VERSION.toString()));
         result.setSoftwareStatement(requestObject.optString(SOFTWARE_STATEMENT.toString()));
+        result.setBackchannelTokenDeliveryMode(requestObject.has(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()) ?
+                BackchannelTokenDeliveryMode.fromString(requestObject.getString(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString())) : null);
+        result.setBackchannelClientNotificationEndpoint(requestObject.optString(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        result.setBackchannelAuthenticationRequestSigningAlg(requestObject.has(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()) ?
+                AsymmetricSignatureAlgorithm.fromString(requestObject.getString(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString())) : null);
+        result.setBackchannelUserCodeParameter(requestObject.has(BACKCHANNEL_USER_CODE_PARAMETER.toString()) ?
+                requestObject.getBoolean(BACKCHANNEL_USER_CODE_PARAMETER.toString()) : null);
 
         return result;
     }
@@ -1513,6 +1566,18 @@ public class RegisterRequest extends BaseRequest {
         }
         if (StringUtils.isNotBlank(softwareStatement)) {
             parameters.put(SOFTWARE_STATEMENT.toString(), softwareStatement);
+        }
+        if (backchannelTokenDeliveryMode != null) {
+            parameters.put(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString(), backchannelTokenDeliveryMode);
+        }
+        if (StringUtils.isNotBlank(backchannelClientNotificationEndpoint)) {
+            parameters.put(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString(), backchannelClientNotificationEndpoint);
+        }
+        if (backchannelAuthenticationRequestSigningAlg != null) {
+            parameters.put(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString(), backchannelAuthenticationRequestSigningAlg.toString());
+        }
+        if (backchannelUserCodeParameter != null) {
+            parameters.put(BACKCHANNEL_USER_CODE_PARAMETER.toString(), backchannelUserCodeParameter);
         }
         // Custom params
         if (customAttributes != null && !customAttributes.isEmpty()) {

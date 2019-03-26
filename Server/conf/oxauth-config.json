@@ -168,7 +168,8 @@
         "password",
         "client_credentials",
         "refresh_token",
-        "urn:ietf:params:oauth:grant-type:uma-ticket"
+        "urn:ietf:params:oauth:grant-type:uma-ticket",
+        "urn:openid:params:grant-type:ciba"
     ],
     "claimTypesSupported":[
         "normal"

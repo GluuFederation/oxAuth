@@ -6,24 +6,13 @@
 
 package org.xdi.oxauth.model.registration;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.slf4j.Logger;
+import org.xdi.oxauth.model.common.GrantType;
+import org.xdi.oxauth.model.common.ResponseType;
 import org.xdi.oxauth.model.common.SubjectType;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
@@ -33,11 +22,23 @@ import org.xdi.oxauth.model.util.URLPatternList;
 import org.xdi.oxauth.model.util.Util;
 import org.xdi.oxauth.util.ServerUtil;
 
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Validates the parameters received for the register web service.
  *
  * @author Javier Rojas Blum
- * @version April 19, 2017
+ * @version March 25, 2019
  */
 @Stateless
 @Named
@@ -57,16 +58,11 @@ public class RegisterParamsValidator {
     /**
      * Validates the parameters for a register request.
      *
-     * @param applicationType     The Application Type: native or web.
-     * @param subjectType         The subject_type requested for responses to this Client.
-     * @param redirectUris        Space-separated list of redirect URIs.
-     * @param sectorIdentifierUrl A HTTPS scheme URL to be used in calculating Pseudonymous Identifiers by the OP.
-     *                            The URL contains a file with a single JSON array of redirect_uri values.
+     * @param subjectType The subject_type requested for responses to this Client.
      * @return Whether the parameters of client register is valid or not.
      */
-    public boolean validateParamsClientRegister(ApplicationType applicationType, SubjectType subjectType,
-                                                List<String> redirectUris, String sectorIdentifierUrl) {
-        boolean valid = applicationType != null && redirectUris != null && !redirectUris.isEmpty();
+    public boolean validateParamsClientRegister(SubjectType subjectType) {
+        boolean valid = true;
 
         if (subjectType == null || !appConfiguration.getSubjectTypesSupported().contains(subjectType.toString())) {
             log.debug("Parameter subject_type is not valid.");
@@ -88,6 +84,7 @@ public class RegisterParamsValidator {
     }
 
     /**
+     * @param grantTypes          Grant Types that the Client is declaring that it will restrict itself to using.
      * @param applicationType     The Application Type: native or web.
      * @param subjectType         Subject Type requested for responses to this Client.
      * @param redirectUris        Redirection URI values used by the Client.
@@ -95,7 +92,8 @@ public class RegisterParamsValidator {
      *                            The URL contains a file with a single JSON array of redirect_uri values.
      * @return Whether the Redirect URI parameters are valid or not.
      */
-    public boolean validateRedirectUris(ApplicationType applicationType, SubjectType subjectType,
+    public boolean validateRedirectUris(List<GrantType> grantTypes, List<ResponseType> responseTypes,
+                                        ApplicationType applicationType, SubjectType subjectType,
                                         List<String> redirectUris, String sectorIdentifierUrl) {
         boolean valid = true;
         Set<String> redirectUriHosts = new HashSet<String>();
@@ -131,6 +129,10 @@ public class RegisterParamsValidator {
                         }
                     }
                 }
+            } else if (!grantTypes.contains(GrantType.AUTHORIZATION_CODE) && !grantTypes.contains(GrantType.IMPLICIT) &&
+                    !responseTypes.contains(ResponseType.CODE) && !responseTypes.contains(ResponseType.TOKEN) && !responseTypes.contains(ResponseType.ID_TOKEN)) {
+                // It is valid for grant types: password, client_credentials, urn:ietf:params:oauth:grant-type:uma-ticket and urn:openid:params:grant-type:ciba
+                valid = true;
             } else {
                 valid = false;
             }

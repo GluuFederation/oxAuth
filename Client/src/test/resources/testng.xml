@@ -744,4 +744,15 @@
         </classes>
     </test>
 
+    <!-- CIBA -->
+    <test name="CIBA Configuration Test" enabled="false">
+        <classes>
+            <class name="org.xdi.oxauth.ciba.ConfigurationTest"/>
+        </classes>
+    </test>
+    <test name="CIBA Dynamic Client Registration Test" enabled="false">
+        <classes>
+            <class name="org.xdi.oxauth.ciba.RegistrationTest"/>
+        </classes>
+    </test>
 </suite>

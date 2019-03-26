@@ -23,7 +23,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version February 27, 2019
+ * @version March 25, 2019
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration implements Configuration {
@@ -192,7 +192,7 @@ public class AppConfiguration implements Configuration {
     private String backchannelAuthenticationEndpoint;
     private List<String> backchannelTokenDeliveryModesSupported;
     private List<String> backchannelAuthenticationRequestSigningAlgValuesSupported;
-    private String backchannelUserCodeParameterSupported;
+    private Boolean backchannelUserCodeParameterSupported;
 
     public Boolean getDisableJdkLogger() {
         return disableJdkLogger;
@@ -1500,11 +1500,11 @@ public class AppConfiguration implements Configuration {
         this.backchannelAuthenticationRequestSigningAlgValuesSupported = backchannelAuthenticationRequestSigningAlgValuesSupported;
     }
 
-    public String getBackchannelUserCodeParameterSupported() {
+    public Boolean getBackchannelUserCodeParameterSupported() {
         return backchannelUserCodeParameterSupported;
     }
 
-    public void setBackchannelUserCodeParameterSupported(String backchannelUserCodeParameterSupported) {
+    public void setBackchannelUserCodeParameterSupported(Boolean backchannelUserCodeParameterSupported) {
         this.backchannelUserCodeParameterSupported = backchannelUserCodeParameterSupported;
     }
 }

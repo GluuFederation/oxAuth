@@ -16,6 +16,10 @@ import org.slf4j.Logger;
 import org.xdi.model.GluuAttribute;
 import org.xdi.model.metric.MetricType;
 import org.xdi.oxauth.audit.ApplicationAuditLogger;
+import org.xdi.oxauth.ciba.CIBARegisterClientMetadataProxy;
+import org.xdi.oxauth.ciba.CIBARegisterClientResponseProxy;
+import org.xdi.oxauth.ciba.CIBARegisterParamsValidatorProxy;
+import org.xdi.oxauth.ciba.CIBASupportProxy;
 import org.xdi.oxauth.client.RegisterRequest;
 import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
@@ -65,7 +69,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toList;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version December 4, 2018
+ * @version March 25, 2019
  */
 @Path("/")
 public class RegisterRestWebServiceImpl implements RegisterRestWebService {
@@ -104,6 +108,18 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
     @Inject
     private StaticConfiguration staticConfiguration;
+
+    @Inject
+    private CIBASupportProxy cibaSupportProxy;
+
+    @Inject
+    private CIBARegisterParamsValidatorProxy cibaRegisterParamsValidatorProxy;
+
+    @Inject
+    private CIBARegisterClientMetadataProxy cibaRegisterClientMetadataProxy;
+
+    @Inject
+    private CIBARegisterClientResponseProxy cibaRegisterClientResponseProxy;
 
     @Override
     public Response requestRegister(String requestParams, String authorization, HttpServletRequest httpRequest, SecurityContext securityContext) {
@@ -170,7 +186,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 }
 
                 if (r.getClaimsRedirectUris() != null && !r.getClaimsRedirectUris().isEmpty()) {
-                    if (!registerParamsValidator.validateRedirectUris(r.getApplicationType(), r.getSubjectType(), r.getClaimsRedirectUris(), r.getSectorIdentifierUri())) {
+                    if (!registerParamsValidator.validateRedirectUris(r.getGrantTypes(), r.getResponseTypes(),
+                            r.getApplicationType(), r.getSubjectType(), r.getClaimsRedirectUris(), r.getSectorIdentifierUri())) {
                         log.error("Value of one or more claims_redirect_uris is invalid, claims_redirect_uris: " + r.getClaimsRedirectUris());
                         throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                                 .entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_CLAIMS_REDIRECT_URI))
@@ -178,12 +195,24 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                     }
                 }
 
-                if (registerParamsValidator.validateParamsClientRegister(r.getApplicationType(), r.getSubjectType(),
-                        r.getRedirectUris(), r.getSectorIdentifierUri())) {
-                    if (!registerParamsValidator.validateRedirectUris(r.getApplicationType(), r.getSubjectType(),
-                            r.getRedirectUris(), r.getSectorIdentifierUri())) {
+                if (registerParamsValidator.validateParamsClientRegister(r.getSubjectType())) {
+                    if (!registerParamsValidator.validateRedirectUris(r.getGrantTypes(), r.getResponseTypes(),
+                            r.getApplicationType(), r.getSubjectType(), r.getRedirectUris(), r.getSectorIdentifierUri())) {
                         builder = Response.status(Response.Status.BAD_REQUEST.getStatusCode());
                         builder.entity(errorResponseFactory.getErrorAsJson(RegisterErrorResponseType.INVALID_REDIRECT_URI));
+                    } else if (cibaSupportProxy.isCIBASupported() && !cibaRegisterParamsValidatorProxy.validateParams(
+                            r.getBackchannelTokenDeliveryMode(),
+                            r.getBackchannelClientNotificationEndpoint(),
+                            r.getBackchannelAuthenticationRequestSigningAlg(),
+                            r.getBackchannelUserCodeParameter(),
+                            r.getGrantTypes(),
+                            r.getSubjectType(),
+                            r.getSectorIdentifierUri(),
+                            r.getJwksUri()
+                    )) { // CIBA
+                        builder = Response.status(Response.Status.BAD_REQUEST.getStatusCode());
+                        builder.entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA,
+                                "Invalid Client Metadata registering to use CIBA."));
                     } else {
                         registerParamsValidator.validateLogoutUri(r.getFrontChannelLogoutUris(), r.getRedirectUris(), errorResponseFactory);
 
@@ -512,6 +541,12 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         if (StringUtils.isNotBlank(requestObject.getSoftwareStatement())) {
             p_client.setSoftwareStatement(requestObject.getSoftwareStatement());
         }
+
+        if (cibaSupportProxy.isCIBASupported()) {
+            cibaRegisterClientMetadataProxy.updateClient(p_client, requestObject.getBackchannelTokenDeliveryMode(),
+                    requestObject.getBackchannelClientNotificationEndpoint(), requestObject.getBackchannelAuthenticationRequestSigningAlg(),
+                    requestObject.getBackchannelUserCodeParameter());
+        }
     }
 
     @Override
@@ -528,11 +563,29 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 if (request != null) {
                     boolean redirectUrisValidated = true;
                     if (request.getRedirectUris() != null && !request.getRedirectUris().isEmpty()) {
-                        redirectUrisValidated = registerParamsValidator.validateRedirectUris(request.getApplicationType(), request.getSubjectType(),
+                        redirectUrisValidated = registerParamsValidator.validateRedirectUris(
+                                request.getGrantTypes(), request.getResponseTypes(),
+                                request.getApplicationType(), request.getSubjectType(),
                                 request.getRedirectUris(), request.getSectorIdentifierUri());
                     }
 
                     if (redirectUrisValidated) {
+                        if (cibaSupportProxy.isCIBASupported() && !cibaRegisterParamsValidatorProxy.validateParams(
+                                request.getBackchannelTokenDeliveryMode(),
+                                request.getBackchannelClientNotificationEndpoint(),
+                                request.getBackchannelAuthenticationRequestSigningAlg(),
+                                request.getBackchannelUserCodeParameter(),
+                                request.getGrantTypes(),
+                                request.getSubjectType(),
+                                request.getSectorIdentifierUri(),
+                                request.getJwksUri()
+                        )) {
+                            return Response.status(Response.Status.BAD_REQUEST).
+                                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA,
+                                            "Invalid Client Metadata registering to use CIBA.")).build();
+                        }
+
+
                         if (request.getSubjectType() != null
                                 && !appConfiguration.getSubjectTypesSupported().contains(request.getSubjectType().toString())) {
                             log.debug("Client UPDATE : parameter subject_type is invalid. Returns BAD_REQUEST response.");
@@ -732,6 +785,10 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
         if (claimNames != null && claimNames.length > 0) {
             Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
+        }
+
+        if (cibaSupportProxy.isCIBASupported()) {
+            cibaRegisterClientResponseProxy.updateResponse(responseJsonObject, client);
         }
 
         return responseJsonObject;

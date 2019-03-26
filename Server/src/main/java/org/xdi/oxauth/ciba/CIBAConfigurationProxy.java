@@ -15,12 +15,13 @@ import javax.inject.Named;
 
 /**
  * @author Javier Rojas Blum
- * @version February 27, 2019
+ * @version March 25, 2019
  */
 @Stateless
 @Named
 public class CIBAConfigurationProxy implements CIBAConfigurationInterceptionInterface {
 
+    @Override
     @CIBAConfigurationInterception
     public void processConfiguration(JSONObject jsonConfiguration) {
     }

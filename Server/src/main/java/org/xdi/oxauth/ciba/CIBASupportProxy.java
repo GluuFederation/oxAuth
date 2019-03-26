@@ -14,12 +14,13 @@ import javax.inject.Named;
 
 /**
  * @author Javier Rojas Blum
- * @version February 27, 2019
+ * @version March 25, 2019
  */
 @Stateless
 @Named
 public class CIBASupportProxy implements CIBASupportInterceptionInterface {
 
+    @Override
     @CIBASupportInterception
     public boolean isCIBASupported() {
         return false;

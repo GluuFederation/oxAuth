@@ -26,7 +26,7 @@ import static org.xdi.oxauth.model.configuration.ConfigurationResponseClaim.*;
 
 /**
  * @author Javier Rojas Blum
- * @version February 27, 2019
+ * @version March 25, 2019
  */
 @Interceptor
 @CIBAConfigurationInterception
@@ -57,6 +57,7 @@ public class CIBAConfigurationInterceptor implements CIBAConfigurationIntercepti
         return null;
     }
 
+    @Override
     public void processConfiguration(JSONObject jsonConfiguration) {
         log.debug("CIBAConfigurationInterceptor");
 

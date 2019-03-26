@@ -9,10 +9,8 @@ package org.xdi.oxauth.model.registration;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.persist.model.base.CustomAttribute;
 import org.gluu.site.ldap.persistence.annotation.*;
-import org.xdi.oxauth.model.common.AuthenticationMethod;
-import org.xdi.oxauth.model.common.ClientAttributes;
-import org.xdi.oxauth.model.common.GrantType;
-import org.xdi.oxauth.model.common.ResponseType;
+import org.xdi.oxauth.model.common.*;
+import org.xdi.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
 import org.xdi.oxauth.model.ref.ClientReference;
 
 import java.io.Serializable;
@@ -22,7 +20,7 @@ import java.util.List;
 
 /**
  * @author Javier Rojas Blum
- * @version December 4, 2018
+ * @version March 25, 2019
  */
 @LdapEntry
 @LdapObjectClass(values = {"top", "oxAuthClient"})
@@ -213,6 +211,18 @@ public class Client implements Serializable, ClientReference {
     @LdapAttribute(name = "oxAttributes")
     @LdapJsonObject
     private ClientAttributes attributes;
+
+    @LdapAttribute(name = "oxAuthBackchannelTokenDeliveryMode")
+    private BackchannelTokenDeliveryMode backchannelTokenDeliveryMode;
+
+    @LdapAttribute(name = "oxAuthBackchannelClientNotificationEndpoint")
+    private String backchannelClientNotificationEndpoint;
+
+    @LdapAttribute(name = "oxAuthBackchannelAuthenticationRequestSigningAlg")
+    private AsymmetricSignatureAlgorithm backchannelAuthenticationRequestSigningAlg;
+
+    @LdapAttribute(name = "oxAuthBackchannelUserCodeParameter")
+    private Boolean backchannelUserCodeParameter;
 
     public ClientAttributes getAttributes() {
         if (attributes == null) {
@@ -1193,4 +1203,35 @@ public class Client implements Serializable, ClientReference {
         return new Client();
     }
 
+    public BackchannelTokenDeliveryMode getBackchannelTokenDeliveryMode() {
+        return backchannelTokenDeliveryMode;
+    }
+
+    public void setBackchannelTokenDeliveryMode(BackchannelTokenDeliveryMode backchannelTokenDeliveryMode) {
+        this.backchannelTokenDeliveryMode = backchannelTokenDeliveryMode;
+    }
+
+    public String getBackchannelClientNotificationEndpoint() {
+        return backchannelClientNotificationEndpoint;
+    }
+
+    public void setBackchannelClientNotificationEndpoint(String backchannelClientNotificationEndpoint) {
+        this.backchannelClientNotificationEndpoint = backchannelClientNotificationEndpoint;
+    }
+
+    public AsymmetricSignatureAlgorithm getBackchannelAuthenticationRequestSigningAlg() {
+        return backchannelAuthenticationRequestSigningAlg;
+    }
+
+    public void setBackchannelAuthenticationRequestSigningAlg(AsymmetricSignatureAlgorithm backchannelAuthenticationRequestSigningAlg) {
+        this.backchannelAuthenticationRequestSigningAlg = backchannelAuthenticationRequestSigningAlg;
+    }
+
+    public Boolean getBackchannelUserCodeParameter() {
+        return backchannelUserCodeParameter;
+    }
+
+    public void setBackchannelUserCodeParameter(Boolean backchannelUserCodeParameter) {
+        this.backchannelUserCodeParameter = backchannelUserCodeParameter;
+    }
 }

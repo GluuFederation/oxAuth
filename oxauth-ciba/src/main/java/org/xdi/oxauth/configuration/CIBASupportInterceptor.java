@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 /**
  * @author Javier Rojas Blum
- * @version February 27, 2019
+ * @version March 25, 2019
  */
 @Interceptor
 @CIBASupportInterception
@@ -47,6 +47,7 @@ public class CIBASupportInterceptor implements CIBASupportInterceptionInterface,
         return result;
     }
 
+    @Override
     public boolean isCIBASupported() {
         return true;
     }

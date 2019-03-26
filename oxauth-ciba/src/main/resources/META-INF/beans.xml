@@ -6,7 +6,10 @@
       http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
        bean-discovery-mode="annotated">
     <interceptors>
-        <class>org.xdi.oxauth.configuration.CIBAConfigurationInterceptor</class>
         <class>org.xdi.oxauth.configuration.CIBASupportInterceptor</class>
+        <class>org.xdi.oxauth.configuration.CIBAConfigurationInterceptor</class>
+        <class>org.xdi.oxauth.configuration.CIBARegisterParamsValidatorInterceptor</class>
+        <class>org.xdi.oxauth.configuration.CIBARegisterClientMetadataInterceptor</class>
+        <class>org.xdi.oxauth.configuration.CIBARegisterClientResponseInterceptor</class>
     </interceptors>
 </beans>

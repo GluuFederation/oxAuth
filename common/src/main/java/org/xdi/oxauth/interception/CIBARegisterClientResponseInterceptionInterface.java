@@ -7,12 +7,13 @@
 package org.xdi.oxauth.interception;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.xdi.oxauth.model.registration.Client;
 
 /**
  * @author Javier Rojas Blum
  * @version March 25, 2019
  */
-public interface CIBAConfigurationInterceptionInterface {
+public interface CIBARegisterClientResponseInterceptionInterface {
 
-    void processConfiguration(JSONObject jsonConfiguration);
+    void updateResponse(JSONObject responseJsonObject, Client client);
 }
