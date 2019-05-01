@@ -5,7 +5,7 @@
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:a4j="http://richfaces.org/a4j">
-<f:view locale="#{language.localeCode}">
+<f:view transient="true" locale="#{language.localeCode}">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <title>oxAuth</title>
@@ -17,11 +17,6 @@
 		<link href="#{oxAuthConfigurationService.cssLocation}/bootstrap.min.css" rel="stylesheet"/>
 		
 		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet"/>
-		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9] -->
-       		 <script src="#{oxAuthConfigurationService.jsLocation}/html5shiv.min.js"></script>
-        	<script src="#{oxAuthConfigurationService.jsLocation}/respond.min.js"></script>
 
         <ui:insert name="head"/>
     </h:head>

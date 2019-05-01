@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.xdi</groupId>
+	<groupId>org.gluu</groupId>
 	<artifactId>oxauth-rp</artifactId>
 	<name>oxAuth RP</name>
 	<packaging>war</packaging>
 
 	<parent>
-		<groupId>org.xdi</groupId>
+		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>3.2.0-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 
 	<prerequisites>
@@ -96,7 +96,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
 			<exclusions>
 				<exclusion>
@@ -118,7 +118,7 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-util</artifactId>
 		</dependency>
 
@@ -129,18 +129,8 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.faces</groupId>
-			<artifactId>jsf-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -165,10 +155,6 @@
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-digester</groupId>
-			<artifactId>commons-digester</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -284,12 +270,12 @@
 					<artifactId>javax.inject</artifactId>
 				</dependency>
 				<dependency>
-					<groupId>com.sun.faces</groupId>
-					<artifactId>jsf-impl</artifactId>
+				    <groupId>org.glassfish</groupId>
+				    <artifactId>javax.faces</artifactId>
 				</dependency>
 				<dependency>
-					<groupId>org.jboss.spec.javax.faces</groupId>
-					<artifactId>jboss-jsf-api_2.2_spec</artifactId>
+				    <groupId>org.glassfish</groupId>
+				    <artifactId>javax.faces</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.jboss.weld.servlet</groupId>

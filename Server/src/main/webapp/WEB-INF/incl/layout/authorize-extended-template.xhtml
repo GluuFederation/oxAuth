@@ -30,9 +30,10 @@
 					<div class="row">
 						<div class="col-md-5">
 							<h:panelGroup layout="block" rendered='#{empty client.logoUri}'>
-								<a href="http://www.gluu.org/"> <h:graphicImage
-										url="/img/logo.png" />
-								</a>
+								
+								<object data="/ext/resources/img/logo.png" type="image/png">
+                                   <img src="img/logo.png" />
+                                </object>
 							</h:panelGroup>
 						</div>
 					</div>
@@ -55,40 +56,68 @@
 					<ul>
 						<ui:fragment rendered="#{_scopes != null or _request != null}">
 							<ui:repeat var="_scope" value="#{_scopes}">
-								<li><table><tr><td><span class="user"><i class="fa fa-user-circle"></i></span></td>
-									<td><h:outputText value="#{_scope.description}" /></td></tr></table>
-									<!-- i id="tog3" class="fa fa-info-circle" aria-hidden="true"></i>
-									<div class="clearfix"></div>
-									<div class="pop_tog" id="pop_tog2">
-									<p>more details can be show here but currently we have description field only </p>
-								<p>Compose and send new email</p>
-							</div> -->
+								<li>
+									<table>
+										<tr>
+											<td>
+												<span class="user"><i class="fa fa-user-circle"></i></span>
+											</td>
+											<td>
+												<h:outputText value="#{_scope.description}" />
+											</td>
+										</tr>
+									</table>
 								</li>
 							</ui:repeat>
+
+							<ui:repeat var="_requestedClaim" value="#{_requestedClaims}">
+								<li>
+									<table>
+										<tr>
+											<td>
+												<span class="user"><i class="fa fa-user-circle"></i></span>
+											</td>
+											<td>
+												<h:outputFormat value="#{msgs['authorize.viewIndividualClaim']}">
+													<f:param value="#{_requestedClaim}" />
+												</h:outputFormat>
+											</td>
+										</tr>
+									</table>
+								</li>
+							</ui:repeat>
+
 							<ui:fragment rendered="#{_request != null}">
-								<li><table><tr><td><span class="user"><i class="fa fa-user-circle"></i></span></td>
-									<td><h:outputText value="#{_request}" /></td></tr></table>
+								<li>
+									<table>
+										<tr>
+											<td>
+												<span class="user"><i class="fa fa-user-circle"></i></span>
+											</td>
+											<td>
+												<h:outputText value="#{_request}" />
+											</td>
+										</tr>
+									</table>
 								</li>
 							</ui:fragment>
 						</ui:fragment>
 					</ul>
 
-					<h:panelGroup layout="block"
-								  rendered='#{!empty client.getPolicyUri()}'>
+					<h:panelGroup layout="block" rendered='#{!empty client.getPolicyUri()}'>
 						<p>
 							<h:outputText value="#{msgs['common.agreePolicy']}" />
-							<a target="_blank" href='#{client.getPolicyUri()}'> <h:outputText
-									value="#{msgs['common.privacyPolicy']}" />
+							<a target="_blank" href='#{client.getPolicyUri()}'>
+								<h:outputText value="#{msgs['common.privacyPolicy']}" />
 							</a>
 						</p>
 					</h:panelGroup>
 
-					<h:panelGroup layout="block"
-								  rendered='#{!empty client.getTosUri()}'>
+					<h:panelGroup layout="block" rendered='#{!empty client.getTosUri()}'>
 						<p>
 							<h:outputText value="#{msgs['common.pleaseReadTheTos']}" />
-							<a target="_blank" href='#{client.getTosUri()}'> <h:outputText
-									value="#{msgs['common.termsOfService']}" />
+							<a target="_blank" href='#{client.getTosUri()}'>
+								<h:outputText value="#{msgs['common.termsOfService']}" />
 							</a>
 						</p>
 					</h:panelGroup>
@@ -98,8 +127,7 @@
 					</div>
 				</div>
 				<center>
-					Powered by <a href="http://www.gluu.org">Gluu</a>. Free and open
-					source access management.
+					#{msgs['common.copyright']} <a href="http://www.gluu.org">Gluu</a>. #{msgs['common.allRightsReserved']}
 				</center>
 			</div>
 		</h:form>

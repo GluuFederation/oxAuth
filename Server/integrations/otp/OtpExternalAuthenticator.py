@@ -5,7 +5,7 @@
 #
 
 # Requires the following custom properties and values:
-#   otp_type: totp/htop
+#   otp_type: totp/hotp
 #   issuer: Gluu Inc
 #   otp_conf_file: /etc/certs/otp_configuration.json
 #
@@ -30,12 +30,12 @@ from java.util import Arrays
 from java.util.concurrent import TimeUnit
 from javax.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import StringHelper
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.gluu.oxauth.util import ServerUtil
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):
@@ -74,7 +74,7 @@ class PersonAuthentication(PersonAuthenticationType):
         validOtpConfiguration = self.loadOtpConfiguration(configurationAttributes)
         if not validOtpConfiguration:
             return False
-        
+
         print "OTP. Initialized successfully"
         return True
 
@@ -111,13 +111,13 @@ class PersonAuthentication(PersonAuthenticationType):
             #enrollment_mode = ServerUtil.getFirstValue(requestParameters, "loginForm:registerButton")
             #if StringHelper.isNotEmpty(enrollment_mode):
             #    otp_auth_method = "enroll"
-            
+
             if otp_auth_method == "authenticate":
                 user_enrollments = self.findEnrollments(authenticated_user.getUserId())
                 if len(user_enrollments) == 0:
                     otp_auth_method = "enroll"
                     print "OTP. Authenticate for step 1. There is no OTP enrollment for user '%s'. Changing otp_auth_method to '%s'" % (authenticated_user.getUserId(), otp_auth_method)
-                    
+
             if otp_auth_method == "enroll":
                 print "OTP. Authenticate for step 1. Setting count steps: '%s'" % 3
                 identity.setWorkingParameter("otp_count_login_steps", 3)
@@ -250,10 +250,10 @@ class PersonAuthentication(PersonAuthenticationType):
     def getPageForStep(self, configurationAttributes, step):
         if step == 2:
             identity = CdiUtil.bean(Identity)
-    
+
             otp_auth_method = identity.getWorkingParameter("otp_auth_method")
             print "OTP. Gep page for step 2. otp_auth_method: '%s'" % otp_auth_method
-    
+
             if otp_auth_method == 'enroll':
                 return "/auth/otp/enroll.xhtml"
             else:
@@ -291,10 +291,10 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
         finally:
             f.close()
-        
+
         # Check configuration file settings
         try:
-            self.hotpConfiguration = otpConfiguration["htop"]
+            self.hotpConfiguration = otpConfiguration["hotp"]
             self.totpConfiguration = otpConfiguration["totp"]
             
             hmacShaAlgorithm = self.totpConfiguration["hmacShaAlgorithm"]
@@ -331,7 +331,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if not logged_in:
             return None
 
-        find_user_by_uid = userService.getUser(user_name)
+        find_user_by_uid = authenticationService.getAuthenticatedUser()
         if find_user_by_uid == None:
             print "OTP. Process basic authentication. Failed to find user '%s'" % user_name
             return None
@@ -495,9 +495,10 @@ class PersonAuthentication(PersonAuthenticationType):
         return hotp.value()
 
     def validateHotpKey(self, secretKey, movingFactor, totpKey):
+        lookAheadWindow = self.hotpConfiguration["lookAheadWindow"]
         digits = self.hotpConfiguration["digits"]
 
-        htopValidationResult = HOTPValidator.lookAheadWindow(1).validate(secretKey, movingFactor, digits, totpKey)
+        htopValidationResult = HOTPValidator.lookAheadWindow(lookAheadWindow).validate(secretKey, movingFactor, digits, totpKey)
         if htopValidationResult.isValid():
             return { "result": True, "movingFactor": htopValidationResult.getNewMovingFactor() }
 

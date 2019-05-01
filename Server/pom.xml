@@ -7,9 +7,9 @@
 	<packaging>war</packaging>
 
 	<parent>
-		<groupId>org.xdi</groupId>
+		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>3.2.0-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 
 	<prerequisites>
@@ -140,9 +140,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Dgluu.base=${project.build.directory}
+					<argLine>-Xms1024m -Xmx1536m -XX:MaxMetaspaceSize=512m -XX:+DisableExplicitGC
+						-Dgluu.base=${project.build.directory}
 						-Dserver.base=${project.build.directory}
 						-Dlog.base=${project.build.directory}
+						-Dgluu.disable.scheduler=true
+ 
 					</argLine>
 				</configuration>
 			</plugin>
@@ -225,6 +228,19 @@
 					<scanIntervalSeconds>3</scanIntervalSeconds>
 				</configuration>
 			</plugin>
+
+			<!-- OWASP plugin -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -236,50 +252,80 @@
 		</dependency>
 		<!-- oxAuth -->
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-model</artifactId>
 		</dependency>
+
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxauth-common</artifactId>
+		</dependency>
+		<!-- persistence model -->
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxauth-persistence-model</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxauth-fido2-server</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxauth-fido2-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-static</artifactId>
 		</dependency>
 
 		<!-- Gluu -->
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-model</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-util</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
-			<artifactId>oxcore-ldap-annotations</artifactId>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxcore-persistence-annotation</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
-			<artifactId>oxcore-ldap</artifactId>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxcore-persistence-ldap</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
-			<artifactId>oxcore-filter</artifactId>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxcore-persistence-couchbase</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-service</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxcore-jsf-util</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.ocpsoft.rewrite</groupId>
+					<artifactId>rewrite-config-prettyfaces</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.ocpsoft.rewrite</groupId>
+					<artifactId>rewrite-servlet</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- oxEleven -->
@@ -302,15 +348,21 @@
 			<artifactId>oxnotify-client</artifactId>
 		</dependency>
 
+		<!-- oxLicense -->
+<!--
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxlicense-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>oxlicense-validator</artifactId>
+		</dependency>
+-->
 		<!-- Weld -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
 			<artifactId>cdi-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.faces</groupId>
-			<artifactId>jsf-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -319,14 +371,10 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Pretty Faces -->
+			<!-- OmniFaces -->
 		<dependency>
-			<groupId>org.ocpsoft.rewrite</groupId>
-			<artifactId>rewrite-servlet</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.ocpsoft.rewrite</groupId>
-			<artifactId>rewrite-config-prettyfaces</artifactId>
+			<groupId>org.omnifaces</groupId>
+			<artifactId>omnifaces</artifactId>
 		</dependency>
 
 		<!-- Commons libs -->
@@ -351,10 +399,6 @@
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-digester</groupId>
-			<artifactId>commons-digester</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
@@ -375,6 +419,10 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-jul</artifactId>
 		</dependency>
 
 		<!-- Security -->
@@ -401,6 +449,12 @@
 			<artifactId>mail</artifactId>
 		</dependency>
 
+		<!-- LDAP -->
+		<dependency>
+			<groupId>com.unboundid</groupId>
+			<artifactId>unboundid-ldapsdk</artifactId>
+		</dependency>
+
 		<!-- Metrics -->
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
@@ -420,7 +474,7 @@
 		<!-- Jython -->
 		<dependency>
 			<groupId>org.python</groupId>
-			<artifactId>jython</artifactId>
+			<artifactId>jython-standalone</artifactId>
 		</dependency>
 
 		<!-- JMS -->
@@ -486,6 +540,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
@@ -515,14 +573,14 @@
 
 		<!-- Test -->
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-model</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.xdi</groupId>
+			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
@@ -532,6 +590,11 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -549,6 +612,38 @@
 		<dependency>
 			<groupId>org.eu.ingwar.tools</groupId>
 			<artifactId>arquillian-suite-extension</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.reflections</groupId>
+		    <artifactId>reflections</artifactId>
+		    <version>0.9.10</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- We have to explicitly specify version because arquillian-jetty-container depends on 1.1.11-->
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-test-impl-base</artifactId>
+			<version>1.4.0.Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-spi</artifactId>
+			<version>1.4.0.Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-test-spi</artifactId>
+			<version>1.4.0.Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.testenricher</groupId>
+			<artifactId>arquillian-testenricher-cdi</artifactId>
+			<version>1.4.0.Final</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -592,12 +687,8 @@
 					<artifactId>cdi-api</artifactId>
 				</dependency>
 				<dependency>
-					<groupId>com.sun.faces</groupId>
-					<artifactId>jsf-api</artifactId>
-				</dependency>
-				<dependency>
-					<groupId>com.sun.faces</groupId>
-					<artifactId>jsf-impl</artifactId>
+				    <groupId>org.glassfish</groupId>
+				    <artifactId>javax.faces</artifactId>
 				</dependency>
 
 				<dependency>
@@ -628,13 +719,12 @@
 				    <groupId>org.hibernate</groupId>
 				    <artifactId>hibernate-validator-cdi</artifactId>
 				</dependency>
-
 		        <dependency>
 		            <groupId>org.jboss.spec.javax.ejb</groupId>
 		            <artifactId>jboss-ejb-api_3.2_spec</artifactId>
 		            <scope>provided</scope>
 		        </dependency>
-
+ 
 				<!-- Test: Embedded Jetty -->
 				<dependency>
 					<groupId>org.jboss.arquillian.container</groupId>
@@ -661,6 +751,14 @@
 					<artifactId>jetty-plus</artifactId>
 					<scope>test</scope>
 				</dependency>
+                <dependency>
+                    <groupId>com.nimbusds</groupId>
+                    <artifactId>nimbus-jose-jwt</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.bitbucket.b_c</groupId>
+                    <artifactId>jose4j</artifactId>
+                </dependency>
 			</dependencies>
 
 			<build>
@@ -907,7 +1005,7 @@
 						<configuration>
 							<apiSources>
 								<apiSource>
-									<locations>org.xdi.oxauth.model.uma;
+									<locations>org.gluu.oxauth.model.uma;
 									</locations>
 									<apiVersion>v1</apiVersion>
 									<basePath>http://gluu.org</basePath>
@@ -969,7 +1067,7 @@
 			</build>
 			<dependencies>
 				<dependency>
-					<groupId>org.xdi</groupId>
+					<groupId>org.gluu</groupId>
 					<artifactId>oxcore-saml</artifactId>
 				</dependency>
 			</dependencies>
@@ -1045,52 +1143,20 @@
 			</activation>
 			<dependencies>
 				<dependency>
-					<groupId>org.xdi</groupId>
+					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-model</artifactId>
 					<version>${project.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
-					<groupId>org.xdi</groupId>
+					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-client</artifactId>
 					<version>${project.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
-		</profile>
-
-		<profile>
-			<id>native2ascii</id>
-			<activation>
-				<os>
-					<family>unix</family>
-				</os>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>exec-maven-plugin</artifactId>
-						<groupId>org.codehaus.mojo</groupId>
-						<executions>
-							<execution><!-- Run our version calculation script -->
-								<id>native2ascii</id>
-								<phase>compile</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>${basedir}/src/main/resources/scripts/native2ascii.sh</executable>
-									<arguments>
-										<argument>${basedir}/src/main/resources/messages*.properties</argument>
-									</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 

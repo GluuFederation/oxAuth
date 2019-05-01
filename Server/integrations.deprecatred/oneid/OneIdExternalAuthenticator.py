@@ -8,13 +8,13 @@ import json
 from java.util import Arrays
 from oneid import OneID
 from org.apache.http.entity import ContentType
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.oxauth.service.net import HttpService
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import ArrayHelper
-from org.xdi.util import StringHelper
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.oxauth.service.net import HttpService
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import ArrayHelper
+from org.gluu.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):
@@ -196,7 +196,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             facesContext = CdiUtil.bean(FacesContext)
             request = facesContext.getExternalContext().getRequest()
-            validation_page = request.getContextPath() + "/postlogin?" + "request_uri=&" + authenticationService.parametersAsString()
+            validation_page = request.getContextPath() + "/postlogin.htm?" + "request_uri=&" + authenticationService.parametersAsString()
             print "OneId. Prepare for step 1. validation_page: " + validation_page
 
             oneid_login_button = authn.draw_signin_button(validation_page, callback_attrs, True)

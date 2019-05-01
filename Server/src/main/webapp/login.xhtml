@@ -7,7 +7,7 @@
 	template="/WEB-INF/incl/layout/login-template.xhtml">
 
 	<f:metadata>
-		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{sessionIdService.notSessionIdAuthenticated}" />
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" />
 
 		<f:viewParam name="login_hint" value="#{loginAction.loginHint}" />
 	</f:metadata>
@@ -32,16 +32,16 @@
 					<h:graphicImage url='#{client.logoUri}' />
 				</h:panelGroup>
 				<h:panelGroup layout="block" rendered='#{empty client.logoUri}'>
-					<a href="http://www.gluu.org/"> <h:graphicImage
-							url="img/logo.png" />
-					</a>
+					<object data="ext/resources/img/logo.png" type="image/png">
+                     <img src="img/logo.png" />
+                    </object>
 				</h:panelGroup>
 			</div>
 			<!-- end logo-->
 		</div>
 	</header>
 		<!-- end header-->
-	<div class="bs-docs-section">
+	<div class="bs-docs-section" style="border-top: 2px solid #1ab26b !important;">
 		<div class="container">
 			<h:panelGroup  rendered="false"> 
 			<div class="login_bx">
@@ -50,10 +50,8 @@
 					   <div class="left_form_bx">
 
 						<h:form id="loginForm"  class="form-horizontal">
-						<h:panelGroup
-									rendered="#{sessionIdService.notSessionIdAuthenticated}">
-
-						<h:messages style="color:red;" />
+                            <h:inputHidden id="platform"/>
+						<h:panelGroup>
 
 						  <div class="form-group">
 							<h:outputLabel styleClass="col-sm-3 control-label"	for="username" value="#{msgs['login.username']}" />
@@ -82,7 +80,7 @@
 							<div class="col-sm-offset-3 col-sm-9">
 							  <div class="forgot_link">
 								<a href="/identity/person/passwordReminder.htm">
-								  <h:outputText value="Forgot your Password?" />
+								  <h:outputText value="#{msgs['login.forgotYourPassword']}" />
 								</a>
 							  </div>
 							</div>
@@ -136,17 +134,14 @@
 			</h:panelGroup>
 			
 			<h:panelGroup  rendered="true"> 
-			<div class="login_bx_1">
+			<div class="login_bx_1" style="border-radius:10px; margin-top:0px; background: white;">
 				<div class="row">
 					<div class="col-md-6_1 col-sm-5_1 ">
-					   <div class="left_form_bx">
-					   
+					   <div class="left_form_bx" style="padding-top: 20px; padding-left: 10px;padding-right: 5px; padding-bottom: 20px;" >
 						<h:form id="loginForm"  class="form-horizontal">
-						<h:panelGroup
-									rendered="#{sessionIdService.notSessionIdAuthenticated}">
-									
-						<h:messages style="color:red;" />
-						
+						   <h:messages class="text-center" style ="color:red;margin:8px;" infoClass="text-center" errorClass="text-center"/>
+                            <h:inputHidden id="platform"/>
+						<h:panelGroup>						
 						  <div class="form-group">
 							<h:outputLabel styleClass="col-sm-4 control-label"	for="username" value="#{msgs['login.username']}" />
 							<div class="col-sm-8">
@@ -170,8 +165,8 @@
 							</div>
 						  
 						  <div class="form-group">
-							<div class="col-sm-offset-3 col-sm-9">
-							  <h:commandButton id="loginButton" styleClass="btn btn-primary"
+							<div class="col-sm-offset-4 col-sm-8">
+							  <h:commandButton id="loginButton" styleClass="btn btn-primary col-sm-12"
 													value="#{msgs['login.login']}"
 											   onclick="checkRemembeMe()"
 													action="#{authenticator.authenticate}" />
@@ -179,30 +174,29 @@
 						  </div>
 						  
 						  <div class="form-group">
-							<div class="col-sm-offset-3 col-sm-9">
+							<div class="col-sm-offset-6 col-sm-6">
 							  <div class="forgot_link">
-								<a href="/identity/person/passwordReminder.htm">
-								  <h:outputText value="Forgot your Password?" />
+								<a href="/identity/person/passwordReminder.htm" style="color:blue;">
+								  <h:outputText value="#{msgs['login.forgotYourPassword']}" />
 								</a>
 							  </div>
 							</div>
 						  </div>
 						  </h:panelGroup>
 						</h:form>
-						<div align="center">
-                                                    <ui:repeat value="#{identity.getWorkingParameter('download_url').entrySet().toArray()}" var="_entry">
-                                                        <ui:param name="app_name" value="#{_entry.key}"/>
-                                                        <ui:param name="app_link" value="#{_entry.value}"/>
-                                                        <h:outputLink value="#{app_link}" title="#{app_name}"><h:graphicImage value="img/#{app_name}.png" /></h:outputLink>
-                                                    </ui:repeat>
-                                                </div>
-
+						<div align="center" class="col-sm-offset-4 col-sm-9">
+							<ui:repeat value="#{identity.getWorkingParameter('download_url').entrySet().toArray()}" var="_entry">
+								<ui:param name="app_name" value="#{_entry.key}"/>
+								<ui:param name="app_link" value="#{_entry.value}"/>
+								<h:outputLink style="margin-right:5px;" value="#{app_link}" title="#{app_name}"><h:graphicImage value="img/#{app_name}.png" /></h:outputLink>
+							</ui:repeat>
+						</div>
 						</div>
 						<h:panelGroup layout="block" rendered="#{external_registration_uri != Null}">
 						 <div class="reg_link">
-								<a href="#{external_registration_uri}">
-								 <h:outputText value="Register Now   " />
-								</a>
+							 <a href="#{external_registration_uri}">
+								 <h:outputText value="Register Now " />
+							 </a>
 						</div>
 						</h:panelGroup>
 					</div>
@@ -213,12 +207,12 @@
 		</div>
 	</div>
 	
-	<div class="foot_bor">
-		<div class="container">
+	<div class="footer-copyright text-center py-3" style="background:#1ab26b; position: fixed;left: 0;bottom: 0;width: 100%;text-align: center;">
+		<div class="footer">
 			<div class="row">
 				<div class="col-md-12">
-				  <div class="padding_spc">
-					<p><h:outputText value="#{msgs['common.gluuInc']}" />  | <a target="_blank" href="https://github.com/GluuFederation/oxAuth/blob/master/LICENSE"><h:outputText value="#{msgs['common.caution']}" escape="false" /></a>
+				  <div class="padding_spc" style="padding-bottom: 5px;padding-top: 5px;">
+					<p><h:outputText value="#{msgs['common.gluuInc']}" /> | <a target="_blank" href="https://github.com/GluuFederation/oxAuth/blob/master/LICENSE"><h:outputText value="#{msgs['common.caution']}" escape="false" /></a>
 					<h:panelGroup rendered='#{!empty client.policyUri}'>
 					| <a target="_blank" href="#{client.policyUri}"><h:outputText value="#{msgs['common.privacyPolicy']}" escape="false" /></a>
 					</h:panelGroup>
@@ -274,6 +268,8 @@
                 $('#rememberme').click(function() {
                     checkRemembeMe();
                 });
+
+                fillPlatformField();
     		});
 
     		function checkRemembeMe() {
@@ -288,6 +284,21 @@
                     localStorage.chkbx = '';
                 }
 			}
+
+            function fillPlatformField() {
+                //Fix browser version to contain major.minor portion only
+                try {
+                    re = /^([^\.]+\.[^\.]+)\..+/;
+                    //This will remember "33.0" in "33.0.1.2.3"
+                    result = re.exec(platform.version);
+                    if (result != null) {
+                        //There was a match against the regexp
+                        platform.version=result[1];
+                    }
+    			    document.getElementById("loginForm:platform").value = JSON.stringify(platform);
+                } catch (e) {
+                }
+            }
         </script>
 	</ui:define>
 </ui:composition>

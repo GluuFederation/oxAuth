@@ -8,20 +8,30 @@ from com.google.android.gcm.server import Sender, Message
 from com.notnoop.apns import APNS
 from java.util import Arrays
 from org.apache.http.params import CoreConnectionPNames
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.oxauth.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.model.config import ConfigurationFactory
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
-from org.xdi.oxauth.service.fido.u2f import DeviceRegistrationService
-from org.xdi.oxauth.service.net import HttpService
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.util import StringHelper
-from org.xdi.oxauth.service import EncryptionService
-from org.xdi.service import MailService
-from org.xdi.oxauth.service.push.sns import PushPlatform, PushSnsService 
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.model.config import ConfigurationFactory
+from org.gluu.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.gluu.oxauth.service.fido.u2f import DeviceRegistrationService
+from org.gluu.oxauth.service.net import HttpService
+from org.gluu.oxauth.util import ServerUtil
+from org.gluu.util import StringHelper
+from org.gluu.oxauth.service import EncryptionService
+from org.gluu.service import MailService
+from org.gluu.oxauth.service.push.sns import PushPlatform, PushSnsService 
 from org.gluu.oxnotify.client import NotifyClientFactory 
-from java.util import Arrays, HashMap, IdentityHashMap
+from java.util import Arrays, HashMap, IdentityHashMap, Date
+from java.time import ZonedDateTime
+from java.time.format import DateTimeFormatter
+
+try:
+    from org.gluu.oxd.license.client.js import Product
+    from org.gluu.oxd.license.validator import LicenseValidator
+    has_license_api = True
+except ImportError:
+    print "Super-Gluu. Load. Failed to load licensing API"
+    has_license_api = False
 
 import datetime
 import urllib
@@ -39,6 +49,10 @@ class PersonAuthentication(PersonAuthenticationType):
         if not configurationAttributes.containsKey("authentication_mode"):
             print "Super-Gluu. Initialization. Property authentication_mode is mandatory"
             return False
+
+        self.applicationId = None
+        if configurationAttributes.containsKey("application_id"):
+            self.applicationId = configurationAttributes.get("application_id").getValue2()
 
         self.registrationUri = None
         if configurationAttributes.containsKey("registration_uri"):
@@ -100,6 +114,32 @@ class PersonAuthentication(PersonAuthenticationType):
             else:
                 self.audit_attribute = configurationAttributes.get("audit_attribute").getValue2()
 
+        self.valid_license = False
+        # Removing or altering this block validation is against the terms of the license. 
+        if has_license_api and configurationAttributes.containsKey("license_file"):
+            license_file = configurationAttributes.get("license_file").getValue2()
+
+            # Load license from file
+            f = open(license_file, 'r')
+            try:
+                license = json.loads(f.read())
+            except:
+                print "Super-Gluu. Initialization. Failed to load license from file: %s" % license_file
+                return False
+            finally:
+                f.close()
+            
+            # Validate license
+            try:
+                self.license_content = LicenseValidator.validate(license["public_key"], license["public_password"], license["license_password"], license["license"],
+                                          Product.fromValue("super_gluu"), Date())
+                self.valid_license = self.license_content.isValid()
+            except:
+                print "Super-Gluu. Initialization. Failed to validate license. Exception: ", sys.exc_info()[1]
+                return False
+
+            print "Super-Gluu. Initialization. License status: '%s'. License metadata: '%s'" % (self.valid_license, self.license_content.getMetadata())
+
         print "Super-Gluu. Initialized successfully. oneStep: '%s', twoStep: '%s', pushNotifications: '%s', customLabel: '%s'" % (self.oneStep, self.twoStep, self.enabledPushNotifications, self.customLabel)
 
         return True   
@@ -130,7 +170,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         session_attributes = identity.getSessionId().getSessionAttributes()
 
-        client_redirect_uri = self.getClientRedirecUri(session_attributes)
+        client_redirect_uri = self.getApplicationUri(session_attributes)
         if client_redirect_uri == None:
             print "Super-Gluu. Authenticate. redirect_uri is not set"
             return False
@@ -295,7 +335,7 @@ class PersonAuthentication(PersonAuthenticationType):
         identity = CdiUtil.bean(Identity)
         session_attributes = identity.getSessionId().getSessionAttributes()
 
-        client_redirect_uri = self.getClientRedirecUri(session_attributes)
+        client_redirect_uri = self.getApplicationUri(session_attributes)
         if client_redirect_uri == None:
             print "Super-Gluu. Prepare for step. redirect_uri is not set"
             return False
@@ -314,7 +354,8 @@ class PersonAuthentication(PersonAuthenticationType):
                 super_gluu_request_dictionary = {'app': client_redirect_uri,
                                    'issuer': issuer,
                                    'state': session_id,
-                                   'created': datetime.datetime.now().isoformat()}
+                                   'licensed': self.valid_license,
+                                   'created': DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().withNano(0))}
 
                 self.addGeolocationData(session_attributes, super_gluu_request_dictionary)
 
@@ -361,7 +402,8 @@ class PersonAuthentication(PersonAuthenticationType):
                                'issuer': issuer,
                                'method': auth_method,
                                'state': session_id,
-                               'created': datetime.datetime.now().isoformat()}
+                               'licensed': self.valid_license,
+                               'created': DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().withNano(0))}
 
             self.addGeolocationData(session_attributes, super_gluu_request_dictionary)
 
@@ -433,7 +475,6 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def processBasicAuthentication(self, credentials):
-        userService = CdiUtil.bean(UserService)
         authenticationService = CdiUtil.bean(AuthenticationService)
 
         user_name = credentials.getUsername()
@@ -446,7 +487,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if not logged_in:
             return None
 
-        find_user_by_uid = userService.getUser(user_name)
+        find_user_by_uid = authenticationService.getAuthenticatedUser()
         if find_user_by_uid == None:
             print "Super-Gluu. Process basic authentication. Failed to find user '%s'" % user_name
             return None
@@ -563,16 +604,16 @@ class PersonAuthentication(PersonAuthenticationType):
             
         if ios_creds["enabled"]:
             p12_file_path = ios_creds["p12_file_path"]
-            p12_passowrd = ios_creds["p12_password"]
+            p12_password = ios_creds["p12_password"]
 
             try:
                 encryptionService = CdiUtil.bean(EncryptionService)
-                p12_passowrd = encryptionService.decrypt(p12_passowrd)
+                p12_password = encryptionService.decrypt(p12_password)
             except:
                 # Ignore exception. Password is not encrypted
-                print "Super-Gluu. Initialize native notification services. Assuming that 'p12_passowrd' password in not encrypted"
+                print "Super-Gluu. Initialize native notification services. Assuming that 'p12_password' password in not encrypted"
 
-            apnsServiceBuilder =  APNS.newService().withCert(p12_file_path, p12_passowrd)
+            apnsServiceBuilder =  APNS.newService().withCert(p12_file_path, p12_password)
             if ios_creds["production"]:
                 self.pushAppleService = apnsServiceBuilder.withProductionDestination().build()
             else:
@@ -916,7 +957,10 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return targetEndpointArn
 
-    def getClientRedirecUri(self, session_attributes):
+    def getApplicationUri(self, session_attributes):
+        if self.applicationId != None:
+            return self.applicationId
+            
         if not session_attributes.containsKey("redirect_uri"):
             return None
 
@@ -952,7 +996,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     return
 
                 remote_loc = "%s, %s, %s" % ( remote_loc_dic['country'], remote_loc_dic['regionName'], remote_loc_dic['city'] )
-                remote_loc_encoded = urllib.quote(remote_loc)
+                remote_loc_encoded = urllib.quote(remote_loc.encode('utf-8'))
                 super_gluu_request_dictionary['req_loc'] = remote_loc_encoded
 
     def determineGeolocationData(self, remote_ip):

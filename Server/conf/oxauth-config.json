@@ -1,14 +1,15 @@
 {
     "mode":"ldap",
     "issuer":"${config.oxauth.issuer}",
-    "loginPage":"${config.oxauth.contextPath}/login",
-    "authorizationPage":"${config.oxauth.contextPath}/authorize",
+    "loginPage":"${config.oxauth.contextPath}/login.htm",
+    "authorizationPage":"${config.oxauth.contextPath}/authorize.htm",
     "baseEndpoint":"${config.oxauth.contextPath}/restv1",
     "authorizationEndpoint":"${config.oxauth.contextPath}/restv1/authorize",
     "tokenEndpoint":"${config.oxauth.contextPath}/restv1/token",
+    "tokenRevocationEndpoint": "${config.oxauth.contextPath}/restv1/revoke",
     "userInfoEndpoint":"${config.oxauth.contextPath}/restv1/userinfo",
     "clientInfoEndpoint":"${config.oxauth.contextPath}/restv1/clientinfo",
-    "checkSessionIFrame":"${config.oxauth.contextPath}/opiframe",
+    "checkSessionIFrame":"${config.oxauth.contextPath}/opiframe.htm",
     "endSessionEndpoint":"${config.oxauth.contextPath}/restv1/end_session",
     "jwksUri":"${config.oxauth.contextPath}/restv1/jwks",
     "registrationEndpoint":"${config.oxauth.contextPath}/restv1/register",
@@ -54,7 +55,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "userInfoEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -78,7 +83,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "idTokenEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -102,7 +111,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "requestObjectEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -131,7 +144,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "dynamicRegistrationCustomAttributes":[
         "oxAuthTrustedClient",
@@ -146,6 +163,7 @@
     "dynamicGrantTypeDefault":[
         "authorization_code",
         "implicit",
+        "password",
         "client_credentials",
         "refresh_token",
         "urn:ietf:params:oauth:grant-type:uma-ticket"
@@ -180,12 +198,12 @@
     "keyRegenerationInterval":48,
     "defaultSignatureAlgorithm":"RS256",
     "oxOpenIdConnectVersion":"openidconnect-1.0",
-    "organizationInum":"${config.oxauth.organization}",
     "oxId":"https://${server.name}/oxid/service/gluu/inum",
     "dynamicRegistrationEnabled":true,
     "dynamicRegistrationExpirationTime":${config.client.dynamic-registration-expiration-time},
     "dynamicRegistrationPersistClientAuthorizations":true,
     "trustedClientEnabled":true,
+    "skipAuthorizationForOpenIdScopeAndPairwiseId": false,
     "dynamicRegistrationScopesParamEnabled":true,
     "dynamicRegistrationCustomObjectClass":"oxAuthClientCustomAttributes",
     "personCustomObjectClassList":["gluuCustomPerson"],
@@ -210,7 +228,7 @@
             "filter":"myCustomAttr1={0}",
             "bind":false,
             "bindPasswordAttribute":"oxAuthClientSecret",
-            "baseDn":"ou=clients,o=${config.oxauth.organization},o=gluu"
+            "baseDn":"ou=clients,o=gluu"
         }
     ],
     "applianceInum":"${config.oxauth.appliance}",
@@ -261,5 +279,6 @@
         "customParam2",
         "customParam3"
     ],
-    "legacyDynamicRegistrationScopeParam": false
+    "legacyDynamicRegistrationScopeParam": false,
+    "openidScopeBackwardCompatibility": false
 }
