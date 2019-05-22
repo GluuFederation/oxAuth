@@ -69,7 +69,7 @@ import static org.xdi.oxauth.model.util.StringUtils.toList;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version March 25, 2019
+ * @version May 22, 2019
  */
 @Path("/")
 public class RegisterRestWebServiceImpl implements RegisterRestWebService {
@@ -212,7 +212,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                     )) { // CIBA
                         builder = Response.status(Response.Status.BAD_REQUEST.getStatusCode());
                         builder.entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_CLIENT_METADATA,
-                                "Invalid Client Metadata registering to use CIBA."));
+                                "Invalid Client Metadata registering to use CIBA (Client Initiated Backchannel Authentication)."));
                     } else {
                         registerParamsValidator.validateLogoutUri(r.getFrontChannelLogoutUris(), r.getRedirectUris(), errorResponseFactory);
 

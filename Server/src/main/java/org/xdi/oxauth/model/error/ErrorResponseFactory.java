@@ -11,6 +11,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xdi.oxauth.model.authorize.AuthorizeErrorResponseType;
+import org.xdi.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType;
 import org.xdi.oxauth.model.clientinfo.ClientInfoErrorResponseType;
 import org.xdi.oxauth.model.configuration.Configuration;
 import org.xdi.oxauth.model.fido.u2f.U2fErrorResponseType;
@@ -36,7 +37,7 @@ import java.util.List;
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version January 16, 2019
+ * @version May 22, 2019
  */
 @Vetoed
 public class ErrorResponseFactory implements Configuration {
@@ -157,6 +158,8 @@ public class ErrorResponseFactory implements Configuration {
                 list = messages.getUserInfo();
             } else if (type instanceof U2fErrorResponseType) {
                 list = messages.getFido();
+            } else if (type instanceof BackchannelAuthenticationErrorResponseType) {
+                list = messages.getBackchannelAuthentication();
             }
 
             if (list != null) {

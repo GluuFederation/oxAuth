@@ -13,7 +13,8 @@ package org.xdi.oxauth.model.common;
  * authorization code, implicit, resource owner password credentials, and client
  * credentials.
  *
- * @author Javier Rojas Date: 10.07.2011
+ * @author Javier Rojas Blum
+ * @version May 22, 2019
  *
  */
 public enum AuthorizationGrantType implements HasParamName {
@@ -56,7 +57,11 @@ public enum AuthorizationGrantType implements HasParamName {
 	 * system or a highly privileged application), and when other authorization
 	 * grant types are not available (such as an authorization code).
 	 */
-	RESOURCE_OWNER_PASSWORD_CREDENTIALS("resource_owner_password_credentials");
+	RESOURCE_OWNER_PASSWORD_CREDENTIALS("resource_owner_password_credentials"),
+	/**
+	 * An extension grant for Client Initiated Backchannel Authentication.
+	 */
+	CIBA("urn:openid:params:grant-type:ciba");
 
     private final String paramName;
 

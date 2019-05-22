@@ -8,7 +8,7 @@ package org.xdi.oxauth.model.error;
 
 /**
  * @author Yuriy Zabrovarnyy
- * @version 0.9, 19/09/2012
+ * @version May 22, 2019
  */
 
 public class DefaultErrorResponse extends ErrorResponse {

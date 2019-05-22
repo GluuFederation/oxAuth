@@ -8,6 +8,10 @@ package org.xdi.oxauth.auth;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.xdi.model.security.Identity;
 import org.xdi.oxauth.model.authorize.AuthorizeRequestParam;
@@ -40,11 +44,21 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 
+import static org.xdi.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_CLIENT;
+
 /**
  * @author Javier Rojas Blum
- * @version January 16, 2019
+ * @version May 22, 2019
  */
-@WebFilter(asyncSupported = true, urlPatterns = {"/restv1/authorize", "/restv1/token", "/restv1/userinfo", "/restv1/revoke"}, displayName = "oxAuth")
+@WebFilter(
+        asyncSupported = true,
+        urlPatterns = {
+                "/restv1/authorize",
+                "/restv1/token",
+                "/restv1/userinfo",
+                "/restv1/revoke",
+                "/restv1/bc-authorize"},
+        displayName = "oxAuth")
 public class AuthenticationFilter implements Filter {
 
     public static final String ACCESS_TOKEN_PREFIX = "AccessToken ";
@@ -98,6 +112,7 @@ public class AuthenticationFilter implements Filter {
 
             boolean tokenEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getTokenEndpoint());
             boolean tokenRevocationEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getTokenRevocationEndpoint());
+            boolean backchannelAuthenticationEnpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getBackchannelAuthenticationEndpoint());
             boolean umaTokenEndpoint = requestUrl.endsWith("/uma/token");
             String authorizationHeader = httpRequest.getHeader("Authorization");
 
@@ -133,6 +148,19 @@ public class AuthenticationFilter implements Filter {
                     httpResponse.addHeader("WWW-Authenticate", "Basic realm=\"" + getRealm() + "\"");
 
                     httpResponse.sendError(401, "Not authorized");
+                }
+            } else if (backchannelAuthenticationEnpoint) {
+                if (Strings.isNotBlank(authorizationHeader) && authorizationHeader.startsWith("Basic ")) {
+                    processBasicAuth(clientService, errorResponseFactory, httpRequest, httpResponse, filterChain);
+                } else {
+                    String entity = errorResponseFactory.getErrorAsJson(INVALID_CLIENT);
+                    httpResponse.setStatus(HttpStatus.SC_UNAUTHORIZED);
+                    httpResponse.addHeader("WWW-Authenticate", "Basic realm=\"" + getRealm() + "\"");
+                    httpResponse.setContentType(ContentType.APPLICATION_JSON.toString());
+                    httpResponse.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(entity.length()));
+                    PrintWriter out = httpResponse.getWriter();
+                    out.print(entity);
+                    out.flush();
                 }
             } else if (authorizationHeader != null) {
                 if (authorizationHeader.startsWith("Bearer ")) {
@@ -267,7 +295,8 @@ public class AuthenticationFilter implements Filter {
                 if (requireAuth) {
                     if (!username.equals(identity.getCredentials().getUsername()) || !identity.isLoggedIn()) {
                         if (servletRequest.getRequestURI().endsWith("/token")
-                                || servletRequest.getRequestURI().endsWith("/revoke")) {
+                                || servletRequest.getRequestURI().endsWith("/revoke")
+                                || servletRequest.getRequestURI().endsWith("/bc-authorize")) {
                             Client client = clientService.getClient(username);
                             if (client == null
                                     || AuthenticationMethod.CLIENT_SECRET_BASIC != client.getAuthenticationMethod()) {

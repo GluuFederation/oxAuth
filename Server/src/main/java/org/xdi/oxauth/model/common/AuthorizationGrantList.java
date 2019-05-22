@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  * Component to hold in memory authorization grant objects.
  *
  * @author Javier Rojas Blum
- * @version September 6, 2017
+ * @version May 22, 2019
  */
 @Dependent
 public class AuthorizationGrantList implements IAuthorizationGrantList {
@@ -112,6 +112,17 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         ResourceOwnerPasswordCredentialsGrant grant = grantInstance.select(ResourceOwnerPasswordCredentialsGrant.class).get();
         grant.init(user, client);
 
+        return grant;
+    }
+
+    @Override
+    public CIBAGrant createCIBAGrant(User user, Client client, int expiresIn) {
+        CIBAGrant grant = grantInstance.select(CIBAGrant.class).get();
+        grant.init(user, client, expiresIn);
+
+        CacheGrant memcachedGrant = new CacheGrant(grant, appConfiguration);
+        cacheService.put(Integer.toString(grant.getCIBAAuthenticationRequestId().getExpiresIn()), memcachedGrant.cacheKey(), memcachedGrant);
+        log.trace("Put CIBA grant in cache, authReqId: " + grant.getCIBAAuthenticationRequestId().getCode() + ", clientId: " + grant.getClientId());
         return grant;
     }
 

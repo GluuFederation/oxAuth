@@ -18,6 +18,7 @@ import org.xdi.oxauth.model.common.SubjectType;
 import org.xdi.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
 import org.xdi.oxauth.model.register.ApplicationType;
 
+import javax.ws.rs.HttpMethod;
 import java.util.Arrays;
 
 import static org.testng.Assert.*;
@@ -25,7 +26,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
 
 /**
  * @author Javier Rojas Blum
- * @version March 25, 2019
+ * @version May 22, 2019
  */
 public class RegistrationTest extends BaseTest {
 
@@ -34,6 +35,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePoll1(final String clientJwksUri) {
         showTitle("backchannelTokenDeliveryModePoll1");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setJwksUri(clientJwksUri);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -44,21 +46,52 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"sectorIdentifierUri", "clientJwksUri"})
@@ -66,6 +99,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePoll2(final String sectorIdentifierUri, final String clientJwksUri) {
         showTitle("backchannelTokenDeliveryModePoll2");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
         registerRequest.setJwksUri(clientJwksUri);
@@ -77,29 +111,64 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(JWKS_URI.toString()));
-        assertTrue(response.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Test
     public void backchannelTokenDeliveryModePoll3() {
         showTitle("backchannelTokenDeliveryModePoll3");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSubjectType(SubjectType.PUBLIC);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -110,21 +179,135 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+    }
+
+    @Parameters({"sectorIdentifierUri", "clientJwksUri"})
+    @Test
+    public void backchannelTokenDeliveryModePoll4(final String sectorIdentifierUri, final String clientJwksUri) {
+        showTitle("backchannelTokenDeliveryModePoll4");
+
+        // 1. Dynamic Client Registration
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        // 3. Client Update
+        RegisterRequest clientUpdateRequest = new RegisterRequest(registrationAccessToken);
+        clientUpdateRequest.setHttpMethod(HttpMethod.PUT);
+
+        clientUpdateRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        clientUpdateRequest.setJwksUri(clientJwksUri);
+        clientUpdateRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
+
+        clientUpdateRequest.setBackchannelTokenDeliveryMode(BackchannelTokenDeliveryMode.POLL);
+        clientUpdateRequest.setBackchannelAuthenticationRequestSigningAlg(AsymmetricSignatureAlgorithm.RS256);
+        clientUpdateRequest.setBackchannelUserCodeParameter(true);
+
+        RegisterClient clientUpdateClient = new RegisterClient(registrationClientUri);
+        clientUpdateClient.setRequest(clientUpdateRequest);
+
+        RegisterResponse clientUpdateResponse = clientUpdateClient.exec();
+
+        showClient(clientUpdateClient);
+        assertEquals(clientUpdateResponse.getStatus(), 200, "Unexpected response code: " + clientUpdateResponse.getEntity());
+        assertNotNull(clientUpdateResponse.getClientId());
+        assertNotNull(clientUpdateResponse.getClientSecret());
+        assertNotNull(clientUpdateResponse.getRegistrationAccessToken());
+        assertNotNull(clientUpdateResponse.getRegistrationClientUri());
+        assertNotNull(clientUpdateResponse.getClientSecretExpiresAt());
+        assertNotNull(clientUpdateResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientUpdateResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.POLL.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"clientJwksUri", "backchannelClientNotificationEndpoint"})
@@ -133,6 +316,7 @@ public class RegistrationTest extends BaseTest {
                                                   final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePing1");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setJwksUri(clientJwksUri);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -144,22 +328,54 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"sectorIdentifierUri", "clientJwksUri", "backchannelClientNotificationEndpoint"})
@@ -168,6 +384,7 @@ public class RegistrationTest extends BaseTest {
                                                   final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePing2");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
         registerRequest.setJwksUri(clientJwksUri);
@@ -180,24 +397,59 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(JWKS_URI.toString()));
-        assertTrue(response.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"backchannelClientNotificationEndpoint"})
@@ -205,6 +457,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePing3(final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePing3");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSubjectType(SubjectType.PUBLIC);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -216,22 +469,140 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+    }
+
+    @Parameters({"sectorIdentifierUri", "clientJwksUri", "backchannelClientNotificationEndpoint"})
+    @Test
+    public void backchannelTokenDeliveryModePing4(final String sectorIdentifierUri, final String clientJwksUri,
+                                                  final String backchannelClientNotificationEndpoint) {
+        showTitle("backchannelTokenDeliveryModePing4");
+
+        // 1. Dynamic Client Registration
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        // 3. Client Update
+        RegisterRequest clientUpdateRequest = new RegisterRequest(registrationAccessToken);
+        clientUpdateRequest.setHttpMethod(HttpMethod.PUT);
+
+        clientUpdateRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        clientUpdateRequest.setJwksUri(clientJwksUri);
+        clientUpdateRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
+
+        clientUpdateRequest.setBackchannelTokenDeliveryMode(BackchannelTokenDeliveryMode.PING);
+        clientUpdateRequest.setBackchannelClientNotificationEndpoint(backchannelClientNotificationEndpoint);
+        clientUpdateRequest.setBackchannelAuthenticationRequestSigningAlg(AsymmetricSignatureAlgorithm.RS256);
+        clientUpdateRequest.setBackchannelUserCodeParameter(true);
+
+        RegisterClient clientUpdateClient = new RegisterClient(registrationClientUri);
+        clientUpdateClient.setRequest(clientUpdateRequest);
+
+        RegisterResponse clientUpdateResponse = clientUpdateClient.exec();
+
+        showClient(clientUpdateClient);
+        assertEquals(clientUpdateResponse.getStatus(), 200, "Unexpected response code: " + clientUpdateResponse.getEntity());
+        assertNotNull(clientUpdateResponse.getClientId());
+        assertNotNull(clientUpdateResponse.getClientSecret());
+        assertNotNull(clientUpdateResponse.getRegistrationAccessToken());
+        assertNotNull(clientUpdateResponse.getRegistrationClientUri());
+        assertNotNull(clientUpdateResponse.getClientSecretExpiresAt());
+        assertNotNull(clientUpdateResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(JWKS_URI.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientUpdateResponse.getClaims().containsKey(JWKS_URI.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PING.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"backchannelClientNotificationEndpoint"})
@@ -239,6 +610,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePush1(final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePush1");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
 
@@ -249,22 +621,53 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"sectorIdentifierUri", "backchannelClientNotificationEndpoint"})
@@ -272,6 +675,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePush2(final String sectorIdentifierUri, final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePush2");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -283,23 +687,56 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"backchannelClientNotificationEndpoint"})
@@ -307,6 +744,7 @@ public class RegistrationTest extends BaseTest {
     public void backchannelTokenDeliveryModePush3(final String backchannelClientNotificationEndpoint) {
         showTitle("backchannelTokenDeliveryModePush3");
 
+        // 1. Dynamic Client Registration
         RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
         registerRequest.setSubjectType(SubjectType.PUBLIC);
         registerRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
@@ -318,22 +756,136 @@ public class RegistrationTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        RegisterResponse response = registerClient.exec();
+        RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
-        assertNotNull(response.getClientId());
-        assertNotNull(response.getClientSecret());
-        assertNotNull(response.getRegistrationAccessToken());
-        assertNotNull(response.getClientSecretExpiresAt());
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
 
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
-        assertTrue(response.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
-        assertEquals(response.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
-        assertEquals(response.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(registerResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(registerResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientReadResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientReadResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
+    }
+
+    @Parameters({"sectorIdentifierUri", "backchannelClientNotificationEndpoint"})
+    @Test
+    public void backchannelTokenDeliveryModePush4(final String sectorIdentifierUri, final String backchannelClientNotificationEndpoint) {
+        showTitle("backchannelTokenDeliveryModePush4");
+
+        // 1. Dynamic Client Registration
+        RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app", null);
+
+        RegisterClient registerClient = new RegisterClient(registrationEndpoint);
+        registerClient.setRequest(registerRequest);
+        RegisterResponse registerResponse = registerClient.exec();
+
+        showClient(registerClient);
+        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertNotNull(registerResponse.getClientId());
+        assertNotNull(registerResponse.getClientSecret());
+        assertNotNull(registerResponse.getRegistrationAccessToken());
+        assertNotNull(registerResponse.getClientSecretExpiresAt());
+
+        String registrationAccessToken = registerResponse.getRegistrationAccessToken();
+        String registrationClientUri = registerResponse.getRegistrationClientUri();
+
+        // 2. Client Read
+        RegisterRequest clientReadRequest = new RegisterRequest(registrationAccessToken);
+
+        RegisterClient clientReadClient = new RegisterClient(registrationClientUri);
+        clientReadClient.setRequest(clientReadRequest);
+        RegisterResponse clientReadResponse = clientReadClient.exec();
+
+        showClient(clientReadClient);
+        assertEquals(clientReadResponse.getStatus(), 200, "Unexpected response code: " + clientReadResponse.getEntity());
+        assertNotNull(clientReadResponse.getClientId());
+        assertNotNull(clientReadResponse.getClientSecret());
+        assertNotNull(clientReadResponse.getRegistrationAccessToken());
+        assertNotNull(clientReadResponse.getRegistrationClientUri());
+        assertNotNull(clientReadResponse.getClientSecretExpiresAt());
+        assertNotNull(clientReadResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientReadResponse.getClaims().get(SCOPE.toString()));
+
+        // 3. Client Update
+        RegisterRequest clientUpdateRequest = new RegisterRequest(registrationAccessToken);
+        clientUpdateRequest.setHttpMethod(HttpMethod.PUT);
+
+        clientUpdateRequest.setSectorIdentifierUri(sectorIdentifierUri);
+        clientUpdateRequest.setGrantTypes(Arrays.asList(GrantType.CIBA));
+
+        clientUpdateRequest.setBackchannelTokenDeliveryMode(BackchannelTokenDeliveryMode.PUSH);
+        clientUpdateRequest.setBackchannelClientNotificationEndpoint(backchannelClientNotificationEndpoint);
+        clientUpdateRequest.setBackchannelAuthenticationRequestSigningAlg(AsymmetricSignatureAlgorithm.RS256);
+        clientUpdateRequest.setBackchannelUserCodeParameter(true);
+
+        RegisterClient clientUpdateClient = new RegisterClient(registrationClientUri);
+        clientUpdateClient.setRequest(clientUpdateRequest);
+
+        RegisterResponse clientUpdateResponse = clientUpdateClient.exec();
+
+        showClient(clientUpdateClient);
+        assertEquals(clientUpdateResponse.getStatus(), 200, "Unexpected response code: " + clientUpdateResponse.getEntity());
+        assertNotNull(clientUpdateResponse.getClientId());
+        assertNotNull(clientUpdateResponse.getClientSecret());
+        assertNotNull(clientUpdateResponse.getRegistrationAccessToken());
+        assertNotNull(clientUpdateResponse.getRegistrationClientUri());
+        assertNotNull(clientUpdateResponse.getClientSecretExpiresAt());
+        assertNotNull(clientUpdateResponse.getClaims().get(APPLICATION_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SECTOR_IDENTIFIER_URI.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SUBJECT_TYPE.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(ID_TOKEN_SIGNED_RESPONSE_ALG.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(CLIENT_NAME.toString()));
+        assertNotNull(clientUpdateResponse.getClaims().get(SCOPE.toString()));
+
+        assertTrue(clientUpdateResponse.getClaims().containsKey(SECTOR_IDENTIFIER_URI.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_USER_CODE_PARAMETER.toString()));
+        assertTrue(clientUpdateResponse.getClaims().containsKey(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString()));
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString()), BackchannelTokenDeliveryMode.PUSH.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString()), AsymmetricSignatureAlgorithm.RS256.getValue());
+        assertEquals(clientUpdateResponse.getClaims().get(BACKCHANNEL_USER_CODE_PARAMETER.toString()), new Boolean(true).toString());
     }
 
     @Parameters({"clientJwksUri"})

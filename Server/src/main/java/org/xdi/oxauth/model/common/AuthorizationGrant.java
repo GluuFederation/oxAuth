@@ -44,7 +44,7 @@ import java.util.UUID;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version September 6, 2017
+ * @version May 22, 2019
  */
 public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
@@ -102,7 +102,8 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Override
     public void save() {
         if (isCachedWithNoPersistence) {
-            if (getAuthorizationGrantType() == AuthorizationGrantType.AUTHORIZATION_CODE) {
+            if (getAuthorizationGrantType() == AuthorizationGrantType.AUTHORIZATION_CODE
+                    || getAuthorizationGrantType() == AuthorizationGrantType.CIBA) {
                 saveInCache();
             } else {
                 throw new UnsupportedOperationException(

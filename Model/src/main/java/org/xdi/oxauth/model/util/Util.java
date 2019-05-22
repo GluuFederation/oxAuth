@@ -6,18 +6,6 @@
 
 package org.xdi.oxauth.model.util;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -31,10 +19,18 @@ import org.codehaus.jettison.json.JSONObject;
 import org.gluu.site.ldap.persistence.annotation.LdapEnum;
 import org.xdi.oxauth.model.common.HasParamName;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version July 18, 2017
+ * @version May 22, 2019
  */
 
 public class Util {
@@ -254,4 +250,26 @@ public class Util {
         }
     }
 
+    // SHA-1 (160 bits)
+    public static String toSHA1HexString(String input) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+            return byteArrayToHexString(md.digest(input.getBytes()));
+        }
+        catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String byteArrayToHexString(byte[] b) {
+        String result = "";
+        for (int i=0; i < b.length; i++) {
+            result +=
+                    Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+        }
+        return result;
+    }
 }

@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  * @author Javier Rojas Blum
- * @version March 25, 2019
+ * @version May 22, 2019
  */
 public enum  AsymmetricSignatureAlgorithm implements HasParamName, LdapEnum {
 
@@ -40,6 +40,12 @@ public enum  AsymmetricSignatureAlgorithm implements HasParamName, LdapEnum {
     private final JwtType jwtType;
 
     private static Map<String, AsymmetricSignatureAlgorithm> mapByValues = new HashMap<>();
+
+    static {
+        for (AsymmetricSignatureAlgorithm enumType : values()) {
+            mapByValues.put(enumType.getValue(), enumType);
+        }
+    }
 
     AsymmetricSignatureAlgorithm(String name, AlgorithmFamily family, String algorithm, ECEllipticCurve curve) {
         this.name = name;
