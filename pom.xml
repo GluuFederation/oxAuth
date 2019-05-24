@@ -16,8 +16,8 @@
 
 		<oxcore.version>3.1.6.sp1</oxcore.version>
 		<oxeleven.version>3.1.6.sp1</oxeleven.version>
-		<oxnotify.version>3.1.6.sp2</oxnotify.version>
-		<oxlicense.version>3.1.6.sp2</oxlicense.version>
+		<oxnotify.version>3.1.6.sp1</oxnotify.version>
+		<oxlicense.version>3.1.6.sp1</oxlicense.version>
 
 		<jackson.version>2.9.8</jackson.version>
 		<jackson.databind.version>2.9.8</jackson.databind.version>
