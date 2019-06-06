@@ -6,16 +6,12 @@
 
 package org.xdi.oxauth.model.common;
 
+import org.gluu.oxauth.model.util.HashUtil;
 import org.gluu.site.ldap.persistence.annotation.LdapAttribute;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.token.HandleTokenFactory;
-import org.xdi.oxauth.model.util.Base64Util;
-import org.xdi.oxauth.model.util.JwtUtil;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -240,37 +236,6 @@ public abstract class AbstractToken implements Serializable {
     }
 
     public String getHash(SignatureAlgorithm signatureAlgorithm) {
-        String hash = null;
-
-        try {
-            byte[] digest;
-            if (signatureAlgorithm == SignatureAlgorithm.HS256 ||
-                    signatureAlgorithm == SignatureAlgorithm.RS256 ||
-                    signatureAlgorithm == SignatureAlgorithm.ES256) {
-                digest = JwtUtil.getMessageDigestSHA256(code);
-            } else if (signatureAlgorithm == SignatureAlgorithm.HS384 ||
-                    signatureAlgorithm == SignatureAlgorithm.RS384 ||
-                    signatureAlgorithm == SignatureAlgorithm.ES512) {
-                digest = JwtUtil.getMessageDigestSHA384(code);
-            } else if (signatureAlgorithm == SignatureAlgorithm.HS512 ||
-                    signatureAlgorithm == SignatureAlgorithm.RS384 ||
-                    signatureAlgorithm == SignatureAlgorithm.ES512) {
-                digest = JwtUtil.getMessageDigestSHA512(code);
-            } else { // Default
-                digest = JwtUtil.getMessageDigestSHA256(code);
-            }
-
-            if (digest != null) {
-                byte[] lefMostHalf = new byte[digest.length / 2];
-                System.arraycopy(digest, 0, lefMostHalf, 0, lefMostHalf.length);
-                hash = Base64Util.base64urlencode(lefMostHalf);
-            }
-        } catch (NoSuchAlgorithmException e) {
-        } catch (UnsupportedEncodingException e) {
-        } catch (NoSuchProviderException e) {
-        } catch (Exception e) {
-        }
-
-        return hash;
+        return HashUtil.getHash(code, signatureAlgorithm);
     }
 }
