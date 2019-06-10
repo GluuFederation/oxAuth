@@ -42,7 +42,7 @@
             }
         </style>
 
-        <h:panelGroup rendered="#{helium_enabled}">
+        <h:panelGroup rendered="#{va_enabled}">
             <script src="https://ult-inwebo.com/webapp/js/helium.min.js"/>
         </h:panelGroup>
     </ui:define>
@@ -50,12 +50,12 @@
     <ui:define name="pageTitle">#{msgs['inwebo.title']}</ui:define>
 
     <ui:define name="body">
-        <h:panelGroup rendered="#{helium_enabled}">
-            <div id="inweboDetect" alias="#{helium_alias}" action="authenticate" lang="auto" style="display:none" />
+        <h:panelGroup rendered="#{va_enabled}">
+            <div id="inweboDetect" alias="#{va_alias}" action="authenticate" lang="auto" style="display:none" />
             <div id="heliumDesign" displaytype="inline" container="heliumForm" top="10" left="40" rounded="0" shaded="0" skin="default" maincolor="#28AA28" withlogo="1" withactiontitle="1" withborder="0" bordercolor="#28AA28" bgcolor="#999999" withtitle="0" titlebgcolor="#28AA28" titlecolor="#FFFFFF" />
         </h:panelGroup>
 
-        <h:form id="loginForm" rendered="#{not helium_enabled}">
+        <h:form id="loginForm" rendered="#{not va_enabled}">
 
             <h:panelGroup rendered="#{not identity.loggedIn}">
                 <div class="login-panel">
@@ -99,7 +99,7 @@
             </h:panelGroup>
         </h:form>
 
-        <h:panelGroup rendered="#{helium_enabled}">
+        <h:panelGroup rendered="#{va_enabled}">
             <!-- Temporary solution because InWebo not support id with ':' character -->
             <form id="iwLoginForm" action="#{request.contextPath}/postlogin.htm">
                 <h:panelGroup rendered="#{not identity.loggedIn}">

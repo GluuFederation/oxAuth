@@ -1,12 +1,12 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
+		xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
                 template="/WEB-INF/incl/layout/template.xhtml">
     <f:metadata>
-	<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}"/>
+        <f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}"/>
     </f:metadata>
 
     <ui:define name="head">
@@ -41,38 +41,31 @@
                 font-size: 11px;
             }
         </style>
+
+       
     </ui:define>
-
-    <ui:define name="pageTitle">#{msgs['inwebo.pageTitle']}</ui:define>
-
+    <ui:define name="pageTitle">#{msgs['inwebo.push.notification.message']}</ui:define>
     <ui:define name="body">
-        <form id="loginForm" method="post" action="#{request.contextPath}/postlogin.htm">
-            <h:panelGroup id="loginGroup" rendered="#{not identity.loggedIn}">
+        <h:form id="loginForm" rendered="#{not va_enabled}">
+            <h:panelGroup rendered="#{not identity.loggedIn}">
                 <div class="login-panel">
-                    <div class="login-panel-header">#{msgs['inwebo.2fa.mobile.app']}</div>
                     <div class="login-panel-body">
-                        <ui:param name="client" value="#{clientService.getClient(redirect.parameters['client_id'])}" />
+                        <ui:param name="client" value="#{clientService.getClient(identity.sessionId.sessionAttributes['client_id'])}" />
+
                         <h:panelGroup rendered='#{!empty client.getLogoUri()}'>
                             <h:graphicImage url='#{client.getLogoUri()}'/>
                         </h:panelGroup>
 
-                        <p class="info">#{msgs['inwebo.pleaseLoginHere']}</p>
+                        <p class="info">#{msgs['inwebo.push.notification.message']}</p>
 
-                        <h:panelGrid columns="2" rowClasses="prop" columnClasses="name,value">
-                            <h:outputLabel for="pairing_phrase">#{msgs['inwebo.authenticationToken']}</h:outputLabel>
-                            <input name="iw_token" type="text" autocomplete="off" />
-                        </h:panelGrid>
-
-                        <h:panelGroup rendered='#{!empty client.getPolicyUri()}'>
-                            <p>
-                                <a target="_blank" href='#{client.getPolicyUri()}'>#{msgs['inwebo.termsPrivacy']}</a>
-                            </p>
-                        </h:panelGroup>
-
-                        <h:commandButton value="Authenticate" action="#{authenticator.authenticate}" />
+                        <div class="actionButtons">
+                            <h:commandButton id="pushButton"
+                                             value="Push"
+                                             action="#{authenticator.authenticate}" />
+                        </div>
                     </div>
                 </div>
             </h:panelGroup>
-        </form>
+        </h:form>
     </ui:define>
 </ui:composition>

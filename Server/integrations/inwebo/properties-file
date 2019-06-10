@@ -1,0 +1,14 @@
+Append the following to /opt/gluu/jetty/oxauth/webapps/oxauth/WEB-INF/classes/oxauth.properties
+
+#inWebo 
+inwebo.title=inWebo Login
+inwebo.loginLabel=Login
+inwebo.pleaseLoginHere=Please login here
+inwebo.username=Username
+inwebo.password=Password
+inwebo.pageTitle=inWebo 2FA
+inwebo.2fa.mobile.app=inWebo Authenticator
+inwebo.authenticationToken=inWebo OTP
+inwebo.push.notification.message=Click here to push notification to your phone
+inwebo.inwebo.authenticator=inWebo Authenticator
+
