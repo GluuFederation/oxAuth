@@ -123,7 +123,7 @@ public class Authenticator {
 	 */
 	public boolean authenticate() {
 		HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
-		lastResult = authenticateImpl(servletRequest, true, false);
+		lastResult = authenticateImpl(servletRequest, true, false, false);
 
 		if (Constants.RESULT_SUCCESS.equals(lastResult)) {
 		    return true;
@@ -145,7 +145,7 @@ public class Authenticator {
 
 	public String authenticateWithOutcome() {
 		HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
-		lastResult = authenticateImpl(servletRequest, true, false);
+		lastResult = authenticateImpl(servletRequest, true, false, false);
 
 		if (Constants.RESULT_SUCCESS.equals(lastResult)) {
         } else if (Constants.RESULT_FAILURE.equals(lastResult)) {
@@ -166,23 +166,23 @@ public class Authenticator {
 	}
 
 	public boolean authenticateWebService(HttpServletRequest servletRequest, boolean skipPassword) {
-	    String result = authenticateImpl(servletRequest, false, skipPassword);
+	    String result = authenticateImpl(servletRequest, false, skipPassword, true);
         return Constants.RESULT_SUCCESS.equals(result);
 	}
 
 	public boolean authenticateWebService(HttpServletRequest servletRequest) {
-		String result = authenticateImpl(servletRequest, false, false);
+		String result = authenticateImpl(servletRequest, false, false, true);
 		return Constants.RESULT_SUCCESS.equals(result);
 	}
 
-	public String authenticateImpl(HttpServletRequest servletRequest, boolean interactive, boolean skipPassword) {
+	public String authenticateImpl(HttpServletRequest servletRequest, boolean interactive, boolean skipPassword, boolean service) {
 		String result = Constants.RESULT_FAILURE;
 		try {
 			logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
 					+ ", credentials.username: " + credentials.getUsername() + ")");
-			if (StringHelper.isNotEmpty(credentials.getUsername())
+			if (service || (StringHelper.isNotEmpty(credentials.getUsername())
 					&& (skipPassword || StringHelper.isNotEmpty(credentials.getPassword())) && servletRequest != null
-					&& servletRequest.getRequestURI().endsWith("/token")) {
+					&& servletRequest.getRequestURI().endsWith("/token"))) {
 				boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
                 if (authenticated) {
                     result = Constants.RESULT_SUCCESS;
