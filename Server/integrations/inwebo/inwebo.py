@@ -1,5 +1,3 @@
-
-
 from org.xdi.oxauth.service import AuthenticationService
 from org.xdi.oxauth.security import Identity
 from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
@@ -11,10 +9,9 @@ from org.xdi.oxauth.service.net import HttpService
 from org.xdi.oxauth.service import EncryptionService 
 
 from java.util import Arrays
-from java.net import URLEncoder
-
 import java
 import json, ast
+from org.omg.CosNaming import IstringHelper
 
     
 class PersonAuthentication(PersonAuthenticationType):
@@ -27,13 +24,26 @@ class PersonAuthentication(PersonAuthenticationType):
     def init(self, configurationAttributes):
        
         print "inWebo. Initialization"
-
-        #iw_cert_store_type = "pkcs12"   
-        #iw_cert_path = "/etc/certs/Gluu_dev.p12"  
-        #iw_creds_file = "/etc/certs/iw_creds.json"  
         iw_cert_store_type = configurationAttributes.get("iw_cert_store_type").getValue2()
         iw_cert_path = configurationAttributes.get("iw_cert_path").getValue2()
         iw_creds_file = configurationAttributes.get("iw_creds_file").getValue2()
+        
+        self.gluu_login_step = False
+        self.twoFA_option = "otp"
+        self.push_withoutpin = "false"
+        
+        #permissible values - true, false
+        self.gluu_login_step = StringHelper.toBoolean(configurationAttributes.get("iw_gluu_login_step").getValue2(),False)
+        #permissible values = otp, push 
+        self.twoFA_option = configurationAttributes.get("iw_2fa_option").getValue2()
+        #permissible values = true , false
+        self.push_withoutpin = 1 
+        if StringHelper.equalsIgnoreCase("false" ,configurationAttributes.get("iw_push_withoutpin").getValue2()):
+            self.push_withoutpin = 0
+        self.api_uri =  configurationAttributes.get("iw_api_uri").getValue2()
+        self.service_id = configurationAttributes.get("iw_service_id").getValue2()
+        self.push_timeout = StringHelper.toInteger(configurationAttributes.get("iw_push_timeout_in_seconds").getValue2(),0)
+        
         # Load credentials from file
         f = open(iw_creds_file, 'r')
         try:
@@ -44,6 +54,7 @@ class PersonAuthentication(PersonAuthenticationType):
         finally:
             f.close()
         iw_cert_password = creds["CERT_PASSWORD"]
+        
         #TODO: the password should not be in plaintext
         #try:
          #   encryptionService = CdiUtil.bean(EncryptionService)
@@ -77,64 +88,69 @@ class PersonAuthentication(PersonAuthenticationType):
         authenticationService = CdiUtil.bean(AuthenticationService)
         identity = CdiUtil.bean(Identity)
         
-        iw_api_uri = "https://api.myinwebo.com/FS?"  # onfigurationAttributes.get("iw_api_uri").getValue2()
-        iw_service_id = 5686  # configurationAttributes.get("iw_service_id").getValue2()
-        
         credentials = identity.getCredentials()
         user_name = credentials.getUsername()
         
         if (step == 1):
             identity.setWorkingParameter("iw_count_login_steps", 1)
+            gluu_login_step = StringHelper.toBoolean(configurationAttributes.get("iw_gluu_login_step").getValue2(),False)
+            identity.setWorkingParameter("gluu_login_step",gluu_login_step)
+            userService = CdiUtil.bean(UserService)
+                
             user_password = credentials.getPassword()
             logged_in = False
-            if (StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password)):
-                userService = CdiUtil.bean(UserService)
-                
-                logged_in = authenticationService.authenticate(user_name, user_password)
-                response_validation = self.validateInweboToken(iw_api_uri, iw_service_id, user_name, "",step)
-                if logged_in is True and response_validation is True:
-                    identity.setWorkingParameter("iw_count_login_steps", 2)
-                    print "setting 2, return true"
-                    return True
-                else:
-                    identity.setWorkingParameter("iw_count_login_steps", 1)
-                    print "setting 1, return false"
-                    return False
-            return logged_in
+            
+            #check if user exists in inwebo's database
+            response_validation = self.validateInweboToken(self.api_uri, self.service_id, user_name, "",step)
+            
+            #check if user exists on gluu's ldap
+            if(gluu_login_step is True):
+                if (StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password)):
+                    logged_in = authenticationService.authenticate(user_name, user_password)
+            else: 
+                if (StringHelper.isNotEmptyString(user_name)):
+                    logged_in = authenticationService.authenticate(user_name)
+                    
+            
+            if logged_in is True and response_validation is True:
+                identity.setWorkingParameter("iw_count_login_steps", 2)
+                print "setting 2, return true"
+                return True
+            else:
+                #identity.setWorkingParameter("iw_count_login_steps", 1)
+                #print "setting 1, return false"
+                return False
+            
         elif (step == 2):
-            print "inWebo. Authenticate for step 2. ", authenticationService.getAuthenticatedUser().getUserId()
-
+            print "inWebo. Authenticate for step 2. OTP", self.twoFA_option
+            user_name = authenticationService.getAuthenticatedUser().getUserId()
             passed_step1 = self.isPassedDefaultAuthentication
             if (not passed_step1):
                 return False
             
-            iw_token_array = requestParameters.get("iw_token")
-            if ArrayHelper.isEmpty(iw_token_array):
-                print "InWebo. Authenticate for step 2. iw_token is empty"
-                return False
-
-            iw_token = iw_token_array[0]
-            response_validation = self.validateInweboToken(iw_api_uri, iw_service_id, authenticationService.getAuthenticatedUser().getUserId(), iw_token,step)
-            print "step 2, response_validation:", response_validation
-            if response_validation is True:
-                identity.setWorkingParameter("iw_count_login_steps", 3)
-            else:
-                identity.setWorkingParameter("iw_count_login_steps", 2)
+            if StringHelper.equalsIgnoreCase("otp", self.twoFA_option):
+                print "inWebo. Authenticate for step 2. ", authenticationService.getAuthenticatedUser().getUserId()
+                iw_token_array = requestParameters.get("iw_token")
+                if ArrayHelper.isEmpty(iw_token_array):
+                    print "InWebo. Authenticate for step 2. iw_token is empty"
+                    return False
+    
+                iw_token = iw_token_array[0]
                 
-            return response_validation
-        elif (step == 3):
-            print "inWebo. Authenticate for step 3. ", authenticationService.getAuthenticatedUser().getUserId()
-            session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
-            user_name = authenticationService.getAuthenticatedUser().getUserId()
-            #TODO:
-            # passed_step1 = self.isPassedDefaultAuthentication
-            # if not passed_step1:
-             #   return False
-            #hardcoding timeout to 2 minutes
-            response_check = self.checkStatus(iw_api_uri, iw_service_id, user_name, 20, session_id)
-            return response_check 
-        
+                response_validation = self.validateInweboToken(self.api_uri, self.service_id, user_name, iw_token, step)
+                print "step 2, response_validation:", response_validation
+                return response_validation
+            
+            elif StringHelper.equalsIgnoreCase("push", self.twoFA_option):
+                session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
+                response_check = self.checkStatus(self.api_uri, self.service_id, user_name, self.push_timeout, session_id, self.push_withoutpin)
+                return response_check 
+            
+            else:
+                print "iw_2fa_option parameter configured incorrectly"
+                return False
         else:
+            print "neither step 1 nor step 2 - "
             return False
 
     def prepareForStep(self, configurationAttributes, requestParameters, step):
@@ -143,9 +159,6 @@ class PersonAuthentication(PersonAuthenticationType):
             return True
         elif (step == 2):
             print "InWebo. Prepare for step 2"
-            return True
-        elif (step == 3):
-            print "InWebo. Prepare for step 3"
             return True
         else:
             return False
@@ -159,16 +172,20 @@ class PersonAuthentication(PersonAuthenticationType):
         if (identity.isSetWorkingParameter("iw_count_login_steps")):
             print "identity.getWorkingParameter(iw_count_login_steps) - ", identity.getWorkingParameter("iw_count_login_steps")
             return identity.getWorkingParameter("iw_count_login_steps")
-        return 3
+        return 2
         
     def getPageForStep(self, configurationAttributes, step):
-        print " inside getPageForStep"
+        print " inside getPageForStep - ",self.gluu_login_step
         if (step == 1):
-            return "/auth/inwebo/iwlogin.xhtml"
+            if self.gluu_login_step is True:
+                return "/auth/inwebo/iwlogin.xhtml"
+            else:
+                return "/auth/inwebo/iwlogin_without_password.xhtml"
         elif (step == 2):
-            return "/auth/inwebo/iwauthenticate.xhtml"
-        elif (step == 3):
-            return "/auth/inwebo/iwpushnotification.xhtml" 
+            if StringHelper.equalsIgnoreCase("otp",self.twoFA_option): 
+                return "/auth/inwebo/iwauthenticate.xhtml"
+            else:
+                return "/auth/inwebo/iwpushnotification.xhtml" 
         else:
             return ""
     
@@ -228,13 +245,14 @@ class PersonAuthentication(PersonAuthenticationType):
             if not StringHelper.equalsIgnoreCase(json_response['err'], "OK"):
                 print "inWebo. Get response with status: ", json_response['err']
                 return False
-            
-        return True   # response_validation
+            else:
+                return True   # response_validation
 
-    def checkStatus(self, iw_api_uri, iw_service_id, user_name, timeout, session_id):
+    def checkStatus(self, iw_api_uri, iw_service_id, user_name, timeout, session_id,without_pin):
         # step 1: call action=pushAthenticate
         httpService = CdiUtil.bean(HttpService)
-        request_uri = iw_api_uri + "action=pushAuthenticate" + "&serviceId=" + str(iw_service_id) + "&userId=" + httpService.encodeUrl(user_name) + "&format=json&withoutpin=1"
+        
+        request_uri = iw_api_uri + "action=pushAuthenticate" + "&serviceId=" + str(iw_service_id) + "&userId=" + httpService.encodeUrl(user_name) + "&format=json&withoutpin="+str(without_pin)
         curTime = java.lang.System.currentTimeMillis()
         endTime = curTime + (timeout * 1000)
         
@@ -265,7 +283,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if StringHelper.equalsIgnoreCase(json_response['err'], "OK"):
             
             session_id = json_response['sessionId']
-            checkResult_uri = iw_api_uri + "action=checkPushResult" + "&serviceId=" + str(iw_service_id) + "&userId=" + httpService.encodeUrl(user_name) + "&sessionId="+ URLEncoder.encode(session_id, "UTF-8") + "&format=json&withoutpin=1"
+            checkResult_uri = iw_api_uri + "action=checkPushResult" + "&serviceId=" + str(iw_service_id) + "&userId=" + httpService.encodeUrl(user_name) + "&sessionId="+ httpService.encodeUrl(session_id) + "&format=json&withoutpin=1"
             print "checkPushResult_uri:",checkResult_uri
             while (endTime >= curTime):
                 try:
