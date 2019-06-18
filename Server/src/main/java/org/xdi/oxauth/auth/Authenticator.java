@@ -165,22 +165,27 @@ public class Authenticator {
 		return lastResult;
 	}
 
-	public boolean authenticateWebService(HttpServletRequest servletRequest, boolean skipPassword) {
+	public boolean authenticateClient(HttpServletRequest servletRequest, boolean skipPassword) {
 	    String result = authenticateImpl(servletRequest, false, skipPassword, true);
         return Constants.RESULT_SUCCESS.equals(result);
 	}
 
-	public boolean authenticateWebService(HttpServletRequest servletRequest) {
+	public boolean authenticateClient(HttpServletRequest servletRequest) {
 		String result = authenticateImpl(servletRequest, false, false, true);
 		return Constants.RESULT_SUCCESS.equals(result);
 	}
 
+	public boolean authenticateUser(HttpServletRequest servletRequest) {
+		String result = authenticateImpl(servletRequest, false, false, false);
+		return Constants.RESULT_SUCCESS.equals(result);
+	}
+		
 	public String authenticateImpl(HttpServletRequest servletRequest, boolean interactive, boolean skipPassword, boolean service) {
 		String result = Constants.RESULT_FAILURE;
 		try {
 			logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
 					+ ", credentials.username: " + credentials.getUsername() + ")");
-			if (service || (StringHelper.isNotEmpty(credentials.getUsername())
+			if (service && (StringHelper.isNotEmpty(credentials.getUsername())
 					&& (skipPassword || StringHelper.isNotEmpty(credentials.getPassword())) && servletRequest != null
 					&& servletRequest.getRequestURI().endsWith("/token"))) {
 				boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
