@@ -235,8 +235,6 @@ public class AuthenticationFilter implements Filter {
 						} else {
 							requireAuth = !authenticator.authenticateUser(servletRequest);
                         }
-
-                        requireAuth = !authenticator.authenticateUser(servletRequest);
                     }
                 }
             }
