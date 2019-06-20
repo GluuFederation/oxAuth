@@ -1,7 +1,7 @@
 package org.gluu.oxauth.model.util;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.testng.annotations.Test;
 
 import java.security.Security;
