@@ -11,4 +11,6 @@ inwebo.2fa.mobile.app=inWebo Authenticator
 inwebo.authenticationToken=inWebo OTP
 inwebo.push.notification.message=Click here to push notification to your phone
 inwebo.inwebo.authenticator=inWebo Authenticator
+inwebo.otp.login.info=Enter OTP from your mobile or use Web authenticator
+inwebo.otp=OTP token
 

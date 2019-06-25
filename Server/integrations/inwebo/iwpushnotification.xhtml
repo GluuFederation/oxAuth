@@ -57,7 +57,10 @@
                         </h:panelGroup>
 
                         <p class="info">#{msgs['inwebo.push.notification.message']}</p>
-
+						<h:panelGrid columns="2" rowClasses="prop" columnClasses="name,value">
+							<h:outputLabel for="username">#{msgs['inwebo.username']}</h:outputLabel>
+							<h:inputText id="username" value="#{credentials.username}"   />
+						</h:panelGrid>
                         <div class="actionButtons">
                             <h:commandButton id="pushButton"
                                              value="Push"
