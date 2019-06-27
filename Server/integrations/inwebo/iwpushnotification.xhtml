@@ -41,12 +41,21 @@
                 font-size: 11px;
             }
         </style>
-
-       
+		<script type="text/javascript">
+      
+	      	function redirectToOPT()
+	      	{
+		      	
+				document.getElementById("loginForm:otp").value = "true";
+				document.getElementById("loginForm:pushButton").click();
+				
+	      	}
+        </script>
     </ui:define>
     <ui:define name="pageTitle">#{msgs['inwebo.push.notification.message']}</ui:define>
     <ui:define name="body">
         <h:form id="loginForm" rendered="#{not va_enabled}">
+        	
             <h:panelGroup rendered="#{not identity.loggedIn}">
                 <div class="login-panel">
                     <div class="login-panel-body">
@@ -60,12 +69,16 @@
 						<h:panelGrid columns="2" rowClasses="prop" columnClasses="name,value">
 							<h:outputLabel for="username">#{msgs['inwebo.username']}</h:outputLabel>
 							<h:inputText id="username" value="#{credentials.username}"   />
+							<h:inputHidden id="otp" value="false"   />
 						</h:panelGrid>
                         <div class="actionButtons">
                             <h:commandButton id="pushButton"
                                              value="Push"
                                              action="#{authenticator.authenticate}" />
+                                             
                         </div>
+                        
+                        <a href="#" onclick="redirectToOPT();" >#{msgs['inwebo.authenticate.using.otp']}</a>
                     </div>
                 </div>
             </h:panelGroup>

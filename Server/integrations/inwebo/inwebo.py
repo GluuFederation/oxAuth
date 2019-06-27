@@ -7,8 +7,13 @@ from org.xdi.oxauth.util import ServerUtil
 from org.xdi.oxauth.service import UserService, AuthenticationService,SessionIdService
 from org.xdi.oxauth.service.net import HttpService
 from org.xdi.oxauth.service import EncryptionService 
-
+from javax.faces.application import FacesMessage
+from javax.faces.context import FacesContext
+from org.gluu.jsf2.service import FacesService
+from org.gluu.jsf2.message import FacesMessages
 from java.util import Arrays
+from java.lang import String
+from java.lang import System
 import java
 import sys
 import json
@@ -19,7 +24,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
 
     def __init__(self, currentTimeMillis):
-        self.currentTimeMillis = currentTimeMillis
+        self.otp = "false"
         self.client = None
 
     def init(self, configurationAttributes):
@@ -87,18 +92,25 @@ class PersonAuthentication(PersonAuthenticationType):
         credentials = identity.getCredentials()
         user_name = credentials.getUsername()
         
-        print "Inside authenticate method - ",user_name
         
-        if StringHelper.isEmptyString(user_name):
-            print "empty user_name indicates browser token notfound"
+        iw_otp = requestParameters.get("loginForm:otp")
+         
+        if ArrayHelper.isNotEmpty(iw_otp) and StringHelper.equalsIgnoreCase("true", iw_otp[0]) and step == 2:    
+                identity.setWorkingParameter("iw_count_login_steps", 3)
+                return True
+                
+        elif StringHelper.isEmptyString(user_name) and step == 1:
+            print "empty user_name in step1 indicates browser token notfound"
             identity.setWorkingParameter("iw_count_login_steps", 2)
-            identity.setWorkingParameter("iw_va_exists","false")
             return True
         else:
+             
             response_check = False
             user_exists_in_gluu = authenticationService.authenticate(user_name)
             identity.setWorkingParameter("iw_count_login_steps", step)
+            
             if (step == 1 or step == 3):
+                print "if (step == 1 or step == 3):"
                 password = credentials.getPassword()
                 if StringHelper.isEmpty(password):
                     print "InWebo. Authenticate for step 2. otp token is empty"
@@ -106,14 +118,14 @@ class PersonAuthentication(PersonAuthenticationType):
                 #password is the otp token
                 response_check = self.validateInweboToken(self.api_uri, self.service_id, user_name, password, step)
             elif (step == 2):
+                print "elif (step == 2):"
                 session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
                 response_check = self.checkStatus(self.api_uri, self.service_id, user_name,  session_id, self.push_withoutpin)
-                print "push_fail",self.push_fail
-                if StringHelper.equalsIgnoreCase("true", self.push_fail):
-                    identity.setWorkingParameter("iw_count_login_steps", 3)
-                    return True
                 
-            
+                if self.push_fail is not None:
+                    self.setErrorMessage(self.push_fail)
+                    identity.setWorkingParameter("iw_count_login_steps", 3)
+                    
             return response_check and user_exists_in_gluu 
 
     def prepareForStep(self, configurationAttributes, requestParameters, step):
@@ -147,9 +159,9 @@ class PersonAuthentication(PersonAuthenticationType):
         if (step == 1):
             return "/auth/inwebo/iw_va.xhtml"
         elif (step == 2):
-            return "/auth/inwebo/iwpushnotification.xhtml"
+                return "/auth/inwebo/iwpushnotification.xhtml"
         elif (step == 3):
-            return "/auth/inwebo/iwauthenticate.xhtml"
+                return "/auth/inwebo/iwauthenticate.xhtml"
         else:
             return ""
     
@@ -238,7 +250,13 @@ class PersonAuthentication(PersonAuthenticationType):
             session_id = json_response['sessionId']
             checkResult_uri = iw_api_uri + "action=checkPushResult" + "&serviceId=" + str(iw_service_id) + "&userId=" + httpService.encodeUrl(user_name) + "&sessionId="+ httpService.encodeUrl(session_id) + "&format=json&withoutpin=1"
             print "checkPushResult_uri:",checkResult_uri
-            while (True):
+            
+            startTime = System.currentTimeMillis();
+            currentTime = startTime;
+            endTime = startTime  + long(25000)
+            print "start time ----> ",startTime
+            print "end time ",endTime
+            while (endTime > currentTime ):
                 try:
                     # step 2: call action=checkPushResult; using session id from step 1
                     http_check_push_response = httpService.executeGet(self.client, checkResult_uri)
@@ -250,34 +268,55 @@ class PersonAuthentication(PersonAuthenticationType):
                     check_push_json_response = json.loads(check_push_response_string)
                     print "check_push_json_response :",check_push_json_response 
                     if StringHelper.equalsIgnoreCase(check_push_json_response['err'], "OK"):
-                        self.push_fail = "false"
+                        self.push_fail = None
                         return True
                     elif StringHelper.equalsIgnoreCase(check_push_json_response['err'], "NOK:REFUSED"):
-                        print "Push request rejected for session", session_id
-                        self.push_fail = "true"
+                        print "Push request notification for session", session_id
+                        self.push_fail = "inwebo.push.notification.rejected"
                         return False
                     elif StringHelper.equalsIgnoreCase(check_push_json_response['err'], "NOK:TIMEOUT"):
                         print "Push request timed out for session", session_id
-                        self.push_fail = "true"
+                        self.push_fail = "inwebo.push.notification.timed.out.for.session"
                         return False
                     elif StringHelper.equalsIgnoreCase(check_push_json_response['err'], "NOK:WAITING"):
-                        self.push_fail = "false"
+                        self.push_fail = "inwebo.push.notification.timed.out.for.session"
+                        currentTime = System.currentTimeMillis();
+                        print " NOw ######## ", currentTime
+                        java.lang.Thread.sleep(5000)
                         continue
                     else:
-                        self.push_fail = "true"
+                        self.push_fail = "inwebo.push.notification.failed"
                         return False 
                     
-                    java.lang.Thread.sleep(5000)
+                    
                     
                 finally:
                     http_check_push_response.closeConnection()
+                 
+                
+                    
+        elif StringHelper.equalsIgnoreCase(json_response['err'], "NOK:SN"):
+            self.push_fail ="inwebo.no.username"
+            return False
+        elif StringHelper.equalsIgnoreCase(json_response['err'], "NOK:account unknown"):
+            self.push_fail ="inwebo.no.username"
+            return False        
         else:
-            print "Unexpected response from server."
+            print "No response from server."
+            self.push_fail ="inwebo.push.notification.timed.out.for.session"
             return False
         
         print "inWebo. CheckStatus. The process has not received a response from the phone yet"
-
+        
         return False
-  
+    
+    def setErrorMessage(self, errorMessage):
+        facesMessages = CdiUtil.bean(FacesMessages)
+        facesMessages.setKeepMessages()
+        facesMessages.clear()
+        facesMessages.add(FacesMessage.SEVERITY_ERROR, String.format("#{msgs['%s']}", errorMessage))
+        
+        
+    
     def logout(self, configurationAttributes, requestParameters):
         return True
