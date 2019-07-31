@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * @author Yuriy Zabrovarnyy
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 
 public interface IAuthorizationGrantList {
@@ -42,4 +42,6 @@ public interface IAuthorizationGrantList {
     AuthorizationGrant getAuthorizationGrantByAccessToken(String tokenCode);
 
     AuthorizationGrant getAuthorizationGrantByIdToken(String idToken);
+
+    CIBAGrant getCIBAGrant(String authenticationRequestId);
 }

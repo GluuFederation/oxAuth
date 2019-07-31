@@ -399,8 +399,35 @@
             "uri": null
         },
         {
+            "id": "unauthorized_end_user_device",
+            "description": "The end-user has not registered a device to receive push notifications.",
+            "uri": null
+        },
+        {
             "id": "access_denied",
             "description": "The resource owner or OpenID Provider denied the CIBA (Client Initiated Backchannel Authentication) request.",
+            "uri": null
+        }
+    ],
+    "backchannelDeviceRegistration":[
+        {
+            "id": "invalid_request",
+            "description": "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.",
+            "uri": null
+        },
+        {
+            "id": "unknown_user_id",
+            "description": "The OpenID Provider is not able to identify the end-user.",
+            "uri": null
+        },
+        {
+            "id": "unauthorized_client",
+            "description": "The Client is not authorized to use this authentication flow.",
+            "uri": null
+        },
+        {
+            "id": "access_denied",
+            "description": "The resource owner or OpenID Provider denied the request.",
             "uri": null
         }
     ]

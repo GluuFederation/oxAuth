@@ -23,7 +23,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration implements Configuration {
@@ -190,6 +190,7 @@ public class AppConfiguration implements Configuration {
 
     // CIBA
     private String backchannelAuthenticationEndpoint;
+    private String backchannelDeviceRegistrationEndpoint;
     private List<String> backchannelTokenDeliveryModesSupported;
     private List<String> backchannelAuthenticationRequestSigningAlgValuesSupported;
     private Boolean backchannelUserCodeParameterSupported;
@@ -197,6 +198,7 @@ public class AppConfiguration implements Configuration {
     private int backchannelAuthenticationResponseExpiresIn;
     private int backchannelAuthenticationResponseInterval;
     private List<String> backchannelLoginHintClaims;
+    private CIBAEndUserNotificationConfig cibaEndUserNotificationConfig;
 
     public Boolean getDisableJdkLogger() {
         return disableJdkLogger;
@@ -1488,6 +1490,14 @@ public class AppConfiguration implements Configuration {
         this.backchannelAuthenticationEndpoint = backchannelAuthenticationEndpoint;
     }
 
+    public String getBackchannelDeviceRegistrationEndpoint() {
+        return backchannelDeviceRegistrationEndpoint;
+    }
+
+    public void setBackchannelDeviceRegistrationEndpoint(String backchannelDeviceRegistrationEndpoint) {
+        this.backchannelDeviceRegistrationEndpoint = backchannelDeviceRegistrationEndpoint;
+    }
+
     public List<String> getBackchannelTokenDeliveryModesSupported() {
         return backchannelTokenDeliveryModesSupported;
     }
@@ -1557,5 +1567,13 @@ public class AppConfiguration implements Configuration {
 
     public void setBackchannelLoginHintClaims(List<String> backchannelLoginHintClaims) {
         this.backchannelLoginHintClaims = backchannelLoginHintClaims;
+    }
+
+    public CIBAEndUserNotificationConfig getCibaEndUserNotificationConfig() {
+        return cibaEndUserNotificationConfig;
+    }
+
+    public void setCibaEndUserNotificationConfig(CIBAEndUserNotificationConfig cibaEndUserNotificationConfig) {
+        this.cibaEndUserNotificationConfig = cibaEndUserNotificationConfig;
     }
 }

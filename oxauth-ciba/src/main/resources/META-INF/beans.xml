@@ -12,5 +12,6 @@
         <class>org.xdi.oxauth.configuration.CIBARegisterClientMetadataInterceptor</class>
         <class>org.xdi.oxauth.configuration.CIBARegisterClientResponseInterceptor</class>
         <class>org.xdi.oxauth.configuration.CIBAAuthorizeParamsValidatorInterceptor</class>
+        <class>org.xdi.oxauth.configuration.CIBAEndUserNotificationInterceptor</class>
     </interceptors>
 </beans>

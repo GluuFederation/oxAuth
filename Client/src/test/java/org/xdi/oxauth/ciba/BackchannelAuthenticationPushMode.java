@@ -41,7 +41,7 @@ import static org.xdi.oxauth.model.register.RegisterRequestParam.*;
 
 /**
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 public class BackchannelAuthenticationPushMode extends BaseTest {
 
@@ -109,7 +109,7 @@ public class BackchannelAuthenticationPushMode extends BaseTest {
 
         // 2. Authentication Request
         BackchannelAuthenticationRequest backchannelAuthenticationRequest = new BackchannelAuthenticationRequest();
-        backchannelAuthenticationRequest.setScope(Arrays.asList("openid"));
+        backchannelAuthenticationRequest.setScope(Arrays.asList("openid profile email"));
         backchannelAuthenticationRequest.setLoginHint(userId);
         backchannelAuthenticationRequest.setClientNotificationToken("123");
         backchannelAuthenticationRequest.setUserCode("qwe");

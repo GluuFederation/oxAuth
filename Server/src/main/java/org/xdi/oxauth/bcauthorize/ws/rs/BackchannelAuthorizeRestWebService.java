@@ -21,7 +21,7 @@ import javax.ws.rs.core.SecurityContext;
 
 /**
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 @Api(value = "/", description = "The Backchannel Authentication Endpoint is used to initiate an out-of-band authentication of the end-user.")
 public interface BackchannelAuthorizeRestWebService {
@@ -55,7 +55,7 @@ public interface BackchannelAuthorizeRestWebService {
             @ApiResponse(code = 401, message = "invalid_client\n" +
                     "    Client authentication failed (e.g., invalid client credentials, unknown client, no client authentication included, or unsupported authentication method)."),
             @ApiResponse(code = 403, message = "access_denied\n" +
-                    "    The resource owner or OpenID Provider denied the request. Note that as the authentication error response is received prior to any user interaction, such an error would only be received if a resource owner or OpenID Provider had made a decision to deny a certain type of request or requests from a certain type of client. The mechanism for such a decision to be made is outside the scope of this specification.")
+                    "    The resource owner or OpenID Provider denied the CIBA (Client Initiated Backchannel Authentication) request.")
     })
     Response requestBackchannelAuthorizationPost(
             @FormParam("client_id")
@@ -77,16 +77,16 @@ public interface BackchannelAuthorizeRestWebService {
             @ApiParam(value = "An ID Token previously issued to the Client by the OpenID Provider being passed back as a hint to identify the end-user for whom authentication is being requested.", required = false)
                     String idTokenHint,
             @FormParam("login_hint")
-            @ApiParam(value = "", required = false)
+            @ApiParam(value = "A hint to the OpenID Provider regarding the end-user for whom authentication is being requested.", required = false)
                     String loginHint,
             @FormParam("binding_message")
-            @ApiParam(value = "", required = false)
+            @ApiParam(value = "A human readable identifier or message intended to be displayed on both the consumption device and the authentication device to interlock them together for the transaction by way of a visual cue for the end-user.", required = false)
                     String bindingMessage,
             @FormParam("user_code")
-            @ApiParam(value = "", required = false)
+            @ApiParam(value = "A secret code, such as password or pin, known only to the user but verifiable by the OP.", required = false)
                     String userCode,
             @FormParam("requested_expiry")
-            @ApiParam(value = "", required = false)
+            @ApiParam(value = "A positive integer allowing the client to request the expires_in value for the auth_req_id the server will return.", required = false)
                     Integer requestedExpiry,
             @Context HttpServletRequest httpRequest,
             @Context HttpServletResponse httpResponse,

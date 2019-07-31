@@ -44,7 +44,7 @@ import java.util.UUID;
  *
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
@@ -102,9 +102,10 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Override
     public void save() {
         if (isCachedWithNoPersistence) {
-            if (getAuthorizationGrantType() == AuthorizationGrantType.AUTHORIZATION_CODE
-                    || getAuthorizationGrantType() == AuthorizationGrantType.CIBA) {
+            if (getAuthorizationGrantType() == AuthorizationGrantType.AUTHORIZATION_CODE) {
                 saveInCache();
+            } else if (getAuthorizationGrantType() == AuthorizationGrantType.CIBA) {
+                saveCIBAInCache();
             } else {
                 throw new UnsupportedOperationException(
                         "Grant caching is not supported for : " + getAuthorizationGrantType());
@@ -120,6 +121,11 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
     private void saveInCache() {
         CacheGrant cachedGrant = new CacheGrant(this, appConfiguration);
+        cacheService.put(Integer.toString(cachedGrant.getExpiresIn()), cachedGrant.cacheKey(), cachedGrant);
+    }
+
+    private void saveCIBAInCache() {
+        CIBACacheGrant cachedGrant = new CIBACacheGrant((CIBAGrant)this, appConfiguration);
         cacheService.put(Integer.toString(cachedGrant.getExpiresIn()), cachedGrant.cacheKey(), cachedGrant);
     }
 

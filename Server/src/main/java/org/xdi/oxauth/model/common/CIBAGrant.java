@@ -12,11 +12,12 @@ import org.xdi.oxauth.model.registration.Client;
  * An extension grant with the grant type value: urn:openid:params:grant-type:ciba
  *
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 public class CIBAGrant extends AuthorizationGrant {
 
     private CIBAAuthenticationRequestId cibaAuthenticationRequestId;
+    private Boolean userAuthorization;
 
     public CIBAGrant() {
     }
@@ -46,5 +47,13 @@ public class CIBAGrant extends AuthorizationGrant {
 
     public void setCIBAAuthenticationRequestId(CIBAAuthenticationRequestId cibaAuthenticationRequestId) {
         this.cibaAuthenticationRequestId = cibaAuthenticationRequestId;
+    }
+
+    public Boolean isUserAuthorization() {
+        return userAuthorization;
+    }
+
+    public void setUserAuthorization(Boolean userAuthorization) {
+        this.userAuthorization = userAuthorization;
     }
 }

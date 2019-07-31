@@ -1,3 +1,9 @@
+/*
+ * oxAuth-CIBA is available under the Gluu Enterprise License (2019).
+ *
+ * Copyright (c) 2014, Gluu
+ */
+
 package org.xdi.oxauth.bcauthorize.ws.rs;
 
 import com.wordnik.swagger.annotations.Api;
@@ -7,6 +13,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.xdi.oxauth.audit.ApplicationAuditLogger;
 import org.xdi.oxauth.ciba.CIBAAuthorizeParamsValidatorProxy;
+import org.xdi.oxauth.ciba.CIBAEndUserNotificationProxy;
 import org.xdi.oxauth.ciba.CIBASupportProxy;
 import org.xdi.oxauth.client.JwkClient;
 import org.xdi.oxauth.model.audit.Action;
@@ -20,6 +27,7 @@ import org.xdi.oxauth.model.crypto.signature.RSAPublicKey;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.error.DefaultErrorResponse;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
+import org.xdi.oxauth.model.exception.InvalidClaimException;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
 import org.xdi.oxauth.model.jws.ECDSASigner;
 import org.xdi.oxauth.model.jws.RSASigner;
@@ -50,7 +58,7 @@ import static org.xdi.oxauth.model.ciba.BackchannelAuthenticationResponseParam.*
  * Implementation for request backchannel authorization through REST web services.
  *
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 @Path("/")
 @Api(value = "/oxauth/bc-authorize", description = "Backchannel Authorization Endpoint")
@@ -86,6 +94,9 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
     @Inject
     private CIBAAuthorizeParamsValidatorProxy cibaAuthorizeParamsValidatorProxy;
 
+    @Inject
+    private CIBAEndUserNotificationProxy cibaEndUserNotificationProxy;
+
     @Override
     public Response requestBackchannelAuthorizationPost(
             String clientId, String scope, String clientNotificationToken, String acrValues, String loginHintToken,
@@ -97,7 +108,7 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
         oAuth2AuditLog.setClientId(clientId);
         oAuth2AuditLog.setScope(scope);
 
-        // ATTENTION : please do not add more parameter in this debug method because it will not work with Seam 2.2.2.Final ,
+        // ATTENTION : please do not add more parameter in this debug method because it will not work with Seam 2.2.2.Final,
         // there is limit of 10 parameters (hardcoded), see: org.jboss.seam.core.Interpolator#interpolate
         log.debug("Attempting to request backchannel authorization: "
                         + "clientId = {}, scope = {}, clientNotificationToken = {}, acrValues = {}, loginHintToken = {}, "
@@ -211,6 +222,13 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
         }
 
         try {
+            String deviceRegistrationToken = (String) user.getAttribute("oxAuthBackchannelDeviceRegistrationToken", true);
+            if (deviceRegistrationToken == null) {
+                builder = Response.status(Response.Status.UNAUTHORIZED.getStatusCode()); // 401
+                builder.entity(errorResponseFactory.getErrorAsJson(UNAUTHORIZED_END_USER_DEVICE));
+                return builder.build();
+            }
+
             int expiresIn = requestedExpiry != null ? requestedExpiry : appConfiguration.getBackchannelAuthenticationResponseExpiresIn();
             Integer interval = client.getBackchannelTokenDeliveryMode() == BackchannelTokenDeliveryMode.PUSH ?
                     null : appConfiguration.getBackchannelAuthenticationResponseInterval();
@@ -223,8 +241,13 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
             authorizationGrant.setScopes(scopeList);
             authorizationGrant.save(); // call save after object modification!!!
 
+            String authorizationRequestId = authorizationGrant.getCIBAAuthenticationRequestId().getCode();
+
+            // Notify End-User to obtain Consent/Authorization
+            cibaEndUserNotificationProxy.notifyEndUser(authorizationRequestId, deviceRegistrationToken);
+
             builder.entity(getJSONObject(
-                    authorizationGrant.getCIBAAuthenticationRequestId().getCode(),
+                    authorizationRequestId,
                     expiresIn,
                     interval).toString(4).replace("\\/", "/"));
 
@@ -234,6 +257,10 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
             builder.type(MediaType.APPLICATION_JSON_TYPE);
             builder.cacheControl(cacheControl);
         } catch (JSONException e) {
+            builder = Response.status(400);
+            builder.entity(errorResponseFactory.getErrorAsJson(INVALID_REQUEST));
+            log.error(e.getMessage(), e);
+        } catch (InvalidClaimException e) {
             builder = Response.status(400);
             builder.entity(errorResponseFactory.getErrorAsJson(INVALID_REQUEST));
             log.error(e.getMessage(), e);

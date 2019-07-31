@@ -10,7 +10,7 @@ import org.xdi.oxauth.model.error.IErrorType;
 
 /**
  * @author Javier Rojas Blum
- * @version May 22, 2019
+ * @version July 31, 2019
  */
 public enum BackchannelAuthenticationErrorResponseType implements IErrorType {
 
@@ -69,6 +69,11 @@ public enum BackchannelAuthenticationErrorResponseType implements IErrorType {
      * client authentication included, or unsupported authentication method).
      */
     INVALID_CLIENT("invalid_client"),
+
+    /**
+     * The end-user has not registered a device to receive push notifications.
+     */
+    UNAUTHORIZED_END_USER_DEVICE("unauthorized_end_user_device"),
 
     // HTTP 403 Forbidden
 
