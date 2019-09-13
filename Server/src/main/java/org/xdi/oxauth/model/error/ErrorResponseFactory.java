@@ -131,8 +131,13 @@ public class ErrorResponseFactory implements Configuration {
     }
 
     public DefaultErrorResponse getErrorResponse(IErrorType type, String p_state) {
+        return getErrorResponse(type, p_state, "");
+    }
+
+    public DefaultErrorResponse getErrorResponse(IErrorType type, String p_state, String reason) {
         final DefaultErrorResponse response = getErrorResponse(type);
         response.setState(p_state);
+        response.setReason(reason);
         return response;
     }
 
