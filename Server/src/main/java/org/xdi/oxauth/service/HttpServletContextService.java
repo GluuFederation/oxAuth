@@ -13,8 +13,6 @@ public class HttpServletContextService {
     @Inject
     private HttpServletRequest request;
 
-    @Inject
-    private HttpServletResponse response;
 
     public HttpServletRequest getRequest() {
 
@@ -23,15 +21,5 @@ public class HttpServletContextService {
 
     public void setRequest(HttpServletRequest request) {
         this.request = request;
-    }
-
-    public HttpServletResponse getResponse() {
-
-        return this.response;
-    }
-
-    public void setResponse(HttpServletResponse response) {
-
-        this.response = response;
     }
 }
