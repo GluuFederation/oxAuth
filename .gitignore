@@ -15,3 +15,6 @@ target
 
 #Mac
 .DS_Store
+
+# VS Code project files 
+.factorypath
