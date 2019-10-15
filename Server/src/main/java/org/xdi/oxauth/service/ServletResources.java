@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RequestScoped
 @Named
-public class RequestObjectsService {
+public class ServletResources {
 
     @Inject
     private HttpServletRequest httpRequest;
