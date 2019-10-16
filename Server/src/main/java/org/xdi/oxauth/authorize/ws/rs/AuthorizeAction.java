@@ -377,7 +377,7 @@ public class AuthorizeAction {
                 session.getSessionAttributes().put(Constants.REMOTE_IP, remoteIp);
 
                 sessionIdService.updateSessionId(session);
-                sessionIdService.reinitLogin(session);
+                sessionIdService.reinitLogin(session, false);
             }
         }
         return session;
