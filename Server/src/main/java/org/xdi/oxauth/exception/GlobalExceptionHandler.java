@@ -1,5 +1,6 @@
 package org.xdi.oxauth.exception;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +41,24 @@ public class GlobalExceptionHandler extends ExceptionHandlerWrapper {
             Throwable t = context.getException();
             final FacesContext fc = FacesContext.getCurrentInstance();
             final ExternalContext externalContext = fc.getExternalContext();
-            final ConfigurableNavigationHandler nav = (ConfigurableNavigationHandler) fc.getApplication().getNavigationHandler();
             try {
-                log.error(t.getMessage(), t);
-                performRedirect(externalContext, "/error_service.htm");
+				if (isInvalidSessionStateException(t)) {
+	                log.error(t.getMessage(), t);
+					performRedirect(externalContext, "/error_session.htm");
+				} else {
+	                log.error(t.getMessage(), t);
+	                performRedirect(externalContext, "/error_service.htm");
+				}
                 fc.renderResponse();
             } finally {
                 i.remove();
             }
         }
         getWrapped().handle();
+    }
+
+    private boolean isInvalidSessionStateException(Throwable t) {
+        return ExceptionUtils.getRootCause(t) instanceof org.xdi.oxauth.model.exception.InvalidSessionStateException;
     }
 
     private void performRedirect(ExternalContext externalContext, String viewId) {
