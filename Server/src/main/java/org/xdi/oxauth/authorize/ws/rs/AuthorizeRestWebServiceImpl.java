@@ -26,6 +26,7 @@ import org.xdi.oxauth.model.crypto.binding.TokenBindingMessage;
 import org.xdi.oxauth.model.error.ErrorResponseFactory;
 import org.xdi.oxauth.model.exception.AcrChangedException;
 import org.xdi.oxauth.model.exception.InvalidJwtException;
+import org.xdi.oxauth.model.exception.InvalidSessionStateException;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.ldap.ClientAuthorizations;
 import org.xdi.oxauth.model.registration.Client;
@@ -685,6 +686,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         } catch (InvalidJwtException e) {
             builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()); // 500
             log.error(e.getMessage(), e);
+        } catch (InvalidSessionStateException ex) {
+        	// Allow to handle it via GlobalExceptionHandler
+        	throw ex;
         } catch (Exception e) {
             builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()); // 500
             log.error(e.getMessage(), e);

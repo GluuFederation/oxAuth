@@ -6,8 +6,30 @@
 
 package org.xdi.oxauth.service;
 
-import com.unboundid.ldap.sdk.LDAPException;
-import com.unboundid.ldap.sdk.ResultCode;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.context.RequestScoped;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.site.ldap.persistence.exception.EmptyEntryPersistenceException;
@@ -16,6 +38,7 @@ import org.slf4j.Logger;
 import org.xdi.oxauth.audit.ApplicationAuditLogger;
 import org.xdi.oxauth.model.audit.Action;
 import org.xdi.oxauth.model.audit.OAuth2AuditLog;
+import org.xdi.oxauth.model.authorize.AuthorizeRequestParam;
 import org.xdi.oxauth.model.common.Prompt;
 import org.xdi.oxauth.model.common.SessionId;
 import org.xdi.oxauth.model.common.SessionIdState;
@@ -26,6 +49,7 @@ import org.xdi.oxauth.model.config.WebKeysConfiguration;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
 import org.xdi.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.xdi.oxauth.model.exception.AcrChangedException;
+import org.xdi.oxauth.model.exception.InvalidSessionStateException;
 import org.xdi.oxauth.model.jwt.Jwt;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.jwt.JwtSubClaimObject;
@@ -38,22 +62,8 @@ import org.xdi.oxauth.util.ServerUtil;
 import org.xdi.service.CacheService;
 import org.xdi.util.StringHelper;
 
-import javax.enterprise.context.RequestScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
+import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.ResultCode;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -109,6 +119,9 @@ public class SessionIdService {
     @Inject
     private RequestParameterService requestParameterService;
 
+    @Inject
+    private UserService userService;
+
     public String getAcr(SessionId session) {
         if (session == null || session.getSessionAttributes() == null) {
             return null;
@@ -134,7 +147,7 @@ public class SessionIdService {
             String sessionAcr = getAcr(session);
 
             if (StringUtils.isBlank(sessionAcr)) {
-                log.error("Failed to fetch acr from session, attributes: " + sessionAttributes);
+                log.trace("Failed to fetch acr from session, attributes: " + sessionAttributes);
                 return session;
             }
 
@@ -145,7 +158,7 @@ public class SessionIdService {
                 Integer sessionAcrLevel = acrToLevel.get(sessionAcr);
 
                 for (String acrValue : acrValuesList) {
-                    Integer currentAcrLevel = acrToLevel.get(acrValue);
+                	Integer currentAcrLevel = acrToLevel.get(acrValue);
 
                     log.info("Acr is changed. Session acr: " + sessionAcr + "(level: " + sessionAcrLevel + "), " +
                             "current acr: " + acrValue + "(level: " + currentAcrLevel + ")");
@@ -169,10 +182,22 @@ public class SessionIdService {
         return session;
     }
 
+    private static boolean shouldReinitSession(Map<String, String> sessionAttributes, Map<String, String> currentSessionAttributes) {
+        final Map<String, String> copySessionAttributes = new HashMap<String, String>(sessionAttributes);
+        final Map<String, String> copyCurrentSessionAttributes = new HashMap<String, String>(currentSessionAttributes);
+
+        // it's up to RP whether to change state per request
+        copySessionAttributes.remove(AuthorizeRequestParam.STATE);
+        copyCurrentSessionAttributes.remove(AuthorizeRequestParam.STATE);
+
+        return !copyCurrentSessionAttributes.equals(copySessionAttributes);
+    }
+
     public void reinitLogin(SessionId session, boolean force) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
         final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
-        if (force || !currentSessionAttributes.equals(sessionAttributes)) {
+
+        if (force || shouldReinitSession(sessionAttributes, currentSessionAttributes)) {
             sessionAttributes.putAll(currentSessionAttributes);
 
             // Reinit login
@@ -266,7 +291,7 @@ public class SessionIdService {
             if (request != null) {
                 return getValueFromCookie(request, cookieName);
             } else {
-                log.error("Faces context returns null for http request object.");
+                log.trace("Faces context returns null for http request object.");
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -301,7 +326,7 @@ public class SessionIdService {
             if (request != null) {
                 return getSessionIdFromCookie(request);
             } else {
-                log.error("Faces context returns null for http request object.");
+                log.trace("Faces context returns null for http request object.");
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -447,29 +472,33 @@ public class SessionIdService {
         return null;
     }
 
-    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn) {
-        return generateAuthenticatedSessionId(httpRequest, userDn, "");
+    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn) throws InvalidSessionStateException {
+        Map<String, String> sessionIdAttributes = new HashMap<String, String>();
+        sessionIdAttributes.put("prompt", "");
+
+        return generateAuthenticatedSessionId(httpRequest, userDn, sessionIdAttributes);
     }
 
-    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, String prompt) {
+    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, String prompt) throws InvalidSessionStateException {
         Map<String, String> sessionIdAttributes = new HashMap<String, String>();
         sessionIdAttributes.put("prompt", prompt);
 
-        return generateAuthenticatedSessionId(httpRequest, userDn, new Date(), sessionIdAttributes, true);
+        return generateAuthenticatedSessionId(httpRequest, userDn, sessionIdAttributes);
     }
 
-    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, Map<String, String> sessionIdAttributes) {
-        return generateAuthenticatedSessionId(httpRequest, userDn, new Date(), sessionIdAttributes, true);
-    }
-
-    private SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, Date authenticationDate, Map<String, String> sessionIdAttributes, boolean persist) {
+    public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, Map<String, String> sessionIdAttributes) throws InvalidSessionStateException {
         SessionId sessionId = generateSessionId(userDn, new Date(), SessionIdState.AUTHENTICATED, sessionIdAttributes, true);
 
         if (externalApplicationSessionService.isEnabled()) {
             String userName = sessionId.getSessionAttributes().get(Constants.AUTHENTICATED_USER);
             boolean externalResult = externalApplicationSessionService.executeExternalStartSessionMethods(httpRequest, sessionId);
             log.info("Start session result for '{}': '{}'", userName, "start", externalResult);
-        }
+
+			if (!externalResult) {
+				reinitLogin(sessionId, true);
+				throw new InvalidSessionStateException("Session creation is prohibited by external session script!");
+			}
+		}
 
         return sessionId;
     }
@@ -590,7 +619,12 @@ public class SessionIdService {
             String userName = sessionId.getSessionAttributes().get(Constants.AUTHENTICATED_USER);
             boolean externalResult = externalApplicationSessionService.executeExternalStartSessionMethods(httpRequest, sessionId);
             log.info("Start session result for '{}': '{}'", userName, "start", externalResult);
-        }
+            
+			if (!externalResult) {
+				reinitLogin(sessionId, true);
+				throw new InvalidSessionStateException("Session creation is prohibited by external session script!");
+			}
+		}
 
         return sessionId;
     }
