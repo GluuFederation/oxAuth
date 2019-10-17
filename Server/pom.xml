@@ -332,6 +332,12 @@
 		<dependency>
 			<groupId>org.xdi</groupId>
 			<artifactId>oxlicense-client</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.xdi</groupId>
+					<artifactId>oxLdap-annotations</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.xdi</groupId>
@@ -340,6 +346,14 @@
 				<exclusion>
 					<groupId>javax.servlet</groupId>
 					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.xdi</groupId>
+					<artifactId>oxUtil</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.xdi</groupId>
+					<artifactId>oxLdap-annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
