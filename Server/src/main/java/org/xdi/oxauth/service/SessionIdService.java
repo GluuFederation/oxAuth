@@ -213,8 +213,10 @@ public class SessionIdService {
 
             session.setSessionAttributes(currentSessionAttributes);
 
-            // Reset state to unauthenticated
-            session.setState(SessionIdState.UNAUTHENTICATED);
+            if (force) {
+            	// Reset state to unauthenticated
+            	session.setState(SessionIdState.UNAUTHENTICATED);
+            }
 
             boolean updateResult = updateSessionId(session, true, true, true);
             if (!updateResult) {
