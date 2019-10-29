@@ -29,11 +29,11 @@
 					<div class="section">
 						<h1
 							style="font-size: 3em; font-weight: bold; font-family: Arial">
-							OOPS</h1>
+							SESSION</h1>
 					</div>
 					<div class="section text-center">
 						<p>
-							<h:outputFormat value="#{msgs['error.unexpectedError']}">
+							<h:outputFormat value="#{msgs['error.invalidSessionState']}">
 								<f:param value="#{pageService.currentDateTime}" />
 							</h:outputFormat>
 						</p>
@@ -46,7 +46,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="footer-copyright text-center"
+		<div class="footer-copyright text-center py-3"
 			style="background: #1ab26b; position: fixed; left: 0; bottom: 0; width: 100%; text-align: center;">
 			<div class="footer">
 				<div class="row">

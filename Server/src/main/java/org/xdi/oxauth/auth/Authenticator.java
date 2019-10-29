@@ -35,6 +35,7 @@ import org.xdi.oxauth.model.common.SessionIdState;
 import org.xdi.oxauth.model.common.User;
 import org.xdi.oxauth.model.config.Constants;
 import org.xdi.oxauth.model.configuration.AppConfiguration;
+import org.xdi.oxauth.model.exception.InvalidSessionStateException;
 import org.xdi.oxauth.model.jwt.JwtClaimName;
 import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.model.util.Util;
@@ -197,6 +198,9 @@ public class Authenticator {
 				    }
 				}
 			}
+		} catch (InvalidSessionStateException ex) {
+			// Allow to handle it via GlobalExceptionHandler
+			throw ex;
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
@@ -318,7 +322,11 @@ public class Authenticator {
 			}
 
 			int overridenNextStep = -1;
-			int apiVersion = externalAuthenticationService.executeExternalGetApiVersion(customScriptConfiguration);
+
+			logger.trace("++++++++++++++++++++++++++++++++++++++++++CURRENT ACR:" + this.authAcr);
+            logger.trace("++++++++++++++++++++++++++++++++++++++++++CURRENT STEP:" + this.authStep);
+            
+            int apiVersion = externalAuthenticationService.executeExternalGetApiVersion(customScriptConfiguration);
 			if (apiVersion > 1) {
 				logger.trace("According to API version script supports steps overriding");
 				overridenNextStep = externalAuthenticationService.getNextStep(customScriptConfiguration,
