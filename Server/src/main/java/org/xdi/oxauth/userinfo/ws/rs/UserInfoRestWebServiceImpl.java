@@ -206,6 +206,8 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
     public String getJwtResponse(SignatureAlgorithm signatureAlgorithm, User user, AuthorizationGrant authorizationGrant,
                                  Collection<String> scopes) throws Exception {
+        log.trace("Building JWT reponse with next scopes {0} for user {1} and user custom attributes {0}", scopes, user.getUserId(), user.getCustomAttributes());
+
         Jwt jwt = new Jwt();
         AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(appConfiguration);
 
@@ -321,6 +323,8 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
     public String getJweResponse(
             KeyEncryptionAlgorithm keyEncryptionAlgorithm, BlockEncryptionAlgorithm blockEncryptionAlgorithm,
             User user, AuthorizationGrant authorizationGrant, Collection<String> scopes) throws Exception {
+        log.trace("Building JWE reponse with next scopes {0} for user {1} and user custom attributes {0}", scopes, user.getUserId(), user.getCustomAttributes());
+
         Jwe jwe = new Jwe();
 
         // Header
@@ -457,6 +461,8 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
      */
     public String getJSonResponse(User user, AuthorizationGrant authorizationGrant, Collection<String> scopes)
             throws Exception {
+        log.trace("Building JSON reponse with next scopes {0} for user {1} and user custom attributes {0}", scopes, user.getUserId(), user.getCustomAttributes());
+
         JsonWebResponse jsonWebResponse = new JsonWebResponse();
 
         // Claims
