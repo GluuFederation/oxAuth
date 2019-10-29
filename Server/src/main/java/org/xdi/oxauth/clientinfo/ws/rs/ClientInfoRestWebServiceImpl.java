@@ -6,20 +6,13 @@
 
 package org.xdi.oxauth.clientinfo.ws.rs;
 
-import java.util.Set;
-
-import javax.inject.Inject;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.xdi.model.GluuAttribute;
 import org.xdi.oxauth.model.clientinfo.ClientInfoErrorResponseType;
 import org.xdi.oxauth.model.clientinfo.ClientInfoParamsValidator;
+import org.xdi.oxauth.model.common.AbstractToken;
 import org.xdi.oxauth.model.common.AuthorizationGrant;
 import org.xdi.oxauth.model.common.AuthorizationGrantList;
 import org.xdi.oxauth.model.common.Scope;
@@ -28,6 +21,13 @@ import org.xdi.oxauth.model.registration.Client;
 import org.xdi.oxauth.service.AttributeService;
 import org.xdi.oxauth.service.ClientService;
 import org.xdi.oxauth.service.ScopeService;
+
+import javax.inject.Inject;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.util.Set;
 
 /**
  * Provides interface for Client Info REST web services
@@ -81,19 +81,27 @@ public class ClientInfoRestWebServiceImpl implements ClientInfoRestWebService {
             AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
 
             if (authorizationGrant == null) {
-                builder = Response.status(400);
-                builder.entity(errorResponseFactory.getErrorAsJson(ClientInfoErrorResponseType.INVALID_TOKEN));
-            } else {
-                CacheControl cacheControl = new CacheControl();
-                cacheControl.setPrivate(true);
-                cacheControl.setNoTransform(false);
-                cacheControl.setNoStore(true);
-                builder.cacheControl(cacheControl);
-                builder.header("Pragma", "no-cache");
-
-                builder.entity(getJSonResponse(authorizationGrant.getClient(),
-                        authorizationGrant.getScopes()));
+                log.trace("Failed to find authorization grant for access token.");
+                return Response.status(400).entity(errorResponseFactory.getErrorAsJson(ClientInfoErrorResponseType.INVALID_TOKEN)).build();
             }
+
+            final AbstractToken token = authorizationGrant.getAccessToken(accessToken);
+            if (token == null || !token.isValid()) {
+                log.trace("Invalid access token.");
+                return Response.status(400).entity(errorResponseFactory.getErrorAsJson(ClientInfoErrorResponseType.INVALID_TOKEN)).build();
+            }
+
+
+            CacheControl cacheControl = new CacheControl();
+            cacheControl.setPrivate(true);
+            cacheControl.setNoTransform(false);
+            cacheControl.setNoStore(true);
+            builder.cacheControl(cacheControl);
+            builder.header("Pragma", "no-cache");
+
+            builder.entity(getJSonResponse(authorizationGrant.getClient(),
+                    authorizationGrant.getScopes()));
+
         }
 
         return builder.build();
