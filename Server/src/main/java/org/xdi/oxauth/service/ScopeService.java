@@ -133,7 +133,7 @@ public class ScopeService {
 	        
 	        putInCache(scope);
         }
-
+        log.trace("getScopeByDisplayName: displayName - {}, scope - {}", displayName, scope);
         return scope;
     }    
     

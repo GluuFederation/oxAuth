@@ -6,17 +6,21 @@
 
 package org.xdi.oxauth.model.common;
 
-import java.util.List;
-
 import org.codehaus.jettison.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xdi.ldap.model.CustomAttribute;
 import org.xdi.oxauth.model.exception.InvalidClaimException;
 import org.xdi.util.StringHelper;
+
+import java.util.List;
 
 /**
  * @author Javier Rojas Blum Date: 11.25.2011
  */
 public class SimpleUser extends org.xdi.ldap.model.SimpleUser {
+
+    private final static Logger log = LoggerFactory.getLogger(SimpleUser.class);
 
     private static final long serialVersionUID = -2634191420188575733L;
 
@@ -41,6 +45,8 @@ public class SimpleUser extends org.xdi.ldap.model.SimpleUser {
                 break;
             }
         }
+
+        log.trace("User's attribute, name - {}, value - {}", userAttribute, attribute);
 
         if (attribute != null) {
             return attribute;

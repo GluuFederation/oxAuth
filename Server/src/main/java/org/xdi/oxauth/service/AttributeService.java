@@ -50,7 +50,7 @@ public class AttributeService extends org.xdi.service.AttributeService {
             gluuAttribute = ldapEntryManager.find(GluuAttribute.class, dn);
             cacheService.put(CACHE_ATTRIBUTE, dn, gluuAttribute, Constants.SKIP_CACHE_PUT_FOR_NATIVE_PERSISTENCE);
         } else {
-            log.trace("Get attribute from cache by Dn '{}'", dn);
+            log.trace("Get attribute '{}' from cache by Dn '{}', claimName: {}, ", gluuAttribute.getName(), dn, gluuAttribute.getOxAuthClaimName());
         }
 
         return gluuAttribute;
