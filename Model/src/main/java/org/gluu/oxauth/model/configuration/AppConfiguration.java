@@ -183,6 +183,8 @@ public class AppConfiguration implements Configuration {
     private Boolean openidScopeBackwardCompatibility = false;
     private Boolean disableU2fEndpoint = false;
 
+    private Boolean useLocalCache = false;
+
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
     private Fido2Configuration fido2Configuration;
 
@@ -1458,5 +1460,13 @@ public class AppConfiguration implements Configuration {
     public void setErrorHandlingMethod(ErrorHandlingMethod errorHandlingMethod) {
         this.errorHandlingMethod = errorHandlingMethod;
     }
+
+	public Boolean getUseLocalCache() {
+		return useLocalCache;
+	}
+
+	public void setUseLocalCache(Boolean useLocalCache) {
+		this.useLocalCache = useLocalCache;
+	}
 
 }

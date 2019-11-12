@@ -8,9 +8,11 @@ package org.gluu.oxauth.service;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.config.StaticConfiguration;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.search.filter.Filter;
 import org.gluu.service.CacheService;
+import org.gluu.service.LocalCacheService;
 import org.gluu.util.StringHelper;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
@@ -32,8 +34,14 @@ public class ScopeService {
     @Inject
     private Logger log;
 
+    @Inject
+	private AppConfiguration appConfiguration;
+
 	@Inject
 	private CacheService cacheService;
+
+    @Inject
+    private LocalCacheService localCacheService;
 
     @Inject
     private PersistenceEntryManager ldapEntryManager;
@@ -85,9 +93,10 @@ public class ScopeService {
      * @return Scope
      */
     public org.oxauth.persistence.model.Scope getScopeByDn(String dn) {
-        final Scope scope = cacheService.getWithPut(dn, () -> ldapEntryManager.find(Scope.class, dn), 60);
+    	CacheService usedCacheService = getCacheService();
+        final Scope scope = usedCacheService.getWithPut(dn, () -> ldapEntryManager.find(Scope.class, dn), 60);
         if (scope != null && StringUtils.isNotBlank(scope.getId())) {
-            cacheService.put(scope.getId(), scope); // put also by id, since we call it by id and dn
+        	usedCacheService.put(scope.getId(), scope); // put also by id, since we call it by id and dn
         }
         return scope;
     }
@@ -113,7 +122,9 @@ public class ScopeService {
      * @return scope
      */
     public Scope getScopeById(String id) {
-        final Object cached = cacheService.get(id);
+    	CacheService usedCacheService = getCacheService();
+
+    	final Object cached = usedCacheService.get(id);
         if (cached != null)
             return (Scope) cached;
 
@@ -127,8 +138,8 @@ public class ScopeService {
         List<org.oxauth.persistence.model.Scope> scopes = ldapEntryManager.findEntries(scopeExample);
         if ((scopes != null) && (scopes.size() > 0)) {
             final Scope scope = scopes.get(0);
-            cacheService.put(id, scope);
-            cacheService.put(scope.getDn(), scope);
+            usedCacheService.put(id, scope);
+            usedCacheService.put(scope.getDn(), scope);
             return scope;
         }
         return null;
@@ -172,9 +183,10 @@ public class ScopeService {
     		return;
     	}
 
+    	CacheService usedCacheService = getCacheService();
     	try {
         	String key = getClaimDnCacheKey(claimDn);
-            cacheService.put(key, scopes);
+        	usedCacheService.put(key, scopes);
         } catch (Exception ex) {
             log.error("Failed to put scopes in cache, claimDn: '{}'", claimDn, ex);
         }
@@ -182,9 +194,10 @@ public class ScopeService {
 
     @SuppressWarnings("unchecked")
 	private List<org.oxauth.persistence.model.Scope> fromCacheByClaimDn(String claimDn) {
+    	CacheService usedCacheService = getCacheService();
         try {
         	String key = getClaimDnCacheKey(claimDn);
-            return (List<org.oxauth.persistence.model.Scope>) cacheService.get(key);
+            return (List<org.oxauth.persistence.model.Scope>) usedCacheService.get(key);
         } catch (Exception ex) {
             log.error("Failed to get scopes from cache, claimDn: '{}'", claimDn, ex);
             return null;
@@ -194,4 +207,13 @@ public class ScopeService {
     private static String getClaimDnCacheKey(String claimDn) {
         return "claim_dn" + StringHelper.toLowerCase(claimDn);
     }
+
+    private CacheService getCacheService() {
+    	if (appConfiguration.getUseLocalCache()) {
+    		return localCacheService;
+    	}
+    	
+    	return cacheService;
+    }
+
 }
