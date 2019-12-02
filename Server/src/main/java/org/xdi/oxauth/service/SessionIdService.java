@@ -47,6 +47,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.text.DateFormat;
@@ -488,61 +490,24 @@ public class SessionIdService {
     public SessionId generateUnauthenticatedSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
         return generateSessionId(userDn, authenticationDate, state, sessionIdAttributes, persist);
     }
+    
+    public String computeSessionState(SessionId sessionId, String clientId, String redirectUri) {
+        final boolean isSameClient = clientId.equals(sessionId.getSessionAttributes().get("client_id")) &&
+                redirectUri.equals(sessionId.getSessionAttributes().get("redirect_uri"));
+        if(isSameClient)
+            return sessionId.getSessionState();
+        final String salt = UUID.randomUUID().toString();
+        final String opbs = sessionId.getOPBrowserState();
+        final String sessionState = computeSessionState(clientId,redirectUri, opbs, salt);
+        return sessionState;
+    }
 
-    private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
+    private String computeSessionState(String clientId, String redirectUri, String opbs, String salt) {
         try {
-            final String sid = UUID.randomUUID().toString();
-            final String salt = UUID.randomUUID().toString();
-            final String clientId = sessionIdAttributes.get("client_id");
-            final String opbs = UUID.randomUUID().toString();
+            final String clientOrigin = getClientOrigin(redirectUri);
             final String sessionState = JwtUtil.bytesToHex(JwtUtil.getMessageDigestSHA256(
-                    clientId + " " + appConfiguration.getIssuer() + " " + opbs + " " + salt)) + "." + salt;
-            final String dn = dn(sid);
-            sessionIdAttributes.put(OP_BROWSER_STATE, opbs);
-
-            if (StringUtils.isBlank(dn)) {
-                return null;
-            }
-
-            if (SessionIdState.AUTHENTICATED == state) {
-                if (StringUtils.isBlank(userDn)) {
-                    return null;
-                }
-            }
-
-            final SessionId sessionId = new SessionId();
-            sessionId.setId(sid);
-            sessionId.setDn(dn);
-            sessionId.setUserDn(userDn);
-            sessionId.setSessionState(sessionState);
-
-            Boolean sessionAsJwt = appConfiguration.getSessionAsJwt();
-            sessionId.setIsJwt(sessionAsJwt != null && sessionAsJwt);
-
-            if (authenticationDate != null) {
-                sessionId.setAuthenticationTime(authenticationDate);
-            }
-
-            if (state != null) {
-                sessionId.setState(state);
-            }
-
-            sessionId.setSessionAttributes(sessionIdAttributes);
-            sessionId.setLastUsedAt(new Date());
-
-            if (sessionId.getIsJwt()) {
-                sessionId.setJwt(generateJwt(sessionId, userDn).asString());
-            }
-
-            boolean persisted = false;
-            if (persist) {
-                persisted = persistSessionId(sessionId);
-            }
-
-            auditLogging(sessionId);
-
-            log.trace("Generated new session, id = '{}', state = '{}', asJwt = '{}', persisted = '{}'", sessionId.getId(), sessionId.getState(), sessionId.getIsJwt(), persisted);
-            return sessionId;
+                    clientId + " " + clientOrigin + " " + opbs + " " + salt)) + "." + salt;
+            return sessionState;
         } catch (NoSuchProviderException e) {
             log.error("Failed generating session state! " + e.getMessage(), e);
             throw new RuntimeException(e);
@@ -552,7 +517,73 @@ public class SessionIdService {
         } catch (UnsupportedEncodingException e) {
             log.error("Failed generating session state! " + e.getMessage(), e);
             throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            log.error("Failed generating session state! " + e.getMessage(), e);
+            throw new RuntimeException(e);
         }
+    }
+
+    private String getClientOrigin(String redirectUri) throws URISyntaxException {
+        final URI uri = new URI(redirectUri);
+        String result = uri.getScheme() + "://" + uri.getHost();
+        if(uri.getPort() > 0)
+            result += ":" + Integer.toString(uri.getPort());
+        return result;
+    }
+
+    private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
+        final String sid = UUID.randomUUID().toString();
+        final String salt = UUID.randomUUID().toString();
+        final String clientId = sessionIdAttributes.get("client_id");
+        final String opbs = UUID.randomUUID().toString();
+        final String redirectUri = sessionIdAttributes.get("redirect_uri");
+        final String sessionState = computeSessionState(clientId, redirectUri, opbs, salt);
+        final String dn = dn(sid);
+        sessionIdAttributes.put(OP_BROWSER_STATE, opbs);
+
+        if (StringUtils.isBlank(dn)) {
+            return null;
+        }
+
+        if (SessionIdState.AUTHENTICATED == state) {
+            if (StringUtils.isBlank(userDn)) {
+                return null;
+            }
+        }
+
+        final SessionId sessionId = new SessionId();
+        sessionId.setId(sid);
+        sessionId.setDn(dn);
+        sessionId.setUserDn(userDn);
+        sessionId.setSessionState(sessionState);
+
+        Boolean sessionAsJwt = appConfiguration.getSessionAsJwt();
+        sessionId.setIsJwt(sessionAsJwt != null && sessionAsJwt);
+
+        if (authenticationDate != null) {
+            sessionId.setAuthenticationTime(authenticationDate);
+        }
+
+        if (state != null) {
+            sessionId.setState(state);
+        }
+
+        sessionId.setSessionAttributes(sessionIdAttributes);
+        sessionId.setLastUsedAt(new Date());
+
+        if (sessionId.getIsJwt()) {
+            sessionId.setJwt(generateJwt(sessionId, userDn).asString());
+        }
+
+        boolean persisted = false;
+        if (persist) {
+            persisted = persistSessionId(sessionId);
+        }
+
+        auditLogging(sessionId);
+
+        log.trace("Generated new session, id = '{}', state = '{}', asJwt = '{}', persisted = '{}'", sessionId.getId(), sessionId.getState(), sessionId.getIsJwt(), persisted);
+        return sessionId;
     }
 
     private Jwt generateJwt(SessionId sessionId, String audience) {
