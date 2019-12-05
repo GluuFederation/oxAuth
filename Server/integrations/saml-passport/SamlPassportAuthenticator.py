@@ -470,7 +470,7 @@ class PersonAuthentication(PersonAuthenticationType):
         user_profile_json = None
 
         try:
-			user_profile_json = CdiUtil.bean(EncryptionService).decrypt(jwt_claims.getClaimAsString("data"))
+            user_profile_json = CdiUtil.bean(EncryptionService).decrypt(jwt_claims.getClaimAsString("data"))
             user_profile = json.loads(user_profile_json)
         except:
             print "Passport. getUserProfile. Problem obtaining user profile json representation"
