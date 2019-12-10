@@ -97,7 +97,6 @@
 		<module>common</module>
 		<module>fido2-server</module>
 		<module>fido2-client</module>
-		<module>mtls</module>
 		<module>Server</module>
   </modules>
 
