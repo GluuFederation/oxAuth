@@ -514,6 +514,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                     if (clientAuthorizations != null && clientAuthorizations.getScopes() != null) {
                                         if (Arrays.asList(clientAuthorizations.getScopes()).containsAll(scopes)) {
                                             sessionUser.addPermission(clientId, true);
+                                            sessionIdService.updateSessionId(sessionUser);
                                         } else {
                                             redirectToAuthorizationPage(redirectUriResponse, responseTypes, scope, clientId,
                                                     redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
@@ -525,6 +526,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                         }
                                     } else if (client.getTrustedClient()) {
                                         sessionUser.addPermission(clientId, true);
+                                        sessionIdService.updateSessionId(sessionUser);
                                     }
                                 }
 
