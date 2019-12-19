@@ -16,7 +16,6 @@ from org.gluu.oxauth.service.custom import CustomScriptService
 from org.gluu.oxauth.service.net import HttpService
 from org.gluu.oxauth.util import ServerUtil
 from org.gluu.model import SimpleCustomProperty
-from org.gluu.model.casa import ApplicationConfiguration
 from org.gluu.model.custom.script import CustomScriptType
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.service.cdi.util import CdiUtil
@@ -43,6 +42,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         print "Casa. init called"
         self.authenticators = {}
+        self.configFileLocation = "/etc/gluu/conf/casa.json"
         self.uid_attr = self.getLocalPrimaryKey()
 
         custScriptService = CdiUtil.bean(CustomScriptService)
@@ -301,33 +301,25 @@ class PersonAuthentication(PersonAuthenticationType):
         return uid_attr
 
 
-    def getSettings(self):
-        entryManager = CdiUtil.bean(AppInitializer).createPersistenceEntryManager()
-        config = ApplicationConfiguration()
-        config = entryManager.find(config.getClass(), "ou=casa,ou=configuration,o=gluu")
-        settings = None
-        try:
-            settings = json.loads(config.getSettings())
-        except:
-            print "Casa. getSettings. Failed to parse casa settings from DB"
-        return settings
-
-
     def computeMethods(self, scriptList):
 
         methods = []
-        mapping = {}
-        cmConfigs = self.getSettings()
+        f = open(self.configFileLocation, 'r')
+        try:
+            cmConfigs = json.loads(f.read())
+            if 'acr_plugin_mapping' in cmConfigs:
+                mapping = cmConfigs['acr_plugin_mapping']
+            else:
+                mapping = {}
 
-        if cmConfigs != None and 'acr_plugin_mapping' in cmConfigs:
-            mapping = cmConfigs['acr_plugin_mapping']
-
-        for m in mapping:
-            for customScript in scriptList:
-                if customScript.getName() == m and customScript.isEnabled():
-                    methods.append(m)
-
-        print "Casa. computeMethods. %s" % methods
+            for m in mapping:
+                for customScript in scriptList:
+                    if customScript.getName() == m and customScript.isEnabled():
+                        methods.append(m)
+        except:
+            print "Casa. computeMethods. Failed to read configuration file"
+        finally:
+            f.close()
         return methods
 
 
@@ -416,17 +408,20 @@ class PersonAuthentication(PersonAuthenticationType):
         print "Casa. getSuitableAcr. %s was selected for user %s" % (acr, id)
         return acr
 
-
     def determineSkip2FA(self, userService, identity, foundUser, deviceInf):
 
-        cmConfigs = self.getSettings()
-        if cmConfigs == None:
-            print "Casa. determineSkip2FA. Failed to read policy_2fa"
+        f = open(self.configFileLocation, 'r')
+        try:
+            cmConfigs = json.loads(f.read())
+            if 'policy_2fa' in cmConfigs:
+                policy2FA = ','.join(cmConfigs['policy_2fa'])
+            else:
+                policy2FA = 'EVERY_LOGIN'
+        except:
+            print "Casa. determineSkip2FA. Failed to read policy_2fa from configuration file"
             return False
-        elif 'policy_2fa' in cmConfigs:
-            policy2FA = ','.join(cmConfigs['policy_2fa'])
-        else:
-            policy2FA = 'EVERY_LOGIN'
+        finally:
+            f.close()
 
         print "Casa. determineSkip2FA with general policy %s" % policy2FA
         policy2FA += ','
