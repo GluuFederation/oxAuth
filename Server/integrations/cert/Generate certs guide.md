@@ -195,6 +195,7 @@ cd ./intermediate1
 ```
 
 Copy the Intermediate cert and key from the Root CA:
+
 `mv ../intermediate1.* ./`
 
 Create the index files:
@@ -388,6 +389,7 @@ enduser-certs/user-gluu.org.crt: OK
 `cat ../rootca.crt intermediate1.crt intermediate1.crl.pem > enduser-certs/user-gluu.org.crl.chain`
 
 Verify the certificate:
+
 `openssl verify -crl_check -CAfile enduser-certs/user-gluu.org.crl.chain enduser-certs/user-gluu.org.crt`
 
 Example output:
