@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Vetoed;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -38,6 +39,12 @@ public class UncaughtException extends Throwable implements ExceptionMapper<Thro
     @Override
     public Response toResponse(Throwable exception) {
         try {
+            if (exception instanceof WebApplicationException) {
+                final Response response = ((WebApplicationException) exception).getResponse();
+                if (response != null && response.getStatus() > 0) {
+                    return response;
+                }
+            }
             log.error("Jersey error.", exception);
             return Response.temporaryRedirect(new URI(getRedirectURI())).build();
         } catch (Exception e) {
