@@ -193,7 +193,8 @@ public class Authenticator {
                     + ", credentials.username: " + credentials.getUsername() + ")");
             if (service && (StringHelper.isNotEmpty(credentials.getUsername())
                     && (skipPassword || StringHelper.isNotEmpty(credentials.getPassword())) && servletRequest != null
-                    && (servletRequest.getRequestURI().endsWith("/token") || servletRequest.getRequestURI().endsWith("/revoke")))) {
+                    && (servletRequest.getRequestURI().endsWith("/token") || servletRequest.getRequestURI().endsWith("/revoke") ||
+                    	servletRequest.getRequestURI().endsWith("/userinfo")))) {
                 boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
                 if (authenticated) {
                     result = Constants.RESULT_SUCCESS;

@@ -264,7 +264,8 @@ public class AuthenticationFilter implements Filter {
                         identity.getCredentials().setPassword(password);
 
                         if (servletRequest.getRequestURI().endsWith("/token")
-                                || servletRequest.getRequestURI().endsWith("/revoke")) {
+                                || servletRequest.getRequestURI().endsWith("/revoke")
+                                || servletRequest.getRequestURI().endsWith("/userinfo")) {
                             Client client = clientService.getClient(username);
                             if (client == null
                                     || AuthenticationMethod.CLIENT_SECRET_BASIC != client.getAuthenticationMethod()) {
