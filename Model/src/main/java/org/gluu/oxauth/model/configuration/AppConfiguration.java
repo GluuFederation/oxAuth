@@ -900,6 +900,7 @@ public class AppConfiguration implements Configuration {
     }
 
     public Boolean getDynamicRegistrationEnabled() {
+        if (dynamicRegistrationEnabled == null) dynamicRegistrationEnabled = false;
         return dynamicRegistrationEnabled;
     }
 
