@@ -26,7 +26,7 @@
 		
 		<activemq.version>5.15.11</activemq.version>
 
-		<httpcore.version>4.4.6</httpcore.version>
+		<httpcore.version>4.4.13</httpcore.version>
 		<httpclient.version>4.5.11</httpclient.version>
 
 		<log4j.version>2.11.2</log4j.version>
