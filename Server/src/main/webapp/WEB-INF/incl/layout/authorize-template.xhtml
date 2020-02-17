@@ -37,7 +37,9 @@
 	                        break;
 	                }
 	            }
-    	        jsf.ajax.addOnEvent(handleAjax);
+	            if (jsf !== 'undefined') {
+	    	        jsf.ajax.addOnEvent(handleAjax);
+	            }
         	</script> 
             <h:messages id="messages" globalOnly="true" styleClass="message"
                         errorClass="errormsg" infoClass="infomsg" warnClass="warnmsg"
