@@ -47,6 +47,9 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
 	@AttributeName(name = "oxNickName")
 	private String nickname;
 
+    @AttributeName(name = "personInum")
+    protected String userInum;
+
     @JsonObject
     @AttributeName(name = "oxDeviceRegistrationConf")
 	private DeviceRegistrationConfiguration deviceRegistrationConfiguration;
@@ -88,12 +91,13 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
 	
 	public DeviceRegistration() {}
 
-	public DeviceRegistration(String keyHandle, String publicKey, String attestationCert, long counter, DeviceRegistrationStatus status,
+	public DeviceRegistration(String userInum, String keyHandle, String publicKey, String attestationCert, long counter, DeviceRegistrationStatus status,
 			String application, Integer keyHandleHashCode, Date creationDate) {
 		this.deviceRegistrationConfiguration = new DeviceRegistrationConfiguration(publicKey, attestationCert);
 		this.counter = counter;
 		this.status = status;
 		this.application = application;
+		this.userInum = userInum;
 		this.keyHandle = keyHandle;
 		this.keyHandleHashCode = keyHandleHashCode;
 		this.creationDate = creationDate;
@@ -101,7 +105,8 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
         updateExpirationDate();
 	}
 
-	public DeviceRegistration(String keyHandle, String publicKey, X509Certificate attestationCert, long counter) throws BadInputException {
+	public DeviceRegistration(String userInum, String keyHandle, String publicKey, X509Certificate attestationCert, long counter) throws BadInputException {
+		this.userInum = userInum;
 		this.keyHandle = keyHandle;
 		try {
 			String attestationCertDecoded = Base64Util.base64urlencode(attestationCert.getEncoded());
@@ -143,6 +148,14 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public String getUserInum() {
+		return userInum;
+	}
+
+	public void setUserInum(String userInum) {
+		this.userInum = userInum;
 	}
 
 	public DeviceRegistrationConfiguration getDeviceRegistrationConfiguration() {
