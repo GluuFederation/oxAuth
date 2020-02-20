@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.bcauthorize.ws.rs;
 
-import com.wordnik.swagger.annotations.Api;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.ciba.CIBADeviceRegistrationValidatorProxy;
 import org.gluu.oxauth.ciba.CIBASupportProxy;
@@ -33,6 +32,12 @@ import javax.ws.rs.core.SecurityContext;
 import static org.gluu.oxauth.model.ciba.BackchannelDeviceRegistrationErrorResponseType.ACCESS_DENIED;
 import static org.gluu.oxauth.model.ciba.BackchannelDeviceRegistrationErrorResponseType.UNKNOWN_USER_ID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+
 /**
  * Implementation for request backchannel device registration through REST web services.
  *
@@ -40,7 +45,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelDeviceRegistrationErrorRespo
  * @version October 7, 2019
  */
 @Path("/")
-@Api(value = "/oxauth/bc-deviceRegistration", description = "Backchannel Device Registration Endpoint")
+@Schema(defaultValue = "/oxauth/bc-deviceRegistration", description = "Backchannel Device Registration Endpoint")
 public class BackchannelDeviceRegistrationRestWebServiceImpl implements BackchannelDeviceRegistrationRestWebService {
 
     @Inject
@@ -68,6 +73,13 @@ public class BackchannelDeviceRegistrationRestWebServiceImpl implements Backchan
     private CIBADeviceRegistrationValidatorProxy cibaDeviceRegistrationValidatorProxy;
 
     @Override
+    @Operation(
+    		description = "To request backchannel device registration through HTTP POST request",
+    		summary = "To request backchannel device registration through HTTP POST request",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the request status", content = @Content(schema = @Schema(implementation = Response.class), mediaType="JSON"))
+    	    }
+    )    
     public Response requestBackchannelDeviceRegistrationPost(
             String idTokenHint, String deviceRegistrationToken,
             HttpServletRequest httpRequest, HttpServletResponse httpResponse, SecurityContext securityContext) {

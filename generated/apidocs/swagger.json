@@ -1,0 +1,8 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "version" : "v1",
+    "title" : "Gluu oxAuth"
+  },
+  "basePath" : "http://gluu.org"
+}

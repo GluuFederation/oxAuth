@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.bcauthorize.ws.rs;
 
-import com.wordnik.swagger.annotations.Api;
 import org.apache.logging.log4j.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,6 +53,11 @@ import java.util.Set;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.*;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 /**
  * Implementation for request backchannel authorization through REST web services.
  *
@@ -61,7 +65,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.
  * @version October 7, 2019
  */
 @Path("/")
-@Api(value = "/oxauth/bc-authorize", description = "Backchannel Authorization Endpoint")
+@Schema(defaultValue = "/oxauth/bc-authorize", description = "Backchannel Authorization Endpoint")
 public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthorizeRestWebService {
 
     @Inject
@@ -98,6 +102,13 @@ public class BackchannelAuthorizeRestWebServiceImpl implements BackchannelAuthor
     private CIBAEndUserNotificationProxy cibaEndUserNotificationProxy;
 
     @Override
+    @Operation(
+    		description = "To request backchannel device authorization through HTTP POST request",
+    		summary = "To request backchannel device authorization through HTTP POST request",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the request status", content = @Content(schema = @Schema(implementation = Response.class), mediaType="JSON"))
+    	    }
+    )
     public Response requestBackchannelAuthorizationPost(
             String clientId, String scope, String clientNotificationToken, String acrValues, String loginHintToken,
             String idTokenHint, String loginHint, String bindingMessage, String userCode, Integer requestedExpiry,

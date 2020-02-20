@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.uma.ws.rs;
 
-import com.wordnik.swagger.annotations.Api;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.uma.UmaConstants;
@@ -21,12 +20,19 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 22/04/2013
  */
 @Path("/uma/scopes")
-@Api(value="/uma/scopes", description = "UMA Scope Endpoint provides scope description (json document) by scope id.")
+@Schema(defaultValue="/uma/scopes", description = "UMA Scope Endpoint provides scope description (json document) by scope id.")
 public class UmaScopeWS {
 
     @Inject
@@ -41,6 +47,13 @@ public class UmaScopeWS {
     @GET
     @Path("{id}")
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
+    @Operation(
+    		description = "To request to obtain UMA Scope description (json document) by scope id",
+    		summary = "To request to obtain UMA Scope description (json document) by scope id",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the request status", content = @Content(schema = @Schema(implementation = Response.class), mediaType="JSON"))
+    	    }
+    )   
     public Response getScopeDescription(@PathParam("id") String id) {
         log.trace("UMA - get scope description: id: {}", id);
         try {

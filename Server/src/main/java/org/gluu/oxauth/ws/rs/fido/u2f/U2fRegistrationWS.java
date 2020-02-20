@@ -45,13 +45,14 @@ import org.slf4j.Logger;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.service.UserService;
 
-import com.wordnik.swagger.annotations.Api;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * The endpoint allows to start and finish U2F registration process
@@ -60,7 +61,7 @@ import java.util.List;
  * @version August 9, 2017
  */
 @Path("/fido/u2f/registration")
-@Api(value = "/fido/u2f/registration", description = "The endpoint at which the U2F device start registration process.")
+@Schema(defaultValue = "/fido/u2f/registration", description = "The endpoint at which the U2F device start registration process.")
 public class U2fRegistrationWS {
 
     @Inject

@@ -40,7 +40,7 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.gluu.oxauth.service.UserService;
 
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -53,7 +53,7 @@ import javax.ws.rs.core.Response.Status;
  * @version August 9, 2017
  */
 @Path("/fido/u2f/authentication")
-@Api(value = "/fido/u2f/registration", description = "The endpoint at which the application U2F device start registration process.")
+@Schema(defaultValue = "/fido/u2f/registration", description = "The endpoint at which the application U2F device start registration process.")
 public class U2fAuthenticationWS {
 
     @Inject

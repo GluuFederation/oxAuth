@@ -21,8 +21,11 @@ import org.gluu.oxauth.model.fido.u2f.U2fConfiguration;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * The endpoint at which the requester can obtain FIDO2 metadata
@@ -32,7 +35,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
  */
 @ApplicationScoped
 @Path("/fido2/configuration")
-@Api(value = "/.well-known/fido2-configuration", description = "The FIDO2 server endpoint that provides configuration data in a JSON [RFC4627] document that resides in at /.well-known/fido-configuration directory at its hostmeta [hostmeta] location. The configuration data documents conformance options and endpoints supported by the FIDO2 server.")
+@Schema(example = "/.well-known/fido2-configuration", description = "The FIDO2 server endpoint that provides configuration data in a JSON [RFC4627] document that resides in at /.well-known/fido-configuration directory at its hostmeta [hostmeta] location. The configuration data documents conformance options and endpoints supported by the FIDO2 server.")
 public class ConfigurationController {
 
 	@Inject
@@ -46,7 +49,8 @@ public class ConfigurationController {
 
 	@GET
 	@Produces({ "application/json" })
-	@ApiOperation(value = "Provides configuration data as json document. It contains options and endpoints supported by the FIDO U2F server.", response = U2fConfiguration.class)
+	@Operation(description  = "Provides configuration data as json document. It contains options and endpoints supported by the FIDO U2F server.")
+	@ApiResponse(description = "FIDO2 server configuration", content = @Content(schema = @Schema(implementation = U2fConfiguration.class)) )
 	public Response getConfiguration() {
         if ((appConfiguration.getFido2Configuration() == null) || appConfiguration.getFido2Configuration().isDisable()) {
             return Response.status(Status.FORBIDDEN).build();

@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.uma.ws.rs;
 
-import com.wordnik.swagger.annotations.Api;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.uma.UmaConstants;
@@ -20,13 +19,15 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 02/05/2013
  */
 
 @Path("/uma/scopes/icons")
-@Api(value= "/uma/scopes/icons", description = "UMA Scope Icon endpoint provides scope icon by scope id.")
+@Schema(defaultValue= "/uma/scopes/icons", description = "UMA Scope Icon endpoint provides scope icon by scope id.")
 public class UmaScopeIconWS {
 
     @Inject

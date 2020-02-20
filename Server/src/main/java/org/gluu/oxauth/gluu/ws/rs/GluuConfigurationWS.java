@@ -8,10 +8,12 @@ package org.gluu.oxauth.gluu.ws.rs;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
@@ -38,7 +40,7 @@ import java.util.*;
  * Created by eugeniuparvan on 8/5/16.
  */
 @Path("/.well-known/gluu-configuration")
-@Api(value = "/.well-known/gluu-configuration", description = "Endpoint for non-standard OpenID Connect discovery configuration data in a JSON [RFC4627] document that resides in at /.well-known/gluu-configuration directory at its hostmeta [hostmeta] location. The configuration data documents conformance options and endpoints supported by the Gluu server.")
+@Schema(defaultValue = "/.well-known/gluu-configuration", description = "Endpoint for non-standard OpenID Connect discovery configuration data in a JSON [RFC4627] document that resides in at /.well-known/gluu-configuration directory at its hostmeta [hostmeta] location. The configuration data documents conformance options and endpoints supported by the Gluu server.")
 public class GluuConfigurationWS {
 
     @Inject
@@ -61,8 +63,13 @@ public class GluuConfigurationWS {
 
     @GET
     @Produces({"application/json"})
-    @ApiOperation(value = "Provides configuration data as json document. It contains non-standard OpenID Connect discovery metadata supported by the Gluu server.", response = GluuConfiguration.class)
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "Failed to build gluu configuration json object.")})
+    @Operation(description = "Provides configuration data as json document. It contains non-standard OpenID Connect discovery metadata supported by the Gluu server.",
+    		responses =  {
+    	    		@ApiResponse(description = "OpenID Connect discovery configuration details", content = @Content(schema = @Schema(implementation = GluuConfiguration.class)))
+    	    }
+    )
+   /* responses = GluuConfiguration.class)*/
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "Failed to build gluu configuration json object.")})
     public Response getConfiguration() {
         try {
             final GluuConfiguration conf = new GluuConfiguration();

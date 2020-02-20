@@ -8,7 +8,6 @@ package org.gluu.oxauth.uma.ws.rs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.wordnik.swagger.annotations.*;
 import org.gluu.oxauth.model.common.AuthorizationGrant;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.uma.PermissionTicket;
@@ -29,6 +28,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 /**
  * The endpoint at which the host registers permissions that it anticipates a
  * requester will shortly be asking for from the AM. This AM's endpoint is part
@@ -43,7 +49,7 @@ import java.io.IOException;
  * @author Yuriy Zabrovarnyy
  */
 @Path("/host/rsrc_pr")
-@Api(value = "/host/rsrc_pr", description = "The resource server uses the protection API's permission registration endpoint to register a requested permission with the authorization server that would suffice for the client's access attempt. The authorization server returns a permission ticket for the resource server to give to the client in its response. The PAT provided in the API request implicitly identifies the resource owner (\"subject\") to which the permission applies.\n" +
+@Schema(defaultValue = "/host/rsrc_pr", description = "The resource server uses the protection API's permission registration endpoint to register a requested permission with the authorization server that would suffice for the client's access attempt. The authorization server returns a permission ticket for the resource server to give to the client in its response. The PAT provided in the API request implicitly identifies the resource owner (\"subject\") to which the permission applies.\n" +
         "\n" +
         "Note: The resource server is free to choose the extent of the requested permission that it registers, as long as it minimally suffices for the access attempted by the client. For example, it can choose to register a permission that covers several scopes or a resource set that is greater in extent than the specific resource that the client attempted to access. Likewise, the authorization server is ultimately free to choose to partially fulfill the elements of a permission request based on incomplete satisfaction of policy criteria, or not to fulfill the request.\n" +
         "\n" +
@@ -68,17 +74,15 @@ public class UmaPermissionRegistrationWS {
     @POST
     @Consumes({UmaConstants.JSON_MEDIA_TYPE})
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Registers permission using the POST method",
-            consumes = UmaConstants.JSON_MEDIA_TYPE,
-            produces = UmaConstants.JSON_MEDIA_TYPE,
-            notes = "The resource server uses the POST method at the endpoint. The body of the HTTP request message contains a JSON object providing the requested permission, using a format derived from the scope description format specified in [OAuth-resource-reg], as follows. The object has the following properties:")
+    @Operation(description = "Registers permission using the POST method",
+            summary = "The resource server uses the POST method at the endpoint. The body of the HTTP request message contains a JSON object providing the requested permission, using a format derived from the scope description format specified in [OAuth-resource-reg], as follows. The object has the following properties:")
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 400, message = "Bad Request")
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "400", description = "Bad Request")
     })
     public Response registerPermission(@Context HttpServletRequest request,
                                        @HeaderParam("Authorization") String authorization,
-                                       @ApiParam(value = "The identifier for a resource to which this client is seeking access. The identifier MUST correspond to a resource set that was previously registered.", required = true)
+                                       @Parameter(description = "The identifier for a resource to which this client is seeking access. The identifier MUST correspond to a resource set that was previously registered.", required = true)
                                        String requestAsString) {
         try {
             final AuthorizationGrant authorizationGrant = umaValidationService.assertHasProtectionScope(authorization);

@@ -217,10 +217,10 @@
 
 		<!-- Documentation -->
 		<dependency>
-			<groupId>com.wordnik</groupId>
+			<groupId>io.swagger.core.v3</groupId>
 			<artifactId>swagger-annotations</artifactId>
 		</dependency>
-
+				 
 		<!-- Test -->
 		<dependency>
 			<groupId>org.testng</groupId>

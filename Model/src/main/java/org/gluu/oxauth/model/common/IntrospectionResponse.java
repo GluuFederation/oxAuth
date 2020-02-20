@@ -6,8 +6,7 @@
 
 package org.gluu.oxauth.model.common;
 
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -24,7 +23,7 @@ import java.util.List;
 @JsonPropertyOrder({"active", "scope", "client_id", "username", "token_type", "exp", "iat", "sub", "aud", "iss", "jti", "acr_values"})
 // ignore jettison as it's recommended here: http://docs.jboss.org/resteasy/docs/2.3.4.Final/userguide/html/json.html
 @IgnoreMediaTypes("application/*+json")
-@ApiModel(value = "RPT introspection endpoint")
+@Schema(description = "RPT introspection endpoint")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IntrospectionResponse {
 
@@ -32,7 +31,7 @@ public class IntrospectionResponse {
     private boolean active;   // according spec, must be "active" http://tools.ietf.org/html/draft-richer-oauth-introspection-03#section-2.2
 
     @JsonProperty(value = "scope")
-    @ApiModelProperty(value = " An array referencing zero or more strings representing scopes to which access was granted for this resource. Each string MUST correspond to a scope that was registered by this resource server for the referenced resource.", required = true)
+    @Schema(description = " An array referencing zero or more strings representing scopes to which access was granted for this resource. Each string MUST correspond to a scope that was registered by this resource server for the referenced resource.", required = true)
     private List<String> scope;
     
     @JsonProperty(value = "client_id")
@@ -43,11 +42,11 @@ public class IntrospectionResponse {
     private String tokenType;
     
     @JsonProperty(value = "exp")
-    @ApiModelProperty(value = "Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission will expire. If the token-level exp value pre-dates a permission-level exp value, the token-level value takes precedence.", required = false)
+    @Schema(description = "Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission will expire. If the token-level exp value pre-dates a permission-level exp value, the token-level value takes precedence.", required = false)
     private Integer expiresAt;
     
     @JsonProperty(value = "iat")
-    @ApiModelProperty(value = "Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. If the token-level iat value post-dates a permission-level iat value, the token-level value takes precedence.", required = false)   
+    @Schema(description = "Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. If the token-level iat value post-dates a permission-level iat value, the token-level value takes precedence.", required = false)   
     private Integer issuedAt;
     
     @JsonProperty(value = "sub")

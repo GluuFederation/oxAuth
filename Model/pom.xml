@@ -154,10 +154,11 @@
         </dependency>
 
         <!-- documentation -->
+		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
 		<dependency>
-			<groupId>com.wordnik</groupId>
-			<artifactId>swagger-annotations</artifactId>
-		</dependency>
+		    <groupId>io.swagger.core.v3</groupId>
+		    <artifactId>swagger-annotations</artifactId>
+		</dependency>		
 
 	</dependencies>
 </project>

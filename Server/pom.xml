@@ -680,10 +680,10 @@
 
 		<!-- Documentation -->
 		<dependency>
-			<groupId>com.wordnik</groupId>
+			<groupId>io.swagger.core.v3</groupId>
 			<artifactId>swagger-annotations</artifactId>
-		</dependency>
-
+		</dependency>		
+		
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-ciba</artifactId>
@@ -1007,7 +1007,8 @@
 				</dependency>
 			</dependencies>
 		</profile>
-
+	
+		<!--  
 		<profile>
 			<id>swagger</id>
 			<activation>
@@ -1026,18 +1027,18 @@
 						<configuration>
 							<apiSources>
 								<apiSource>
-									<locations>org.gluu.oxauth.model.uma;
+									<locations>org.gluu.oxauth.model.uma;org.gluu.oxauth.*
 									</locations>
 									<apiVersion>v1</apiVersion>
 									<basePath>http://gluu.org</basePath>
 									<outputTemplate>${basedir}/src/main/docs/mustache/markdown.mustache</outputTemplate>
 									<outputPath>${basedir}/generated/swagger.markdown</outputPath>
-									<swaggerDirectory>${basedir}/generated/apidocs</swaggerDirectory>
+									<swaggerDirectory>${basedir}/generated/apidocs</swaggerDirectory> -->
 									<!--swaggerUIDocBasePath>http://www.example.com/restapi/doc</swaggerUIDocBasePath -->
 									<!--useOutputFlatStructure>false</useOutputFlatStructure -->
-									<mustacheFileRoot>${basedir}/src/main/docs/mustache</mustacheFileRoot>
+									<!-- <mustacheFileRoot>${basedir}/src/main/docs/mustache</mustacheFileRoot> -->
 									<!--overridingModels>/swagger-overriding-models.json</overridingModels -->
-								</apiSource>
+							<!-- 	</apiSource>
 							</apiSources>
 						</configuration>
 						<executions>
@@ -1059,19 +1060,22 @@
 					</plugin>
 				</plugins>
 			</build>
-			<dependencies>
+			<dependencies>				
 				<dependency>
-					<groupId>com.wordnik</groupId>
-					<artifactId>swagger-jaxrs_2.10</artifactId>
-					<version>1.3.13</version>
+				    <groupId>io.swagger.core.v3</groupId>
+				    <artifactId>swagger-jaxrs2</artifactId>
+				    <version>2.1.1</version>
 				</dependency>
-				<dependency>
-					<groupId>com.wordnik</groupId>
-					<artifactId>swagger-servlet_2.9.1</artifactId>
-					<version>1.3.1</version>
-				</dependency>
+				
+			<dependency>
+			    <groupId>io.swagger.core.v3</groupId>
+			    <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+			    <version>2.1.1</version>
+			</dependency>
+				
 			</dependencies>
 		</profile>
+		-->
 
 		<profile>
 			<id>saml</id>

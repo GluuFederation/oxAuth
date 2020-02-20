@@ -18,14 +18,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Provides interface for Client Info REST web services
  *
  * @author Javier Rojas Blum Date: 07.19.2012
  */
-@Api(value = "/", description = "The ClientInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the registered client.")
+@Schema(defaultValue = "/", description = "The ClientInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the registered client.")
 public interface ClientInfoRestWebService {
 
     @GET

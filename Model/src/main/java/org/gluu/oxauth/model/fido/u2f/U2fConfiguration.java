@@ -10,8 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.jboss.resteasy.annotations.providers.jaxb.IgnoreMediaTypes;
 
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * FIDO U2F metadata configuration
@@ -20,14 +19,14 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
  */
 @IgnoreMediaTypes("application/*+json")
 @JsonPropertyOrder({ "version", "issuer", "registration_start", "authentication_start" })
-@ApiModel(value = "FIDO U2F Configuration")
+@Schema(description = "FIDO U2F Configuration")
 public class U2fConfiguration {
 
-	@ApiModelProperty(value = "The version of the FIDO U2F core protocol to which this server conforms. The value MUST be the string \"1.0\".", required = true)
+	@Schema(description = "The version of the FIDO U2F core protocol to which this server conforms. The value MUST be the string \"1.0\".", required = true)
 	@JsonProperty(value = "version")
 	private String version;
 
-	@ApiModelProperty(value = "A URI indicating the party operating the FIDO U2F server.", required = true)
+	@Schema(description = "A URI indicating the party operating the FIDO U2F server.", required = true)
 	@JsonProperty(value = "issuer")
 	private String issuer;
 

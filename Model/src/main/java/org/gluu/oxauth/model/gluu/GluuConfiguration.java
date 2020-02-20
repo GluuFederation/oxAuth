@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.model.gluu;
 
-import com.wordnik.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.jboss.resteasy.annotations.providers.jaxb.IgnoreMediaTypes;
@@ -24,7 +24,7 @@ import java.util.Set;
         "auth_level_mapping",
         "scope_to_claims_mapping"
 })
-@ApiModel(value = "Gluu Configuration")
+@Schema(description = "Gluu Configuration")
 public class GluuConfiguration {
 
     @JsonProperty(value = "id_generation_endpoint")

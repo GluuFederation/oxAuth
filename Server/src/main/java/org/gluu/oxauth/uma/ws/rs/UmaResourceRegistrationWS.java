@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.uma.ws.rs;
 
-import com.wordnik.swagger.annotations.*;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.AuthorizationGrant;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
@@ -26,6 +25,14 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.util.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+
 /**
  * The API available at the resource registration endpoint enables the resource server to put resources under
  * the protection of an authorization server on behalf of the resource owner and manage them over time.
@@ -41,7 +48,7 @@ import java.util.*;
  *         Date: 02/12/2015
  */
 @Path("/host/rsrc/resource_set")
-@Api(value = "/host/rsrc/resource_set", description = "The resource server uses the RESTful API at the authorization server's resource set registration endpoint to create, read, update, and delete resource set descriptions, along with retrieving lists of such descriptions.")
+@Schema(defaultValue = "/host/rsrc/resource_set", description = "The resource server uses the RESTful API at the authorization server's resource set registration endpoint to create, read, update, and delete resource set descriptions, along with retrieving lists of such descriptions.")
 public class UmaResourceRegistrationWS {
 
     private static final int NOT_ALLOWED_STATUS = 405;
@@ -69,15 +76,15 @@ public class UmaResourceRegistrationWS {
     @POST
     @Consumes({UmaConstants.JSON_MEDIA_TYPE})
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Adds a new resource description using the POST method",
-            notes = "Adds a new resource description using the POST method. If the request is successful, the authorization server MUST respond with a status message that includes an _id property.")
+    @Operation(description = "Adds a new resource description using the POST method",
+            summary = "Adds a new resource description using the POST method. If the request is successful, the authorization server MUST respond with a status message that includes an _id property.")
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public Response createResource(
             @HeaderParam("Authorization")
             String authorization,
-            @ApiParam(value = "Resource description", required = true)
+            @Parameter(description = "Resource description", required = true)
             UmaResource resource) {
         try {
             String id = UUID.randomUUID().toString();
@@ -99,16 +106,16 @@ public class UmaResourceRegistrationWS {
     @Path("{rsid}")
     @Consumes({UmaConstants.JSON_MEDIA_TYPE})
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Updates a previously registered resource set description using the PUT method",
-            notes = "Updates a previously registered resource set description using the PUT method. If the request is successful, the authorization server MUST respond with a status message that includes an \"_id\" property.")
+    @Operation(description = "Updates a previously registered resource set description using the PUT method",
+            summary = "Updates a previously registered resource set description using the PUT method. If the request is successful, the authorization server MUST respond with a status message that includes an \"_id\" property.")
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public Response updateResource(@HeaderParam("Authorization") String authorization,
                                    @PathParam("rsid")
-                                   @ApiParam(value = "Resource description ID", required = true)
+                                   @Parameter(description = "Resource description ID", required = true)
                                    String rsid,
-                                   @ApiParam(value = "Resource description JSON object", required = true)
+                                   @Parameter(description = "Resource description JSON object", required = true)
                                        UmaResource resource) {
         try {
             return putResourceImpl(Response.Status.OK, authorization, rsid, resource);
@@ -126,17 +133,20 @@ public class UmaResourceRegistrationWS {
     @GET
     @Path("{rsid}")
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Reads a previously registered resource description using the GET method.",
-            notes = "Reads a previously registered resource description using the GET method. If the request is successful, the authorization server MUST respond with a status message that includes a body containing the referenced resource set description, along with an \"_id\" property.",
-            response = UmaResource.class)
+    @Operation(description = "Reads a previously registered resource description using the GET method.",
+            summary = "Reads a previously registered resource description using the GET method. If the request is successful, the authorization server MUST respond with a status message that includes a body containing the referenced resource set description, along with an \"_id\" property.",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the UmaResource.", content = @Content(schema = @Schema(implementation = UmaResource.class), mediaType="JSON"))
+    	    }
+    )
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public Response getResource(
             @HeaderParam("Authorization")
             String authorization,
             @PathParam("rsid")
-            @ApiParam(value = "Resource description object ID", required = true)
+            @Parameter(description = "Resource description object ID", required = true)
             String rsid) {
         try {
             final AuthorizationGrant authorizationGrant = umaValidationService.assertHasProtectionScope(authorization);
@@ -182,19 +192,22 @@ public class UmaResourceRegistrationWS {
      */
     @GET
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Lists all previously registered resource set identifiers for this user using the GET method.",
-            notes = "Lists all previously registered resource set identifiers for this user using the GET method. The authorization server MUST return the list in the form of a JSON array of {rsid} string values.\n" +
+    @Operation(description = "Lists all previously registered resource set identifiers for this user using the GET method.",
+            summary = "Lists all previously registered resource set identifiers for this user using the GET method. The authorization server MUST return the list in the form of a JSON array of {rsid} string values.\n" +
                     "\n" +
                     "The resource server uses this method as a first step in checking whether its understanding of protected resources is in full synchronization with the authorization server's understanding.",
-            response = UmaResource.class)
+        responses =  {
+	    		@ApiResponse(description = "Reponse object containing the list of UmaResource.", content = @Content(schema = @Schema(implementation = UmaResource.class), mediaType="JSON"))
+	    }
+    )
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public List<String> getResourceList(
             @HeaderParam("Authorization")
             String authorization,
             @QueryParam("scope")
-            @ApiParam(value = "Scope uri", required = false)
+            @Parameter(description = "Scope uri", required = false)
             String scope) {
         try {
             log.trace("Getting list of resource descriptions.");
@@ -233,17 +246,20 @@ public class UmaResourceRegistrationWS {
 
     @DELETE
     @Path("{rsid}")
-    @ApiOperation(value = "Deletes a previously registered resource set description using the DELETE method.",
-            notes = "Deletes a previously registered resource set description using the DELETE method, thereby removing it from the authorization server's protection regime.",
-            response = UmaResource.class)
+    @Operation(description = "Deletes a previously registered resource set description using the DELETE method.",
+            summary = "Deletes a previously registered resource set description using the DELETE method, thereby removing it from the authorization server's protection regime.",
+			 responses =  {
+			    		@ApiResponse(description = "Reponse object containing the status of delete resource request.", content = @Content(schema = @Schema(implementation = UmaResource.class), mediaType="JSON"))
+			    }
+            )
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public Response deleteResource(
             @HeaderParam("Authorization")
             String authorization,
             @PathParam("rsid")
-            @ApiParam(value = "Resource description ID", required = true)
+            @Parameter(description = "Resource description ID", required = true)
             String rsid) {
         try {
             log.debug("Deleting resource descriptions'");
@@ -367,14 +383,14 @@ public class UmaResourceRegistrationWS {
     }
 
     @HEAD
-    @ApiOperation(value = "Not allowed")
+    @Operation(description = "Not allowed")
     public Response unsupportedHeadMethod() {
         log.error("HEAD method is not allowed");
         throw new WebApplicationException(Response.status(NOT_ALLOWED_STATUS).entity("HEAD Method Not Allowed").build());
     }
 
     @OPTIONS
-    @ApiOperation(value = "Not allowed")
+    @Operation(description = "Not allowed")
     public Response unsupportedOptionsMethod() {
         log.error("OPTIONS method is not allowed");
         throw new WebApplicationException(Response.status(NOT_ALLOWED_STATUS).entity("OPTIONS Method Not Allowed").build());

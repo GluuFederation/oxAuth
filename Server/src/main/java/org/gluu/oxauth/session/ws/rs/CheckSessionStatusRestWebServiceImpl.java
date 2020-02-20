@@ -27,17 +27,20 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 
 /**
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
 @Path("/")
-@Api(value = "/", description = "Check Session Status Endpoint")
+@Schema(defaultValue = "/", description = "Check Session Status Endpoint")
 public class CheckSessionStatusRestWebServiceImpl {
 
     @Inject
@@ -49,14 +52,15 @@ public class CheckSessionStatusRestWebServiceImpl {
     @GET
     @Path("/session_status")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(
-            value = "Determine cussrent sesion status.",
-            notes = "Determine cussrent sesion status.",
-            response = Response.class,
-            responseContainer = "JSON"
+    @Operation(
+    		description = "Determine cussrent sesion status.",
+            summary = "Determine cussrent sesion status.",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the session status details.", content = @Content(schema = @Schema(implementation = Response.class), mediaType="JSON"))
+    	    }
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "invalid_request\n" +
+            @ApiResponse(responseCode = "400", description = "invalid_request\n" +
                     "The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.  The resource server SHOULD respond with the HTTP 400 (Bad Request) status code.")
     })
     public Response requestCheckSessionStatus(@Context HttpServletRequest httpRequest, @Context HttpServletResponse httpResponse,

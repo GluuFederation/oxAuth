@@ -7,9 +7,7 @@
 package org.gluu.oxauth.introspection.ws.rs;
 
 import com.google.common.collect.Lists;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
@@ -44,12 +42,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Iterator;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version June 30, 2018
  */
 @Path("/introspection")
-@Api(value = "/introspection", description = "The Introspection Endpoint is an OAuth 2 Endpoint that responds to " +
+@Schema(defaultValue = "/introspection", description = "The Introspection Endpoint is an OAuth 2 Endpoint that responds to " +
         "   HTTP GET and HTTP POST requests from token holders.  The endpoint " +
         "   takes a single parameter representing the token (and optionally " +
         "   further authentication) and returns a JSON document representing the meta information surrounding the token.")
@@ -78,10 +82,17 @@ public class IntrospectionWebService {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+    		description = "To introspect HTTP GET request token and returns JSON document representing the meta information surrounding the token",
+    		summary = "To introspect HTTP GET request token and returns JSON document representing the meta information surrounding the token",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the introspect details and status", content = @Content(schema = @Schema(implementation = Response.class)))
+    	    }
+    )
     @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "invalid_request\n" +
+            @ApiResponse(responseCode = "400", description = "invalid_request\n" +
                     "The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter or is otherwise malformed.  The resource server SHOULD respond with the HTTP 400 (Bad Request) status code."),
-            @ApiResponse(code = 500, message = "Introspection Internal Server Failed.")
+            @ApiResponse(responseCode = "500", description = "Introspection Internal Server Failed.")
     })
     public Response introspectGet(@HeaderParam("Authorization") String p_authorization,
                                   @QueryParam("token") String p_token,
@@ -95,6 +106,13 @@ public class IntrospectionWebService {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+    		description = "To introspect HTTP POST request token and returns JSON document representing the meta information surrounding the token",
+    		summary = "To introspect HTTP POST request token and returns JSON document representing the meta information surrounding the token",
+    		responses =  {
+    	    		@ApiResponse(description = "Reponse object containing the introspect details and status", content = @Content(schema = @Schema(implementation = Response.class)))
+    	    }
+    )
     public Response introspectPost(@HeaderParam("Authorization") String p_authorization,
                                    @FormParam("token") String p_token,
                                    @FormParam("token_type_hint") String tokenTypeHint,

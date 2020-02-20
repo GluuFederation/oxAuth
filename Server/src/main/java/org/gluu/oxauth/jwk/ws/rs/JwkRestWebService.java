@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * <p>
@@ -34,7 +34,7 @@ import com.wordnik.swagger.annotations.Api;
  *
  * @author Javier Rojas Blum Date: 11.15.2011
  */
-@Api(value = "/", description = "JWK Endpoint provides list of JWK used by server. A JSON Web Key (JWK) is a JSON data structure that represents a set of public keys as a JSON object [RFC4627].")
+@Schema(defaultValue = "/", description = "JWK Endpoint provides list of JWK used by server. A JSON Web Key (JWK) is a JSON data structure that represents a set of public keys as a JSON object [RFC4627].")
 public interface JwkRestWebService {
 
     /**

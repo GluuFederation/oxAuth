@@ -6,10 +6,6 @@
 
 package org.gluu.oxauth.uma.ws.rs;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.uma.RptIntrospectionResponse;
 import org.gluu.oxauth.model.uma.UmaConstants;
@@ -32,6 +28,13 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 /**
  * The endpoint at which the host requests the status of an RPT presented to it by a requester.
  * The endpoint is RPT introspection profile implementation defined by
@@ -40,7 +43,7 @@ import java.util.List;
  * @author Yuriy Zabrovarnyy
  */
 @Path("/rpt/status")
-@Api(value = "/rpt/status", description = "The endpoint at which the host requests the status of an RPT presented to it by a requester." +
+@Schema(defaultValue = "/rpt/status", description = "The endpoint at which the host requests the status of an RPT presented to it by a requester." +
         " The endpoint is RPT introspection profile implementation defined by UMA specification")
 public class UmaRptIntrospectionWS {
 
@@ -173,9 +176,9 @@ public class UmaRptIntrospectionWS {
     @GET
     @Consumes({UmaConstants.JSON_MEDIA_TYPE})
     @Produces({UmaConstants.JSON_MEDIA_TYPE})
-    @ApiOperation(value = "Not allowed")
+    @Operation(description = "Not allowed")
     @ApiResponses(value = {
-            @ApiResponse(code = 405, message = "Introspection of RPT is not allowed by GET HTTP method.")
+            @ApiResponse(responseCode = "405", description = "Introspection of RPT is not allowed by GET HTTP method.")
     })
     public Response requestRptStatusGet(@HeaderParam("Authorization") String authorization,
                                         @FormParam("token") String rpt,
