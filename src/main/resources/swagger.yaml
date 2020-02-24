@@ -1,0 +1,949 @@
+# raw swagger spec link:
+# https://raw.githubusercontent.com/GluuFederation/oxAuth/version_4.0/oxAuth-server/src/main/resources/swagger.yaml
+# https://gluu.org/swagger-ui/?url=https://raw.githubusercontent.com/GluuFederation/oxAuth-server/version_4.0/oxAuth-server/src/main/resources/swagger.yaml#/developers/setup-client
+openapi: 3.0.1
+info:
+  title: oxAuth-server
+  description: oxAuth-server - Authorization services
+  contact:
+    email: yuriyz@gluu.org
+  license:
+    name: License
+    url: https://github.com/GluuFederation/oxAuth/blob/master/license.md
+  version: "4.2"
+servers:
+- url: https://gluu.org/
+tags:
+- name: developers
+  description: Operations available to regular developers
+paths:
+  /authorize:
+    get:
+      tags:
+      - developers
+      summary: End-User Authentication and Authorization done by sending the User Agent to the Authorization Endpoint using request parameters defined by OAuth 2.0 and OpenID Connect.
+      description: The Authorization Endpoint performs Authentication of the End-User. 
+      operationId: requestAuthorizationGet
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          description: OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present, the behavior is entirely unspecified. Other scope values MAY be present. 
+          schema:
+            type : string
+        - name: response_type
+          in: query
+          required: true
+          description: OAuth 2.0 Response Type value that determines the authorization processing flow to be used, including what parameters are returned from the endpoints used.
+          schema:
+            type : string
+        - name: client_id
+          in: query
+          required: true
+          description: OAuth 2.0 Client Identifier valid at the Authorization Server.
+          schema:
+            type : string            
+        - name: redirect_uri
+          in: query
+          required: true
+          description: Redirection URI to which the response will be sent. This URI MUST exactly match one of the Redirection URI values for the Client pre-registered at the OpenID Provider.
+          schema:
+            type : string
+        - name: state
+          in: query
+          required: false
+          description: Opaque value used to maintain state between the request and the callback.
+          schema:
+            type : string
+        - name: response_mode
+          in: query
+          required: false
+          description: Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization Endpoint.
+          schema:
+            type : string
+        - name: nonce
+          in: query
+          required: false
+          description: String value used to associate a Client session with an ID Token, and to mitigate replay attacks. 
+          schema:
+            type : string
+        - name: display
+          in: query
+          required: false
+          description: ASCII string value that specifies how the Authorization Server displays the authentication and consent user interface pages to the End-User.
+          schema:
+            type : string 
+        - name: prompt
+          in: query
+          required: false
+          description: Space delimited, case sensitive list of ASCII string values that specifies whether the Authorization Server prompts the End-User for reauthentication and consent. The defined values are - none, login, consent, select_account.
+          schema:
+            type : string  
+        - name: max_age
+          in: query
+          required: false
+          description: Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the End-User was actively authenticated by the OP.
+          schema:
+            type : integer  
+        - name: ui_locales
+          in: query
+          required: false
+          description: End-User's preferred languages and scripts for the user interface, represented as a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. 
+          #example: \"fr-CA fr en\" represents a preference for French as spoken in Canada, then French (without a region designation), followed by English (without a region designation).
+          schema:
+            type : string
+        - name: id_token_hint
+          in: query
+          required: false
+          description: ID Token previously issued by the Authorization Server being passed as a hint about the End-User's current or past authenticated session with the Client. If the End-User identified by the ID Token is logged in or is logged in by the request, then the Authorization Server returns a positive response.
+          schema:
+            type : string
+        - name: login_hint
+          in: query
+          required: false
+          description: Hint to the Authorization Server about the login identifier the End-User might use to log in (if necessary). 
+          schema:
+            type : string
+        - name: acr_values
+          in: query
+          required: false
+          description: Requested Authentication Context Class Reference values. Space-separated string that specifies the acr values that the Authorization Server is being requested to use for processing this Authentication Request, with the values appearing in order of preference.
+          schema:
+            type : string
+        - name: amr_values
+          in: query
+          required: false
+          description: AMR Values.
+          schema:
+            type : string
+        - name: request
+          in: query
+          required: false
+          description: This parameter enables OpenID Connect requests to be passed in a single, self-contained parameter and to be optionally signed and/or encrypted. The parameter value is a Request Object value. It represents the request as a JWT whose Claims are the request parameters.
+          schema:
+            type : string
+        - name: request_uri
+          in: query
+          required: false
+          description: This parameter enables OpenID Connect requests to be passed by reference, rather than by value. The request_uri value is a URL using the https scheme referencing a resource containing a Request Object value, which is a JWT containing the request parameters.
+          schema:
+            type : string
+        - name: request_session_id
+          in: query
+          required: false
+          description: Request session id.
+          schema:
+            type : string
+        - name: session_id
+          in: query
+          required: false
+          description: Session id of this call.
+          schema:
+            type : string
+        - name: origin_headers
+          in: query
+          required: false
+          description: Origin headers. Used in custom workflows.
+          schema:
+            type : string
+        - name: code_challenge
+          in: query
+          required: false
+          description: PKCE code challenge.
+          schema:
+            type : string
+        - name: code_challenge_method
+          in: query
+          required: false
+          description: PKCE code challenge method.
+          schema:
+            type : string
+        - name: custom_response_headers
+          in: query
+          required: false
+          description: Custom Response Headers.
+          schema:
+            type : string
+        - name: claims
+          in: query
+          required: false
+          description: Requested Claims.
+          schema:
+            type : string
+        - name: auth_req_id
+          in: query
+          required: false
+          description: CIBA authentication request Id.
+          schema:
+            type : string
+      responses:
+        200:
+          description: OK
+          content: {}
+        302:
+          description: Invalid parameters are provided to endpoint. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'   
+  /authorize(post):
+    post:
+      tags:
+      - developers
+      summary: End-User Authentication and Authorization done by sending the User Agent to the Authorization Endpoint using request parameters defined by OAuth 2.0 and OpenID Connect.
+      description: The Authorization Endpoint performs Authentication of the End-User. 
+      operationId: requestAuthorizationPost
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - scope
+              - response_type
+              - client_id
+              - redirect_uri
+              properties:
+                scope:
+                  type : string
+                  description: OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present, the behavior is entirely unspecified. Other scope values MAY be present. 
+                response_type:
+                  type : string
+                  description: OAuth 2.0 Response Type value that determines the authorization processing flow to be used, including what parameters are returned from the endpoints used.
+                client_id:
+                  type : string
+                  description: OAuth 2.0 Client Identifier valid at the Authorization Server.
+                redirect_uri:
+                  type : string
+                  description: Redirection URI to which the response will be sent. This URI MUST exactly match one of the Redirection URI values for the Client pre-registered at the OpenID Provider.
+                state:
+                  type : string
+                  description: Opaque value used to maintain state between the request and the callback.
+                response_mode:
+                  type : string
+                  description: Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization Endpoint.
+                nonce:
+                  type : string
+                  description: String value used to associate a Client session with an ID Token, and to mitigate replay attacks. 
+                display:
+                  type : string
+                  description: ASCII string value that specifies how the Authorization Server displays the authentication and consent user interface pages to the End-User.
+                prompt:
+                  type : string
+                  description: Space delimited, case sensitive list of ASCII string values that specifies whether the Authorization Server prompts the End-User for reauthentication and consent. 
+                max_age:
+                  type : integer 
+                  description: Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the End-User was actively authenticated by the OP.
+                ui_locales:
+                  type : string
+                  description: End-User's preferred languages and scripts for the user interface, represented as a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. 
+                  example: \"fr-CA fr en\" represents a preference for French as spoken in Canada, then French (without a region designation), followed by English (without a region designation).
+                id_token_hint:
+                  type : string
+                  description: ID Token previously issued by the Authorization Server being passed as a hint about the End-User's current or past authenticated session with the Client. If the End-User identified by the ID Token is logged in or is logged in by the request, then the Authorization Server returns a positive response.
+                login_hint:
+                  type : string
+                  description: Hint to the Authorization Server about the login identifier the End-User might use to log in (if necessary). 
+                acr_values:
+                  type : string
+                  description: Requested Authentication Context Class Reference values. Space-separated string that specifies the acr values that the Authorization Server is being requested to use for processing this Authentication Request, with the values appearing in order of preference.
+                amr_values:
+                  type : string
+                  description: AMR Values.
+                request:
+                  type : string
+                  description: This parameter enables OpenID Connect requests to be passed in a single, self-contained parameter and to be optionally signed and/or encrypted. The parameter value is a Request Object value. It represents the request as a JWT whose Claims are the request parameters.
+                request_uri:
+                  type : string
+                  description: This parameter enables OpenID Connect requests to be passed by reference, rather than by value. The request_uri value is a URL using the https scheme referencing a resource containing a Request Object value, which is a JWT containing the request parameters.
+                request_session_id:
+                  type : string
+                  description: Request session id.
+                session_id:
+                  type : string
+                  description: Session id of this call.
+                origin_headers:
+                  type : string
+                  description: Origin headers. Used in custom workflows.
+                code_challenge:
+                  type : string
+                  description: PKCE code challenge.
+                code_challenge_method:
+                  type : string
+                  description: PKCE code challenge method.
+                custom_response_headers:
+                  type : string
+                  description: Custom Response Headers.
+                claims:
+                  type : string
+                  description: Requested Claims.
+      responses:
+        200:
+          description: OK
+          content: {}
+        302:
+          description: Invalid parameters are provided to endpoint. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'               
+  /bc-authorize:
+    post:
+      tags:
+      - developers
+      summary: The Backchannel Authentication Endpoint is used to initiate an out-of-band authentication of the end-user.
+      description: Performs backchannel authorization
+      operationId: requestBackchannelAuthorizationPost
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - client_id
+              - scope
+              - client_notification_token
+              properties:
+                client_id:
+                  type : string
+                  description: OAuth 2.0 Client Identifier valid at the Authorization Server.                  
+                scope:
+                  type : string
+                  description: CIBA authentication requests must contain the openid scope value.
+                client_notification_token:
+                  type : string
+                  description: It is a bearer token provided by the Client that will be used by the OpenID Provider to authenticate the callback request to the Client. It is required if the Client is registered to use Ping or Push modes.
+                acr_values:
+                  type : string
+                  description: Requested Authentication Context Class Reference values.
+                login_hint_token:
+                  type : string
+                  description: A token containing information identifying the end-user for whom authentication is being requested.
+                id_token_hint:
+                  type : string
+                  description: An ID Token previously issued to the Client by the OpenID Provider being passed back as a hint to identify the end-user for whom authentication is being requested.
+                login_hint:
+                  type : string
+                  description: A hint to the OpenID Provider regarding the end-user for whom authentication is being requested.
+                binding_message:
+                  type : string
+                  description: A human readable identifier or message intended to be displayed on both the consumption device and the authentication device to interlock them together for the transaction by way of a visual cue for the end-user.
+                user_code:
+                  type : string
+                  description: A secret code, such as password or pin, known only to the user but verifiable by the OP.
+                requested_expiry:
+                  type : integer
+                  description: A positive integer allowing the client to request the expires_in value for the auth_req_id the server will return.
+      responses:
+        200:
+          description: OK
+          content: {}         
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Invalid client.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bc-deviceRegistration:
+    post:
+      tags:
+      - developers
+      summary: The Backchannel Device Registration Endpoint is used to register the end-user device for push notifications (FCM).
+      description: Performs backchannel device registration.
+      operationId: requestBackchannelDeviceRegistrationPost
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - id_token_hint
+              - device_registration_token
+              properties:
+                id_token_hint:
+                  type : string
+                  description: An ID Token previously issued to the Client by the OpenID Provider being passed back as a hint to identify the end-user for whom the device registration is being requested.
+                device_registration_token:
+                  type : string
+                  description: OAuth 2.0 Client Identifier valid at the Authorization Serve
+      responses:
+        200:
+          description: OK
+          content: {}         
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        403:
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'                
+  /clientinfo:
+    post:
+      tags:
+      - developers
+      summary: The ClientInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the registered client.
+      description: ClientInfo Endpoint.
+      operationId: requestClientInfoPost
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - access_token
+              - Authorization
+              properties:
+                access_token:
+                  type : string
+                  description: Client-specific access token.
+                Authorization:
+                  type : string
+                  description: Client Authorization details that contains the access token along with other details.           
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                #description:Client GluuAttribute by Dn(Distinguished Name) based on Authorization Scope.
+                properties:
+                  displayName:
+                    type: string
+                    example: 
+                  inum:
+                    type: string
+                    example: 
+                  oxAuthAppType:
+                    type: string
+                    example: 
+                  oxAuthIdTokenSignedResponseAlg:
+                    type: string
+                    example: 
+                  oxAuthRedirectURI:
+                    type: array
+                    items: 
+                      type: string
+                    example: 
+                  oxId:
+                    type: string
+                    example: 
+                    description: Scope id                          
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        403:
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'                
+  /.well-known/gluu-configuration:
+    post:
+      tags:
+      - developers
+      summary: Endpoint for non-standard OpenID Connect discovery configuration data in a JSON [RFC4627] document that resides in at /.well-known/gluu-configuration directory at its hostmeta [hostmeta] location. The configuration data documents conformance options and endpoints supported by the Gluu server.
+      description: GluuServer configuration data document Endpoint.It contains non-standard OpenID Connect discovery metadata supported by the Gluu server.
+      operationId: getConfiguration      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: GluuConfiguration
+                $ref: '#/components/schemas/GluuConfiguration'   
+                #description:Client GluuAttribute by Dn(Distinguished Name) based on Authorization Scope.                                         
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        403:
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'  
+  /introspection:
+    get:
+      tags:
+      - developers
+      summary: The Introspection OAuth 2 Endpoint responds to HTTP GET requests from token holders. 
+      description: The Introspection Endpoint takes a single parameter representing the token and returns a JSON document representing the token meta information.
+      operationId: introspectGet
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Client Authorization details that contains the access token along with other details.
+          schema:
+            type : string
+        - name: token
+          in: query
+          required: true
+          #description: ID of pet that needs to be updated         
+          schema:
+            type : string
+        - name: token_type_hint
+          in: query
+          required: true
+          #description:ID Token previously issued by the Authorization Server being passed as a hint about the End-User.
+          schema:
+            type : string            
+        - name: response_as_jwt
+          in: query
+          required: true
+          #description: Value true indicates that response to be jwt
+          schema:
+            type : string        
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: IntrospectionResponse
+                $ref: '#/components/schemas/IntrospectionResponse'                  
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        500:
+          description: Introspection Internal Server Failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'   
+  /introspection(post):
+    post:
+      tags:
+      - developers
+      summary: The Introspection OAuth 2 Endpoint responds to HTTP POST requests from token holders. 
+      description: The Introspection Endpoint takes a single parameter representing the token and returns a JSON document representing the token meta information.
+      operationId: introspectPost      
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - token
+              - token_type_hint
+              - response_as_jwt
+              properties:
+                token:
+                  type : string
+                  description: Client access token.
+                token_type_hint:
+                  type : string  
+                  description: ID Token previously issued by the Authorization Server being passed as a hint about the End-User.
+                response_as_jwt:
+                  type : string
+                  description: Value true indicates that response to be jwt
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Client Authorization details that contains the access token along with other details.  
+          schema:
+            type : string 
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: IntrospectionResponse
+                $ref: '#/components/schemas/IntrospectionResponse'                                        
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        500:
+          description: Introspection Internal Server Failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'  
+  /.jwks:
+    get:
+      tags:
+      - developers
+      summary: A JSON Web Key (JWK) Endpoint to get set of public keys as a JSON object.  It is sometimes useful to be able to reference public key representations, for instance, in order to verify the signature on content signed with the corresponding private key. The JSON Web Key (JWK) data structure provides a convenient JSON representation for sets of public keys utilizing either the Elliptic Curve or RSA families of algorithms.
+      description: A JSON Web Key (JWK) is a JSON data structure that represents a set of public keys as a JSON object.
+      operationId: requestJwk      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: WebKeysConfiguration
+                required:
+                - keys
+                type: object
+                properties:
+                  keys:
+                    type: object
+                    additionalProperties:
+                      type: object                                    
+        500:
+          description: Introspection Internal Server Failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'   
+  /register:
+    post:
+      tags:
+      - developers
+      summary: The Client Registration Endpoint is an OAuth 2.0 Protected Resource through which a new Client registration can be requested.
+      description: Registers new client dynamically.
+      operationId: requestRegister
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: RegisterParams
+              required:
+              - redirect_uris
+              type: object
+              properties:
+                redirect_uris:
+                  type: array
+                  description: Request parameters as JSON object with data described by Connect Client Registration Specification.
+                  example:
+                  - https://client.example.org/cb
+                  items:
+                    type: string
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Access Token that is used at the Client Configuration Endpoint   
+          schema:
+            type : string      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: ClientResponse
+                $ref: '#/components/schemas/ClientResponse'                                        
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        302:
+          description: Access Denies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /register(put):
+    put:
+      tags:
+      - developers
+      summary: The Client Registration Endpoint to update Client Metadata for a previously registered client.
+      description: This operation updates the Updates client info for a previously registered client.
+      operationId: requestClientUpdate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: RegisterParams
+              required:
+              - redirect_uris
+              type: object
+              properties:
+                redirect_uris:
+                  type: array
+                  description: Request parameters as JSON object with data described by Connect Client Registration Specification..
+                  example:
+                  - https://client.example.org/cb
+                  items:
+                    type: string
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          description: Client ID that identifies client that must be updated by this request.   
+          schema:
+            type : string  
+        - name: Authorization
+          in: header
+          required: true
+          description: Access Token that is used at the Client Configuration Endpoint   
+          schema:
+            type : string      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: ClientResponse
+                $ref: '#/components/schemas/ClientResponse'                                        
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        302:
+          description: Access Denies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' 
+  /register(get):
+    get:
+      tags:
+      - developers
+      summary: The Client Registration Endpoint to retrieve the Client Metadata for a previously registered client.
+      description: Reads client info.
+      operationId: requestClientRead
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          description: Client ID that identifies client.  
+          schema:
+            type : string      
+        - name: Authorization
+          in: header
+          required: true
+          description: Access Token that is used at the Client Configuration Endpoint   
+          schema:
+            type : string      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: ClientResponse
+                $ref: '#/components/schemas/ClientResponse'                                        
+        401:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        403:
+          description: The client is not allowed to delete itself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' 
+  /register(delete):
+    delete:
+      tags:
+      - developers
+      summary: The Client Registration Endpoint removes the Client Metadata for a previously registered client.
+      description: Deletes client info.
+      operationId: delete
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          description: Client ID that identifies client.  
+          schema:
+            type : string      
+        - name: Authorization
+          in: header
+          required: true
+          description: Access Token that is used at the Client Configuration Endpoint   
+          schema:
+            type : string      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: ClientResponse
+                $ref: '#/components/schemas/ClientResponse'                                        
+        400:
+          description: Invalid parameters are provided to endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'        
+        302:
+          description: Access Denies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'                 
+                
+components:
+  schemas:  
+    ErrorResponse:
+      required:
+      - error
+      - error_description
+      type: object
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+        details:
+          type: string
+    GluuConfiguration:
+      required:
+      - id_generation_endpoint
+      - introspection_endpoint
+      - auth_level_mapping
+      type: object
+      properties:
+        id_generation_endpoint:
+          type: string
+        introspection_endpoint:
+          type: string
+        details:
+          type: string
+        auth_level_mapping:
+          type: object
+          additionalProperties:
+            type: object
+        scope_to_claims_mapping:
+          type: object
+          additionalProperties:
+            type: object
+    IntrospectionResponse:
+      required:
+      - active
+      - scope
+      - client_id
+      - username
+      - token_type
+      - exp
+      - iat
+      - sub
+      - aud
+      - iss
+      - jti
+      - acr_values
+      type: object
+      properties:
+        active:
+          type: object
+          additionalProperties:
+            type: string
+          example: true
+        client_id:
+          type: string
+          example:
+        username:
+          type: string
+          example:
+        token_type:
+          type: string
+          example: 
+        exp:
+          type: string
+          example: 
+        iat:
+          type: integer
+          example: 
+        sub:
+          type: string
+          example: 
+        aud:
+          type: string
+          example:
+        iss:
+          type: string
+          example:
+        jti:
+          type: string
+          example:
+        acr_values:
+          type: string
+          example: 
+    ClientResponse:
+      required:
+      - dn
+      - inum
+      - isDeletable
+      - oxAuthClientSecret
+      - tknBndCnf
+      - oxAuthClientIdIssuedAt
+      - oxAuthClientSecretExpiresAt
+      - expirationDate
+      - displayName
+      - oxLastAccessTime
+      - oxLastLogonTime
+      - oxPersistClientAuthorizations
+      type: object
+      properties:
+        dn:
+          type: string
+        inum:
+          type: string
+        isDeletable:
+          type: boolean
+        oxAuthClientSecret:
+          type: string
+        oxAuthRegistrationAccessToken:
+          type: string
+        tknBndCnf: 
+          type: string
+        oxAuthClientIdIssuedAt:
+          type: object
+        oxAuthClientSecretExpiresAt:
+          type: object
+        expirationDate:
+          type: object
+        displayName:
+          type: string
+        oxLastAccessTime:
+          type: object
+        oxLastLogonTime:
+          type: object
+        oxPersistClientAuthorizations:
+          type: boolean
+        
+        
+
+       
+          
+    
+   
+            
+                
