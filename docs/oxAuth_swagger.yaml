@@ -1,22 +1,23 @@
 # raw swagger spec link:
-# https://raw.githubusercontent.com/GluuFederation/oxAuth/version_4.0/oxAuth-server/src/main/resources/swagger.yaml
-# https://gluu.org/swagger-ui/?url=https://raw.githubusercontent.com/GluuFederation/oxAuth-server/version_4.0/oxAuth-server/src/main/resources/swagger.yaml#/developers/setup-client
+# https://raw.githubusercontent.com/GluuFederation/oxAuth/master/docs/oxAuth_swagger.yaml
+# https://gluu.org/swagger-ui/?url=https://raw.githubusercontent.com/GluuFederation/oxAuth-server/version_4.0/oxAuth/master/docs/oxAuth_swagger.yaml#/developers/setup-client
 openapi: 3.0.1
 info:
-  title: oxAuth-server
-  description: oxAuth-server - Authorization services
+  title: oxAuth
+  description: oxAuth - Authorization services
   contact:
     email: yuriyz@gluu.org
   license:
     name: License
-    url: https://github.com/GluuFederation/oxAuth/blob/master/license.md
+    url: https://github.com/GluuFederation/oxAuth/blob/master/LICENSE
   version: "4.2"
 servers:
 
 - url: https://gluu.org/
 tags:
 - name: developers
-  description: Operations available to regular developers
+  description: oxAuth is an open source OpenID Connect Provider (OP) and UMA Authorization Server (AS). The project also includes OpenID Connect Client code which can be used by websites to validate tokens.oxAuth currently implements all required aspects of the OpenID Connect stack, including an OAuth 2.0 authorization server, Simple Web Discovery, Dynamic Client Registration, JSON Web Tokens, JSON Web Keys, and User Info Endpoint.oxAuth is tightly coupled with oxTrust.
+   
 paths:
   /authorize:
     get:
@@ -339,7 +340,22 @@ paths:
       responses:
         200:
           description: OK
-          content: {}         
+          content:
+            application/json:
+              schema:
+                title: Backchannel Authorization
+                required:
+                - AUTH_REQ_ID
+                - EXPIRES_IN
+                - INTERVAL
+                type: object
+                properties:
+                  AUTH_REQ_ID:
+                    type: string
+                  EXPIRES_IN:
+                    type: integer
+                  INTERVAL:
+                    type: integer      
         400:
           $ref: '#/components/responses/InvalidRequest'     
         401:
@@ -378,12 +394,38 @@ paths:
         403:
           $ref: '#/components/responses/AccessDenied'          
   /clientinfo:
+    get:
+      tags:
+      - Client Info
+      summary: To get Claims details about the registered client.
+      description: The ClientInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the registered client.
+      operationId: get_clientinfo
+      parameters:
+      - name: access_token
+        in: query
+        schema:
+          type : string 
+          description: Client-specific access token.
+      - name: Authorization
+        in: header
+        schema:
+          type : string          
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: Client details in response.
+                $ref: '#/components/schemas/ClientInfoResponse'                      
+        400:
+          $ref: '#/components/responses/InvalidRequest'       
     post:
       tags:
       - Client Info
       summary: To get Claims details about the registered client.
       description: The ClientInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the registered client.
-      operationId: clientinfo
+      operationId: post_clientinfo
       requestBody:
         required: true
         content:
@@ -392,48 +434,25 @@ paths:
               type: object
               required:
               - access_token
-              - Authorization
               properties:
                 access_token:
                   type : string
                   description: Client-specific access token.
-                Authorization:
-                  type : string
-                  description: Client Authorization details that contains the access token along with other details.           
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type : string          
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                #description:Client GluuAttribute by Dn(Distinguished Name) based on Authorization Scope.
-                properties:
-                  displayName:
-                    type: string
-                    example: 
-                  inum:
-                    type: string
-                    example: 
-                  oxAuthAppType:
-                    type: string
-                    example: 
-                  oxAuthIdTokenSignedResponseAlg:
-                    type: string
-                    example: 
-                  oxAuthRedirectURI:
-                    type: array
-                    items: 
-                      type: string
-                    example: 
-                  oxId:
-                    type: string
-                    example: 
-                    description: Scope id                          
+                title: Client details in response.
+                $ref: '#/components/schemas/ClientInfoResponse'                      
         400:
-          $ref: '#/components/responses/InvalidRequest'     
-        403:
-         $ref: '#/components/responses/AccessDenied'
+          $ref: '#/components/responses/InvalidRequest'            
   /.well-known/gluu-configuration:
     post:
       tags:
@@ -447,13 +466,29 @@ paths:
           content:
             application/json:
               schema:
-                title: GluuConfiguration
-                $ref: '#/components/schemas/GluuConfiguration'   
-                #description:Client GluuAttribute by Dn(Distinguished Name) based on Authorization Scope.                                         
-        400:
-          $ref: '#/components/responses/InvalidRequest'        
-        403:
-          $ref: '#/components/responses/AccessDenied'          
+                title: GluuConfigurationResponse
+                description: Client GluuAttribute by Dn(Distinguished Name) based on Authorization Scope.                                         
+                required:
+                - id_generation_endpoint
+                - introspection_endpoint
+                type: object
+                properties:
+                  id_generation_endpoint:
+                    type: string
+                  introspection_endpoint:
+                    type: string
+                  auth_level_mapping:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      description: Additional Custom Acr's map object 
+                  scope_to_claims_mapping:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      description: Scope map object
+        500:
+          $ref: '#/components/responses/InternalServerError'       
   /introspection:
     get:
       tags:
@@ -468,24 +503,26 @@ paths:
           description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
+          example: Bearer 23410913-abewfq.123483
         - name: token
           in: query
-          required: true
-          #description: ID of pet that needs to be updated         
+          required: true    
           schema:
             type : string
+          example: token=2YotnFZFEjr1zCsicMWpAA
         - name: token_type_hint
           in: query
           required: true
-          #description:ID Token previously issued by the Authorization Server being passed as a hint about the End-User.
+          description: ID Token previously issued by the Authorization Server being passed as a hint about the End-User.            
           schema:
-            type : string            
+            type : string
         - name: response_as_jwt
           in: query
-          required: true
-          #description: Value true indicates that response to be jwt
+          required: false
+          description: OPTIONAL. Boolean value with default value false. If true, returns introspection response as JWT (signed based on client configuration used for authentication to Introspection Endpoint).
           schema:
             type : string 
+          example: response_as_jwt=false  
       responses:
         200:
           description: OK
@@ -493,9 +530,65 @@ paths:
             application/json:
               schema:
                 title: IntrospectionResponse
-                $ref: '#/components/schemas/IntrospectionResponse'                  
+                description: meta-information about token
+                required:
+                - active
+                - exp
+                - iat
+                - acr_values
+                - scope      
+                - client_id
+                - sub      
+                - username
+                - iss
+                - aud
+                - token_type
+                type: object
+                properties:
+                 active:
+                   type: boolean
+                   example: true
+                 exp:
+                   type: integer
+                   description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission will expire.
+                 iat:
+                   type: integer
+                   example: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. 
+                 acr_values:
+                   type: string
+                 scope:
+                   type: array
+                   description: Provide list of scopes to which access was granted for this resource.
+                   example:
+                   - read write dolphin
+                   items:
+                     type: string         
+                 client_id:
+                   type: string
+                   example: 1238j323ds-23ij4
+                 sub:
+                   type: string
+                   example: Z5O3upPC88QrAjx00dis
+                   description: Subject of the token, as defined in JWT [RFC7519].           
+                 username:
+                   type: string
+                   example: jdoe
+                 iss:
+                   type: string
+                   example: https://server.example.com/
+                   description: String representing the issuer of this token, as defined in JWT [RFC7519].           
+                 aud:
+                   type: string
+                   example: https://protected.example.net/resource
+                   description: Service-specific string identifier or list of string identifiers representing the intended audience for this token, as defined in JWT [RFC7519]. 
+                 token_type:
+                   type: string
+                   example: bearer, mac
+                   description: Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749].               
         400:
          $ref: '#/components/responses/InvalidRequest'   
+        401:
+          $ref: '#/components/responses/Unauthorized'
         500:
           $ref: '#/components/responses/InternalServerError' 
     post:
@@ -517,19 +610,22 @@ paths:
                 token:
                   type : string
                   description: Client access token.
+                  example: token=2YotnFZFEjr1zCsicMWpAA
                 token_type_hint:
                   type : string  
                   description: ID Token previously issued by the Authorization Server being passed as a hint about the End-User.
                 response_as_jwt:
                   type : string
-                  description: Value true indicates that response to be jwt
+                  description: OPTIONAL. Boolean value with default value false. If true, returns introspection response as JWT (signed based on client configuration used for authentication to Introspection Endpoint).
+                  example: response_as_jwt=false
       parameters:
         - name: Authorization
           in: header
           required: true
           description: Client Authorization details that contains the access token along with other details.  
           schema:
-            type : string             
+            type : string 
+          example: Bearer 23410913-abewfq.123483            
       responses:
         200:
           description: OK
@@ -537,17 +633,73 @@ paths:
             application/json:
               schema:
                 title: IntrospectionResponse
-                $ref: '#/components/schemas/IntrospectionResponse'                  
+                description: meta-information about token
+                required:
+                - active
+                - exp
+                - iat
+                - acr_values
+                - scope      
+                - client_id
+                - sub      
+                - username
+                - iss
+                - aud
+                - token_type
+                type: object
+                properties:
+                 active:
+                   type: boolean
+                   example: true
+                 exp:
+                   type: integer
+                   description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission will expire.
+                 iat:
+                   type: integer
+                   example: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. 
+                 acr_values:
+                   type: string
+                 scope:
+                   type: array
+                   description: Provide list of scopes to which access was granted for this resource.
+                   example:
+                   - read write dolphin
+                   items:
+                     type: string         
+                 client_id:
+                   type: string
+                   example: 1238j323ds-23ij4
+                 sub:
+                   type: string
+                   example: Z5O3upPC88QrAjx00dis
+                   description: Subject of the token, as defined in JWT [RFC7519].           
+                 username:
+                   type: string
+                   example: jdoe
+                 iss:
+                   type: string
+                   example: https://server.example.com/
+                   description: String representing the issuer of this token, as defined in JWT [RFC7519].           
+                 aud:
+                   type: string
+                   example: https://protected.example.net/resource
+                   description: Service-specific string identifier or list of string identifiers representing the intended audience for this token, as defined in JWT [RFC7519]. 
+                 token_type:
+                   type: string
+                   example: bearer, mac
+                   description: Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749].               
         400:
          $ref: '#/components/responses/InvalidRequest'   
+        401:
+          $ref: '#/components/responses/Unauthorized'
         500:
           $ref: '#/components/responses/InternalServerError' 
   /jwks:
     get:
       tags:
-      - Token
-      summary: Gets set of public keys.
-      description: Gets set of public keys.
+      - JWK - JSON Web Key Set (JWKs)
+      summary: A JSON Web Key (JWK) used by server. JWK is a JSON data structure that represents a set of public keys as a JSON object [RFC4627].
+      description: Provides list of JWK used by server. 
       operationId: jwks      
       responses:
         200:
@@ -561,12 +713,17 @@ paths:
                 type: object
                 properties:
                   keys:
-                    type: object
-                    additionalProperties:
-                      type: object                                    
+                    type: array
+                    items:
+                      type: string
+                    description: Each property in the key is defined by the JWK specification RFC 7517 Section 4 or, for algorithm-specific properties, in RFC 7518]
+                    example: '{"keys": [{"key1": "value1", "key2": "value2"}] }'                   
         500:
-          $ref: '#/components/responses/InternalServerError'          
-  /register:
+          $ref: '#/components/responses/InternalServerError'
+
+
+#WIP to  TODO- need to add all attributes as in RegisterRequestParam and move schema objects in-line        
+  /register: 
     post:
       tags:
       - Registration
@@ -577,16 +734,30 @@ paths:
         content:
           application/json:
             schema:
-              title: RegisterParams
+              title: RegisterParams # ToDO- need to add all attributes as in RegisterRequestParam
               required:
               - redirect_uris
               type: object
               properties:
+                software_statement:
+                  type: string
+                  description:  A software statement containing client metadata values about the client software as claims.
+                
                 redirect_uris:
                   type: array
-                  description: Request parameters as JSON object with data described by Connect Client Registration Specification.
+                  description: Redirection URI values used by the Client. One of these registered Redirection URI values must exactly match the redirect_uri parameter value used in each Authorization Request
+                  items:
+                    type: string
                   example:
                   - https://client.example.org/cb
+                claims_redirect_uri:
+                  type: array
+                  description: Array of The Claims Redirect URIs to which the client wishes the authorization server to directthe requesting party's user agent after completing its interaction.
+                  items:
+                    type: string
+                response_types: 
+                  type: array
+                  description: A list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. If omitted, the default is that the Client will use only the code Response Type. Allowed values are code, token, id_token
                   items:
                     type: string
       parameters:
@@ -1135,8 +1306,8 @@ paths:
     get:
       tags:
       - UMA (User Managed Access)
-      summary: Reads a previously registered resource.
-      description: Reads a previously registered resource.
+      summary: Lists all previously registered resource.
+      description: Lists all previously registered resource.
       operationId: get-host-rsrc-resource_set
       parameters:
         - name: Authorization
@@ -1145,10 +1316,10 @@ paths:
           description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
-        - name: rsid
-          in: path
+        - name: scope
+          in: query
           required: true
-          description: Resource description ID.
+          description: Scope uri.
           schema:
             type : string      
       responses:
@@ -1157,40 +1328,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UmaResourceWithId'                              
+                type: array
+                items:
+                  type: string
+                description: resource id.
         500:
-          $ref: '#/components/responses/InternalServerError' 
-#   get:
-#     tags:
-#     - UMA (User Managed Access)
-#     summary: Lists all previously registered resource.
-#     description: Lists all previously registered resource.
-#     operationId: get-host-rsrc-resource_set
-#     parameters:
-#       - name: Authorization
-#         in: header
-#         required: true
-#         description: Client Authorization details that contains the access token along with other details.
-#         schema:
-#           type : string
-#       - name: scope
-#         in: query
-#         required: true
-#         description: Scope uri.
-#         schema:
-#           type : string      
-#     responses:
-#       200:
-#         description: OK
-#         content:
-#           application/json:
-#             schema:
-#               type: array
-#               items:
-#                 type: string
-#               description: resource id.
-#       500:
-#        $ref: '#/components/responses/InternalServerError' 
+         $ref: '#/components/responses/InternalServerError' 
     delete:
       tags:
       - UMA (User Managed Access)
@@ -1216,6 +1359,36 @@ paths:
           content: {}                           
         500:
           $ref: '#/components/responses/InternalServerError'
+  /host/rsrc/resource_set/{rsid}:
+    get:
+      tags:
+      - UMA (User Managed Access)
+      summary: Reads a previously registered resource.
+      description: Reads a previously registered resource.
+      operationId: get-host-rsrc-resource_set/{rsid}
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Client Authorization details that contains the access token along with other details.
+          schema:
+            type : string
+        - name: rsid
+          in: path
+          required: true
+          description: Resource description ID.
+          schema:
+            type : string      
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UmaResourceWithId'                              
+        500:
+          $ref: '#/components/responses/InternalServerError' 
+    
   /rpt/status:
     get:
       tags:
@@ -1577,6 +1750,176 @@ paths:
           $ref: '#/components/responses/NotAcceptable'        
         500:
           $ref: '#/components/responses/InternalServerError'  
+  /fido2/assertion/options:
+    post:
+      tags:
+      - FIDO2
+      summary: Performs FIDO2 authentication of the users.
+      description: Performs FIDO2 authentication of the users.
+      operationId: options  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: content
+              required:
+              - content
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Set of parameters required for FIDO2 option assertion.
+                  example: username, authenticatorSelection, documentDomain, extensions, etc.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: assertionOptionsResponseNode
+                required:
+                - challenge
+                - user
+                - allowCredentials
+                - userVerification
+                - extensions
+                type: object
+                properties:
+                  challenge:
+                    type: string
+                    description: Websafe-base64 encoding of the challenge.
+                  user:
+                    type: object
+                    description: User object
+                    required:
+                    - name
+                    properties:
+                      name:
+                        type: string
+                  allowCredentials:
+                    type: array
+                    items:
+                      type: string
+                      description: Credentials like public-key, transports
+                  userVerification:
+                    type: string
+                  extensions:
+                    type: string
+        403:
+          $ref: '#/components/responses/AccessDenied' 
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /fido2/assertion/result:
+    post:
+      tags:
+      - FIDO2
+      summary: Performs FIDO2 authentication of the users.
+      description: Endpoint for U2F device start registration process.
+      operationId: result  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: content
+              required:
+              - content
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Set of parameters required for FIDO2 authentication.
+                  example: id, type, rawId, userHandle, challenge, origin.
+      responses:
+        200:
+          description: OK
+          content: {}
+        403:
+          $ref: '#/components/responses/AccessDenied'
+  /fido2/attestation/options:
+    post:
+      tags:
+      - FIDO2
+      summary: Created new registration.
+      description: Created new registration.
+      operationId: post-options  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: content
+              required:
+              - content
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Set of parameters required for FIDO2 option assertion.
+                  example: username, displayName, documentDomain, authenticatorSelection, etc.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: credential
+                required:
+                - challenge
+                - rp
+                - user
+                - attestation
+                - pubKeyCredParams
+                - authenticatorSelection
+                - excludeCredentials
+                - extensions
+                type: object
+                properties:
+                  challenge:
+                    type: string
+                    description: Websafe-base64 encoding of the challenge.
+                  rp:
+                    type: object
+                    description: RP credentials
+                    required:
+                    - name
+                    - id
+                    properties:
+                      name:
+                        type: string
+                      id:
+                        type: string
+                  user:
+                    type: object
+                    description: User object
+                    required:
+                    - id
+                    - name
+                    - displayName
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      displayName:
+                        type: string
+                  attestation:
+                     type: string
+                     format: enum                     
+                  pubKeyCredParams:
+                    type: array
+                    items:
+                      type: string
+                      description: Credentials like public-key, type, alg 
+                  authenticatorSelection:
+                    type: string
+                  excludeCredentials:
+                   type: object
+                   description: Fido2RegistrationEntry
+
+        403:
+          $ref: '#/components/responses/AccessDenied' 
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  
           
 components: 
   responses:
@@ -1633,78 +1976,39 @@ components:
           type: string
         details:
           type: string
-    GluuConfiguration:
-      required:
-      - id_generation_endpoint
-      - introspection_endpoint
-      - auth_level_mapping
+    ClientInfoResponse:
       type: object
       properties:
-        id_generation_endpoint:
+        displayName:
           type: string
-        introspection_endpoint:
+        inum:
           type: string
-        details:
+          description: XRI i-number
+        oxAuthAppType:
           type: string
-        auth_level_mapping:
-          type: object
-          additionalProperties:
-            type: object
-        scope_to_claims_mapping:
-          type: object
-          additionalProperties:
-            type: object
-    IntrospectionResponse:
-      required:
-      - active
-      - scope
-      - client_id
-      - username
-      - token_type
-      - exp
-      - iat
-      - sub
-      - aud
-      - iss
-      - jti
-      - acr_values
-      type: object
-      properties:
-        active:
-          type: object
-          additionalProperties:
+          description: oxAuth Appication type
+        oxAuthIdTokenSignedResponseAlg:
+          type: string
+          description: oxAuth ID Token Signed Response Algorithm
+        oxAuthRedirectURI:
+          type: array
+          description: Array of redirect URIs values used in the Authorization
+          items: 
             type: string
-          example: true
-        client_id:
-          type: string
-          example:
-        username:
-          type: string
-          example:
-        token_type:
+        oxId:
           type: string
           example: 
-        exp:
-          type: string
-          example: 
-        iat:
-          type: integer
-          example: 
-        sub:
-          type: string
-          example: 
-        aud:
-          type: string
-          example:
-        iss:
-          type: string
-          example:
-        jti:
-          type: string
-          example:
-        acr_values:
-          type: string
-          example: 
+          description: oxAuth Attribute Scope Id   
+        custom_attributes:
+          type: array
+          items:
+            type: string
+          description: Array of custom attribute of client.
+                    
+
+    
+    
+        
     RptIntrospectionResponse:
       required:
       - active
@@ -2016,8 +2320,68 @@ components:
 #         type: string 
 #       sessionDn:
 #         type: string 
-        
-          
+    Fido2RegistrationEntry:
+      description: FIDO U2F Configuration.
+      required:
+      - oxPublicKeyId
+      - displayName
+      - oxRegistrationData
+      - oxStatus
+      - oxDeviceNotificationConf
+      properties:
+        oxPublicKeyId:
+          type: string
+        displayName:
+          type: string
+        oxRegistrationData:
+          type: string
+        oxStatus:
+          type: string
+        oxDeviceNotificationConf:
+          type: string
+    Fido2RegistrationData:
+      description: Fido2RegistrationData
+      required:
+      - username
+      - domain
+      - userId
+      - challenge
+      - w3cCredentialCreationOptions
+      - w3cAuthenticatorAttenstationResponse
+      - uncompressedECPoint
+      - publicKeyId
+      - type
+      - attestationType
+      - status
+      - counter
+      - signatureAlgorithm
+      properties:
+        username:
+          type: string
+        domain:
+          type: string 
+        userId:
+          type: string 
+        challenge:
+          type: string 
+        w3cCredentialCreationOptions:
+          type: string 
+        w3cAuthenticatorAttenstationResponse:
+          type: string 
+        uncompressedECPoint:
+          type: string 
+        publicKeyId:
+          type: string 
+        type:
+          type: string 
+        attestationType:
+          type: string 
+        status:
+          type: object
+        counter:
+          type: integer
+        signatureAlgorithm:
+          type: integer        
          
         
           
