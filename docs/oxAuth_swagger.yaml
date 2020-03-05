@@ -416,8 +416,34 @@ paths:
           content:
             application/json:
               schema:
-                title: Client details in response.
-                $ref: '#/components/schemas/ClientInfoResponse'                      
+                title: ClientInfoResponse
+                description: Client details in response.
+                type: object
+                properties:
+                  displayName:
+                    type: string
+                  inum:
+                    type: string
+                    description: XRI i-number
+                  oxAuthAppType:
+                    type: string
+                    description: oxAuth Appication type
+                  oxAuthIdTokenSignedResponseAlg:
+                    type: string
+                    description: oxAuth ID Token Signed Response Algorithm
+                  oxAuthRedirectURI:
+                    type: array
+                    description: Array of redirect URIs values used in the Authorization
+                    items: 
+                      type: string
+                  oxId:
+                    type: string
+                    example: 
+                    description: oxAuth Attribute Scope Id   
+                  custom_attributes:
+                    type: array
+                    items:
+                      type: string                           
         400:
           $ref: '#/components/responses/InvalidRequest'       
     post:
@@ -449,8 +475,34 @@ paths:
           content:
             application/json:
               schema:
-                title: Client details in response.
-                $ref: '#/components/schemas/ClientInfoResponse'                      
+                title: ClientInfoResponse
+                description: Client details in response.
+                type: object
+                properties:
+                  displayName:
+                    type: string
+                  inum:
+                    type: string
+                    description: XRI i-number
+                  oxAuthAppType:
+                    type: string
+                    description: oxAuth Appication type
+                  oxAuthIdTokenSignedResponseAlg:
+                    type: string
+                    description: oxAuth ID Token Signed Response Algorithm
+                  oxAuthRedirectURI:
+                    type: array
+                    description: Array of redirect URIs values used in the Authorization
+                    items: 
+                      type: string
+                  oxId:
+                    type: string
+                    example: 
+                    description: oxAuth Attribute Scope Id   
+                  custom_attributes:
+                    type: array
+                    items:
+                      type: string                      
         400:
           $ref: '#/components/responses/InvalidRequest'            
   /.well-known/gluu-configuration:
@@ -720,9 +772,6 @@ paths:
                     example: '{"keys": [{"key1": "value1", "key2": "value2"}] }'                   
         500:
           $ref: '#/components/responses/InternalServerError'
-
-
-#WIP to  TODO- need to add all attributes as in RegisterRequestParam and move schema objects in-line        
   /register: 
     post:
       tags:
@@ -734,47 +783,283 @@ paths:
         content:
           application/json:
             schema:
-              title: RegisterParams # ToDO- need to add all attributes as in RegisterRequestParam
+              title: RegisterParams
               required:
               - redirect_uris
               type: object
               properties:
-                software_statement:
-                  type: string
-                  description:  A software statement containing client metadata values about the client software as claims.
-                
                 redirect_uris:
                   type: array
-                  description: Redirection URI values used by the Client. One of these registered Redirection URI values must exactly match the redirect_uri parameter value used in each Authorization Request
+                  description: Redirection URI values used by the Client. One of these registered Redirection URI values must exactly match
+                               the redirect_uri parameter value used in each Authorization Request
                   items:
                     type: string
                   example:
                   - https://client.example.org/cb
                 claims_redirect_uri:
                   type: array
-                  description: Array of The Claims Redirect URIs to which the client wishes the authorization server to directthe requesting party's user agent after completing its interaction.
+                  description: Array of The Claims Redirect URIs to which the client wishes the authorization server to direct
+                              the requesting party's user agent after completing its interaction.
                   items:
                     type: string
                 response_types: 
                   type: array
-                  description: A list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. If omitted, the default is that the Client will use only the code Response Type. Allowed values are code, token, id_token
+                  description: A list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. 
+                             If omitted, the default is that the Client will use only the code Response Type. Allowed values are code, token, id_token.
                   items:
                     type: string
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Access Token that is used at the Client Configuration Endpoint   
-          schema:
-            type : string      
+                grant_types:
+                  type: array
+                  description: A list of the OAuth 2.0 Grant Types that the Client is declaring that it will restrict itself to using. 
+                  items:
+                    type: string
+                contacts:
+                  type: array
+                  description: e-mail addresses of people responsible for this Client. 
+                  items:
+                    type: string
+                client_name:
+                  type: string
+                  description: Name of the Client to be presented to the user.
+                logo_uri:
+                  type: string
+                  description: URL that references a logo for the Client application
+                client_uri:
+                  type: string
+                  description: URL of the home page of the Client. The value of this field must point to a valid Web page.
+                policy_uri:
+                  type: string
+                  description: URL that the Relying Party Client provides to the End-User to read about the how the profile data will be used.
+                tos_uri: 
+                  type: string
+                  description: URL that the Relying Party Client provides to the End-User to read about the Relying Party's terms of service. 
+                jwks_uri:
+                  type: string
+                  description: URL for the Client's JSON Web Key Set (JWK) document containing key(s) that are used for signing requests
+                    to the OP. The JWK Set may also contain the Client's encryption
+                    keys(s) that are used by the OP to encrypt the responses to the
+                    Client. When both signing and encryption keys are made available,
+                    a use (Key Use) parameter value is required for all keys in the
+                    document to indicate each key's intended usage .
+                jwks:
+                  type: string
+                  description: Client's JSON Web Key Set (JWK) document, passed by
+                    value. The semantics of the jwks parameter are the same as the
+                    jwks_uri parameter, other than that the JWK Set is passed by value,
+                    rather than by reference. This parameter is intended only to be
+                    used by Clients that, for some reason, are unable to use the jwks_uri
+                    parameter, for instance, by native applications that might not
+                    have a location to host the contents of the JWK Set. If a Client
+                    can use jwks_uri, it must not use jwks. One significant downside
+                    of jwks is that it does not enable key rotation. The jwks_uri
+                    and jwks parameters must not be used together.
+                  example: '{"key1": "value1", "key2": "value2"}'
+                sector_identifier_uri:
+                  type: string
+                  description: URL using the https scheme to be used in calculating Pseudonymous Identifiers by the OP. 
+                subject_type:
+                  type: string
+                  description: Subject type requested for the Client ID. Valid types include pairwise and public.
+                rpt_as_jwt:
+                  type: boolean
+                  description: Specifies whether RPT should be return as signed JWT.
+                access_token_as_jwt:
+                  type: boolean
+                  description: Specifies whether access token as signed JWT.
+                access_token_signing_alg:
+                  type: string
+                  description: Specifies signing algorithm that has to be used during JWT signing. If it's not specified, 
+                               then the default OP signing algorithm will be used .
+                id_token_signed_response_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) required for signing the ID Token issued to this Client. 
+                id_token_encrypted_response_alg:
+                  type: string 
+                  description: JWE alg algorithm (JWA) required for encrypting the ID Token issued to this Client. 
+                id_token_encrypted_response_enc:
+                  type: string
+                  description: JWE enc algorithm (JWA) required for encrypting the ID Token issued to this Client.
+                userinfo_signed_response_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) required for signing UserInfo Responses.  
+                userinfo_encrypted_response_alg:
+                  type: string
+                  description: JWE alg algorithm (JWA) required for encrypting UserInfo Responses.
+                userinfo_encrypted_response_enc:
+                  type: string 
+                  description: JWE enc algorithm (JWA) required for encrypting UserInfo Responses.
+                request_object_signing_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) that must be used for signing Request Objects sent to the OP.
+                request_object_encryption_alg:
+                  type: string
+                  description: JWE alg algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                request_object_encryption_enc:
+                  type: string
+                  description: JWE enc algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                token_endpoint_auth_method:
+                  type: string
+                  description: Requested Client Authentication method for the Token Endpoint. 
+                token_endpoint_auth_signing_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) that must be used for signing the JWT used to authenticate the Client at the Token Endpoint
+                               for the private_key_jwt and client_secret_jwt authentication methods.                  
+                default_max_age:
+                  type: integer
+                  description: Specifies the Default Maximum Authentication Age.
+                  example: 1000000 
+                require_auth_time:
+                  type: boolean
+                  description: Boolean value specifying whether the auth_time Claim in the ID Token is required. It is required when the value is true. 
+                default_acr_values:
+                  type: array
+                  description: Array of default requested Authentication Context Class Reference values that the Authorization Server must use for 
+                               processing requests from the Client.
+                  items:
+                    type: string
+                initiate_login_uri:
+                  type: string
+                  description: Specifies the URI using the https scheme that the authorization server can call to initiate a login at the client.
+                post_logout_redirect_uris:
+                  type: array
+                  description: Provide the URLs supplied by the RP to request that the user be redirected to this location after a logout has been
+                    performed.
+                  example:
+                  - https://client.example.org/logout/page1
+                  - https://client.example.org/logout/page2
+                  - https://client.example.org/logout/page3
+                  items:
+                    type: string
+                frontchannel_logout_uri:
+                  type: string
+                  description: RP URL that will cause the RP to log itself out when rendered in an iframe by the OP.
+                frontchannel_logout_session_required:
+                  type: boolean
+                  description: Boolean value specifying whether the RP requires that a session ID query parameter be included
+                               to identify the RP session at the OP when the logout_uri is used. If omitted, the default value is false.
+                backchannel_logout_uri:
+                  type: string
+                  description: RP URL that will cause the RP to log itself out when sent a Logout Token by the OP.
+                backchannel_logout_session_required:
+                  type: boolean
+                  description: Boolean value specifying whether the RP requires that a session ID Claim be included in the Logout Token 
+                          to identify the RP session with the OP when the backchannel_logout_uri is used. If omitted, the default value is false.  
+                request_uris:
+                  type: array
+                  description: Provide a list of request_uri values that are pre-registered by the Client for use at the Authorization Server.
+                  items:
+                    type: string 
+                scopes: 
+                  type: string
+                  deprecated: true
+                  description: This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
+                claims:
+                  type: string
+                  description: String containing a space-separated list of claims that can be requested individually.                  
+                id_token_token_binding_cnf:
+                  type: string
+                  description: Specifies the JWT Confirmation Method member name (e.g. tbh) that the Relying Party expects
+                        when receiving Token Bound ID Tokens. The presence of this parameter indicates that the Relying Party 
+                        supports Token Binding of ID Tokens.
+                        If omitted, the default is that the Relying Party does not support Token Binding of ID Tokens.                  
+                tls_client_auth_subject_dn:
+                  type: string
+                  description: An string representation of the expected subject distinguished name of the certificate, 
+                             which the OAuth client will use in mutual TLS authentication.                  
+                allow_spontaneous_scopes:
+                  type: boolean
+                  description: Specifies whether to allow spontaneous scopes for client. The default value is false.
+                  example: false      
+                spontaneous_scopes:
+                  type: array
+                  description: List of spontaneous scopes 
+                  items:
+                    type: string
+                run_introspection_script_before_access_token_as_jwt_creation_and_include_claims:
+                  type: boolean
+                  description: Boolean value with default value false. If true and access_token_as_jwt=true then run introspection script 
+                              and transfer claims into JWT.
+                keep_client_authorization_after_expiration:
+                  type: boolean
+                  description: Boolean value indicating if the client authorization will not be removed afer expiration
+                         (expiration date is same as client's expiration that created it). The default value is false.
+                scope:
+                  type: array
+                  description: Provide list of scope which are used during authentication to authorize access to resource.
+                  example:
+                  - openid
+                  items:
+                    type: string 
+                authorized_origins:
+                  type: array
+                  description: specifies authorized JavaScript origins.
+                  items:
+                    type: string               
+                access_token_lifetime:
+                  type: integer
+                  description: Specifies the Client-specific access token expiration.
+                  example: 100000000
+                software_id:
+                  type: string
+                  description: Specifies a unique identifier string (UUID) assigned 
+                    by the client developer or software publisher used by registration
+                    endpoints to identify the client software to be dynamically registered.
+                  example: 4NRB1-0XZABZI9E6-5SM3R                
+                software_version:
+                  type: string
+                  description: Specifies a version identifier string for the client
+                    software identified by 'software_id'. The value of the 'software_version'
+                    should change on any update to the client software identified
+                    by the same 'software_id'.
+                  example: "2.1"
+                software_statement:
+                  type: string
+                  description: specifies a software statement containing client metadata
+                    values about the client software as claims. This is a string value
+                    containing the entire signed JWT. 
+                backchannel_token_delivery_mode:
+                  type: string
+                  description: specifies how backchannel token will be deliveried.
+                  example: push, poll, ping
+                backchannel_client_notification_endpoint:
+                  type: string
+                  description: Client Initiated Backchannel Authentication (CIBA) enables a Client to initiate the authentication of an end-user by means of out-of-band mechanisms. Upon receipt of the notification, the Client makes a request to the token endpoint to obtain the tokens.
+                backchannel_authentication_request_signing_alg:
+                  type: string
+                  description: The JWS algorithm alg value that the Client will use for signing authentication request, as described in Section 7.1.1. of OAuth 2.0 [RFC6749]. When omitted, the Client will not send signed authentication requests.
+                backchannel_user_code_parameter:
+                  type: boolean 
+                  description: Boolean value specifying whether the Client supports the user_code parameter. If omitted, the default value is false.
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                title: ClientResponse
-                $ref: '#/components/schemas/ClientResponse'                                        
+                title: RegisterResponseParam
+                type: object
+                required:
+                - client_id
+                properties:
+                  client_id:
+                    type: string
+                    description: Unique Client Identifier. It MUST NOT be currently valid for any other registered Client.
+                  client_secret:
+                    type: string
+                    description: This value is used by Confidential Clients to authenticate to the Token Endpoint
+                  registration_access_token:
+                    type: string
+                    description: Registration Access Token that can be used at the Client Configuration Endpoint to perform subsequent 
+                            operations upon the Client registration.
+                  registration_client_uri:
+                    type: string
+                    description: Location of the Client Configuration Endpoint where the Registration Access Token can be used to perform subsequent operations upon the resulting Client registration. 
+                  client_id_issued_at:
+                    type: integer
+                    description: Time at which the Client Identifier was issued. 
+                  client_secret_expires_at:
+                    type: integer
+                    description: Time at which the client_secret will expire or 0 if it will not expire.                
         400:
           $ref: '#/components/responses/InvalidRequest'                       
         500:
@@ -782,8 +1067,8 @@ paths:
     put:
       tags:
       - Registration
-      summary: Updates the client info for a previously registered client.
-      description: The Client Registration Endpoint to update Client Metadata for a previously registered client.
+      summary: Updates Client Metadata for a registered client.
+      description: Updates Client Metadata for a registered client.
       operationId: put-register
       requestBody:
         content:
@@ -796,11 +1081,246 @@ paths:
               properties:
                 redirect_uris:
                   type: array
-                  description: Request parameters as JSON object with data described by Connect Client Registration Specification..
-                  example:
-                  - https://client.example.org/cb
+                  description: Redirection URI values used by the Client. One of these registered Redirection URI values must exactly match
+                               the redirect_uri parameter value used in each Authorization Request
                   items:
                     type: string
+                  example:
+                  - https://client.example.org/cb
+                claims_redirect_uri:
+                  type: array
+                  description: Array of The Claims Redirect URIs to which the client wishes the authorization server to direct
+                              the requesting party's user agent after completing its interaction.
+                  items:
+                    type: string
+                response_types: 
+                  type: array
+                  description: A list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. 
+                             If omitted, the default is that the Client will use only the code Response Type. Allowed values are code, token, id_token.
+                  items:
+                    type: string
+                grant_types:
+                  type: array
+                  description: A list of the OAuth 2.0 Grant Types that the Client is declaring that it will restrict itself to using. 
+                  items:
+                    type: string
+                contacts:
+                  type: array
+                  description: e-mail addresses of people responsible for this Client. 
+                  items:
+                    type: string
+                client_name:
+                  type: string
+                  description: Name of the Client to be presented to the user.
+                logo_uri:
+                  type: string
+                  description: URL that references a logo for the Client application
+                client_uri:
+                  type: string
+                  description: URL of the home page of the Client. The value of this field must point to a valid Web page.
+                policy_uri:
+                  type: string
+                  description: URL that the Relying Party Client provides to the End-User to read about the how the profile data will be used.
+                tos_uri: 
+                  type: string
+                  description: URL that the Relying Party Client provides to the End-User to read about the Relying Party's terms of service. 
+                jwks_uri:
+                  type: string
+                  description: URL for the Client's JSON Web Key Set (JWK) document containing key(s) that are used for signing requests
+                    to the OP. The JWK Set may also contain the Client's encryption
+                    keys(s) that are used by the OP to encrypt the responses to the
+                    Client. When both signing and encryption keys are made available,
+                    a use (Key Use) parameter value is required for all keys in the
+                    document to indicate each key's intended usage .
+                jwks:
+                  type: string
+                  description: Client's JSON Web Key Set (JWK) document, passed by
+                    value. The semantics of the jwks parameter are the same as the
+                    jwks_uri parameter, other than that the JWK Set is passed by value,
+                    rather than by reference. This parameter is intended only to be
+                    used by Clients that, for some reason, are unable to use the jwks_uri
+                    parameter, for instance, by native applications that might not
+                    have a location to host the contents of the JWK Set. If a Client
+                    can use jwks_uri, it must not use jwks. One significant downside
+                    of jwks is that it does not enable key rotation. The jwks_uri
+                    and jwks parameters must not be used together.
+                  example: '{"key1": "value1", "key2": "value2"}'
+                sector_identifier_uri:
+                  type: string
+                  description: URL using the https scheme to be used in calculating Pseudonymous Identifiers by the OP. 
+                subject_type:
+                  type: string
+                  description: Subject type requested for the Client ID. Valid types include pairwise and public.
+                rpt_as_jwt:
+                  type: boolean
+                  description: Specifies whether RPT should be return as signed JWT.
+                access_token_as_jwt:
+                  type: boolean
+                  description: Specifies whether access token as signed JWT.
+                access_token_signing_alg:
+                  type: string
+                  description: Specifies signing algorithm that has to be used during JWT signing. If it's not specified, 
+                               then the default OP signing algorithm will be used .
+                id_token_signed_response_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) required for signing the ID Token issued to this Client. 
+                id_token_encrypted_response_alg:
+                  type: string 
+                  description: JWE alg algorithm (JWA) required for encrypting the ID Token issued to this Client. 
+                id_token_encrypted_response_enc:
+                  type: string
+                  description: JWE enc algorithm (JWA) required for encrypting the ID Token issued to this Client.
+                userinfo_signed_response_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) required for signing UserInfo Responses.  
+                userinfo_encrypted_response_alg:
+                  type: string
+                  description: JWE alg algorithm (JWA) required for encrypting UserInfo Responses.
+                userinfo_encrypted_response_enc:
+                  type: string 
+                  description: JWE enc algorithm (JWA) required for encrypting UserInfo Responses.
+                request_object_signing_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) that must be used for signing Request Objects sent to the OP.
+                request_object_encryption_alg:
+                  type: string
+                  description: JWE alg algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                request_object_encryption_enc:
+                  type: string
+                  description: JWE enc algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                token_endpoint_auth_method:
+                  type: string
+                  description: Requested Client Authentication method for the Token Endpoint. 
+                token_endpoint_auth_signing_alg:
+                  type: string
+                  description: JWS alg algorithm (JWA) that must be used for signing the JWT used to authenticate the Client at the Token Endpoint
+                               for the private_key_jwt and client_secret_jwt authentication methods.                  
+                default_max_age:
+                  type: integer
+                  description: Specifies the Default Maximum Authentication Age.
+                  example: 1000000 
+                require_auth_time:
+                  type: boolean
+                  description: Boolean value specifying whether the auth_time Claim in the ID Token is required. It is required when the value is true. 
+                default_acr_values:
+                  type: array
+                  description: Array of default requested Authentication Context Class Reference values that the Authorization Server must use for 
+                               processing requests from the Client.
+                  items:
+                    type: string
+                initiate_login_uri:
+                  type: string
+                  description: Specifies the URI using the https scheme that the authorization server can call to initiate a login at the client.
+                post_logout_redirect_uris:
+                  type: array
+                  description: Provide the URLs supplied by the RP to request that the user be redirected to this location after a logout has been
+                    performed.
+                  example:
+                  - https://client.example.org/logout/page1
+                  - https://client.example.org/logout/page2
+                  - https://client.example.org/logout/page3
+                  items:
+                    type: string
+                frontchannel_logout_uri:
+                  type: string
+                  description: RP URL that will cause the RP to log itself out when rendered in an iframe by the OP.
+                frontchannel_logout_session_required:
+                  type: boolean
+                  description: Boolean value specifying whether the RP requires that a session ID query parameter be included
+                               to identify the RP session at the OP when the logout_uri is used. If omitted, the default value is false.
+                backchannel_logout_uri:
+                  type: string
+                  description: RP URL that will cause the RP to log itself out when sent a Logout Token by the OP.
+                backchannel_logout_session_required:
+                  type: boolean
+                  description: Boolean value specifying whether the RP requires that a session ID Claim be included in the Logout Token 
+                          to identify the RP session with the OP when the backchannel_logout_uri is used. If omitted, the default value is false.  
+                request_uris:
+                  type: array
+                  description: Provide a list of request_uri values that are pre-registered by the Client for use at the Authorization Server.
+                  items:
+                    type: string 
+                scopes: 
+                  type: string
+                  deprecated: true
+                  description: This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
+                claims:
+                  type: string
+                  description: String containing a space-separated list of claims that can be requested individually.                  
+                id_token_token_binding_cnf:
+                  type: string
+                  description: Specifies the JWT Confirmation Method member name (e.g. tbh) that the Relying Party expects
+                        when receiving Token Bound ID Tokens. The presence of this parameter indicates that the Relying Party 
+                        supports Token Binding of ID Tokens.
+                        If omitted, the default is that the Relying Party does not support Token Binding of ID Tokens.                  
+                tls_client_auth_subject_dn:
+                  type: string
+                  description: An string representation of the expected subject distinguished name of the certificate, 
+                             which the OAuth client will use in mutual TLS authentication.                  
+                allow_spontaneous_scopes:
+                  type: boolean
+                  description: Specifies whether to allow spontaneous scopes for client. The default value is false.
+                  example: false      
+                spontaneous_scopes:
+                  type: array
+                  description: List of spontaneous scopes 
+                  items:
+                    type: string
+                run_introspection_script_before_access_token_as_jwt_creation_and_include_claims:
+                  type: boolean
+                  description: Boolean value with default value false. If true and access_token_as_jwt=true then run introspection script 
+                              and transfer claims into JWT.
+                keep_client_authorization_after_expiration:
+                  type: boolean
+                  description: Boolean value indicating if the client authorization will not be removed afer expiration
+                         (expiration date is same as client's expiration that created it). The default value is false.
+                scope:
+                  type: array
+                  description: Provide list of scope which are used during authentication to authorize access to resource.
+                  example:
+                  - openid
+                  items:
+                    type: string 
+                authorized_origins:
+                  type: array
+                  description: specifies authorized JavaScript origins.
+                  items:
+                    type: string               
+                access_token_lifetime:
+                  type: integer
+                  description: Specifies the Client-specific access token expiration.
+                  example: 100000000
+                software_id:
+                  type: string
+                  description: Specifies a unique identifier string (UUID) assigned 
+                    by the client developer or software publisher used by registration
+                    endpoints to identify the client software to be dynamically registered.
+                  example: 4NRB1-0XZABZI9E6-5SM3R                
+                software_version:
+                  type: string
+                  description: Specifies a version identifier string for the client
+                    software identified by 'software_id'. The value of the 'software_version'
+                    should change on any update to the client software identified
+                    by the same 'software_id'.
+                  example: "2.1"
+                software_statement:
+                  type: string
+                  description: specifies a software statement containing client metadata
+                    values about the client software as claims. This is a string value
+                    containing the entire signed JWT. 
+                backchannel_token_delivery_mode:
+                  type: string
+                  description: specifies how backchannel token will be deliveried.
+                  example: push, poll, ping
+                backchannel_client_notification_endpoint:
+                  type: string
+                  description: Client Initiated Backchannel Authentication (CIBA) enables a Client to initiate the authentication of an end-user by means of out-of-band mechanisms. Upon receipt of the notification, the Client makes a request to the token endpoint to obtain the tokens.
+                backchannel_authentication_request_signing_alg:
+                  type: string
+                  description: The JWS algorithm alg value that the Client will use for signing authentication request, as described in Section 7.1.1. of OAuth 2.0 [RFC6749]. When omitted, the Client will not send signed authentication requests.
+                backchannel_user_code_parameter:
+                  type: boolean 
+                  description: Boolean value specifying whether the Client supports the user_code parameter. If omitted, the default value is false.
       parameters:
         - name: client_id
           in: query
@@ -811,7 +1331,7 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Access Token that is used at the Client Configuration Endpoint   
+          description: Authorization header carrying \"registration_access_token\" issued before as a Bearer token  
           schema:
             type : string      
       responses:
@@ -820,17 +1340,39 @@ paths:
           content:
             application/json:
               schema:
-                title: ClientResponse
-                $ref: '#/components/schemas/ClientResponse'                                        
+                title: RegisterResponseParam
+                type: object
+                required:
+                - client_id
+                properties:
+                  client_id:
+                    type: string
+                    description: Unique Client Identifier. It MUST NOT be currently valid for any other registered Client.
+                  client_secret:
+                    type: string
+                    description: This value is used by Confidential Clients to authenticate to the Token Endpoint
+                  registration_access_token:
+                    type: string
+                    description: Registration Access Token that can be used at the Client Configuration Endpoint to perform subsequent 
+                            operations upon the Client registration.
+                  registration_client_uri:
+                    type: string
+                    description: Location of the Client Configuration Endpoint where the Registration Access Token can be used to perform subsequent operations upon the resulting Client registration. 
+                  client_id_issued_at:
+                    type: integer
+                    description: Time at which the Client Identifier was issued. 
+                  client_secret_expires_at:
+                    type: integer
+                    description: Time at which the client_secret will expire or 0 if it will not expire.                
         400:
           $ref: '#/components/responses/InvalidRequest'                       
         500:
-          $ref: '#/components/responses/InternalServerError'          
+          $ref: '#/components/responses/InternalServerError'    
     get:
       tags:
       - Registration
       summary: Get client information for a previously registered client.
-      description: Reads client info.The Client Registration Endpoint to retrieve the Client Metadata for a previously registered client.
+      description: Get client information for a previously registered client.
       operationId: get-register
       parameters:
         - name: client_id
@@ -842,7 +1384,7 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Access Token that is used at the Client Configuration Endpoint   
+          description: Authorization header carrying \"registration_access_token\" issued before as a Bearer token
           schema:
             type : string      
       responses:
@@ -852,8 +1394,251 @@ paths:
             application/json:
               schema:
                 title: ClientResponse
-                $ref: '#/components/schemas/ClientResponse'                                        
-        401:
+                type: object
+                properties:
+                  redirect_uris:
+                    type: array
+                    description: Redirection URI values used by the Client. One of these registered Redirection URI values must exactly match
+                                 the redirect_uri parameter value used in each Authorization Request
+                    items:
+                      type: string
+                    example:
+                    - https://client.example.org/cb
+                  claims_redirect_uri:
+                    type: array
+                    description: Array of The Claims Redirect URIs to which the client wishes the authorization server to direct
+                                the requesting party's user agent after completing its interaction.
+                    items:
+                      type: string
+                  response_types: 
+                    type: array
+                    description: A list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. 
+                               If omitted, the default is that the Client will use only the code Response Type. Allowed values are code, token, id_token.
+                    items:
+                      type: string
+                  grant_types:
+                    type: array
+                    description: A list of the OAuth 2.0 Grant Types that the Client is declaring that it will restrict itself to using. 
+                    items:
+                      type: string
+                  contacts:
+                    type: array
+                    description: e-mail addresses of people responsible for this Client. 
+                    items:
+                      type: string
+                  client_name:
+                    type: string
+                    description: Name of the Client to be presented to the user.
+                  logo_uri:
+                    type: string
+                    description: URL that references a logo for the Client application
+                  client_uri:
+                    type: string
+                    description: URL of the home page of the Client. The value of this field must point to a valid Web page.
+                  policy_uri:
+                    type: string
+                    description: URL that the Relying Party Client provides to the End-User to read about the how the profile data will be used.
+                  tos_uri: 
+                    type: string
+                    description: URL that the Relying Party Client provides to the End-User to read about the Relying Party's terms of service. 
+                  jwks_uri:
+                    type: string
+                    description: URL for the Client's JSON Web Key Set (JWK) document containing key(s) that are used for signing requests
+                      to the OP. The JWK Set may also contain the Client's encryption
+                      keys(s) that are used by the OP to encrypt the responses to the
+                      Client. When both signing and encryption keys are made available,
+                      a use (Key Use) parameter value is required for all keys in the
+                      document to indicate each key's intended usage .
+                  jwks:
+                    type: string
+                    description: Client's JSON Web Key Set (JWK) document, passed by
+                      value. The semantics of the jwks parameter are the same as the
+                      jwks_uri parameter, other than that the JWK Set is passed by value,
+                      rather than by reference. This parameter is intended only to be
+                      used by Clients that, for some reason, are unable to use the jwks_uri
+                      parameter, for instance, by native applications that might not
+                      have a location to host the contents of the JWK Set. If a Client
+                      can use jwks_uri, it must not use jwks. One significant downside
+                      of jwks is that it does not enable key rotation. The jwks_uri
+                      and jwks parameters must not be used together.
+                    example: '{"key1": "value1", "key2": "value2"}'
+                  sector_identifier_uri:
+                    type: string
+                    description: URL using the https scheme to be used in calculating Pseudonymous Identifiers by the OP. 
+                  subject_type:
+                    type: string
+                    description: Subject type requested for the Client ID. Valid types include pairwise and public.
+                  rpt_as_jwt:
+                    type: boolean
+                    description: Specifies whether RPT should be return as signed JWT.
+                  access_token_as_jwt:
+                    type: boolean
+                    description: Specifies whether access token as signed JWT.
+                  access_token_signing_alg:
+                    type: string
+                    description: Specifies signing algorithm that has to be used during JWT signing. If it's not specified, 
+                                 then the default OP signing algorithm will be used .
+                  id_token_signed_response_alg:
+                    type: string
+                    description: JWS alg algorithm (JWA) required for signing the ID Token issued to this Client. 
+                  id_token_encrypted_response_alg:
+                    type: string 
+                    description: JWE alg algorithm (JWA) required for encrypting the ID Token issued to this Client. 
+                  id_token_encrypted_response_enc:
+                    type: string
+                    description: JWE enc algorithm (JWA) required for encrypting the ID Token issued to this Client.
+                  userinfo_signed_response_alg:
+                    type: string
+                    description: JWS alg algorithm (JWA) required for signing UserInfo Responses.  
+                  userinfo_encrypted_response_alg:
+                    type: string
+                    description: JWE alg algorithm (JWA) required for encrypting UserInfo Responses.
+                  userinfo_encrypted_response_enc:
+                    type: string 
+                    description: JWE enc algorithm (JWA) required for encrypting UserInfo Responses.
+                  request_object_signing_alg:
+                    type: string
+                    description: JWS alg algorithm (JWA) that must be used for signing Request Objects sent to the OP.
+                  request_object_encryption_alg:
+                    type: string
+                    description: JWE alg algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                  request_object_encryption_enc:
+                    type: string
+                    description: JWE enc algorithm (JWA) the RP is declaring that it may use for encrypting Request Objects sent to the OP. 
+                  token_endpoint_auth_method:
+                    type: string
+                    description: Requested Client Authentication method for the Token Endpoint. 
+                  token_endpoint_auth_signing_alg:
+                    type: string
+                    description: JWS alg algorithm (JWA) that must be used for signing the JWT used to authenticate the Client at the Token Endpoint
+                                 for the private_key_jwt and client_secret_jwt authentication methods.                  
+                  default_max_age:
+                    type: integer
+                    description: Specifies the Default Maximum Authentication Age.
+                    example: 1000000 
+                  require_auth_time:
+                    type: boolean
+                    description: Boolean value specifying whether the auth_time Claim in the ID Token is required. It is required when the value is true. 
+                  default_acr_values:
+                    type: array
+                    description: Array of default requested Authentication Context Class Reference values that the Authorization Server must use for 
+                                 processing requests from the Client.
+                    items:
+                      type: string
+                  initiate_login_uri:
+                    type: string
+                    description: Specifies the URI using the https scheme that the authorization server can call to initiate a login at the client.
+                  post_logout_redirect_uris:
+                    type: array
+                    description: Provide the URLs supplied by the RP to request that the user be redirected to this location after a logout has been
+                      performed.
+                    example:
+                    - https://client.example.org/logout/page1
+                    - https://client.example.org/logout/page2
+                    - https://client.example.org/logout/page3
+                    items:
+                      type: string
+                  frontchannel_logout_uri:
+                    type: string
+                    description: RP URL that will cause the RP to log itself out when rendered in an iframe by the OP.
+                  frontchannel_logout_session_required:
+                    type: boolean
+                    description: Boolean value specifying whether the RP requires that a session ID query parameter be included
+                                 to identify the RP session at the OP when the logout_uri is used. If omitted, the default value is false.
+                  backchannel_logout_uri:
+                    type: string
+                    description: RP URL that will cause the RP to log itself out when sent a Logout Token by the OP.
+                  backchannel_logout_session_required:
+                    type: boolean
+                    description: Boolean value specifying whether the RP requires that a session ID Claim be included in the Logout Token 
+                            to identify the RP session with the OP when the backchannel_logout_uri is used. If omitted, the default value is false.  
+                  request_uris:
+                    type: array
+                    description: Provide a list of request_uri values that are pre-registered by the Client for use at the Authorization Server.
+                    items:
+                      type: string 
+                  scopes: 
+                    type: string
+                    deprecated: true
+                    description: This param will be removed in a future version because the correct is 'scope' not 'scopes', see (rfc7591).
+                  claims:
+                    type: string
+                    description: String containing a space-separated list of claims that can be requested individually.                  
+                  id_token_token_binding_cnf:
+                    type: string
+                    description: Specifies the JWT Confirmation Method member name (e.g. tbh) that the Relying Party expects
+                          when receiving Token Bound ID Tokens. The presence of this parameter indicates that the Relying Party 
+                          supports Token Binding of ID Tokens.
+                          If omitted, the default is that the Relying Party does not support Token Binding of ID Tokens.                  
+                  tls_client_auth_subject_dn:
+                    type: string
+                    description: An string representation of the expected subject distinguished name of the certificate, 
+                               which the OAuth client will use in mutual TLS authentication.                  
+                  allow_spontaneous_scopes:
+                    type: boolean
+                    description: Specifies whether to allow spontaneous scopes for client. The default value is false.
+                    example: false      
+                  spontaneous_scopes:
+                    type: array
+                    description: List of spontaneous scopes 
+                    items:
+                      type: string
+                  run_introspection_script_before_access_token_as_jwt_creation_and_include_claims:
+                    type: boolean
+                    description: Boolean value with default value false. If true and access_token_as_jwt=true then run introspection script 
+                                and transfer claims into JWT.
+                  keep_client_authorization_after_expiration:
+                    type: boolean
+                    description: Boolean value indicating if the client authorization will not be removed afer expiration
+                           (expiration date is same as client's expiration that created it). The default value is false.
+                  scope:
+                    type: array
+                    description: Provide list of scope which are used during authentication to authorize access to resource.
+                    example:
+                    - openid
+                    items:
+                      type: string 
+                  authorized_origins:
+                    type: array
+                    description: specifies authorized JavaScript origins.
+                    items:
+                      type: string               
+                  access_token_lifetime:
+                    type: integer
+                    description: Specifies the Client-specific access token expiration.
+                    example: 100000000
+                  software_id:
+                    type: string
+                    description: Specifies a unique identifier string (UUID) assigned 
+                      by the client developer or software publisher used by registration
+                      endpoints to identify the client software to be dynamically registered.
+                    example: 4NRB1-0XZABZI9E6-5SM3R                
+                  software_version:
+                    type: string
+                    description: Specifies a version identifier string for the client
+                      software identified by 'software_id'. The value of the 'software_version'
+                      should change on any update to the client software identified
+                      by the same 'software_id'.
+                    example: "2.1"
+                  software_statement:
+                    type: string
+                    description: specifies a software statement containing client metadata
+                      values about the client software as claims. This is a string value
+                      containing the entire signed JWT. 
+                  backchannel_token_delivery_mode:
+                    type: string
+                    description: specifies how backchannel token will be deliveried.
+                    example: push, poll, ping
+                  backchannel_client_notification_endpoint:
+                    type: string
+                    description: Client Initiated Backchannel Authentication (CIBA) enables a Client to initiate the authentication of an end-user by means of out-of-band mechanisms. Upon receipt of the notification, the Client makes a request to the token endpoint to obtain the tokens.
+                  backchannel_authentication_request_signing_alg:
+                    type: string
+                    description: The JWS algorithm alg value that the Client will use for signing authentication request, as described in Section 7.1.1. of OAuth 2.0 [RFC6749]. When omitted, the Client will not send signed authentication requests.
+                  backchannel_user_code_parameter:
+                    type: boolean 
+                    description: Boolean value specifying whether the Client supports the user_code parameter. If omitted, the default value is false.                                      
+        401:      
           $ref: '#/components/responses/InvalidRequest'
         500:
           $ref: '#/components/responses/InternalServerError'   
@@ -873,7 +1658,7 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Access Token that is used at the Client Configuration Endpoint   
+          description: Authorization header carrying \"registration_access_token\" issued before as a Bearer token 
           schema:
             type : string      
       responses:
@@ -885,7 +1670,7 @@ paths:
         401:
           $ref: '#/components/responses/Unauthorized'          
         500:
-          $ref: '#/components/responses/InternalServerError'           
+          $ref: '#/components/responses/InternalServerError' 
   /revoke:
     post:
       tags:
@@ -926,7 +1711,22 @@ paths:
       responses:
         200:
           description: OK
-          content: {}  
+          content:
+            application/json:
+              schema:
+                title: SessionStateObject
+                type: object
+                properties:
+                  state:
+                    type: string
+                    description: String that represents the End-User's login state at the OP. It MUST NOT contain the space (\" \") character.
+                  auth_time:
+                    type: string
+                    format: date
+                    description: specifies the time at which session was authenticated.
+                    example: 100000000
+                  custom_state:
+                    type: string
   /end_session:
     get:
       tags:
@@ -958,7 +1758,7 @@ paths:
             type : string 
       responses:
         200:
-          description: OK
+          description: OK - User redirected to logout page
           content: {}                         
         302:
           $ref: '#/components/responses/Found'        
@@ -983,11 +1783,17 @@ paths:
               - grant_type
               properties:
                 grant_type:
-                  type : string
-                  description: Grant type value, one of these - authorization_code, implicit, password, client_credentials, refresh_token as described in OAuth 2.0 [RFC6749].
+                  type: array
+                  description: Provide a list of the OAuth 2.0 grant types that the
+                    Client is declaring that it will restrict itself to using.
+                  example:
+                  - authorization_code
+                  - client_credentials
+                  items:
+                    type: string
                 code:
                   type : string
-                  description: Code which is returned by authorization endpoint. (For grant_type=authorization_code.
+                  description: Code which is returned by authorization endpoint. (For grant_type=authorization_code)
                 redirect_uri:
                   type : string
                   description: Redirection URI to which the response will be sent. This URI MUST exactly match one of the Redirection URI values for the Client pre-registered at the OpenID Provider.
@@ -998,8 +1804,10 @@ paths:
                   type : string
                   description: End-User password.
                 scope:
-                  type : string
+                  type : array
                   description: OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present, the behavior is entirely unspecified. Other scope values MAY be present. Scope values used that are not understood by an implementation SHOULD be ignored.
+                  items: 
+                    type: string
                 assertion:
                   type : string
                   description: Assertion.
@@ -1016,20 +1824,15 @@ paths:
                   type : string
                   description: The client's PKCE code verifier.
                 ticket:
-                  type : string
-                  #description:
+                  type: string
                 claim_token:
-                  type : string
-                  #description: 
+                  type: string
                 claim_token_format:
-                  type : string
-                  #description: 
+                  type: string
                 pct:
-                  type : string
-                  #description:
+                  type: string
                 rpt:
-                  type : string
-                  #description:                  
+                  type: string                 
       responses:
         200:
           description: OK
@@ -1037,35 +1840,32 @@ paths:
             application/json:
               schema:
                 type: object
-                description: AccessToken.
+                description: AccessTokenResponse.
+                required:
+                - access_token
+                - token_type
                 properties:
-                  tknCde:
+                  access_token:
                     type: string
-                    example: 
-                    description: Token code
-                  iat:
+                    description: The access token issued by the authorization server.
+                  token_type:
                     type: string
-                    format: date
-                    example: 
-                    description: Creation Date of the token.
-                  exp:
+                    description: The access token type provides the client with the information required to successfully utilize the access token to make a protected resource request (along with type-specific attributes). 
+                  expires_in:
+                    type: integer
+                    description: The lifetime in seconds of the access token. For example, the value \"3600\" denotes that the access token will expire in one hour from the time the response was generated. 
+                  refresh_token:
                     type: string
-                    format: date
-                    description: Expiry Date of the token.
-                  del:
-                    type: boolean
-                    description: Token deletion flag. Default value is true.
-                  amr:
+                    description: The refresh token, which can be used to obtain new access tokens using the same authorization grant
+                  scope:
+                    type: array
+                    example:
+                    - openid
+                    - oxd
+                    items:
+                      type: string
+                  id_token:
                     type: string
-                    example: 
-                    description: Authentication mode.
-                  ssnId:
-                    type: string
-                    example: 
-                    description: Session DN(Distinguished Name).
-                  x5ts256:
-                    type: string
-                    description: Certificate encryption strategy
         400:
           $ref: '#/components/responses/InvalidRequest'
         401:
@@ -1084,6 +1884,7 @@ paths:
       parameters:
         - name: client_id
           in: query
+          description:  OAuth 2.0 Client Identifier valid at the Authorization Server.
           schema:
             type : string
         - name: ticket
@@ -1093,7 +1894,7 @@ paths:
         - name: claims_redirect_uri
           in: query
           schema:
-            type : string            
+            type: string          
         - name: state
           in: query
           schema:
@@ -1126,7 +1927,8 @@ paths:
               type: object              
               properties:                
                 client_id:
-                  type : string                  
+                  type : string 
+                  description:  OAuth 2.0 Client Identifier valid at the Authorization Server.                  
                 ticket:
                     type : string
                 claims_redirect_uri:
@@ -1164,26 +1966,95 @@ paths:
                 - resource_registration_endpoint
                 - scope_endpoint
                 properties:
-                  claims_interaction_endpoint:
+                  issuer:
                     type: string
-                    example: 
-                    description: Static endpoint URI at which the authorization server declares that it interacts with end-user requesting parties to gather claims. If the authorization server also provides a claims interaction endpoint URI as part of its redirect_user hint in a need_info response to a client on authorization failure (see Section 3.3.6), that value overrides this metadata value. Providing the static endpoint URI is useful for enabling interactive claims gathering prior to any pushed-claims flows taking place, so that, for example, it is possible to gather requesting party authorization interactively for collecting all other claims in a \"silent\" fashion.
-                  uma_profiles_supported:
+                    example: https://sample.com
+                  grant_types_supported:
                     type: array
-                    format: date
-                    example: 
-                    description: UMA profiles supported by this authorization server. The value is an array of string values, where each string value is a URI identifying an UMA profile.
                     items:
                       type: string
-                  permission_endpoint:
+                    example:
+                    - authorization_code
+                    - implicit
+                    - client_credentials
+                  response_types_supported:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                    - code
+                    - id_token
+                    - token
+                  token_endpoint_auth_methods_supported:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                    - client_secret_basic
+                    - client_secret_post
+                    - client_secret_jwt
+                    - private_key_jwt
+                  token_endpoint_auth_signing_alg_values_supported:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                    - HS256
+                    - HS384
+                    - HS512
+                    - RS256
+                    - RS384
+                    - RS512
+                    - ES256
+                    - ES384
+                    - ES512
+                  ui_locales_supported:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                    - en
+                    - es
+                  op_tos_uri:
                     type: string
-                    description: The endpoint URI at which the resource server requests permissions on the client's behalf.
+                    example: http://ox.sample.com/doku.php?id=oxauth:tos
+                  op_policy_uri:
+                    type: string
+                    example: http://ox.sample.com/doku.php?id=oxauth:policy
+                  jwks_uri:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/jwks
+                  service_documentation:
+                    type: string
+                    example: http://<op_docs>
+                  uma_profiles_supported:
+                    type: array
+                    items: 
+                      type: string
+                  registration_endpoint:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/register
+                  token_endpoint:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/token
+                  authorization_endpoint:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/authorize
+                  introspection_endpoint:
+                    type: string 
+                    example: https://sample.com/oxauth/restv1/rpt/status
                   resource_registration_endpoint:
                     type: string
-                    description: The endpoint URI at which the resource server registers resources to put them under authorization manager protection.
+                    example: https://sample.com/oxauth/restv1/host/rsrc/resource_set
+                  permission_endpoint:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/host/rsrc_pr
                   scope_endpoint:
                     type: string
-                    description: The Scope endpoint URI.                  
+                    example: https://sample.com/oxauth/restv1/uma/scopes
+                  claims_interaction_endpoint:
+                    type: string
+                    example: https://sample.com/oxauth/restv1/uma/gather_claims
         500:
           $ref: '#/components/responses/InternalServerError' 
   /host/rsrc_pr:
@@ -1205,33 +2076,57 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
+              title: UmaPermission
               type: object
               required:
-              - requestAsString
+              - resource_id
+              - resource_scopes
               properties:
-                requestAsString:
+                resource_id:
                   type : string
-                  description: The identifier for a resource to which this client is seeking access. The identifier MUST correspond to a resource set that was previously registered.
-                Authorization:
+                  description: The identifier for a resource to which this client is seeking access. The identifier MUST correspond to a resource that was previously registered.
+                  example: 112210f47de98100
+                resource_scopes:
                   type : string
-                  description: Client Authorization details that contains the access token along with other details.           
+                  description: An array referencing one or more identifiers of scopes to which access is needed for this resource. Each scope identifier MUST correspond to a scope that was registered by RS for the referenced resource.
+                params:
+                  type: object
+                  description: A key/value map that can contain custom parameters.
+                  additionalProperties:
+                    type: string
       responses:
-        201: #CREATED
+        201:
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                description: Client PermissionTicket object.
-                properties:
-                  ticket:
-                    type: string                                       
+                title: UmaPermissionList
+                type: array
+                description: List of Uma Permission.
+                items:
+                  type: object
+                  required:
+                  - resource_id
+                  - resource_scopes
+                  properties:
+                    resource_id:
+                      type : string
+                      description: The identifier for a resource to which this client is seeking access. The identifier MUST correspond to a resource that was previously registered.
+                      example: 112210f47de98100
+                    resource_scopes:
+                      type : string
+                      description: An array referencing one or more identifiers of scopes to which access is needed for this resource. Each scope identifier MUST correspond to a scope that was registered by RS for the referenced resource.
+                    params:
+                      type: object
+                      description: A key/value map that can contain custom parameters.
+                      additionalProperties:
+                        type: string                                       
         500:
           $ref: '#/components/responses/InternalServerError'  
   /host/rsrc/resource_set:
     post:
       tags:
-      - UMA (User Managed Access)
+      - UMA 2 Resource 
       summary: Adds a new resource description.
       description: Adds a new resource description.
       operationId: post-host-rsrc-resource_set
@@ -1246,7 +2141,46 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UmaResource' 
+              title: UmaResource
+              description: Resource description
+              type: object
+              required:
+              - iat
+              - exp
+              properties:
+                name:
+                  type: string
+                  description: A human-readable string describing a set of one or more resources. This name MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                uri:
+                  type: string
+                  description: A human-readable string describing the resource
+                _type:
+                  type: string
+                  description: A string uniquely identifying the semantics of the resource set. For example, if the resource set consists of a single resource that is an identity claim that leverages standardized claim semantics for \"verified email address\", the value of this property could be an identifying URI for this claim.
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                  description: An array of strings, any of which MAY be a URI, indicating the available scopes for this resource set. URIs MUST resolve to scope descriptions as defined in Section 2.1. Published scope descriptions MAY reside anywhere on the web; a resource server is not required to self-host scope descriptions and may wish to point to standardized scope descriptions residing elsewhere. It is the resource server's responsibility to ensure that scope description documents are accessible to authorization servers through GET calls to support any user interface requirements. The resource server and authorization server are presumed to have separately negotiated any required interpretation of scope handling not conveyed through scope descriptions.
+                scopeExpression:
+                  type: string
+                _description:
+                  type: string
+                  description: A human-readable string describing the resource
+                icon_uri:
+                  type: string
+                  description: A URI for a graphic icon representing the resource set. The referenced icon MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                  example: http://www.example.com/icons/sharesocial.png
+                iat:
+                  type: integer
+                  description: number of seconds since January 1 1970 UTC, indicating when the token was issued at
+                  format: int64
+                  example: 1535709072
+                exp:
+                  type: integer
+                  description: number of seconds since January 1 1970 UTC, indicating when this token will expire.
+                  format: int64
+                  example: 1419356238
       responses:
         201:
           description: OK
@@ -1257,36 +2191,79 @@ paths:
                 description: UmaResourceResponse Resource created.
                 type: object
                 required:
-                - id                
+                - _id                
                 properties:
-                  id:
-                    type: string                                       
+                  _id:
+                    type: string  
+                    description: UMA Resource identifier
+                    example: KX3A-39WE 
+                  user_access_policy_uri:
+                    type: string
+                    example: http://as.example.com/rs/222/resource/22/policy                  
         500:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-      - UMA (User Managed Access)
+      - UMA 2 Resource 
       summary: Updates a previously registered resource.
       description: Updates a previously registered resource.
-      operationId: put-host-rsrc-resource_set
+      operationId: put-host-rsrc-resource_set{rsid}
       parameters:
         - name: Authorization
           in: header
           required: true
-          description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
         - name: rsid
           in: path
           required: true
-          description: Resource description ID.
+          description: Resource ID.
           schema:
             type : string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UmaResource' 
+              title: UmaResource
+              description: Resource description
+              type: object
+              required:
+              - iat
+              - exp
+              properties:
+                name:
+                  type: string
+                  description: A human-readable string describing a set of one or more resources. This name MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                uri:
+                  type: string
+                  description: A human-readable string describing the resource
+                _type:
+                  type: string
+                  description: A string uniquely identifying the semantics of the resource set. For example, if the resource set consists of a single resource that is an identity claim that leverages standardized claim semantics for \"verified email address\", the value of this property could be an identifying URI for this claim.
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                  description: An array of strings, any of which MAY be a URI, indicating the available scopes for this resource set. URIs MUST resolve to scope descriptions as defined in Section 2.1. Published scope descriptions MAY reside anywhere on the web; a resource server is not required to self-host scope descriptions and may wish to point to standardized scope descriptions residing elsewhere. It is the resource server's responsibility to ensure that scope description documents are accessible to authorization servers through GET calls to support any user interface requirements. The resource server and authorization server are presumed to have separately negotiated any required interpretation of scope handling not conveyed through scope descriptions.
+                scopeExpression:
+                  type: string
+                _description:
+                  type: string
+                  description: A human-readable string describing the resource
+                icon_uri:
+                  type: string
+                  description: A URI for a graphic icon representing the resource set. The referenced icon MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                  example: http://www.example.com/icons/sharesocial.png
+                iat:
+                  type: integer
+                  description: number of seconds since January 1 1970 UTC, indicating when the token was issued at
+                  format: int64
+                  example: 1535709072
+                exp:
+                  type: integer
+                  description: number of seconds since January 1 1970 UTC, indicating when this token will expire.
+                  format: int64
+                  example: 1419356238
       responses:
         200:
           description: OK
@@ -1294,18 +2271,23 @@ paths:
             application/json:
               schema:
                 title: UmaResourceResponse
-                description: UmaResourceResponse
+                description: UmaResourceResponse Resource created.
                 type: object
                 required:
-                - id                
+                - _id                
                 properties:
-                  id:
-                    type: string                              
+                  _id:
+                    type: string  
+                    description: UMA Resource identifier
+                    example: KX3A-39WE 
+                  user_access_policy_uri:
+                    type: string
+                    example: http://as.example.com/rs/222/resource/22/policy                               
         500:
           $ref: '#/components/responses/InternalServerError'
     get:
       tags:
-      - UMA (User Managed Access)
+      - UMA 2 Resource 
       summary: Lists all previously registered resource.
       description: Lists all previously registered resource.
       operationId: get-host-rsrc-resource_set
@@ -1313,30 +2295,32 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
-        - name: scope
-          in: query
+        - name: rsid
+          in: path
           required: true
-          description: Scope uri.
+          description: Resource ID.
           schema:
-            type : string      
+            type : string     
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
+                title: Uma Resource indetifiers
+                description: Uma Resource details
                 type: array
                 items:
                   type: string
-                description: resource id.
+                  description: List of resource identifers
+                  example: [ '11','22']
         500:
          $ref: '#/components/responses/InternalServerError' 
     delete:
       tags:
-      - UMA (User Managed Access)
+      - UMA 2 Resource 
       summary: Deletes a previously registered resource.
       description: Deletes a previously registered resource.
       operationId: delete-host-rsrc-resource_set
@@ -1344,13 +2328,12 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
         - name: rsid
           in: path
           required: true
-          description: Resource description ID.
+          description: Resource ID
           schema:
             type : string      
       responses:
@@ -1362,7 +2345,7 @@ paths:
   /host/rsrc/resource_set/{rsid}:
     get:
       tags:
-      - UMA (User Managed Access)
+      - UMA 2 Resource 
       summary: Reads a previously registered resource.
       description: Reads a previously registered resource.
       operationId: get-host-rsrc-resource_set/{rsid}
@@ -1385,14 +2368,57 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UmaResourceWithId'                              
+                title: UmaResourceWithId
+                description: Uma Resource details
+                type: object
+                required:
+                - _id
+                - iat
+                - exp
+                properties:
+                  _id:
+                    type: string  
+                    description: UMA Resource identifier
+                    example: KX3A-39WE
+                  name:
+                    type: string
+                    description: A human-readable string describing a set of one or more resources. This name MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                  uri:
+                    type: string
+                    description: A human-readable string describing the resource
+                  _type:
+                    type: string
+                    description: A string uniquely identifying the semantics of the resource set. For example, if the resource set consists of a single resource that is an identity claim that leverages standardized claim semantics for \"verified email address\", the value of this property could be an identifying URI for this claim.
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+                    description: An array of strings, any of which MAY be a URI, indicating the available scopes for this resource set. URIs MUST resolve to scope descriptions as defined in Section 2.1. Published scope descriptions MAY reside anywhere on the web; a resource server is not required to self-host scope descriptions and may wish to point to standardized scope descriptions residing elsewhere. It is the resource server's responsibility to ensure that scope description documents are accessible to authorization servers through GET calls to support any user interface requirements. The resource server and authorization server are presumed to have separately negotiated any required interpretation of scope handling not conveyed through scope descriptions.
+                  scopeExpression:
+                    type: string
+                  _description:
+                    type: string
+                    description: A human-readable string describing the resource
+                  icon_uri:
+                    type: string
+                    description: A URI for a graphic icon representing the resource set. The referenced icon MAY be used by the authorization server in its resource owner user interface for the resource owner.
+                    example: http://www.example.com/icons/sharesocial.png
+                  iat:
+                    type: integer
+                    description: number of seconds since January 1 1970 UTC, indicating when the token was issued at
+                    format: int64
+                    example: 1535709072
+                  exp:
+                    type: integer
+                    description: number of seconds since January 1 1970 UTC, indicating when this token will expire.
+                    format: int64
+                    example: 1419356238                       
         500:
-          $ref: '#/components/responses/InternalServerError' 
-    
+          $ref: '#/components/responses/InternalServerError'     
   /rpt/status:
     get:
       tags:
-      -  Token 
+      -  Token Introspection 
       summary: The Introspection OAuth 2 Endpoint for RPT.
       description: The Introspection OAuth 2 Endpoint for RPT.
       operationId: get-rpt-status
@@ -1400,7 +2426,6 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string
         - name: token
@@ -1420,7 +2445,61 @@ paths:
             application/json:
               schema:
                 title: RptIntrospectionResponse
-                $ref: '#/components/schemas/RptIntrospectionResponse'                  
+                type: object
+                required:
+                - active
+                - permissions 
+                - resource_id
+                - resource_scopes
+                properties:
+                  active:
+                    type: boolean
+                    description: Boolean indicator of whether or not the presented token is currently active.
+                  exp:
+                    type: integer
+                    description: Integer timestamp, in seconds since January 1 1970 UTC, indicating when this token will expire.
+                    format: int64
+                    example: 1256953732                                           
+                  iat:
+                    type: integer   
+                    description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. 
+                    example: 1256953732
+                  clientId:
+                    type: string 
+                    description: Client id used to obtain RPT.
+                  sub:
+                    type: string 
+                    description: Subject of the token. Usually a machine-readable identifier of the resource owner who authorized this token.                    
+                  aud:
+                    type: string
+                    description: Service-specific string identifier or list of string identifiers representing the intended audience for this token.                    
+                  permissions:
+                    type: array
+                    items:
+                      type: object
+                      description: List of UmaPermission granted to RPT.
+                  pct_claims:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: PCT token claims. 
+                    #example: {name:['John']}
+                  iss:
+                    type: string 
+                    description: String representing the issuer of this token, as defined in JWT [RFC7519].                    
+                  jti:
+                    type: string
+                    description: String identifier for the token, as defined in JWT [RFC7519].                    
+                  nbf:
+                    type: integer
+                    description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating the time before which this permission is not valid.                    
+                  resource_id:
+                    type: string
+                    description: Resource ID.
+                  resource_scopes:
+                    type: array
+                    items: 
+                      type: string
         405:
           description: Introspection of RPT is not allowed.
           content:
@@ -1431,7 +2510,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-      - Token
+      - Token Introspection 
       summary: The Introspection OAuth 2 Endpoint for RPT.
       description: The Introspection OAuth 2 Endpoint for RPT.
       operationId: post-rpt-status      
@@ -1464,7 +2543,61 @@ paths:
             application/json:
               schema:
                 title: RptIntrospectionResponse
-                $ref: '#/components/schemas/RptIntrospectionResponse'                  
+                type: object
+                required:
+                - active
+                - permissions 
+                - resource_id
+                - resource_scopes
+                properties:
+                  active:
+                    type: boolean
+                    description: Boolean indicator of whether or not the presented token is currently active.
+                  exp:
+                    type: integer
+                    description: Integer timestamp, in seconds since January 1 1970 UTC, indicating when this token will expire.
+                    format: int64
+                    example: 1256953732                                           
+                  iat:
+                    type: integer   
+                    description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this permission was originally issued. 
+                    example: 1256953732
+                  clientId:
+                    type: string 
+                    description: Client id used to obtain RPT.
+                  sub:
+                    type: string 
+                    description: Subject of the token. Usually a machine-readable identifier of the resource owner who authorized this token.                    
+                  aud:
+                    type: string
+                    description: Service-specific string identifier or list of string identifiers representing the intended audience for this token.                    
+                  permissions:
+                    type: array
+                    items:
+                      type: object
+                      description: List of UmaPermission granted to RPT.
+                  pct_claims:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      description: PCT token claims. 
+                      example: '{name:["John"]}'
+                  iss:
+                    type: string 
+                    description: String representing the issuer of this token, as defined in JWT [RFC7519].                    
+                  jti:
+                    type: string
+                    description: String identifier for the token, as defined in JWT [RFC7519].                    
+                  nbf:
+                    type: integer
+                    description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating the time before which this permission is not valid.                    
+                  resource_id:
+                    type: string
+                    description: Resource ID.
+                  resource_scopes:
+                    type: array
+                    items: 
+                      type: string
         405:
           description: Introspection of RPT is not allowed.
           content:
@@ -1476,7 +2609,7 @@ paths:
   /uma/scopes/icons:
     get:
       tags:
-      - UMA (User Managed Access)
+      - UMA Scope
       summary: Provides UMA Scope Icon by scope id.
       description: Provides UMA Scope Icon by scope id.
       operationId: get-uma_scopes_icons
@@ -1498,7 +2631,7 @@ paths:
   /uma/scopes:
     get:
       tags:
-      - UMA (User Managed Access)
+      - UMA Scope
       summary: Provides UMA Scope description by scope id.
       description: Provides UMA Scope description by scope id.
       operationId: get-uma_scopes
@@ -1548,7 +2681,6 @@ paths:
             type : string 
         - name: Authorization
           in: header
-          description: Client Authorization details that contains the access token along with other details.
           schema:
             type : string 
       responses:
@@ -1558,30 +2690,28 @@ paths:
             application/jwt:
               schema:
                 title: User Claims details
-                required:
-                - KeyEncryptionAlgorithm
-                - BlockEncryptionAlgorithm
-                - User
-                - AuthorizationGrant
                 properties:
-                  KeyEncryptionAlgorithm:
+                  sub: 
+                    type: integer
+                    example: 248289761001
+                  name:
                     type: string
-                    description: Key Encryption Algorithm.                    
-                  BlockEncryptionAlgorithm:
+                    example: Jane Doe
+                  given_name:
                     type: string
-                    description: Block Encryption Algorithm.
-                  User:  
-                    type: object
-                    description: User details.
-                    items:
-                      $ref: '#/components/schemas/User'  
-                  AuthorizationGrant:  
-                    type: object
-                    description: User Grant details.
-                  scopes:
-                    type: array
-                    items:
-                      type: string 
+                    example: Jane
+                  family_name:
+                    type: string
+                    example: Doe
+                  preferred_username:
+                    type: string
+                    example: j.doe
+                  email:
+                    type: string
+                    example: janedoe@example.com
+                  picture:
+                    type: string
+                    example: http://example.com/janedoe/me.jpg
         400:
           $ref: '#/components/responses/InvalidRequest'          
         401:
@@ -1621,30 +2751,28 @@ paths:
             application/jwt:
               schema:
                 title: User Claims details
-                required:
-                - KeyEncryptionAlgorithm
-                - BlockEncryptionAlgorithm
-                - User
-                - AuthorizationGrant
                 properties:
-                  KeyEncryptionAlgorithm:
+                  sub: 
+                    type: integer
+                    example: 248289761001
+                  name:
                     type: string
-                    description: Key Encryption Algorithm.                    
-                  BlockEncryptionAlgorithm:
+                    example: Jane Doe
+                  given_name:
                     type: string
-                    description: Block Encryption Algorithm.
-                  User:  
-                    type: object
-                    description: User details.
-                    items:
-                      $ref: '#/components/schemas/User'  
-                  AuthorizationGrant:  
-                    type: object
-                    description: User Grant details.
-                  scopes:
-                    type: array
-                    items:
-                      type: string 
+                    example: Jane
+                  family_name:
+                    type: string
+                    example: Doe
+                  preferred_username:
+                    type: string
+                    example: j.doe
+                  email:
+                    type: string
+                    example: janedoe@example.com
+                  picture:
+                    type: string
+                    example: http://example.com/janedoe/me.jpg
         400:
           $ref: '#/components/responses/InvalidRequest'          
         401:
@@ -1659,7 +2787,7 @@ paths:
       - FIDO U2F
       summary: Performs FIDO U2F authentication of end-user.
       description: Performs FIDO U2F authentication of end-user.
-      operationId: fido-u2f-authentication
+      operationId: get-fido-u2f-authentication
       parameters:
         - name: username
           in: query
@@ -1670,7 +2798,7 @@ paths:
           in: query
           schema:
             type : string
-          description: Websafe-base64 encoding of the key handle obtained from the U2F token during registration.            
+            description: Websafe-base64 encoding of the key handle obtained from the U2F token during registration.            
         - name: application
           in: query
           description: The application id that the RP would like to assert.
@@ -1686,20 +2814,129 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthenticateRequestMessage'
+                title: AuthenticateRequestMessage
+                description: FIDO U2F device authentication request.
+                required:
+                - version
+                - challenge
+                - appId
+                - keyHandle
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: Version of the protocol that the to-be-registered U2F token must speak.
+                    example: U2F_V2
+                  challenge:
+                    type: string
+                    description: The websafe-base64-encoded challenge.        
+                  appId:
+                    type: string
+                    description: The application id that the RP would like to assert.
+                  keyHandle:
+                    type: string
+                    description: Websafe-base64 encoding of the key handle obtained from the U2F token during registration.   
         403:
           $ref: '#/components/responses/AccessDenied'
         404:
           $ref: '#/components/responses/NotFound'        
         500:
           $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+      - FIDO U2F
+      summary: Performs FIDO U2F authentication of end-user.
+      description: Performs FIDO U2F authentication of end-user.
+      operationId: post-fido-u2f-authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: GetClientTokenParams
+              required:
+              - username
+              - tokenResponse
+              type: object
+              properties:
+                username:
+                  type: string
+                tokenResponse:
+                  type: object
+                  properties: 
+                    clientData:
+                      type: string
+                      description: base64(UTF8(client data))
+                    signatureData:
+                      type: string
+                      description: base64(raw response from U2F device)
+                    keyHandle:
+                      type: string
+                      description: keyHandle originally passed
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: AuthenticateStatus
+                description: FIDO U2F device authentication status.
+                required:
+                - status
+                - challenge
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Version of the protocol that the to-be-registered U2F token must speak.
+                    example: U2F_V2
+                  challenge:
+                    type: string
+                    description: The websafe-base64-encoded challenge.     
+        403:
+          $ref: '#/components/responses/AccessDenied'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+          
   /fido-configuration:
     get:
       tags:
       - FIDO U2F
       summary: Performs FIDO configuration data.
       description: Performs FIDO configuration data.
-      operationId: fido-configuration  
+      operationId: fido-configuration
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: U2fConfiguration
+                description: FIDO U2F Configuration.
+                required:
+                - version
+                - issuer
+                properties:
+                  version:
+                    type: string
+                    description: The version of the FIDO U2F core protocol to which this server conforms. The value MUST be the string 1.0. 
+                  issuer:
+                    type: string
+                    description: A URI indicating the party operating the FIDO U2F server.
+                  registration_endpoint:
+                    type: string
+                  authentication_endpoint:
+                    type: string
+        403:
+          $ref: '#/components/responses/AccessDenied'   
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /fido/u2f/registration:
+    get:
+      tags:
+      - FIDO U2F
+      summary: Endpoint for U2F device start registration process.
+      description: Endpoint for U2F device start registration process.
+      operationId: fido-u2f-registration
       parameters:
       - name: username
         in: query
@@ -1718,207 +2955,56 @@ paths:
       - name: enrollment_code
         in: query
         schema:
-          type : string
+          type : string      
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/U2fConfiguration'
-        403:
-          $ref: '#/components/responses/AccessDenied'   
-        500:
-          $ref: '#/components/responses/InternalServerError'
-  /fido/u2f/registration:
-    get:
-      tags:
-      - FIDO U2F
-      summary: Endpoint for U2F device start registration process.
-      description: Endpoint for U2F device start registration process.
-      operationId: fido-u2f-registration     
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/U2fConfiguration'
+                title: RegisterRequestMessage
+                description: RegisterRequestMessage.
+                required:
+                - AuthenticateRequest
+                - RegisterRequest
+                type: object
+                properties:
+                  AuthenticateRequest:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                        description: Version of the protocol that the to-be-registered U2F token must speak.
+                        example: U2F_V2
+                      challenge:
+                        type: string
+                        description: The websafe-base64-encoded challenge.        
+                      appId:
+                        type: string
+                        description: The application id that the RP would like to assert.
+                      keyHandle:
+                       type: string
+                       description: websafe-base64 encoding of the key handle obtained from the U2F token during registration
+                  RegisterRequest:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                        description: Version of the protocol that the to-be-registered U2F token must speak.
+                        example: U2F_V2
+                      challenge:
+                        type: string
+                        description: The websafe-base64-encoded challenge.        
+                      appId:
+                        type: string
+                        description: The application id that the RP would like to assert.
         403:
           $ref: '#/components/responses/AccessDenied' 
         406:
           $ref: '#/components/responses/NotAcceptable'        
         500:
           $ref: '#/components/responses/InternalServerError'  
-  /fido2/assertion/options:
-    post:
-      tags:
-      - FIDO2
-      summary: Performs FIDO2 authentication of the users.
-      description: Performs FIDO2 authentication of the users.
-      operationId: options  
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: content
-              required:
-              - content
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: Set of parameters required for FIDO2 option assertion.
-                  example: username, authenticatorSelection, documentDomain, extensions, etc.
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                title: assertionOptionsResponseNode
-                required:
-                - challenge
-                - user
-                - allowCredentials
-                - userVerification
-                - extensions
-                type: object
-                properties:
-                  challenge:
-                    type: string
-                    description: Websafe-base64 encoding of the challenge.
-                  user:
-                    type: object
-                    description: User object
-                    required:
-                    - name
-                    properties:
-                      name:
-                        type: string
-                  allowCredentials:
-                    type: array
-                    items:
-                      type: string
-                      description: Credentials like public-key, transports
-                  userVerification:
-                    type: string
-                  extensions:
-                    type: string
-        403:
-          $ref: '#/components/responses/AccessDenied' 
-        500:
-          $ref: '#/components/responses/InternalServerError'
-  /fido2/assertion/result:
-    post:
-      tags:
-      - FIDO2
-      summary: Performs FIDO2 authentication of the users.
-      description: Endpoint for U2F device start registration process.
-      operationId: result  
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: content
-              required:
-              - content
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: Set of parameters required for FIDO2 authentication.
-                  example: id, type, rawId, userHandle, challenge, origin.
-      responses:
-        200:
-          description: OK
-          content: {}
-        403:
-          $ref: '#/components/responses/AccessDenied'
-  /fido2/attestation/options:
-    post:
-      tags:
-      - FIDO2
-      summary: Created new registration.
-      description: Created new registration.
-      operationId: post-options  
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: content
-              required:
-              - content
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: Set of parameters required for FIDO2 option assertion.
-                  example: username, displayName, documentDomain, authenticatorSelection, etc.
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                title: credential
-                required:
-                - challenge
-                - rp
-                - user
-                - attestation
-                - pubKeyCredParams
-                - authenticatorSelection
-                - excludeCredentials
-                - extensions
-                type: object
-                properties:
-                  challenge:
-                    type: string
-                    description: Websafe-base64 encoding of the challenge.
-                  rp:
-                    type: object
-                    description: RP credentials
-                    required:
-                    - name
-                    - id
-                    properties:
-                      name:
-                        type: string
-                      id:
-                        type: string
-                  user:
-                    type: object
-                    description: User object
-                    required:
-                    - id
-                    - name
-                    - displayName
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                      displayName:
-                        type: string
-                  attestation:
-                     type: string
-                     format: enum                     
-                  pubKeyCredParams:
-                    type: array
-                    items:
-                      type: string
-                      description: Credentials like public-key, type, alg 
-                  authenticatorSelection:
-                    type: string
-                  excludeCredentials:
-                   type: object
-                   description: Fido2RegistrationEntry
-
-        403:
-          $ref: '#/components/responses/AccessDenied' 
-        500:
-          $ref: '#/components/responses/InternalServerError'
+ 
   
           
 components: 
@@ -1976,419 +3062,3 @@ components:
           type: string
         details:
           type: string
-    ClientInfoResponse:
-      type: object
-      properties:
-        displayName:
-          type: string
-        inum:
-          type: string
-          description: XRI i-number
-        oxAuthAppType:
-          type: string
-          description: oxAuth Appication type
-        oxAuthIdTokenSignedResponseAlg:
-          type: string
-          description: oxAuth ID Token Signed Response Algorithm
-        oxAuthRedirectURI:
-          type: array
-          description: Array of redirect URIs values used in the Authorization
-          items: 
-            type: string
-        oxId:
-          type: string
-          example: 
-          description: oxAuth Attribute Scope Id   
-        custom_attributes:
-          type: array
-          items:
-            type: string
-          description: Array of custom attribute of client.
-                    
-
-    
-    
-        
-    RptIntrospectionResponse:
-      required:
-      - active
-      - expiresAt
-      - issuedAt
-      - nbf
-      - clientId 
-      - sub 
-      - aud 
-      - iss 
-      - jti 
-      - permissions 
-      - pctClaims
-      type: object
-      properties:
-        active:
-          type: string
-        expiresAt:
-          type: integer   
-        issuedAt:
-          type: integer   
-        nbf:
-          type: integer   
-        clientId:
-          type: string   
-        sub:
-          type: string   
-        aud:
-          type: string   
-        iss:
-          type: string   
-        jti:
-          type: string   
-        permissions:
-          type: array
-          items:
-            type: object
-            description: Provide the list of UmaPermission objects.           
-        pctClaims:
-          type: object
-          additionalProperties:
-            type: string
-            description: specifies PCT claim map.           
-    ClientResponse:
-      required:
-      - dn
-      - inum
-      - isDeletable
-      - oxAuthClientSecret
-      - tknBndCnf
-      - oxAuthClientIdIssuedAt
-      - oxAuthClientSecretExpiresAt
-      - expirationDate
-      - displayName
-      - oxLastAccessTime
-      - oxLastLogonTime
-      - oxPersistClientAuthorizations
-      type: object
-      properties:
-        dn:
-          type: string
-        inum:
-          type: string
-        isDeletable:
-          type: boolean
-        oxAuthClientSecret:
-          type: string
-        oxAuthRegistrationAccessToken:
-          type: string
-        tknBndCnf: 
-          type: string
-        oxAuthClientIdIssuedAt:
-          type: object
-        oxAuthClientSecretExpiresAt:
-          type: object
-        expirationDate:
-          type: object
-        displayName:
-          type: string
-        oxLastAccessTime:
-          type: object
-        oxLastLogonTime:
-          type: object
-        oxPersistClientAuthorizations:
-          type: boolean
-    UmaResource:
-      description: The resource server defines a resource set that the authorization server needs to be aware of by registering a resource set description at the authorization server. This registration process results in a unique identifier for the resource set that the resource server can later use for managing its description.
-      required:
-      - iat
-      - exp
-      type: object
-      properties:
-        scopes:
-          type: array
-          items:
-            type: string
-        scopeExpression:
-          type: string
-        description:
-          type: string
-          description: A human-readable string describing the resource 
-        iconUri:
-          type: string
-          description: A human-readable string describing the resource 
-        name:
-          type: string
-        type:
-          type: string
-          description: A string uniquely identifying the semantics of the resource set.
-        iat:
-          type: integer
-          description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this resource was originally issued.
-        exp:
-          type: integer
-          description: Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this resource will expire.
-    UmaResourceWithId:
-      description: Resource that needs protection by registering a resource description
-      allOf:
-      - $ref: '#/components/schemas/UmaResource' #Has all the properties of UmaResource
-      required:
-      - _id
-      - exp
-      type: object
-      properties:
-        id:
-          type: string
-    AuthenticateRequest:
-      description: FIDO U2F device authentication request.
-      required:
-      - version
-      - challenge
-      - appId
-      - keyHandle
-      type: object
-      properties:
-        version:
-          type: string
-          description: Version of the protocol that the to-be-registered U2F token must speak.
-          example: U2F_V2
-        challenge:
-          type: string
-          description: The websafe-base64-encoded challenge.        
-        appId:
-          type: string
-          description: The application id that the RP would like to assert.
-        keyHandle:
-          type: string
-          description: Websafe-base64 encoding of the key handle obtained from the U2F token during registration.    
-    AuthenticateRequestMessage:
-      description: FIDO U2F device authentication request message.
-      #allOf:
-      #- $ref: '#/components/schemas/AuthenticateRequest' #Has all the properties of AuthenticateRequest
-      required:
-      - authenticateRequests
-      properties:
-        authenticateRequests:
-          type: array
-          items: 
-            $ref: '#/components/schemas/AuthenticateRequest'
-    RegisterRequest:
-      description: FIDO U2F device registration request.
-      required:
-      - version
-      - challenge
-      - appId
-      type: object
-      properties:
-        version:
-          type: string
-          description: Version of the protocol that the to-be-registered U2F token must speak.
-          example: U2F_V2
-        challenge:
-          type: string
-          description: The websafe-base64-encoded challenge.        
-        appId:
-          type: string
-          description: The application id that the RP would like to assert.
-    RegisterRequestMessage:
-      description: FIDO U2F registration request message.
-      required:
-      - authenticateRequests
-      - registerRequests
-      properties:
-        authenticateRequests:
-          type: array
-          items: 
-            $ref: '#/components/schemas/AuthenticateRequest' 
-        registerRequests:
-          type: array
-          items: 
-            $ref: '#/components/schemas/RegisterRequest'
-    U2fConfiguration:
-      description: FIDO U2F Configuration.
-      required:
-      - version
-      - issuer
-      properties:
-        version:
-          type: string
-          description: The version of the FIDO U2F core protocol to which this server conforms. The value MUST be the string 1.0. 
-        issuer:
-          type: string
-          description: A URI indicating the party operating the FIDO U2F server.
-        registration_endpoint:
-          type: string
-        authentication_endpoint:
-          type: string
-    User:
-      description: User details
-      required:
-        - attributeName
-        - attributeValue
-      properties:
-        attributeName:
-          type: string
-        attributeValue:
-          type: string
-#   AuthorizationGrant:
-#     description: Base class for all the types of authorization grant.
-#     required:
-#     - AppConfiguration
-#     - ScopeChecker
-#     - User
-#     - AuthorizationGrantType
-#     - Client
-#     - scopes
-#     - grantId
-#     - JwtAuthorizationRequest
-#     - authenticationTime
-#     - TokenLdap
-#     - AccessToken
-#     - IdToken
-#     - AuthorizationCode
-#     - nonce
-#     - codeChallenge
-#     - codeChallengeMethod
-#     - claims
-#     - acrValues
-#     - sessionDn
-#     properties:
-#       AppConfiguration:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/AppConfiguration'
-#         description: AppConfiguration
-#       ScopeChecker:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/ScopeChecker'
-#         description: ScopeChecker
-#       User:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/User'
-#         description: User
-#       AuthorizationGrantType:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/AuthorizationGrantType'
-#         description: AuthorizationGrantType
-#       Client:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/Client'
-#         description: Client
-#       scopes:
-#         type: array
-#         additionalProperties:
-#           type: string
-#       grantId:
-#         type: string
-#       JwtAuthorizationRequest:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/JwtAuthorizationRequest'
-#         description: JwtAuthorizationRequest
-#       authenticationTime: 
-#         type: string 
-#         format: date
-#       TokenLdap:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/TokenLdap'
-#         description: TokenLdap
-#       AccessToken:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/AccessToken'
-#         description: AccessToken
-#       IdToken:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/IdToken'
-#         description: IdToken
-#       AuthorizationCode:
-#         type: object
-#         items: 
-#           $ref: '#/components/schemas/AuthorizationCode'
-#         description: AuthorizationCode
-#       nonce:
-#         type: string 
-#       codeChallenge:
-#         type: string 
-#       codeChallengeMethod:
-#         type: string 
-#       claims:
-#         type: string 
-#       acrValues:
-#         type: string 
-#       sessionDn:
-#         type: string 
-    Fido2RegistrationEntry:
-      description: FIDO U2F Configuration.
-      required:
-      - oxPublicKeyId
-      - displayName
-      - oxRegistrationData
-      - oxStatus
-      - oxDeviceNotificationConf
-      properties:
-        oxPublicKeyId:
-          type: string
-        displayName:
-          type: string
-        oxRegistrationData:
-          type: string
-        oxStatus:
-          type: string
-        oxDeviceNotificationConf:
-          type: string
-    Fido2RegistrationData:
-      description: Fido2RegistrationData
-      required:
-      - username
-      - domain
-      - userId
-      - challenge
-      - w3cCredentialCreationOptions
-      - w3cAuthenticatorAttenstationResponse
-      - uncompressedECPoint
-      - publicKeyId
-      - type
-      - attestationType
-      - status
-      - counter
-      - signatureAlgorithm
-      properties:
-        username:
-          type: string
-        domain:
-          type: string 
-        userId:
-          type: string 
-        challenge:
-          type: string 
-        w3cCredentialCreationOptions:
-          type: string 
-        w3cAuthenticatorAttenstationResponse:
-          type: string 
-        uncompressedECPoint:
-          type: string 
-        publicKeyId:
-          type: string 
-        type:
-          type: string 
-        attestationType:
-          type: string 
-        status:
-          type: object
-        counter:
-          type: integer
-        signatureAlgorithm:
-          type: integer        
-         
-        
-          
-    
-  
-  
-      
-            
-  
-            
