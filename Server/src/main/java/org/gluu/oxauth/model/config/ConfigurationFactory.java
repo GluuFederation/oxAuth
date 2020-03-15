@@ -474,8 +474,9 @@ public class ConfigurationFactory {
 
 		String newWebKeys = null;
 		try {
+			final AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(getAppConfiguration());
 			// Generate new JWKS
-			JSONObject jsonObject = AbstractCryptoProvider.generateJwks(
+			JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider,
 					getAppConfiguration().getKeyRegenerationInterval(), getAppConfiguration().getIdTokenLifetime(),
 					getAppConfiguration());
 			newWebKeys = jsonObject.toString();
