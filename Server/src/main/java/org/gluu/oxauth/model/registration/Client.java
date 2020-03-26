@@ -218,6 +218,9 @@ public class Client extends DeletableEntity implements Serializable, ClientRefer
     @AttributeName(name = "del")
     private boolean deletable;
 
+    @Expiration
+    private int ttl;
+
     public ClientAttributes getAttributes() {
         if (attributes == null) {
             attributes = new ClientAttributes();
@@ -227,6 +230,14 @@ public class Client extends DeletableEntity implements Serializable, ClientRefer
 
     public void setAttributes(ClientAttributes attributes) {
         this.attributes = attributes;
+    }
+
+    public int getTtl() {
+        return ttl;
+    }
+
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 
     public boolean isRptAsJwt() {
