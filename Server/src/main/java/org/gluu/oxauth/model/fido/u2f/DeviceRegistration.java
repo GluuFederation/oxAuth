@@ -86,7 +86,7 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
     private boolean deletable = true;
 
     @Expiration
-    private int ttl;
+    private Integer ttl;
 
 	public DeviceRegistration() {}
 
@@ -239,11 +239,11 @@ public class DeviceRegistration extends BaseEntry implements Serializable {
         this.ttl = 0;
 	}
 
-    public int getTtl() {
+    public Integer getTtl() {
         return ttl;
     }
 
-    public void setTtl(int ttl) {
+    public void setTtl(Integer ttl) {
         this.ttl = ttl;
     }
 

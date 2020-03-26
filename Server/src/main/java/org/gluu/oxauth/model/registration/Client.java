@@ -219,7 +219,7 @@ public class Client extends DeletableEntity implements Serializable, ClientRefer
     private boolean deletable;
 
     @Expiration
-    private int ttl;
+    private Integer ttl;
 
     public ClientAttributes getAttributes() {
         if (attributes == null) {
@@ -232,11 +232,11 @@ public class Client extends DeletableEntity implements Serializable, ClientRefer
         this.attributes = attributes;
     }
 
-    public int getTtl() {
+    public Integer getTtl() {
         return ttl;
     }
 
-    public void setTtl(int ttl) {
+    public void setTtl(Integer ttl) {
         this.ttl = ttl;
     }
 
