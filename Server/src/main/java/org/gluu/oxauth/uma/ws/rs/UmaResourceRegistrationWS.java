@@ -313,6 +313,7 @@ public class UmaResourceRegistrationWS {
         ldapResource.setType(resource.getType());
         ldapResource.setCreationDate(calendar.getTime());
         ldapResource.setExpirationDate(getExpirationDate(calendar));
+        ldapResource.setTtl(appConfiguration.getUmaResourceLifetime());
 
         resourceService.addResource(ldapResource);
 
@@ -344,7 +345,8 @@ public class UmaResourceRegistrationWS {
         ldapResource.setRev(String.valueOf(incrementRev(ldapResource.getRev())));
         ldapResource.setType(resource.getType());
         if (resource.getExp() != null && resource.getExp() > 0) {
-            ldapResource.setExpirationDate(new Date(resource.getExp() * 1000));
+            ldapResource.setExpirationDate(new Date(resource.getExp() * 1000L));
+            ldapResource.setTtl(appConfiguration.getUmaResourceLifetime());
         }
 
         resourceService.updateResource(ldapResource);
