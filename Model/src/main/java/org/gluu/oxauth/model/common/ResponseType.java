@@ -39,18 +39,30 @@ public enum ResponseType implements HasParamName, AttributeEnum {
     /**
      * Used for the authorization code grant type.
      */
-	@JsonProperty("code")
+    @JsonProperty("code")
     CODE("code", "Authorization Code Grant Type"),
     /**
      * Used for the implicit grant type.
      */
-	@JsonProperty("token")
+    @JsonProperty("token")
     TOKEN("token", "Implicit Grant Type"),
     /**
      * Include an ID Token in the authorization response.
      */
-	@JsonProperty("id_token")
-    ID_TOKEN("id_token", "ID Token");
+    @JsonProperty("id_token")
+    ID_TOKEN("id_token", "ID Token"),
+
+    @JsonProperty("code-id_token")
+    CODE_IDTOKEN("code id_token", "Authorization Code, Implicit Grant Type"),
+
+    @JsonProperty("code-id_token-token")
+    CODE_IDTOKEN_TOKEN("code id_token token", "Authorization Code, Implicit Grant Type"),
+
+    @JsonProperty("code-token")
+    CODE_TOKEN("code token", "Authorization Code, Implicit Grant Type"),
+
+    @JsonProperty("token-id_token")
+    TOKEN_IDTOKEN("token id_token","Implicit Grant Type");
 
     private final String value;
     private final String displayName;
@@ -139,13 +151,6 @@ public enum ResponseType implements HasParamName, AttributeEnum {
 
     public static boolean isImplicitFlow(String responseTypes) {
         return !responseTypes.contains("code") && (responseTypes.contains("id_token") || responseTypes.contains("token"));
-    }
-
-    public static List<String> toStringList(List<ResponseType> responseTypes) {
-        if (responseTypes == null) {
-            return Lists.newArrayList();
-        }
-        return responseTypes.stream().map(ResponseType::getValue).collect(Collectors.toList());
     }
 
     public static String[] toStringArray(ResponseType[] responseTypes) {
