@@ -6,30 +6,8 @@
 
 package org.xdi.oxauth.service;
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.ResultCode;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.site.ldap.persistence.exception.EmptyEntryPersistenceException;
@@ -566,16 +544,13 @@ public class SessionIdService {
     }
 
     private String getClientOrigin(String redirectUri) throws URISyntaxException {
-        try {
-            final String clientOrigin = getClientOrigin(redirectUri);
-            final String sessionState = JwtUtil.bytesToHex(JwtUtil.getMessageDigestSHA256(
-                    clientId + " " + clientOrigin + " " + opbs + " " + salt)) + "." + salt;
-            return sessionState;
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | UnsupportedEncodingException | URISyntaxException e) {
-            log.error("Failed generating session state! " + e.getMessage(), e);
-            throw new RuntimeException(e);
-	}
+        final URI uri = new URI(redirectUri);
+        String result = uri.getScheme() + "://" + uri.getHost();
+        if(uri.getPort() > 0)
+            result += ":" + Integer.toString(uri.getPort());
+        return result;
     }
+
 
     private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
         final String sid = UUID.randomUUID().toString();
