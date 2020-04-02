@@ -485,7 +485,10 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                         client.getClientId(),
                                         client.getPersistClientAuthorizations());
                                 if (scopes.size() > 0) {
-                                    if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
+                                    if (client.getTrustedClient()) {
+                                        sessionUser.addPermission(clientId, true);
+                                    } else if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
+                                        log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
                                         if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
                                             sessionUser.addPermission(clientId, true);
                                         } else {
@@ -497,8 +500,6 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                             applicationAuditLogger.sendMessage(oAuth2AuditLog);
                                             return builder.build();
                                         }
-                                    } else if (client.getTrustedClient()) {
-                                        sessionUser.addPermission(clientId, true);
                                     }
                                 }
 
