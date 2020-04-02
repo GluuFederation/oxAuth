@@ -219,14 +219,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     throw e;
                 }
             }
-            
+
             if (sessionUser != null) {
 	            Map<String, String> sessionAttributes = sessionUser.getSessionAttributes();
 	            String authorizedGrant = sessionUser.getSessionAttributes().get(Constants.AUTHORIZED_GRANT);
 	            if (StringHelper.isNotEmpty(authorizedGrant) && GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS ==  GrantType.fromString(authorizedGrant)) {
-	            	// Remove from session to avoid execution on next AuthZ request 
+	            	// Remove from session to avoid execution on next AuthZ request
 	            	sessionAttributes.remove(Constants.AUTHORIZED_GRANT);
-	
+
 	            	// Reset AuthZ parameters
 	                Map<String, String> parameterMap = getGenericRequestMap(httpRequest);
 	                Map<String, String> requestParameterMap = requestParameterService.getAllowedParameters(parameterMap);
@@ -501,7 +501,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                         client.getClientId(),
                                         client.getPersistClientAuthorizations());
                                 if (scopes.size() > 0) {
-                                    if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
+                                    if (client.getTrustedClient()) {
+                                        sessionUser.addPermission(clientId, true);
+                                        sessionIdService.updateSessionId(sessionUser);
+                                    } else if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
+                                        log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
                                         if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
                                             sessionUser.addPermission(clientId, true);
                                             sessionIdService.updateSessionId(sessionUser);
@@ -514,9 +518,6 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                             applicationAuditLogger.sendMessage(oAuth2AuditLog);
                                             return builder.build();
                                         }
-                                    } else if (client.getTrustedClient()) {
-                                        sessionUser.addPermission(clientId, true);
-                                        sessionIdService.updateSessionId(sessionUser);
                                     }
                                 }
 
