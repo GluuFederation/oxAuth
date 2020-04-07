@@ -512,6 +512,8 @@ public class AppInitializer {
 			
 			// Remove internal DB trustStoreFile property
 			properties.remove(prefix + "trustStoreFile");			
+			properties.remove(prefix + "trustStorePin");			
+			properties.remove(prefix + "trustStoreFormat");			
 		}
 
 		EncryptionService securityService = encryptionServiceInstance.get();
