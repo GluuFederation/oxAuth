@@ -211,6 +211,30 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
     }
 
     /**
+     * <p>
+     * Executes the call to the REST Service requesting the authorization using
+     * TLS_CLIENT_AUTH authentication method and processes the response.
+     * </p>
+     *
+     * @param code         he authorization code received from the authorization server.
+     *                     This parameter is required.
+     * @param redirectUri  The redirection URI. This parameter is required.
+     * @param clientId     The client identifier.
+     * @return The token response.
+     */
+    public TokenResponse execAuthorizationCodeMTLS(String code, String redirectUri,
+                                               String clientId) {
+        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+        tokenRequest.setAuthenticationMethod(AuthenticationMethod.TLS_CLIENT_AUTH);
+        setRequest(tokenRequest);
+        getRequest().setCode(code);
+        getRequest().setRedirectUri(redirectUri);
+        getRequest().setAuthUsername(clientId);
+
+        return exec();
+    }
+
+    /**
      * Executes the call to the REST Service and processes the response.
      *
      * @return The token response.
@@ -252,7 +276,8 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
         if (StringUtils.isNotBlank(getRequest().getRefreshToken())) {
             clientRequest.formParameter("refresh_token", getRequest().getRefreshToken());
         }
-        if (getRequest().getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_POST) {
+        if (getRequest().getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_POST ||
+                getRequest().getAuthenticationMethod() == AuthenticationMethod.TLS_CLIENT_AUTH) {
             if (getRequest().getAuthUsername() != null && !getRequest().getAuthUsername().isEmpty()) {
                 clientRequest.formParameter("client_id", getRequest().getAuthUsername());
             }
