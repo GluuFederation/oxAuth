@@ -123,7 +123,12 @@ public class ClientAuthorizationsService {
                 clientAuthorization.setDn(createDn(clientAuthorization.getId()));
                 clientAuthorization.setDeletable(!client.getAttributes().getKeepClientAuthorizationAfterExpiration());
                 clientAuthorization.setExpirationDate(client.getExpirationDate());
-                clientAuthorization.setTtl(appConfiguration.getDynamicRegistrationExpirationTime());
+                
+                int clientAuthorizationTtl = appConfiguration.getDynamicRegistrationExpirationTime();
+                if (clientAuthorizationTtl == -1) {
+                	clientAuthorizationTtl = 0;
+                }
+                clientAuthorization.setTtl(clientAuthorizationTtl);
 
                 ldapEntryManager.persist(clientAuthorization);
             } else if (clientAuthorization.getScopes() != null) {
