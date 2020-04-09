@@ -88,7 +88,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return 3
 
     def getPageForStep(self, configurationAttributes, step):
-        return ""
+        return "login.xhtml"
 
     def logout(self, configurationAttributes, requestParameters):
         return True
