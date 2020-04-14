@@ -14,9 +14,9 @@
 		<maven.min-version>3.3.9</maven.min-version>
 
 		<oxcore.version>4.1.1.Final</oxcore.version>
-		<oxeleven.version>4.1.0.Final</oxeleven.version>
-		<oxnotify.version>4.1.0.Final</oxnotify.version>
-		<oxlicense.version>4.1.0.Final</oxlicense.version>
+		<oxeleven.version>4.1.1.Final</oxeleven.version>
+		<oxnotify.version>4.1.1.Final</oxnotify.version>
+		<oxlicense.version>4.1.1.Final</oxlicense.version>
 
 		<json.version>20180813</json.version>
 		<jackson.version>2.10.1</jackson.version>
