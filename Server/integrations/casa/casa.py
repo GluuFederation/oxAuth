@@ -11,13 +11,14 @@ from org.apache.http.params import CoreConnectionPNames
 
 from org.oxauth.persistence.model.configuration import GluuConfiguration
 from org.gluu.oxauth.security import Identity
-from org.gluu.oxauth.service import AuthenticationService, UserService, EncryptionService, AppInitializer
+from org.gluu.oxauth.service import AuthenticationService, UserService, EncryptionService
 from org.gluu.oxauth.service.custom import CustomScriptService
 from org.gluu.oxauth.service.net import HttpService
 from org.gluu.oxauth.util import ServerUtil
 from org.gluu.model import SimpleCustomProperty
 from org.gluu.model.custom.script import CustomScriptType
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.persist import PersistenceEntryManager
 from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.util import StringHelper
 
@@ -292,7 +293,7 @@ class PersonAuthentication(PersonAuthenticationType):
 # Miscelaneous
 
     def getLocalPrimaryKey(self):
-        entryManager = CdiUtil.bean(AppInitializer).createPersistenceEntryManager()
+        entryManager = CdiUtil.bean(PersistenceEntryManager)
         config = GluuConfiguration()
         config = entryManager.find(config.getClass(), "ou=configuration,o=gluu")
         #Pick (one) attribute where user id is stored (e.g. uid/mail)
