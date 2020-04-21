@@ -75,6 +75,7 @@ public class PairwiseIdentifierService {
             }
 
             List<PairwiseIdentifier> entries = ldapEntryManager.findEntries(baseDnForPairwiseIdentifiers, PairwiseIdentifier.class, filter);
+            log.trace("Found persistent pairwise ids count: " + (entries != null ? entries.size() : 0) + ", filter: " + filter);
             if (entries != null && !entries.isEmpty()) {
                 // if more then one entry then it's problem, non-deterministic behavior, id must be unique
                 if (entries.size() > 1) {
@@ -96,6 +97,8 @@ public class PairwiseIdentifierService {
 
             PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
             pairwiseIdentifier.setId(calculatedSub);
+
+            log.trace("Generated algorithmic pairwise identifier: " + calculatedSub + ", key: " + key + ", salt:" + salt + ", localAccountId: " + localAccountId + ", sectorIdentifierUri: " + sectorIdentifierUri + " cryptoProviderType: " + appConfiguration.getWebKeysStorage());
 
             return pairwiseIdentifier;
         }
