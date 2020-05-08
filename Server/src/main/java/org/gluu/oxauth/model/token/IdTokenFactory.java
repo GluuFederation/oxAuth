@@ -244,7 +244,7 @@ public class IdTokenFactory {
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
                     userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId, userInum);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
@@ -446,7 +446,7 @@ public class IdTokenFactory {
             PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(
                     userInum, sectorIdentifierUri, clientId);
             if (pairwiseIdentifier == null) {
-                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId);
+                pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId, userInum);
                 pairwiseIdentifier.setId(UUID.randomUUID().toString());
                 pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(
                         pairwiseIdentifier.getId(),
