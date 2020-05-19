@@ -134,6 +134,9 @@ public class AuthorizeAction {
     @Inject
     private ErrorHandlerService errorHandlerService;
 
+    @Inject
+    private Authenticator authenticator;
+
     // OAuth 2.0 request parameters
     private String scope;
     private String responseType;
@@ -232,6 +235,7 @@ public class AuthorizeAction {
 
             String redirectTo = "/login.xhtml";
 
+            CustomScriptConfiguration customScriptConfiguration = null;
             boolean useExternalAuthenticator = externalAuthenticationService.isEnabled(AuthenticationScriptUsageType.INTERACTIVE);
             if (useExternalAuthenticator) {
                 List<String> acrValuesList = sessionIdService.acrValuesList(this.acrValues);
@@ -247,7 +251,7 @@ public class AuthorizeAction {
 
                 }
 
-                CustomScriptConfiguration customScriptConfiguration = externalAuthenticationService.determineCustomScriptConfiguration(AuthenticationScriptUsageType.INTERACTIVE, acrValuesList);
+                customScriptConfiguration = externalAuthenticationService.determineCustomScriptConfiguration(AuthenticationScriptUsageType.INTERACTIVE, acrValuesList);
 
                 if (customScriptConfiguration == null) {
                     log.error("Failed to get CustomScriptConfiguration. auth_step: {}, acr_values: {}", 1, this.acrValues);
@@ -290,7 +294,13 @@ public class AuthorizeAction {
                         requestParameterMap.get(AuthorizeRequestParam.LOGIN_HINT));
             }
 
-            facesService.redirectWithExternal(redirectTo, loginParameters);
+            boolean enableRedirect = StringHelper.toBoolean(System.getProperty("gluu.enable-redirect", "false"), false); 
+            if (!enableRedirect && redirectTo.toLowerCase().endsWith("xhtml") && externalContext != null) {
+            	authenticator.prepareAuthenticationForStep(unauthenticatedSession);
+            	facesService.renderView(redirectTo);
+            } else {
+            	facesService.redirectWithExternal(redirectTo, loginParameters);
+            }
 
             return;
         }
