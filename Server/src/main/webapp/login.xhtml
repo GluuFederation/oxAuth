@@ -25,14 +25,14 @@
 							style="color:#8b0000;margin:5px;margin-left:20px; font-size:2vw;"
 							infoClass="text-center" errorClass="text-center" />
 					</div>
-					<h:form id="loginForm" style="padding:30px;">
+					<h:form id="loginForm" style="padding:30px;" prependId="false">
 						<div class="row">
 							<div class="col-sm-3 col-md-3">
 								<h:outputText value="#{msgs['login.username']}" />
 							</div>
 							<div class="col-sm-9 col-md-9">
 								<h:inputText placeholder="#{msgs['login.username']}"
-									id="username" name="username" required="true" colMd="10"
+									id="username" name="username" colMd="10"
 									labelColMd="2" autocomplete="off"
 									value="#{credentials.username}" styleClass="form-control"
 									style="width:100%">
