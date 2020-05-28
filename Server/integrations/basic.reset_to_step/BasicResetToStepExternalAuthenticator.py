@@ -4,18 +4,18 @@
 # Author: Yuriy Movchan
 #
 
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.oxauth.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.util import StringHelper
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Basic (demo reset step). Initialization"
         print "Basic (demo reset step). Initialized successfully"
         return True   
@@ -26,8 +26,11 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 2
+        return 11
 
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -64,13 +67,12 @@ class PersonAuthentication(PersonAuthenticationType):
         print "Basic (demo reset step). Get next step for step '%s'" % step
         identity = CdiUtil.bean(Identity)
 
-        # If user not pass current step authenticaton change step to previous
+        # If user not pass current step authenticaton redirect to current step
         pass_authentication = identity.getWorkingParameter("pass_authentication")
         if not pass_authentication:
-            if step > 1:
-                resultStep = step - 1
-                print "Basic (demo reset step). Get next step. Changing step to '%s'" % resultStep
-                return resultStep
+            resultStep = step
+            print "Basic (demo reset step). Get next step. Changing step to '%s'" % resultStep
+            return resultStep
 
         return -1
 
@@ -89,6 +91,10 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getPageForStep(self, configurationAttributes, step):
         return ""
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         return True

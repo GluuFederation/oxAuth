@@ -12,21 +12,21 @@ from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
 from javax.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
 from org.gluu.saml import SamlConfiguration, AuthRequest, Response
-from org.xdi.ldap.model import CustomAttribute
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.model.common import User
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService, AttributeService
-from org.xdi.oxauth.service.net import HttpService
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import StringHelper, ArrayHelper, Util
+from org.gluu.ldap.model import CustomAttribute
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.model.common import User
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, ClientService, AuthenticationService, AttributeService
+from org.gluu.oxauth.service.net import HttpService
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import StringHelper, ArrayHelper, Util
 from org.gluu.jsf2.service import FacesService
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Asimba. Initialization"
 
         asimba_saml_certificate_file = configurationAttributes.get("asimba_saml_certificate_file").getValue2()
@@ -117,8 +117,11 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
-
+        return 11
+        
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -440,7 +443,7 @@ class PersonAuthentication(PersonAuthenticationType):
             httpService = CdiUtil.bean(HttpService)
             facesContext = CdiUtil.bean(FacesContext)
             request = facesContext.getExternalContext().getRequest()
-            assertionConsumerServiceUrl = httpService.constructServerUrl(request) + "/postlogin"
+            assertionConsumerServiceUrl = httpService.constructServerUrl(request) + "/postlogin.htm"
             print "Asimba. Prepare for step 1. Prepared assertionConsumerServiceUrl: '%s'" % assertionConsumerServiceUrl
             
             currentSamlConfiguration = self.getCurrentSamlConfiguration(self.samlConfiguration, configurationAttributes, requestParameters)
@@ -489,6 +492,13 @@ class PersonAuthentication(PersonAuthenticationType):
                 return "/auth/saml/samllogin.xhtml"
 
         return "/auth/saml/samlpostlogin.xhtml"
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         return True

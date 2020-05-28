@@ -9,7 +9,6 @@
 		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}"/>
 	</f:metadata>
 	<ui:define name="head">
-		<script src="#{oxAuthConfigurationService.getJsLocation()}/jquery-ui-1.12.1.min.js" />
 
 		<script type="text/javascript">
 			//<![CDATA[
@@ -56,7 +55,7 @@
 
 	<ui:define name="body">
 		<form id="loginForm" method="post"
-			  action="#{request.contextPath}/postlogin.seam">
+			  action="#{request.contextPath}/postlogin.htm">
 			<h:panelGroup id="loginGroup" rendered="#{not identity.loggedIn}">
 				<div class="login-panel">
 					<div class="login-panel-header">#{msgs['oxpush.loginPairingRequest']}</div>

@@ -5,24 +5,24 @@
 #
 
 # Requires the following custom properties and values:
-#   uaf_server_uri: https://ce-dev.gluu.org
+#   uaf_server_uri: <idp_hostname>
 #
 # These are non mandatory custom properties and values:
 #   uaf_policy_name: default
 #   send_push_notifaction: false
-#   registration_uri: https://ce-dev.gluu.org/identity/register
+#   registration_uri: https://<idp_hostname>/identity/register
 #   qr_options: { width: 400, height: 400 }
 
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
-from org.xdi.util import StringHelper, ArrayHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.oxauth.model.config import Constants
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.gluu.util import StringHelper, ArrayHelper
+from org.gluu.oxauth.util import ServerUtil
+from org.gluu.oxauth.model.config import Constants
 from javax.ws.rs.core import Response
 from java.util import Arrays
-from org.xdi.oxauth.service.net import HttpService
+from org.gluu.oxauth.service.net import HttpService
 from org.apache.http.params import CoreConnectionPNames
 
 import sys
@@ -33,7 +33,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "UAF. Initialization"
 
         if not configurationAttributes.containsKey("uaf_server_uri"):
@@ -75,8 +75,11 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
-
+        return 11
+        
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -120,8 +123,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif (step == 2):
             print "UAF. Authenticate for step 2"
 
-            session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
-            if StringHelper.isEmpty(session_id):
+            session = CdiUtil.bean(SessionIdService).getSessionId()
+            if session == None:
                 print "UAF. Prepare for step 2. Failed to determine session_id"
                 return False
 
@@ -231,8 +234,8 @@ class PersonAuthentication(PersonAuthenticationType):
         elif (step == 2):
             print "UAF. Prepare for step 2"
 
-            session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
-            if StringHelper.isEmpty(session_id):
+            session = CdiUtil.bean(SessionIdService).getSessionId()
+            if session == None:
                 print "UAF. Prepare for step 2. Failed to determine session_id"
                 return False
 
@@ -306,6 +309,13 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return ""
 
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
+
     def logout(self, configurationAttributes, requestParameters):
         return True
 
@@ -328,7 +338,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if not logged_in:
             return None
 
-        find_user_by_uid = userService.getUser(user_name)
+        find_user_by_uid = authenticationService.getAuthenticatedUser()
         if find_user_by_uid == None:
             print "UAF. Process basic authentication. Failed to find user '%s'" % user_name
             return None

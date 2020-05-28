@@ -6,12 +6,12 @@
 
 import java
 from java.util import Arrays
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.oxpush import OxPushClient
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import StringHelper
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.oxpush import OxPushClient
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):
@@ -66,9 +66,9 @@ class PersonAuthentication(PersonAuthenticationType):
             if (not logged_in):
                 return False
 
-            # Find user by uid
+            # Get user entry
             userService = CdiUtil.bean(UserService)
-            find_user_by_uid = userService.getUser(user_name)
+            find_user_by_uid = authenticationService.getAuthenticatedUser()
             if (find_user_by_uid == None):
                 print "oxPush. Authenticate for step 1. Failed to find user"
                 return False

@@ -5,11 +5,11 @@
 #
 # NOTE: before using this script, see the accompanying readme file
 
-from org.xdi.oxauth.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService
-from org.xdi.util import StringHelper
-from org.xdi.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.service import UserService
+from org.gluu.util import StringHelper
+from org.gluu.service.cdi.util import CdiUtil
 
 import java
 
@@ -17,7 +17,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Identifier First. Initialized successfully"
         return True   
 
@@ -26,8 +26,11 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
-
+        return 11
+        
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         print "Identifier First. isValidAuthenticationMethod called"
         return False
@@ -82,6 +85,13 @@ class PersonAuthentication(PersonAuthenticationType):
         if step == 1:
             return "/auth/idfirst/idfirst_login.xhtml"
         return ""
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         print "Identifier First. logout called"

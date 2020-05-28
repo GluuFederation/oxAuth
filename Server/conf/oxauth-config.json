@@ -1,14 +1,15 @@
 {
     "mode":"ldap",
     "issuer":"${config.oxauth.issuer}",
-    "loginPage":"${config.oxauth.contextPath}/login",
-    "authorizationPage":"${config.oxauth.contextPath}/authorize",
+    "loginPage":"${config.oxauth.contextPath}/login.htm",
+    "authorizationPage":"${config.oxauth.contextPath}/authorize.htm",
     "baseEndpoint":"${config.oxauth.contextPath}/restv1",
     "authorizationEndpoint":"${config.oxauth.contextPath}/restv1/authorize",
     "tokenEndpoint":"${config.oxauth.contextPath}/restv1/token",
+    "tokenRevocationEndpoint": "${config.oxauth.contextPath}/restv1/revoke",
     "userInfoEndpoint":"${config.oxauth.contextPath}/restv1/userinfo",
     "clientInfoEndpoint":"${config.oxauth.contextPath}/restv1/clientinfo",
-    "checkSessionIFrame":"${config.oxauth.contextPath}/opiframe",
+    "checkSessionIFrame":"${config.oxauth.contextPath}/opiframe.htm",
     "endSessionEndpoint":"${config.oxauth.contextPath}/restv1/end_session",
     "jwksUri":"${config.oxauth.contextPath}/restv1/jwks",
     "registrationEndpoint":"${config.oxauth.contextPath}/restv1/register",
@@ -22,6 +23,8 @@
     "oxElevenSignEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/sign",
     "oxElevenVerifySignatureEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/verifySignature",
     "oxElevenDeleteKeyEndpoint":"${config.oxauth.contextPath}/oxeleven/rest/oxeleven/deleteKey",
+    "backchannelAuthenticationEndpoint":"${config.oxauth.contextPath}/restv1/bc-authorize",
+    "backchannelDeviceRegistrationEndpoint":"${config.oxauth.contextPath}/restv1/bc-deviceRegistration",
     "openidSubAttribute":"inum",
     "responseTypesSupported":[
         ["code"],
@@ -32,13 +35,19 @@
         ["code", "token", "id_token"],
         ["id_token"]
     ],
+    "responseModesSupported":[
+        "query",
+        "fragment",
+        "form_post"
+    ],
     "grantTypesSupported":[
         "authorization_code",
         "implicit",
         "password",
         "client_credentials",
         "refresh_token",
-        "urn:ietf:params:oauth:grant-type:uma-ticket"
+        "urn:ietf:params:oauth:grant-type:uma-ticket",
+        "urn:openid:params:grant-type:ciba"
     ],
     "subjectTypesSupported":[
         "public",
@@ -54,7 +63,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "userInfoEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -78,7 +91,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "idTokenEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -102,7 +119,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "requestObjectEncryptionAlgValuesSupported":[
         "RSA1_5",
@@ -131,7 +152,11 @@
         "RS512",
         "ES256",
         "ES384",
-        "ES512"
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
     ],
     "dynamicRegistrationCustomAttributes":[
         "oxAuthTrustedClient",
@@ -146,9 +171,11 @@
     "dynamicGrantTypeDefault":[
         "authorization_code",
         "implicit",
+        "password",
         "client_credentials",
         "refresh_token",
-        "urn:ietf:params:oauth:grant-type:uma-ticket"
+        "urn:ietf:params:oauth:grant-type:uma-ticket",
+        "urn:openid:params:grant-type:ciba"
     ],
     "claimTypesSupported":[
         "normal"
@@ -165,12 +192,13 @@
     "requestParameterSupported":true,
     "requestUriParameterSupported":true,
     "requireRequestUriRegistration":false,
+    "rejectJwtWithNoneAlg":false,
     "opPolicyUri":"https://www.gluu.org/privacy-policy/",
     "opTosUri":"https://www.gluu.org/terms/",
     "authorizationCodeLifetime":${config.client.authorization-code-lifetime},
     "refreshTokenLifetime":14400,
     "idTokenLifetime":3600,
-    "accessTokenLifetime":3600,
+    "accessTokenLifetime":300,
     "umaRptLifetime":${config.uma.requester-permission-token-lifetime},
     "umaPctLifetime":${config.uma.requester-permission-token-lifetime},
     "umaAddScopesAutomatically":false,
@@ -180,12 +208,14 @@
     "keyRegenerationInterval":48,
     "defaultSignatureAlgorithm":"RS256",
     "oxOpenIdConnectVersion":"openidconnect-1.0",
-    "organizationInum":"${config.oxauth.organization}",
     "oxId":"https://${server.name}/oxid/service/gluu/inum",
     "dynamicRegistrationEnabled":true,
+    "dynamicRegistrationPasswordGrantTypeEnabled":true,
     "dynamicRegistrationExpirationTime":${config.client.dynamic-registration-expiration-time},
     "dynamicRegistrationPersistClientAuthorizations":true,
     "trustedClientEnabled":true,
+    "returnClientSecretOnRead":true,
+    "skipAuthorizationForOpenIdScopeAndPairwiseId": false,
     "dynamicRegistrationScopesParamEnabled":true,
     "dynamicRegistrationCustomObjectClass":"oxAuthClientCustomAttributes",
     "personCustomObjectClassList":["gluuCustomPerson"],
@@ -196,13 +226,13 @@
             "filter":"(&(mail=*{0}*)(inum={1}))",
             "bind":false,
             "bindPasswordAttribute":null,
-            "baseDn":"o=gluu"
+            "baseDn":"ou=people,o=gluu"
         },
         {
             "filter":"uid={0}",
             "bind":true,
             "bindPasswordAttribute":"pwd",
-            "baseDn":"o=gluu"
+            "baseDn":"ou=people,o=gluu"
         }
     ],
     "clientAuthenticationFilters":[
@@ -210,7 +240,7 @@
             "filter":"myCustomAttr1={0}",
             "bind":false,
             "bindPasswordAttribute":"oxAuthClientSecret",
-            "baseDn":"ou=clients,o=${config.oxauth.organization},o=gluu"
+            "baseDn":"ou=clients,o=gluu"
         }
     ],
     "applianceInum":"${config.oxauth.appliance}",
@@ -219,6 +249,7 @@
     "sessionIdEnabled":true,
     "sessionIdPersistOnPromptNone":true,
     "sessionIdLifetime":86400,
+    "forceOfflineAccessScopeToEnableRefreshToken":false,
     "configurationUpdateInterval":3600,
     "cssLocation":"${config.oxauth.contextPath}/stylesheet",
     "jsLocation":"${config.oxauth.contextPath}/js",
@@ -228,6 +259,7 @@
     "pairwiseIdType":"${config.oxauth.pairwiseIdType}",
     "pairwiseCalculationKey":"${config.oxauth.pairwiseCalculationKey}",
     "pairwiseCalculationSalt": "${config.oxauth.pairwiseCalculationSalt}",
+    "shareSubjectIdBetweenClientsWithSameSectorId": true,
     "webKeysStorage": "keystore",
     "oxElevenTestModeToken": "${config.oxeleven.testModeToken}",
     "dnName": "CN=oxAuth CA Certificates",
@@ -261,5 +293,37 @@
         "customParam2",
         "customParam3"
     ],
-    "legacyDynamicRegistrationScopeParam": false
+    "legacyDynamicRegistrationScopeParam": false,
+    "openidScopeBackwardCompatibility": false,
+    "loggingLevel": "DEBUG",
+    "backchannelTokenDeliveryModesSupported": ["poll", "ping", "push"],
+    "backchannelAuthenticationRequestSigningAlgValuesSupported": [
+        "RS512",
+        "ES256",
+        "ES384",
+        "ES512",
+        "ES512",
+        "PS256",
+        "PS384",
+        "PS512"
+    ],
+    "backchannelClientId": "123-123-123",
+    "backchannelRedirectUri": "https://ce.gluu.info:8443/ciba/home.htm",
+    "backchannelUserCodeParameterSupported": true,
+    "backchannelBindingMessagePattern": "^[a-zA-Z0-9]{4,8}$",
+    "backchannelAuthenticationResponseExpiresIn": 3600,
+    "backchannelAuthenticationResponseInterval": 2,
+    "backchannelLoginHintClaims": ["inum", "uid", "mail"],
+    "cibaEndUserNotificationConfig": {
+        "apiKey": "AIzaSyDwJtxZV-ApPlApt7HdXkleEZhseURgzHI",
+        "authDomain": "api-project-561176510817.firebaseapp.com",
+        "databaseURL": "https://api-project-561176510817.firebaseio.com",
+        "projectId": "api-project-561176510817",
+        "storageBucket": "api-project-561176510817.appspot.com",
+        "messagingSenderId": "561176510817",
+        "appId": "1:561176510817:web:8e327e72cd49e8d5",
+        "notificationUrl": "https://fcm.googleapis.com/fcm/send",
+        "notificationKey": "csyBj39m4uPHbs2oHeTw40KfgCiUbgxBKPPz6ZXgkpF4EMQvMOAHAoM7up1UlfHk9GD5QnqdMktzjpmEuKd5xlD2kRDhwMIJ8JYbTA5+Cv39CxuWOiFuuMPJZqg+VqT4X7Ne9sXvm3UtMe8PxmRAoXlSZ1kElT/AuQvC2+YyiqlmLpXoCU01waEtIajltap5TrFuXvAvkmYJjvCkFIdWsg==",
+        "publicVapidKey": "BOH-FKi3U-7cr5Wv3WeS8RJXXaGpf1R7tlgKSOvYCbFrJRaJER4kI_0xCNG22erHLAmiC78PAW53neERb3eiIO0"
+    }
 }

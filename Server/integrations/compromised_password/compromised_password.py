@@ -4,16 +4,16 @@
 # Author: Yuriy Movchan
 #
 
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.oxauth.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.util import StringHelper
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.util import StringHelper
 import javax.crypto.spec.SecretKeySpec as SecretKeySpec
 import javax.crypto.spec.IvParameterSpec as IvParameterSpec
 import javax.crypto.Cipher
 from javax.crypto import *
-from org.xdi.util import ArrayHelper
+from org.gluu.util import ArrayHelper
 from java.util import Arrays
 import urllib, urllib2, json
 
@@ -22,7 +22,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "compromised_password. Initialization"
         if not configurationAttributes.containsKey("secret_question"):
             print "compromised_password. Initialization. Property secret_question is mandatory"
@@ -47,7 +47,10 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
+        return 11
+
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
 
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
@@ -71,7 +74,7 @@ class PersonAuthentication(PersonAuthenticationType):
             if (not logged_in):
                 return False
             else:
-                find_user_by_uid = userService.getUser(user_name)
+                find_user_by_uid = authenticationService.getAuthenticatedUser()
                 status_attribute_value = userService.getCustomAttribute(find_user_by_uid, "mail")
                 user_mail = status_attribute_value.getValue()
                 self.setRequestScopedParameters(identity)
@@ -102,8 +105,13 @@ class PersonAuthentication(PersonAuthenticationType):
                 print "compromised_password (with password update). Authenticate for step 3. New password is empty"
                 return False
             new_password = new_password_array[0]
-            session_attributes = identity.getSessionId().getSessionAttributes()
-            user_name = session_attributes.get("user_name")
+
+            user = authenticationService.getAuthenticatedUser()
+            if user == None:
+                print "compromised_password (with password update). Authenticate for step 3. Failed to determine user name"
+                return False
+
+            user_name = user.getUserId()
             print "compromised_password (with password update). Authenticate for step 3. Attempting to set new user '" + user_name + "' password"
             find_user_by_uid = userService.getUser(user_name)
             if (find_user_by_uid == None):
@@ -158,6 +166,14 @@ class PersonAuthentication(PersonAuthenticationType):
             return ""
         else:
             return ""
+            
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
+                    
     def logout(self, configurationAttributes, requestParameters):
         return True
 

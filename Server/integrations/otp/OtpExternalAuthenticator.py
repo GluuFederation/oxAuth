@@ -5,7 +5,7 @@
 #
 
 # Requires the following custom properties and values:
-#   otp_type: totp/htop
+#   otp_type: totp/hotp
 #   issuer: Gluu Inc
 #   otp_conf_file: /etc/certs/otp_configuration.json
 #
@@ -30,19 +30,19 @@ from java.util import Arrays
 from java.util.concurrent import TimeUnit
 from javax.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService, SessionIdService
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import StringHelper
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService, SessionIdService
+from org.gluu.oxauth.util import ServerUtil
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import StringHelper
 
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "OTP. Initialization"
 
         if not configurationAttributes.containsKey("otp_type"):
@@ -74,7 +74,7 @@ class PersonAuthentication(PersonAuthenticationType):
         validOtpConfiguration = self.loadOtpConfiguration(configurationAttributes)
         if not validOtpConfiguration:
             return False
-        
+
         print "OTP. Initialized successfully"
         return True
 
@@ -84,8 +84,11 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
-
+        return 11
+        
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -111,13 +114,13 @@ class PersonAuthentication(PersonAuthenticationType):
             #enrollment_mode = ServerUtil.getFirstValue(requestParameters, "loginForm:registerButton")
             #if StringHelper.isNotEmpty(enrollment_mode):
             #    otp_auth_method = "enroll"
-            
+
             if otp_auth_method == "authenticate":
                 user_enrollments = self.findEnrollments(authenticated_user.getUserId())
                 if len(user_enrollments) == 0:
                     otp_auth_method = "enroll"
                     print "OTP. Authenticate for step 1. There is no OTP enrollment for user '%s'. Changing otp_auth_method to '%s'" % (authenticated_user.getUserId(), otp_auth_method)
-                    
+
             if otp_auth_method == "enroll":
                 print "OTP. Authenticate for step 1. Setting count steps: '%s'" % 3
                 identity.setWorkingParameter("otp_count_login_steps", 3)
@@ -250,10 +253,10 @@ class PersonAuthentication(PersonAuthenticationType):
     def getPageForStep(self, configurationAttributes, step):
         if step == 2:
             identity = CdiUtil.bean(Identity)
-    
+
             otp_auth_method = identity.getWorkingParameter("otp_auth_method")
             print "OTP. Gep page for step 2. otp_auth_method: '%s'" % otp_auth_method
-    
+
             if otp_auth_method == 'enroll':
                 return "/auth/otp/enroll.xhtml"
             else:
@@ -262,6 +265,13 @@ class PersonAuthentication(PersonAuthenticationType):
             return "/auth/otp/otplogin.xhtml"
 
         return ""
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         return True
@@ -291,10 +301,10 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
         finally:
             f.close()
-        
+
         # Check configuration file settings
         try:
-            self.hotpConfiguration = otpConfiguration["htop"]
+            self.hotpConfiguration = otpConfiguration["hotp"]
             self.totpConfiguration = otpConfiguration["totp"]
             
             hmacShaAlgorithm = self.totpConfiguration["hmacShaAlgorithm"]
@@ -331,7 +341,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if not logged_in:
             return None
 
-        find_user_by_uid = userService.getUser(user_name)
+        find_user_by_uid = authenticationService.getAuthenticatedUser()
         if find_user_by_uid == None:
             print "OTP. Process basic authentication. Failed to find user '%s'" % user_name
             return None
@@ -367,8 +377,8 @@ class PersonAuthentication(PersonAuthenticationType):
         return result
 
     def validateSessionId(self, identity):
-        session_id = CdiUtil.bean(SessionIdService).getSessionIdFromCookie()
-        if StringHelper.isEmpty(session_id):
+        session = CdiUtil.bean(SessionIdService).getSessionId()
+        if session == None:
             print "OTP. Validate session id. Failed to determine session_id"
             return False
 
@@ -416,7 +426,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
                     print "OTP. Process HOTP authentication during enrollment. Failed to update user entry"
             elif self.otpType == "totp":
-                validation_result = self.validateTotpKey(otp_secret_key, otpCode)
+                validation_result = self.validateTotpKey(otp_secret_key, otpCode,user_name)
                 if (validation_result != None) and validation_result["result"]:
                     print "OTP. Process TOTP authentication during enrollment. otpCode is valid"
                     # Store TOTP Secret Key and moving factor in user entry
@@ -461,9 +471,8 @@ class PersonAuthentication(PersonAuthenticationType):
             elif self.otpType == "totp":
                 for user_enrollment in user_enrollments:
                     otp_secret_key = self.fromBase64Url(user_enrollment)
-
                     # Validate TOTP
-                    validation_result = self.validateTotpKey(otp_secret_key, otpCode)
+                    validation_result = self.validateTotpKey(otp_secret_key, otpCode, user_name)
                     if (validation_result != None) and validation_result["result"]:
                         print "OTP. Process TOTP authentication during authentication. otpCode is valid"
                         return True
@@ -495,9 +504,10 @@ class PersonAuthentication(PersonAuthenticationType):
         return hotp.value()
 
     def validateHotpKey(self, secretKey, movingFactor, totpKey):
+        lookAheadWindow = self.hotpConfiguration["lookAheadWindow"]
         digits = self.hotpConfiguration["digits"]
 
-        htopValidationResult = HOTPValidator.lookAheadWindow(1).validate(secretKey, movingFactor, digits, totpKey)
+        htopValidationResult = HOTPValidator.lookAheadWindow(lookAheadWindow).validate(secretKey, movingFactor, digits, totpKey)
         if htopValidationResult.isValid():
             return { "result": True, "movingFactor": htopValidationResult.getNewMovingFactor() }
 
@@ -529,13 +539,39 @@ class PersonAuthentication(PersonAuthenticationType):
         
         return totp.value()
 
-    def validateTotpKey(self, secretKey, totpKey):
+    def validateTotpKey(self, secretKey, totpKey, user_name):
         localTotpKey = self.generateTotpKey(secretKey)
-        if StringHelper.equals(localTotpKey, totpKey):
+        cachedOTP = self.getCachedOTP(user_name)
+
+        if StringHelper.equals(localTotpKey, totpKey) and not StringHelper.equals(localTotpKey, cachedOTP):
+            userService = CdiUtil.bean(UserService)
+            if cachedOTP is None:
+                userService.addUserAttribute(user_name, "oxOTPCache",localTotpKey)
+            else :
+                userService.replaceUserAttribute(user_name, "oxOTPCache", cachedOTP, localTotpKey)
+            print "OTP. Caching OTP: '%s'" % localTotpKey
             return { "result": True }
-
         return { "result": False }
-
+	
+    def getCachedOTP(self, user_name):
+        userService = CdiUtil.bean(UserService)
+        user = userService.getUser(user_name, "oxOTPCache")
+        if user is None:
+            print "OTP. Get Cached OTP. Failed to find OTP"
+            return None
+        customAttribute = userService.getCustomAttribute(user, "oxOTPCache")
+        
+        if customAttribute is None:
+            print "OTP. Custom attribute is null"
+            return None
+        user_cached_OTP = customAttribute.getValue()
+        if user_cached_OTP is None:
+            print "OTP. no OTP is present in LDAP"
+            return None
+        
+        print "OTP.Cached OTP: '%s'" % user_cached_OTP
+        return user_cached_OTP
+        
     def generateTotpSecretKeyUri(self, secretKey, issuer, userDisplayName):
         digits = self.totpConfiguration["digits"]
         timeStep = self.totpConfiguration["timeStep"]

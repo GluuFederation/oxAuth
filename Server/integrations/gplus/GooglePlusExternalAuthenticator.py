@@ -7,21 +7,21 @@
 import java
 import json
 from java.util import Arrays, HashMap, IdentityHashMap
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.client import TokenClient, TokenRequest, UserInfoClient
-from org.xdi.oxauth.model.common import GrantType, AuthenticationMethod
-from org.xdi.oxauth.model.common import User
-from org.xdi.oxauth.model.jwt import Jwt, JwtClaimName
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, ClientService, AuthenticationService
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.util import StringHelper, ArrayHelper
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.client import TokenClient, TokenRequest, UserInfoClient
+from org.gluu.oxauth.model.common import GrantType, AuthenticationMethod
+from org.gluu.oxauth.model.common import User
+from org.gluu.oxauth.model.jwt import Jwt, JwtClaimName
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, ClientService, AuthenticationService
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.util import StringHelper, ArrayHelper
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Google+ Initialization"
 
         if (not configurationAttributes.containsKey("gplus_client_secrets_file")):
@@ -74,8 +74,11 @@ class PersonAuthentication(PersonAuthenticationType):
         print "Google+ Destroyed successfully"
 
     def getApiVersion(self):
-        return 1
-
+        return 11
+        
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+        
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -382,6 +385,13 @@ class PersonAuthentication(PersonAuthenticationType):
             return "/auth/gplus/gpluslogin.xhtml"
 
         return "/auth/gplus/gpluspostlogin.xhtml"
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         # TODO Revoke token

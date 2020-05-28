@@ -1,10 +1,10 @@
 import datetime
 
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.oxauth.security import Identity
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.util import StringHelper, ArrayHelper
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.oxauth.security import Identity
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.util import StringHelper, ArrayHelper
 from com.unboundid.util import StaticUtils
 from java.util import GregorianCalendar, TimeZone
 from java.util import Arrays
@@ -16,7 +16,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Basic (with password update). Initialization"
         print "Basic (with password update). Initialized successfully"
         return True
@@ -27,7 +27,10 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
+        return 11
+
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
 
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
@@ -53,7 +56,7 @@ class PersonAuthentication(PersonAuthenticationType):
             if not logged_in:
                 return False
 
-            find_user_by_uid = userService.getUser(user_name)
+            find_user_by_uid = authenticationService.getAuthenticatedUser()
             user_expDate = find_user_by_uid.getAttribute("oxPasswordExpirationDate", False)
            
             if user_expDate == None:
@@ -68,7 +71,7 @@ class PersonAuthentication(PersonAuthenticationType):
             if now.compareTo(dt) > 0:
                 # Add 90 Days to current date
                 calendar.setTime(now)
-                calendar.add(calendar.DATE, 90)
+                calendar.add(calendar.DATE, 1)
                 dt_plus_90 = calendar.getTime()
                 expDate = StaticUtils.encodeGeneralizedTime(dt_plus_90)
                 identity.setWorkingParameter("expDate", expDate)
@@ -76,8 +79,7 @@ class PersonAuthentication(PersonAuthenticationType):
             return True
         elif step == 2:
             print "Basic (with password update). Authenticate for step 2"
-
-            user = authenticationService.getAuthenticatedUser()
+            user = authenticationService.getAuthenticatedUser()            
             if user == None:
                 print "Basic (with password update). Authenticate for step 2. Failed to determine user name"
                 return False
@@ -85,11 +87,9 @@ class PersonAuthentication(PersonAuthenticationType):
             user_name = user.getUserId()
             find_user_by_uid = userService.getUser(user_name)
             newExpDate = identity.getWorkingParameter("expDate")
-
             if find_user_by_uid == None:
                 print "Basic (with password update). Authenticate for step 2. Failed to find user"
                 return False
-
             print "Basic (with password update). Authenticate for step 2"
             update_button = requestParameters.get("loginForm:updateButton")
 
@@ -97,7 +97,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 return True
 
             find_user_by_uid.setAttribute("oxPasswordExpirationDate", newExpDate)
-            new_password_array = requestParameters.get("new_password")
+            new_password_array = requestParameters.get("loginForm:password")
             if ArrayHelper.isEmpty(new_password_array) or StringHelper.isEmpty(new_password_array[0]):
                 print "Basic (with password update). Authenticate for step 2. New password is empty"
                 return False
@@ -137,6 +137,13 @@ class PersonAuthentication(PersonAuthenticationType):
         if step == 2:        
             return "/auth/pwd/newpassword.xhtml"
         return ""
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None
 
     def logout(self, configurationAttributes, requestParameters):
         return True

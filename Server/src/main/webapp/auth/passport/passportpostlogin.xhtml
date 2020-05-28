@@ -3,118 +3,64 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:b="http://bootsfaces.net/ui"
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
-                template="/WEB-INF/incl/layout/template.xhtml">
-  
-    <ui:define name="head">
-        <script src="#{oxAuthConfigurationService.jsLocation}/jquery-1.12.4.min.js"></script>
+                template="/WEB-INF/incl/layout/login-template.xhtml">
 
-        <style type="text/css">
-            .login-panel {
-                border-style: solid;
-                border-width: 1px;
-                padding: 1px;
-                background-color: #FFFFFF;
-                border-color: #C4C0B9;
-            }
+    <f:metadata>
+        <f:viewAction action="#{authenticator.prepareAuthenticationForStep}"
+                      if="#{not identity.loggedIn}" />
+    </f:metadata>
 
-            .login-panel-header {
-                background-color: #D4CFC7;
-                background-image: url("#{oxAuthConfigurationService.getImgLocation()}/panel_header_bg.png");
-                background-position: left top;
-                background-repeat: repeat-x;
-                border-style: solid;
-                border-width: 1px;
-                padding: 2px;
-                border-color: #D4CFC7;
-                color: #000000;
-                font-family: Arial, Verdana, sans-serif;
-                font-size: 11px;
-                font-weight: bold;
-            }
 
-            .login-panel-body {
-                padding: 10px;
-                color: #000000;
-                font-family: Arial, Verdana, sans-serif;
-                font-size: 11px;
-            }
-        </style>
-        <script type="text/javascript">
-            jQuery(document).ready(function () {
-                var user = window.location.href.split("=");
-                history.replaceState({}, 'oxAuth-Login', '/oxauth/auth/passport/passport-post-login');
-                var userQueryString = decodeURIComponent(user[1]);
-                var userObj
-                try{
-                    userObj = JSON.parse(userQueryString.substring(0, userQueryString.indexOf('}') + 1));
-                    document.getElementById('loginForm')["loginForm:provider"].value = userObj.provider;
-                }
-                catch(err){
-                    userObj = JSON.parse(userQueryString);
-                    document.getElementById('loginForm')["loginForm:provider"].value = userObj.provider['_'];
-                }
-                document.getElementById('loginForm')["loginForm:userid"].value = userObj.id;
-                document.getElementById('loginForm')["loginForm:displayname"].value = userObj.name;
-                document.getElementById('loginForm')["loginForm:username"].value = userObj.username;
-                document.getElementById('loginForm')["loginForm:token"].value = userObj.accessToken;
-                document.getElementById('loginForm')["loginForm:givenname"].value = userObj.givenName;
-                document.getElementById('loginForm')["loginForm:familyname"].value = userObj.familyName;
-                document.getElementById('loginForm')["loginForm:name"].value = userObj.name;
-                if (userObj.email) {
-                    document.getElementById('loginForm')["loginForm:email"].value = userObj.email;
-                    document.getElementById('loginForm')["loginForm:postForm"].click();
-                }
-            });
-        </script>
-    </ui:define>
-
-    <ui:define name="pageTitle">#{msgs['passport.pageTitle']}</ui:define>
+    <ui:define name="pageTitle">#{msgs['passport.oxAuthPassportLogin']}</ui:define>
 
     <ui:define name="body">
-        <h:form id="loginForm">
+        <div class="container">
+            <div class="login_bx_1"
+                 style="border-radius: 10px; margin-top: 0px; background: white; border: 1px solid #008b8b;">
 
-            <h:panelGroup rendered="#{not identity.loggedIn}">
-                <div class="login-panel">
-                    <div class="login-panel-header">#{msgs['passport.loginSecondStep']}</div>
-                    <div class="login-panel-body">
-			<ui:param name="client"
-				value="#{clientService.getClient(identity.sessionId.sessionAttributes['client_id'])}" />
+                <noscript>
+                    <b>#{msgs['passport.javascriptRequired']}</b>
+                </noscript>
 
-                        <h:panelGroup rendered='#{!empty client.getLogoUri()}'>
-                            <h:graphicImage url='#{client.getLogoUri()}'/>
-                        </h:panelGroup>
-
-                        <p class="info">#{msgs['passport.pleaseLoginHere']}</p>
-
-                        <div class="dialog">
-                            <h:panelGrid columns="2" rowClasses="prop" columnClasses="name,value" width="500">
-                                <h:outputLabel for="email">#{msgs['passport.email']}</h:outputLabel>
-                                <h:inputText id="email"/>
-                                <h:inputHidden id="userid"/>
-                                <h:inputHidden id="displayname"/>
-                                <h:inputHidden id="username"/>
-                                <h:inputHidden id="token"/>
-                                <h:inputHidden id="provider"/>
-                                <h:inputHidden id="givenname"/>
-                                <h:inputHidden id="familyname"/>
-                                <h:inputHidden id="name"/>
-                            </h:panelGrid>
-                        </div>
-
-                        <h:panelGroup rendered='#{!empty client.getPolicyUri()}'>
-                            <p>
-                                <a target="_blank" href='#{client.getPolicyUri()}'>#{msgs['passport.termsPrivacy']}</a>
-                            </p>
-                        </h:panelGroup>
-
-                        <div id="btn" class="actionButtons">
-                            <h:commandButton value="Login" id="postForm" action="#{authenticator.authenticate}"/>
+                <h4>#{msgs['passport.fillMissingData']}</h4>
+                <hr style="background: white;"/>
+                <h:form id="loginForm" onsubmit="return validate()" class="form-horizontal">
+                    <div class="form-group row">
+                        <h:outputLabel style="color: black;" value="#{msgs['passport.email']}"
+                                       styleClass="col-sm-2 col-form-label text-center" for="email" />
+                        <div class="col-sm-10">
+                            <h:inputText id="email" styleClass="form-control" autocomplete="off" />
                         </div>
                     </div>
-                </div>
-            </h:panelGroup>
-        </h:form>
+                    <div class="form-group row">
+                        <div class="offset-md-4 col-md-4">
+                            <b:commandButton style="background-color: #00BE79; color:white;"
+                                             styleClass="btn col-sm-12" value="#{msgs['login.login']}"
+                                             action="#{authenticator.authenticate}" />
+                        </div>
 
+                    </div>
+                </h:form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+			var invalidEmail = "#{msgs['passport.invalidMailWarn']}";
+
+			function validate() {
+				var mailre = /^[\w-]+[\.]{0,1}[\w-]+@[\w-]+\.\w+[\.\w]*$/;
+				var mail = document.getElementById("loginForm:email").value;
+				var valid = mail.search(mailre) != -1;
+				if (!valid) {
+					alert(invalidEmail);
+				}
+				return valid;
+			}
+			window.onload = function() {
+				document.getElementById("loginForm:email").focus();
+			};
+		</script>
     </ui:define>
 </ui:composition>

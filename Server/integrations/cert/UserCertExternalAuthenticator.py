@@ -5,20 +5,21 @@
 # Author: Yuriy Movchan
 #
 
-from org.xdi.service.cdi.util import CdiUtil
-from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
+from org.gluu.service.cdi.util import CdiUtil
+from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from javax.faces.context import FacesContext
-from org.xdi.oxauth.security import Identity
-from org.xdi.oxauth.service import UserService, AuthenticationService
-from org.xdi.util import StringHelper
-from org.xdi.oxauth.util import ServerUtil
-from org.xdi.oxauth.service import EncryptionService
+from org.gluu.oxauth.security import Identity
+from org.gluu.oxauth.service import UserService, AuthenticationService
+from org.gluu.util import StringHelper
+from org.gluu.oxauth.util import ServerUtil
+from org.gluu.oxauth.service import EncryptionService
 from java.util import Arrays
-from org.xdi.oxauth.cert.fingerprint import FingerprintHelper
-from org.xdi.oxauth.cert.validation import GenericCertificateVerifier, PathCertificateVerifier, OCSPCertificateVerifier, CRLCertificateVerifier
-from org.xdi.oxauth.cert.validation.model import ValidationStatus
-from org.xdi.oxauth.util import CertUtil
-from org.xdi.oxauth.service.net import HttpService
+from org.gluu.oxauth.cert.fingerprint import FingerprintHelper
+from org.gluu.oxauth.cert.validation import GenericCertificateVerifier, PathCertificateVerifier, OCSPCertificateVerifier, CRLCertificateVerifier
+from org.gluu.oxauth.cert.validation.model import ValidationStatus
+from org.gluu.oxauth.util import CertUtil
+from org.gluu.oxauth.model.util import CertUtils
+from org.gluu.oxauth.service.net import HttpService
 from org.apache.http.params import CoreConnectionPNames
 
 import sys
@@ -32,7 +33,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
         print "Cert. Initialization"
 
         if not (configurationAttributes.containsKey("chain_cert_file_path")):
@@ -46,6 +47,10 @@ class PersonAuthentication(PersonAuthenticationType):
         chain_cert_file_path = configurationAttributes.get("chain_cert_file_path").getValue2()
 
         self.chain_certs = CertUtil.loadX509CertificateFromFile(chain_cert_file_path)
+        if self.chain_certs == None:
+            print "Cert. Initialization. Failed to load chain certificates from '%s'" % chain_cert_file_path
+            return False
+
         print "Cert. Initialization. Loaded '%d' chain certificates" % self.chain_certs.size()
         
         crl_max_response_size = 5 * 1024 * 1024  # 10Mb
@@ -89,7 +94,10 @@ class PersonAuthentication(PersonAuthenticationType):
         return True
 
     def getApiVersion(self):
-        return 1
+        return 11
+
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
 
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
@@ -296,7 +304,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if (not logged_in):
             return None
 
-        find_user_by_uid = userService.getUser(user_name)
+        find_user_by_uid = authenticationService.getAuthenticatedUser()
         if (find_user_by_uid == None):
             print "Cert. Process basic authentication. Failed to find user '%s'" % user_name
             return None
@@ -359,7 +367,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def certFromString(self, x509CertificateEncoded):
         x509CertificateDecoded = base64.b64decode(x509CertificateEncoded)
-        return CertUtil.x509CertificateFromBytes(x509CertificateDecoded)
+        return CertUtils.x509CertificateFromBytes(x509CertificateDecoded)
 
     def certFromPemString(self, pemCertificate):
         x509CertificateEncoded = pemCertificate.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "").strip()
@@ -464,3 +472,10 @@ class PersonAuthentication(PersonAuthenticationType):
         response = json.loads(response_string)
         
         return response["success"]
+
+    def getNextStep(self, configurationAttributes, requestParameters, step):
+        return -1
+
+    def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
+        print "Get external logout URL call"
+        return None

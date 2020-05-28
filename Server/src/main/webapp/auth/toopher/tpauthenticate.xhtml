@@ -10,8 +10,6 @@
     </f:metadata>
 
     <ui:define name="head">
-        <script src="#{oxAuthConfigurationService.getJsLocation()}/jquery-ui-1.12.1.min.js"/>
-
         <h:panelGroup rendered="#{param.toopher_user_uid != null}">
             <script type="text/javascript">
                 //<![CDATA[
@@ -58,7 +56,7 @@
     <ui:define name="pageTitle">#{msgs['toopher.pageTitle']}</ui:define>
 
     <ui:define name="body">
-        <form id="loginForm" method="post" action="#{request.contextPath}/postlogin.seam">
+        <form id="loginForm" method="post" action="#{request.contextPath}/postlogin.htm">
             <h:panelGroup id="loginGroup" rendered="#{not identity.loggedIn}">
                 <div class="login-panel">
                     <div class="login-panel-header">#{msgs['toopher.login']}</div>

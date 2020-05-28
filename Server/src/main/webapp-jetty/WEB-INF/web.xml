@@ -28,7 +28,7 @@
 	</context-param>
 	<context-param>
 		<param-name>javax.faces.FACELETS_RESOURCE_RESOLVER</param-name>
-		<param-value>org.xdi.service.ExternalResourceHandler</param-value>
+		<param-value>org.gluu.service.ExternalResourceHandler</param-value>
 	</context-param>
 	<!-- Change to -1 when you don't want the compiler should check for changes -->
 	<context-param>
@@ -78,7 +78,7 @@
 	</servlet-mapping>
 
 	<session-config>
-		<session-timeout>30</session-timeout>
+		<session-timeout>1</session-timeout>
 		<tracking-mode>COOKIE</tracking-mode>
 	</session-config>
 
@@ -91,6 +91,7 @@
 		<auth-constraint />
 	</security-constraint>
 
+	<!-- Weld -->
 	<resource-env-ref>
 		<description>Object factory for the CDI Bean Manager</description>
 		<resource-env-ref-name>BeanManager</resource-env-ref-name>
