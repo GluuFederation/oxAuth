@@ -105,8 +105,12 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
 
-            if (tokenEndpoint || umaTokenEndpoint) {
-                log.debug("Starting token endpoint authentication");
+            if (tokenRevocationEndpoint && clientService.isPublic(httpRequest.getParameter("client_id"))) {
+                return; // skip authentication for Token Revocation if client is public
+            }
+
+            if (tokenEndpoint || umaTokenEndpoint || tokenRevocationEndpoint) {
+                log.debug("Starting endpoint authentication {}", requestUrl);
 
                 // #686 : allow authenticated client via user access_token
                 if (StringUtils.isNotBlank(authorizationHeader) && authorizationHeader.startsWith(ACCESS_TOKEN_PREFIX)) {
@@ -125,14 +129,6 @@ public class AuthenticationFilter implements Filter {
                     log.debug("Starting POST Auth token endpoint authentication");
                     processPostAuth(clientService, clientFilterService, errorResponseFactory, httpRequest, httpResponse,
                             filterChain, tokenEndpoint);
-                }
-            } else if (tokenRevocationEndpoint) {
-                if (StringHelper.isNotEmpty(authorizationHeader) && authorizationHeader.startsWith("Basic ")) {
-                    processBasicAuth(clientService, errorResponseFactory, httpRequest, httpResponse, filterChain);
-                } else {
-                    httpResponse.addHeader("WWW-Authenticate", "Basic realm=\"" + getRealm() + "\"");
-
-                    httpResponse.sendError(401, "Not authorized");
                 }
             } else if (authorizationHeader != null) {
                 if (authorizationHeader.startsWith("Bearer ")) {
