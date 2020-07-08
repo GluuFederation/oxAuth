@@ -33,6 +33,7 @@ from javax.faces.context import FacesContext
 import json
 import sys
 import datetime
+import base64
 
 
 class PersonAuthentication(PersonAuthenticationType):
@@ -290,6 +291,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         if step == 1:
             identity = CdiUtil.bean(Identity)
+
             if self.isInboundFlow(identity):
                 print "Passport. getPageForStep for step 1. Detected inbound Saml flow"
                 return "/postlogin.xhtml"
@@ -765,6 +767,8 @@ class PersonAuthentication(PersonAuthenticationType):
 # IDP-initiated flow routines
 
     def isInboundFlow(self, identity):
+        print "passport. entered IsInboundFlow"
+
         sessionId = identity.getSessionId()
         if sessionId == None:
             # Detect mode if there is no session yet. It's needed for getPageForStep method
@@ -775,7 +779,17 @@ class PersonAuthentication(PersonAuthenticationType):
         else:
             authz_state = identity.getSessionId().getSessionAttributes().get(AuthorizeRequestParam.STATE)
 
-        if self.isInboundJwt(authz_state):
+        print "passport. IsInboundFlow. authz_state = %s" % authz_state
+
+        # the replace above is workaround due a problem reported
+        # on issue: https://github.com/GluuFederation/gluu-passport/issues/95
+        # TODO: Remove after fixed on JSF side
+
+        b64url_decoded_auth_state = base64.urlsafe_b64decode(str(authz_state+'=='))
+        print b64url_decoded_auth_state
+        # print "passport. IsInboundFlow. b64url_decoded_auth_state = %s" % str(b64url_decoded_auth_state)
+        print "passport. IsInboundFlow. self.isInboundJwt() = %s" % str(self.isInboundJwt(b64url_decoded_auth_state))
+        if self.isInboundJwt(b64url_decoded_auth_state):
             return True
 
         return False
@@ -786,8 +800,16 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
 
         try:
+
+            print("passport.isInboundJwt. value = %s" % value)
+            # value = value.replace("_", ".")
+            # print("passport.isInboundJwt. value = %s" % value)
+
             jwt = Jwt.parse(value)
+            print "passport.isInboundJwt. jwt = %s" % jwt
+            
             user_profile_json = jwt.getClaims().getClaimAsString("data")
+            print "passport.isInboundJwt. user_profile_json = %s" % user_profile_json
             if StringHelper.isEmpty(user_profile_json):
                 return False
         except:
