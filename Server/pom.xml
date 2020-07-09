@@ -581,14 +581,13 @@
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-model</artifactId>
-			<version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
-			<version>${project.version}</version>
+			<version>4.1.0.Final</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
