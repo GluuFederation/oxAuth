@@ -291,7 +291,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         if step == 1:
             identity = CdiUtil.bean(Identity)
-
+            print "Passport. getPageForStep. Entered if step ==1"
             if self.isInboundFlow(identity):
                 print "Passport. getPageForStep for step 1. Detected inbound Saml flow"
                 return "/postlogin.xhtml"
@@ -767,15 +767,19 @@ class PersonAuthentication(PersonAuthenticationType):
 # IDP-initiated flow routines
 
     def isInboundFlow(self, identity):
-        print "passport. entered IsInboundFlow"
+        print "passport. entered isInboundFlow"
 
         sessionId = identity.getSessionId()
+        print "passport. isInboundFlow. sessionId = %s" % sessionId
         if sessionId == None:
+            print "passport. isInboundFlow. sessionId not found yet..."
             # Detect mode if there is no session yet. It's needed for getPageForStep method
             facesContext = CdiUtil.bean(FacesContext)
             requestParameters = facesContext.getExternalContext().getRequestParameterMap()
+            print "passport. isInboundFlow. requestParameters = %s" % requestParameters
 
             authz_state = requestParameters.get(AuthorizeRequestParam.STATE)
+            print "passport. isInboundFlow. authz_state = %s" % authz_state
         else:
             authz_state = identity.getSessionId().getSessionAttributes().get(AuthorizeRequestParam.STATE)
 
@@ -786,7 +790,7 @@ class PersonAuthentication(PersonAuthenticationType):
         # TODO: Remove after fixed on JSF side
 
         b64url_decoded_auth_state = base64.urlsafe_b64decode(str(authz_state+'=='))
-        print b64url_decoded_auth_state
+
         # print "passport. IsInboundFlow. b64url_decoded_auth_state = %s" % str(b64url_decoded_auth_state)
         print "passport. IsInboundFlow. self.isInboundJwt() = %s" % str(self.isInboundJwt(b64url_decoded_auth_state))
         if self.isInboundJwt(b64url_decoded_auth_state):
@@ -807,12 +811,16 @@ class PersonAuthentication(PersonAuthenticationType):
 
             jwt = Jwt.parse(value)
             print "passport.isInboundJwt. jwt = %s" % jwt
-            
-            user_profile_json = jwt.getClaims().getClaimAsString("data")
+
+            # user_profile_json = jwt.getClaims().getClaimAsString("data")
+
+            user_profile_json = CdiUtil.bean(EncryptionService).decrypt(jwt.getClaims().getClaimAsString("data"))
             print "passport.isInboundJwt. user_profile_json = %s" % user_profile_json
             if StringHelper.isEmpty(user_profile_json):
                 return False
         except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
             return False
 
         return True
