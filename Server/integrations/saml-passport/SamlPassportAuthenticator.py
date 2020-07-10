@@ -121,6 +121,9 @@ class PersonAuthentication(PersonAuthenticationType):
                 print "Entered if jwt_param != None"
                 print "Passport. authenticate for step 1. JWT user profile token found"
 
+                if self.isInboundFlow(identity):
+                    jwt_param = base64.urlsafe_b64decode(str(jwt_param+'=='))
+
                 # Parse JWT and validate
                 jwt = Jwt.parse(jwt_param)
 
