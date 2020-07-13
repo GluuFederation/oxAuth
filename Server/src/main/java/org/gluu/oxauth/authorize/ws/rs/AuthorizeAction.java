@@ -87,6 +87,27 @@ import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.slf4j.Logger;
 
+<<<<<<< HEAD
+=======
+import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.*;
+
+import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
+
+>>>>>>> 457680d06... Removed user_code from url in authorize rest service and web page. Added user_code in session used to process device authz. #141
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
@@ -315,6 +336,12 @@ public class AuthorizeAction {
             // Store Remote IP
             String remoteIp = networkService.getRemoteIp();
             requestParameterMap.put(Constants.REMOTE_IP, remoteIp);
+
+            // User Code used in Device Authz flow
+            if (session != null && session.getSessionAttributes().containsKey(SESSION_USER_CODE)) {
+                String userCode = session.getSessionAttributes().get(SESSION_USER_CODE);
+                requestParameterMap.put(SESSION_USER_CODE, userCode);
+            }
 
             // Create unauthenticated session
             SessionId unauthenticatedSession = sessionIdService.generateUnauthenticatedSessionId(null, new Date(), SessionIdState.UNAUTHENTICATED, requestParameterMap, false);
