@@ -396,7 +396,7 @@ public class ConfigurationFactory {
 					destroy(WebKeysConfiguration.class);
 					destroy(ErrorResponseFactory.class);
 
-					destroyCryptoProviderInstance(AbstractCryptoProvider.class);
+					destroyCryptoProviderInstance();
 				}
 
 				this.loaded = true;
@@ -427,9 +427,10 @@ public class ConfigurationFactory {
 		configurationInstance.destroy(confInstance.get());
 	}
 
-	public void destroyCryptoProviderInstance(Class<? extends AbstractCryptoProvider> clazz) {
+	private void destroyCryptoProviderInstance() {
 		AbstractCryptoProvider abstractCryptoProvider = abstractCryptoProviderInstance.get();
 		abstractCryptoProviderInstance.destroy(abstractCryptoProvider);
+        CryptoProviderFactory.reset();
 	}
 
 	private Conf loadConfigurationFromLdap(String... returnAttributes) {
