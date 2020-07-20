@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,6 +31,7 @@ import com.google.common.collect.Sets;
  * @author Yuriy Zabrovarnyy
  */
 @RequestScoped
+@Named
 public class SelectAccountAction {
 
     private static final String FORM_ID = "selectForm";
