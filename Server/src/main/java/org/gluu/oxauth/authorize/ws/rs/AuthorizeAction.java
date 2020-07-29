@@ -6,31 +6,6 @@
 
 package org.gluu.oxauth.authorize.ws.rs;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.gluu.jsf2.message.FacesMessages;
@@ -40,17 +15,8 @@ import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxauth.auth.Authenticator;
 import org.gluu.oxauth.i18n.LanguageBean;
 import org.gluu.oxauth.model.auth.AuthenticationMode;
-import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
-import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
-import org.gluu.oxauth.model.authorize.Claim;
-import org.gluu.oxauth.model.authorize.JwtAuthorizationRequest;
-import org.gluu.oxauth.model.authorize.ScopeChecker;
-import org.gluu.oxauth.model.common.CibaRequestCacheControl;
-import org.gluu.oxauth.model.common.Prompt;
-import org.gluu.oxauth.model.common.SessionId;
-import org.gluu.oxauth.model.common.SessionIdState;
-import org.gluu.oxauth.model.common.SubjectType;
-import org.gluu.oxauth.model.common.User;
+import org.gluu.oxauth.model.authorize.*;
+import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -64,15 +30,7 @@ import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.security.Identity;
-import org.gluu.oxauth.service.AuthenticationService;
-import org.gluu.oxauth.service.AuthorizeService;
-import org.gluu.oxauth.service.ClientAuthorizationsService;
-import org.gluu.oxauth.service.ClientService;
-import org.gluu.oxauth.service.CookieService;
-import org.gluu.oxauth.service.ErrorHandlerService;
-import org.gluu.oxauth.service.RedirectionUriService;
-import org.gluu.oxauth.service.RequestParameterService;
-import org.gluu.oxauth.service.SessionIdService;
+import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalConsentGatheringService;
@@ -87,8 +45,6 @@ import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.slf4j.Logger;
 
-<<<<<<< HEAD
-=======
 import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.ExternalContext;
@@ -106,8 +62,6 @@ import java.net.URLEncoder;
 import java.util.*;
 
 import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
-
->>>>>>> 457680d06... Removed user_code from url in authorize rest service and web page. Added user_code in session used to process device authz. #141
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
