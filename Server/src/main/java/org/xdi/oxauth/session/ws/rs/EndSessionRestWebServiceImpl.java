@@ -93,10 +93,10 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         log.debug("Attempting to end session, idTokenHint: {}, postLogoutRedirectUri: {}, sessionId: {}, Is Secure = {}",
                 idTokenHint, postLogoutRedirectUri, sessionId, sec.isSecure());
 
-        validateIdTokenHint(idTokenHint);
-        validateSessionIdRequestParameter(sessionId);
+        validateIdTokenHint(idTokenHint, postLogoutRedirectUri);
+        validateSessionIdRequestParameter(sessionId, postLogoutRedirectUri);
 
-        final Pair<SessionId, AuthorizationGrant> pair = endSession(idTokenHint, sessionId, httpRequest, httpResponse);
+        final Pair<SessionId, AuthorizationGrant> pair = endSession(idTokenHint, sessionId, httpRequest, httpResponse, postLogoutRedirectUri);
 
         auditLogging(httpRequest, pair);
 
@@ -114,6 +114,21 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         return httpBased(postLogoutRedirectUri, state, pair);
     }
 
+    private Response createErrorResponse(String postLogoutRedirectUri, EndSessionErrorResponseType error, String reason) {
+        log.debug(reason);
+        try {
+            if (allowPostLogoutRedirect(postLogoutRedirectUri)) {
+                String separator = postLogoutRedirectUri.contains("?") ? "&" : "?";
+                postLogoutRedirectUri = postLogoutRedirectUri + separator + errorResponseFactory.getErrorAsQueryString(error, "");
+
+                return Response.status(Response.Status.FOUND).location(new URI(postLogoutRedirectUri)).build();
+            }
+        } catch (URISyntaxException e) {
+            log.error("Can't perform redirect", e);
+        }
+        return Response.status(Response.Status.BAD_REQUEST).entity(errorResponseFactory.errorAsJson(error, reason)).build();
+    }
+
     /**
      * Allow post logout redirect without validation only if:
      * allowPostLogoutRedirectWithoutValidation = true and post_logout_redirect_uri is white listed
@@ -125,7 +140,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(postLogoutRedirectUri);
     }
 
-    private void validateSessionIdRequestParameter(String sessionId) {
+    private void validateSessionIdRequestParameter(String sessionId, String postLogoutRedirectUri) {
         // session_id is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(sessionId)) {
             SessionId sessionIdObject = sessionIdService.getSessionId(sessionId);
@@ -133,21 +148,19 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             if (sessionIdObject == null) {
                 final String reason = "session_id parameter in request is not valid. Logout is rejected. session_id parameter in request can be skipped or otherwise valid value must be provided.";
                 log.error(reason);
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(
-                        errorResponseFactory.errorAsJson(EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason)).build());
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
         }
     }
 
-    private void validateIdTokenHint(String idTokenHint) {
+    private void validateIdTokenHint(String idTokenHint, String postLogoutRedirectUri) {
         // id_token_hint is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(idTokenHint)) {
             AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(idTokenHint);
             if (authorizationGrant == null) {
                 final String reason = "id_token_hint is not valid. Logout is rejected. id_token_hint can be skipped or otherwise valid value must be provided.";
                 log.error(reason);
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(
-                        errorResponseFactory.errorAsJson(EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason)).build());
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
         }
     }
@@ -183,7 +196,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 build();
     }
 
-    private Pair<SessionId, AuthorizationGrant> endSession(String idTokenHint, String sessionId, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    private Pair<SessionId, AuthorizationGrant> endSession(String idTokenHint, String sessionId, HttpServletRequest httpRequest, HttpServletResponse httpResponse, String postLogoutRedirectUri) {
         AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(idTokenHint);
         if (authorizationGrant == null) {
             Boolean endSessionWithAccessToken = appConfiguration.getEndSessionWithAccessToken();
@@ -199,8 +212,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         if (ldapSessionId == null) {
             final String reason = "Failed to identify session by session_id query parameter or by session_id cookie.";
             log.debug(reason);
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(
-                    errorResponseFactory.errorAsJson(EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason)).build());
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
         }
 
         boolean isExternalLogoutPresent;
@@ -215,7 +227,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
 
         boolean isGrantAndExternalLogoutSuccessful = isExternalLogoutPresent && externalLogoutResult;
         if (isExternalLogoutPresent && !isGrantAndExternalLogoutSuccessful) {
-            errorResponseFactory.throwUnauthorizedException(EndSessionErrorResponseType.INVALID_GRANT);
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT, "External logout script returned false."));
         }
 
         if (ldapSessionId != null) {
