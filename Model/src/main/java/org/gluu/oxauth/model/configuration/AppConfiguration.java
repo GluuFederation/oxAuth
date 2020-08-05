@@ -90,6 +90,7 @@ public class AppConfiguration implements Configuration {
     private Boolean claimsParameterSupported;
     private Boolean requestParameterSupported;
     private Boolean requestUriParameterSupported;
+    private Boolean requestUriHashVerificationEnabled;
     private Boolean requireRequestUriRegistration;
     private String opPolicyUri;
     private String opTosUri;
@@ -1906,5 +1907,13 @@ public class AppConfiguration implements Configuration {
 
     public void setDeviceAuthzResponseTypeToProcessAuthz(String deviceAuthzResponseTypeToProcessAuthz) {
         this.deviceAuthzResponseTypeToProcessAuthz = deviceAuthzResponseTypeToProcessAuthz;
+    }
+
+    public Boolean getRequestUriHashVerificationEnabled() {
+        return requestUriHashVerificationEnabled != null ? requestUriHashVerificationEnabled : false;
+    }
+
+    public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
+        this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
     }
 }
