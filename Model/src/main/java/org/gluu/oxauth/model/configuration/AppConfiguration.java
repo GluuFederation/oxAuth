@@ -115,6 +115,7 @@ public class AppConfiguration implements Configuration {
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
     private Boolean dynamicRegistrationPasswordGrantTypeEnabled = false;
+    private List<String> dynamicRegistrationAllowedPasswordGrantScopes;
     private String dynamicRegistrationCustomObjectClass;
     private List<String> personCustomObjectClassList;
 
@@ -1826,6 +1827,14 @@ public class AppConfiguration implements Configuration {
 
     public void setCibaEndUserNotificationConfig(CIBAEndUserNotificationConfig cibaEndUserNotificationConfig) {
         this.cibaEndUserNotificationConfig = cibaEndUserNotificationConfig;
+    }
+
+    public List<String> getDynamicRegistrationAllowedPasswordGrantScopes() {
+        return dynamicRegistrationAllowedPasswordGrantScopes;
+    }
+
+    public void setDynamicRegistrationAllowedPasswordGrantScopes(List<String> dynamicRegistrationAllowedPasswordGrantScopes) {
+        this.dynamicRegistrationAllowedPasswordGrantScopes = dynamicRegistrationAllowedPasswordGrantScopes;
     }
 
     /**
