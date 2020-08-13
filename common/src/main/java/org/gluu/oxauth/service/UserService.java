@@ -179,7 +179,7 @@ public class UserService {
         	return null;
         }
 
-        Filter filter = Filter.createEqualityFilter(attributeName, attributeName);
+        Filter filter = Filter.createEqualityFilter(attributeName, attributeValue);
         if (multiValued != null) {
         	filter.multiValued(multiValued);
         }
