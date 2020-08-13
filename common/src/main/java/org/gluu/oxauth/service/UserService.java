@@ -13,7 +13,6 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.CustomAttribute;
-import org.gluu.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
@@ -185,7 +184,7 @@ public class UserService {
         	filter.multiValued(multiValued);
         }
 
-        List<User> entries = ldapEntryManager.findEntries(getPeopleBaseDn(), User.class, filter, 1);
+        List<User> entries = ldapEntryManager.findEntries(staticConfiguration.getBaseDn().getPeople(), User.class, filter, 1);
         log.debug("Found '{}' entries", entries.size());
 
         if (entries.size() > 0) {
