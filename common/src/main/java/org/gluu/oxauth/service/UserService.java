@@ -369,7 +369,7 @@ public class UserService {
         	customAttribute.setValues(newAttributeValues);
         }
         
-        if (multiValued) {
+        if (multiValued != null) {
         	customAttribute.setMultiValued(multiValued);
         }
 
