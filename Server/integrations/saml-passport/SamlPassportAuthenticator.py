@@ -544,7 +544,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 tmpList = userByMail.getAttributeValues("oxExternalUid")
                 tmpList = ArrayList() if tmpList == None else ArrayList(tmpList)
                 tmpList.add(externalUid)
-                userByMail.setAttribute("oxExternalUid", tmpList)
+                userByMail.setAttribute("oxExternalUid", tmpList, True)
 
                 userByUid = userByMail
                 print "External user supplying mail %s will be linked to existing account '%s'" % (email, userByMail.getUserId())
@@ -579,18 +579,18 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getUserByExternalUid(self, uid, provider, userService):
         newFormat = "passport-%s:%s:%s" % ("saml", provider, uid)
-        user = userService.getUserByAttribute("oxExternalUid", newFormat)
+        user = userService.getUserByAttribute("oxExternalUid", newFormat, True)
 
         if user == None:
             oldFormat = "passport-%s:%s" % ("saml", uid)
-            user = userService.getUserByAttribute("oxExternalUid", oldFormat)
+            user = userService.getUserByAttribute("oxExternalUid", oldFormat, True)
 
             if user != None:
                 # Migrate to newer format
                 list = HashSet(user.getAttributeValues("oxExternalUid"))
                 list.remove(oldFormat)
                 list.add(newFormat)
-                user.setAttribute("oxExternalUid", ArrayList(list))
+                user.setAttribute("oxExternalUid", ArrayList(list), True)
                 print "Migrating user's oxExternalUid to newer format 'passport-saml:provider:uid'"
                 userService.updateUser(user)
 
@@ -617,7 +617,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         newUser = User()
         #Fill user attrs
-        newUser.setAttribute("oxExternalUid", externalUid)
+        newUser.setAttribute("oxExternalUid", externalUid, True)
         self.fillUser(newUser, profile)
         newUser = userService.addUser(newUser, True)
         return newUser
