@@ -1847,6 +1847,7 @@ public class AppConfiguration implements Configuration {
     }
 
     public List<String> getDynamicRegistrationAllowedPasswordGrantScopes() {
+        if (dynamicRegistrationAllowedPasswordGrantScopes == null) dynamicRegistrationAllowedPasswordGrantScopes = Lists.newArrayList();
         return dynamicRegistrationAllowedPasswordGrantScopes;
     }
 
