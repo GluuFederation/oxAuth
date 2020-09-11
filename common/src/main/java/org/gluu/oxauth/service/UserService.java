@@ -173,26 +173,30 @@ public class UserService {
     }
 
     public User getUserByAttribute(String attributeName, String attributeValue, Boolean multiValued) {
-        log.debug("Getting user information from LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
-        
-        if (StringHelper.isEmpty(attributeName) || StringHelper.isEmpty(attributeValue)) {
-        	return null;
-        }
-
-        Filter filter = Filter.createEqualityFilter(attributeName, attributeValue);
-        if (multiValued != null) {
-        	filter.multiValued(multiValued);
-        }
-
-        List<User> entries = ldapEntryManager.findEntries(staticConfiguration.getBaseDn().getPeople(), User.class, filter, 1);
-        log.debug("Found '{}' entries", entries.size());
-
+        List<User> entries = getUsersByAttribute(attributeName, attributeValue, multiValued, 1);
         if (entries.size() > 0) {
             return entries.get(0);
         } else {
             return null;
         }
     }
+
+    public List<User> getUsersByAttribute(String attributeName, String attributeValue, Boolean multiValued, int limit) {
+		log.debug("Getting user information from LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
+
+		if (StringHelper.isEmpty(attributeName) || StringHelper.isEmpty(attributeValue)) {
+			return null;
+		}
+
+		Filter filter = Filter.createEqualityFilter(attributeName, attributeValue);
+		if (multiValued != null) {
+			filter.multiValued(multiValued);
+		}
+
+		List<User> entries = ldapEntryManager.findEntries(staticConfiguration.getBaseDn().getPeople(), User.class, filter, limit);
+		log.debug("Found '{}' entries", entries.size());
+		return entries;
+	}
 
 	public User getUserByAttributes(String attributeValue, String[] attributeNames, String... returnAttributes) {
 		return getUserByAttributes(attributeValue, attributeNames, null, returnAttributes);
