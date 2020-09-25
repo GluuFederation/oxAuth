@@ -14,7 +14,6 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.CookieService;
 import org.gluu.oxauth.service.SessionIdService;
-import org.gluu.persist.exception.EntryPersistenceException;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -107,22 +106,14 @@ public class ConsentGatheringSessionService {
 
     public boolean persist(SessionId session) {
         try {
-            if (sessionIdService.updateSessionId(session, true)) {
-                log.trace("Session updated successfully. Session: " + session);
+            if (sessionIdService.persistSessionId(session, true)) {
+                log.trace("Session persisted successfully. Session: " + session);
                 return true;
-            }
-        } catch (EntryPersistenceException e) {
-            try {
-                if (sessionIdService.persistSessionId(session, true)) {
-                    log.trace("Session persisted successfully. Session: " + session);
-                    return true;
-                }
-            } catch (Exception ex) {
-                log.error("Failed to persist session, id: " + session.getId(), ex);
             }
         } catch (Exception e) {
             log.error("Failed to persist session, id: " + session.getId(), e);
         }
+
         return false;
     }
 
