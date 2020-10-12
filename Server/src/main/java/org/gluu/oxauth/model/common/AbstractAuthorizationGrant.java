@@ -440,7 +440,11 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
                     + getAuthorizationGrantType());
         }
 
-        return refreshTokens.get(refreshTokenCode);
+        final RefreshToken refreshToken = refreshTokens.get(refreshTokenCode);
+        if (refreshToken != null)
+            return refreshToken;
+        return refreshTokens.get(TokenHashUtil.hash(refreshTokenCode));
+
     }
 
     /**

@@ -108,6 +108,7 @@ public class AppConfiguration implements Configuration {
     private Boolean dynamicRegistrationPersistClientAuthorizations;
     private Boolean trustedClientEnabled;
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
+    private Boolean refreshTokenExtendLifetimeOnRotation  = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
     private String dynamicRegistrationCustomObjectClass;
     private List<String> personCustomObjectClassList;
@@ -278,6 +279,15 @@ public class AppConfiguration implements Configuration {
 
     public void setUmaRestrictResourceToAssociatedClient(Boolean umaRestrictResourceToAssociatedClient) {
         this.umaRestrictResourceToAssociatedClient = umaRestrictResourceToAssociatedClient;
+    }
+
+    public Boolean getRefreshTokenExtendLifetimeOnRotation() {
+        if (refreshTokenExtendLifetimeOnRotation == null) refreshTokenExtendLifetimeOnRotation = false;
+        return refreshTokenExtendLifetimeOnRotation;
+    }
+
+    public void setRefreshTokenExtendLifetimeOnRotation(Boolean refreshTokenExtendLifetimeOnRotation) {
+        this.refreshTokenExtendLifetimeOnRotation = refreshTokenExtendLifetimeOnRotation;
     }
 
     /**

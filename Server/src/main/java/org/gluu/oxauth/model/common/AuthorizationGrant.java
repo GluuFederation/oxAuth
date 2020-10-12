@@ -18,6 +18,7 @@ import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.token.HandleTokenFactory;
 import org.gluu.oxauth.model.token.IdTokenFactory;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.token.JwtSigner;
@@ -238,6 +239,26 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                 persist(asToken(refreshToken));
             }
             return refreshToken;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public RefreshToken createRefreshToken(Date expirationDate) {
+        try {
+            RefreshToken refreshToken = new RefreshToken(HandleTokenFactory.generateHandleToken(), new Date(), expirationDate);
+
+            refreshToken.setAuthMode(getAcrValues());
+            refreshToken.setSessionDn(getSessionDn());
+
+            if (refreshToken.getExpiresIn() > 0) {
+                persist(asToken(refreshToken));
+                return refreshToken;
+            }
+
+            log.debug("Token expiration date is in the past. Skip creation.");
+            return null;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
