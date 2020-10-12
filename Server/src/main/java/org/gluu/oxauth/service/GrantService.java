@@ -323,7 +323,7 @@ public class GrantService {
      * @param p_code code
      */
     public void removeByCode(String p_code, String p_clientId) {
-        final TokenLdap t = getGrantByCode(p_code, true);
+        final TokenLdap t = getGrantByCode(p_code, false);
         if (t != null) {
             removeSilently(t);
         }
