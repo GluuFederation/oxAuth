@@ -231,13 +231,22 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                     if (authorizationGrant != null) {
 
+                        final RefreshToken refreshTokenObject = authorizationGrant.getRefreshToken(refreshToken);
+                        if (refreshTokenObject == null || !refreshTokenObject.isValid()) {
+                            log.trace("Invalid refresh token.");
+                            return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
+                        }
 
-                        /*
-                        The authorization server MAY issue a new refresh token, in which case
-                        the client MUST discard the old refresh token and replace it with the
-                        new refresh token.
-                        */
-                        RefreshToken reToken = authorizationGrant.createRefreshToken();
+
+                        // The authorization server MAY issue a new refresh token, in which case
+                        // the client MUST discard the old refresh token and replace it with the new refresh token.
+
+                        final RefreshToken reToken;
+                        if (appConfiguration.getRefreshTokenExtendLifetimeOnRotation()) {
+                            reToken = authorizationGrant.createRefreshToken(); // extend lifetime
+                        } else {
+                            reToken = authorizationGrant.createRefreshToken(refreshTokenObject.getExpirationDate()); // do not extend lifetime
+                        }
                         grantService.removeByCode(refreshToken, client.getClientId());
 
                         if (scope != null && !scope.isEmpty()) {
