@@ -223,7 +223,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     }
 
     public AuthorizationGrant getAuthorizationGrantByAccessToken(String accessToken, boolean onlyFromCache) {
-        final TokenLdap tokenLdap = grantService.getGrantByCode(accessToken, onlyFromCache);
+        final TokenLdap tokenLdap = grantService.getGrantByCode(accessToken);
         if (tokenLdap != null    && (tokenLdap.getTokenTypeEnum() == org.gluu.oxauth.model.ldap.TokenType.ACCESS_TOKEN || tokenLdap.getTokenTypeEnum() == org.gluu.oxauth.model.ldap.TokenType.LONG_LIVED_ACCESS_TOKEN)) {
             return asGrant(tokenLdap);
         }

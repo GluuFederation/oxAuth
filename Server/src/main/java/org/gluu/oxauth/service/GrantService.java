@@ -236,18 +236,10 @@ public class GrantService {
     }
 
     public TokenLdap getGrantByCode(String p_code) {
-        return getGrantByCode(p_code, false);
-    }
-
-
-    public TokenLdap getGrantByCode(String p_code, boolean onlyFromCache) {
         Object grant = cacheService.get(TokenHashUtil.hash(p_code));
         if (grant instanceof TokenLdap) {
             return (TokenLdap) grant;
         } else {
-            if (onlyFromCache) {
-                return null;
-            }
             return load(buildDn(TokenHashUtil.hash(p_code)));
         }
     }
@@ -353,7 +345,7 @@ public class GrantService {
      * @param p_code code
      */
     public void removeByCode(String p_code) {
-        final TokenLdap t = getGrantByCode(p_code, true);
+        final TokenLdap t = getGrantByCode(p_code);
         if (t != null) {
             removeSilently(t);
         }
