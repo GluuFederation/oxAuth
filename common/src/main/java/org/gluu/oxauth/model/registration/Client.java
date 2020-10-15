@@ -6,15 +6,15 @@
 
 package org.gluu.oxauth.model.registration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.StringUtils;
-import org.gluu.oxauth.model.common.AuthenticationMethod;
-import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
-import org.gluu.oxauth.model.common.GrantType;
-import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
+import org.gluu.oxauth.model.register.ApplicationType;
+import org.gluu.persist.annotation.*;
 import org.gluu.persist.model.base.CustomAttribute;
 import org.gluu.persist.model.base.DeletableEntity;
-import org.gluu.persist.annotation.*;
 import org.oxauth.persistence.model.ClientAttributes;
 
 import java.io.Serializable;
@@ -26,8 +26,9 @@ import java.util.List;
  * @author Javier Rojas Blum
  * @version August 20, 2019
  */
-@DataEntry
+@DataEntry(sortBy = {"displayName"})
 @ObjectClass(value = "oxAuthClient")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Client extends DeletableEntity implements Serializable {
 
     private static final long serialVersionUID = -6832496019942067970L;
@@ -35,14 +36,15 @@ public class Client extends DeletableEntity implements Serializable {
     @DN
     private String dn;
 
-    @AttributeName(name = "inum")
+    @JsonProperty("inum")
+    @AttributeName(name = "inum", ignoreDuringUpdate = true)
     private String clientId;
 
     @AttributeName(name = "oxAuthClientSecret")
     private String clientSecret;
 
     @AttributeName(name = "oxAuthLogoutURI")
-    private String[] frontChannelLogoutUri;
+    private String frontChannelLogoutUri;
 
     @AttributeName(name = "oxAuthLogoutSessionRequired")
     private Boolean frontChannelLogoutSessionRequired;
@@ -69,7 +71,7 @@ public class Client extends DeletableEntity implements Serializable {
     private GrantType[] grantTypes;
 
     @AttributeName(name = "oxAuthAppType")
-    private String applicationType;
+    private ApplicationType applicationType = ApplicationType.WEB;
 
     @AttributeName(name = "oxAuthContact")
     private String[] contacts;
@@ -102,7 +104,7 @@ public class Client extends DeletableEntity implements Serializable {
     private String sectorIdentifierUri;
 
     @AttributeName(name = "oxAuthSubjectType")
-    private String subjectType;
+    private SubjectType subjectType = SubjectType.PUBLIC;
 
     @AttributeName(name = "oxAuthIdTokenSignedResponseAlg")
     private String idTokenSignedResponseAlg;
@@ -310,8 +312,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @return logout uri
      */
-    public String[] getFrontChannelLogoutUri() {
-        if (frontChannelLogoutUri == null) frontChannelLogoutUri = new String[0];
+    public String getFrontChannelLogoutUri() {
         return frontChannelLogoutUri;
     }
 
@@ -320,7 +321,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @param frontChannelLogoutUri logout uri
      */
-    public void setFrontChannelLogoutUri(String[] frontChannelLogoutUri) {
+    public void setFrontChannelLogoutUri(String frontChannelLogoutUri) {
         this.frontChannelLogoutUri = frontChannelLogoutUri;
     }
 
@@ -357,7 +358,7 @@ public class Client extends DeletableEntity implements Serializable {
      * @param clientSecret The client secret.
      */
     public void setClientSecret(String clientSecret) {
-    	this.clientSecret = clientSecret;
+        this.clientSecret = clientSecret;
     }
 
     /**
@@ -516,7 +517,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @return The type of the client application.
      */
-    public String getApplicationType() {
+    public ApplicationType getApplicationType() {
         return applicationType;
     }
 
@@ -529,7 +530,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @param applicationType The type of the client application.
      */
-    public void setApplicationType(String applicationType) {
+    public void setApplicationType(ApplicationType applicationType) {
         this.applicationType = applicationType;
     }
 
@@ -736,7 +737,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @return The subject type.
      */
-    public String getSubjectType() {
+    public SubjectType getSubjectType() {
         return subjectType;
     }
 
@@ -745,7 +746,7 @@ public class Client extends DeletableEntity implements Serializable {
      *
      * @param subjectType The subject type.
      */
-    public void setSubjectType(String subjectType) {
+    public void setSubjectType(SubjectType subjectType) {
         this.subjectType = subjectType;
     }
 
@@ -1230,4 +1231,13 @@ public class Client extends DeletableEntity implements Serializable {
     public void setBackchannelUserCodeParameter(Boolean backchannelUserCodeParameter) {
         this.backchannelUserCodeParameter = backchannelUserCodeParameter;
     }
+
+    public String getDisplayName() {
+        return clientName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.clientName = displayName;
+    }
+
 }

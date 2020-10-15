@@ -105,6 +105,7 @@ public class Authenticator {
 	private Integer authStep;
 
 	private String lastResult;
+	private SessionId curentSessionId;
 
 	/**
 	 * Tries to authenticate an user, returns <code>true</code> if the
@@ -115,7 +116,7 @@ public class Authenticator {
 	public boolean authenticate() {
 		HttpServletRequest servletRequest = (HttpServletRequest) facesContext.getExternalContext().getRequest();
 
-		final SessionId sessionId = sessionIdService.getSessionId(servletRequest);
+		final SessionId sessionId = getSessionId(servletRequest);
 		if (sessionIdService.isSessionIdAuthenticated(sessionId)) {
 			// #1029 : session is already authenticated, we run into second authorization
 			// request
@@ -201,7 +202,7 @@ public class Authenticator {
 				}
 			} else {
 				if (interactive) {
-					result = userAuthenticationInteractive();
+					result = userAuthenticationInteractive(servletRequest);
 				} else {
 					boolean authenticated = userAuthenticationService();
 					if (authenticated) {
@@ -277,11 +278,11 @@ public class Authenticator {
 		logger.info(sb.toString());
 	}
 
-	private String userAuthenticationInteractive() {
-		SessionId sessionId = sessionIdService.getSessionId();
+	private String userAuthenticationInteractive(HttpServletRequest servletRequest) {
+		SessionId sessionId = getSessionId(servletRequest);
 		Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
 		if (sessionIdAttributes == null) {
-			logger.error("Failed to get session attributes");
+			logger.debug("Unable to get session attributes. SessionId: " + (sessionId != null ? sessionId.getId() : null));
 			return Constants.RESULT_EXPIRED;
 		}
 
@@ -355,10 +356,16 @@ public class Authenticator {
 			if (overridenNextStep > -1) {
 				overrideCurrentStep = true;
 				// Reload session id
+/*
+ * TODO: Remove after 6.0. Check if this will not led to external script problems.
 				sessionId = sessionIdService.getSessionId();
+*/
 
 				// Reset to specified step
-				sessionIdService.resetToStep(sessionId, overridenNextStep);
+				sessionId = sessionIdService.resetToStep(sessionId, overridenNextStep);
+				if (sessionId == null) {
+					return Constants.RESULT_AUTHENTICATION_FAILED;
+				}
 
 				this.authStep = overridenNextStep;
 				logger.info("Authentication reset to step : '{}'", this.authStep);
@@ -371,10 +378,12 @@ public class Authenticator {
 			// Determine count authentication methods
 			int countAuthenticationSteps = externalAuthenticationService
 					.executeExternalGetCountAuthenticationSteps(customScriptConfiguration);
-
+/*
+ * TODO: Remove after 6.0. Check if this will not led to external script problems.
 			// Reload from LDAP to make sure that we are updating latest session
 			// attributes
 			sessionId = sessionIdService.getSessionId();
+*/
 			sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
 
 			// Prepare for next step
@@ -572,7 +581,7 @@ public class Authenticator {
 	public String prepareAuthenticationForStep(SessionId sessionId) {
 		Map<String, String> sessionIdAttributes = sessionIdService.getSessionAttributes(sessionId);
 		if (sessionIdAttributes == null) {
-			logger.error("Failed to get attributes from session");
+			logger.debug("Unable to get attributes from session");
 			return Constants.RESULT_EXPIRED;
 		}
 
@@ -780,6 +789,16 @@ public class Authenticator {
 		String message = languageBean.getMessage(summary);
 		facesMessages.add(severity, message);
 	}
+
+    private SessionId getSessionId(HttpServletRequest servletRequest) {
+        if (this.curentSessionId == null && identity.getSessionId() != null) {
+            return curentSessionId = identity.getSessionId();
+        }
+        if (this.curentSessionId == null) {
+            this.curentSessionId = sessionIdService.getSessionId(servletRequest);
+        }
+        return this.curentSessionId;
+    }
 
 	public String getMaskedNumber() {
 		String result = getFullNumber();

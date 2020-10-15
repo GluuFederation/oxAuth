@@ -214,12 +214,13 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         try {
             Map<String, String> customResponseHeaders = Util.jsonObjectArrayStringAsMap(customRespHeaders);
 
-            checkAcrChanged(acrValuesStr, prompts, sessionUser);
             updateSessionForROPC(httpRequest, sessionUser);
 
             Client client = authorizeRestWebServiceValidator.validateClient(clientId, state);
             String deviceAuthzUserCode = deviceAuthorizationService.getUserCodeFromSession(httpRequest);
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, deviceAuthzUserCode, httpRequest);
+            checkAcrChanged(acrValuesStr, prompts, sessionUser); // check after redirect uri is validated
+
             RedirectUriResponse redirectUriResponse = new RedirectUriResponse(new RedirectUri(redirectUri, responseTypes, responseMode), state, httpRequest, errorResponseFactory);
             redirectUriResponse.setFapiCompatible(appConfiguration.getFapiCompatibility());
 
@@ -273,6 +274,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     }
                     if (!jwtRequest.getPrompts().isEmpty()) {
                         prompts = Lists.newArrayList(jwtRequest.getPrompts());
+                    }
+                    if (jwtRequest.getResponseMode() != null) {
+                        redirectUriResponse.getRedirectUri().setResponseMode(jwtRequest.getResponseMode());
                     }
 
                     final IdTokenMember idTokenMember = jwtRequest.getIdTokenMember();
@@ -427,9 +431,8 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                         codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
             }
 
-            ClientAuthorization clientAuthorization = clientAuthorizationsService.find(
-                    user.getAttribute("inum"),
-                    client.getClientId());
+            ClientAuthorization clientAuthorization = null;
+            boolean clientAuthorizationFetched = false;
             if (scopes.size() > 0) {
                 if (prompts.contains(Prompt.CONSENT)) {
                     return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
@@ -440,16 +443,20 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 if (client.getTrustedClient()) {
                     sessionUser.addPermission(clientId, true);
                     sessionIdService.updateSessionId(sessionUser);
-                } else if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
-                    log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
-                    if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
-                        sessionUser.addPermission(clientId, true);
-                        sessionIdService.updateSessionId(sessionUser);
-                    } else {
-                        return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
-                                redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
-                                idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
-                                codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
+                } else {
+                    clientAuthorization = clientAuthorizationsService.find(user.getAttribute("inum"), client.getClientId());
+                    clientAuthorizationFetched = true;
+                    if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
+                        log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
+                        if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
+                            sessionUser.addPermission(clientId, true);
+                            sessionIdService.updateSessionId(sessionUser);
+                        } else {
+                            return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
+                                    redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
+                                    idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
+                                    codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
+                        }
                     }
                 }
             }
@@ -470,8 +477,10 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
 
             if (prompts.contains(Prompt.CONSENT) || !sessionUser.isPermissionGrantedForClient(clientId)) {
-                clientAuthorizationsService.clearAuthorizations(clientAuthorization,
-                        client.getPersistClientAuthorizations());
+                if (!clientAuthorizationFetched) {
+                    clientAuthorization = clientAuthorizationsService.find(user.getAttribute("inum"), client.getClientId());
+                }
+                clientAuthorizationsService.clearAuthorizations(clientAuthorization, client.getPersistClientAuthorizations());
 
                 prompts.remove(Prompt.CONSENT);
 
@@ -501,7 +510,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 authorizationGrant.setClaims(claims);
 
                 // Store acr_values
-                authorizationGrant.setAcrValues(acrValuesStr);
+                authorizationGrant.setAcrValues(getAcrForGrant(acrValuesStr, sessionUser));
                 authorizationGrant.setSessionDn(sessionUser.getDn());
                 authorizationGrant.save(); // call save after object modification!!!
 
@@ -521,7 +530,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     authorizationGrant.setClaims(claims);
 
                     // Store acr_values
-                    authorizationGrant.setAcrValues(acrValuesStr);
+                    authorizationGrant.setAcrValues(getAcrForGrant(acrValuesStr, sessionUser));
                     authorizationGrant.setSessionDn(sessionUser.getDn());
                     authorizationGrant.save(); // call save after object modification!!!
                 }
@@ -544,14 +553,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     authorizationGrant.setClaims(claims);
 
                     // Store authentication acr values
-                    authorizationGrant.setAcrValues(acrValuesStr);
+                    authorizationGrant.setAcrValues(getAcrForGrant(acrValuesStr, sessionUser));
                     authorizationGrant.setSessionDn(sessionUser.getDn());
                     authorizationGrant.save(); // call save after object modification, call is asynchronous!!!
                 }
                 IdToken idToken = authorizationGrant.createIdToken(
                         nonce, authorizationCode, newAccessToken, null,
                         state, authorizationGrant, includeIdTokenClaims,
-                        JwrService.wrapWithSidFunction(TokenBindingMessage.createIdTokenTokingBindingPreprocessing(tokenBindingHeader, client.getIdTokenTokenBindingCnf()), sessionUser.getId()));
+                        JwrService.wrapWithSidFunction(TokenBindingMessage.createIdTokenTokingBindingPreprocessing(tokenBindingHeader, client.getIdTokenTokenBindingCnf()), sessionUser.getOutsideSid()));
 
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.ID_TOKEN, idToken.getCode());
             }
@@ -622,6 +631,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
         applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return builder.build();
+    }
+
+    private String getAcrForGrant(String acrValuesStr, SessionId sessionUser) {
+        final String acr = sessionIdService.getAcr(sessionUser);
+        return StringUtils.isNotBlank(acr) ? acr : acrValuesStr;
     }
 
     private void runCiba(String authReqId, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {

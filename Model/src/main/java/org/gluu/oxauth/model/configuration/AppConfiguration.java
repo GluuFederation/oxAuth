@@ -8,10 +8,7 @@ package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.Lists;
-import org.gluu.oxauth.model.common.GrantType;
-import org.gluu.oxauth.model.common.ResponseMode;
-import org.gluu.oxauth.model.common.ResponseType;
-import org.gluu.oxauth.model.common.WebKeyStorage;
+import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 
 import java.util.ArrayList;
@@ -90,12 +87,14 @@ public class AppConfiguration implements Configuration {
     private Boolean claimsParameterSupported;
     private Boolean requestParameterSupported;
     private Boolean requestUriParameterSupported;
+    private Boolean requestUriHashVerificationEnabled;
     private Boolean requireRequestUriRegistration;
     private String opPolicyUri;
     private String opTosUri;
     private int authorizationCodeLifetime;
     private int refreshTokenLifetime;
     private int idTokenLifetime;
+    private Boolean idTokenFilterClaimsBasedOnAccessToken;
     private int accessTokenLifetime;
 
     private int cleanServiceInterval;
@@ -114,6 +113,7 @@ public class AppConfiguration implements Configuration {
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
     private Boolean dynamicRegistrationPasswordGrantTypeEnabled = false;
+    private List<String> dynamicRegistrationAllowedPasswordGrantScopes;
     private String dynamicRegistrationCustomObjectClass;
     private List<String> personCustomObjectClassList;
 
@@ -126,8 +126,6 @@ public class AppConfiguration implements Configuration {
     private Boolean expirationNotificatorEnabled = false;
     private int expirationNotificatorMapSizeLimit = 100000;
     private int expirationNotificatorIntervalInSeconds = 600;
-
-    private Boolean useCacheForAllImplicitFlowObjects = false;
 
     private Boolean authenticationFiltersEnabled;
     private Boolean clientAuthenticationFiltersEnabled;
@@ -142,6 +140,7 @@ public class AppConfiguration implements Configuration {
     private Boolean sessionIdPersistOnPromptNone;
     private Boolean sessionIdRequestParameterEnabled = false; // #1195
     private Boolean changeSessionIdOnAuthentication = true;
+    private Boolean sessionIdPersistInCache = false;
     /**
      * SessionId will be expired after sessionIdLifetime seconds
      */
@@ -157,7 +156,7 @@ public class AppConfiguration implements Configuration {
     private String imgLocation;
     private int metricReporterInterval;
     private int metricReporterKeepDataDays;
-    private Boolean metricReporterEnabled = true;
+    private Boolean metricReporterEnabled;
     private String pairwiseIdType; // persistent, algorithmic
     private String pairwiseCalculationKey;
     private String pairwiseCalculationSalt;
@@ -206,8 +205,13 @@ public class AppConfiguration implements Configuration {
     private Boolean forceOfflineAccessScopeToEnableRefreshToken = true;
     private Boolean errorReasonEnabled  = false;
     private Boolean removeRefreshTokensForClientOnLogout  = true;
+    private Boolean skipRefreshTokenDuringRefreshing  = false;
+    private Boolean refreshTokenExtendLifetimeOnRotation  = false;
     private Boolean consentGatheringScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
     private Boolean introspectionScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
+
+    private String softwareStatementValidationType = SoftwareStatementValidationType.DEFAULT.getValue();
+    private String softwareStatementValidationClaimName;
 
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
 
@@ -236,6 +240,41 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
+
+    public String getSoftwareStatementValidationType() {
+        if (softwareStatementValidationType == null) return softwareStatementValidationType = SoftwareStatementValidationType.DEFAULT.getValue();
+        return softwareStatementValidationType;
+    }
+
+    public String getSoftwareStatementValidationClaimName() {
+        return softwareStatementValidationClaimName;
+    }
+
+    public void setSoftwareStatementValidationType(String softwareStatementValidationType) {
+        this.softwareStatementValidationType = softwareStatementValidationType;
+    }
+
+    public void setSoftwareStatementValidationClaimName(String softwareStatementValidationClaimName) {
+        this.softwareStatementValidationClaimName = softwareStatementValidationClaimName;
+    }
+
+    public Boolean getSkipRefreshTokenDuringRefreshing() {
+        if (skipRefreshTokenDuringRefreshing == null) skipRefreshTokenDuringRefreshing = false;
+        return skipRefreshTokenDuringRefreshing;
+    }
+
+    public void setSkipRefreshTokenDuringRefreshing(Boolean skipRefreshTokenDuringRefreshing) {
+        this.skipRefreshTokenDuringRefreshing = skipRefreshTokenDuringRefreshing;
+    }
+
+    public Boolean getRefreshTokenExtendLifetimeOnRotation() {
+        if (refreshTokenExtendLifetimeOnRotation == null) refreshTokenExtendLifetimeOnRotation = false;
+        return refreshTokenExtendLifetimeOnRotation;
+    }
+
+    public void setRefreshTokenExtendLifetimeOnRotation(Boolean refreshTokenExtendLifetimeOnRotation) {
+        this.refreshTokenExtendLifetimeOnRotation = refreshTokenExtendLifetimeOnRotation;
+    }
 
     public Boolean getExpirationNotificatorEnabled() {
         if (expirationNotificatorEnabled == null) expirationNotificatorEnabled = false;
@@ -306,6 +345,15 @@ public class AppConfiguration implements Configuration {
 
     public void setForceOfflineAccessScopeToEnableRefreshToken(Boolean forceOfflineAccessScopeToEnableRefreshToken) {
         this.forceOfflineAccessScopeToEnableRefreshToken = forceOfflineAccessScopeToEnableRefreshToken;
+    }
+
+    public Boolean getSessionIdPersistInCache() {
+        if (sessionIdPersistInCache == null) sessionIdPersistInCache = false;
+        return sessionIdPersistInCache;
+    }
+
+    public void setSessionIdPersistInCache(Boolean sessionIdPersistInCache) {
+        this.sessionIdPersistInCache = sessionIdPersistInCache;
     }
 
     public Boolean getChangeSessionIdOnAuthentication() {
@@ -1162,14 +1210,6 @@ public class AppConfiguration implements Configuration {
         this.invalidateSessionCookiesAfterAuthorizationFlow = invalidateSessionCookiesAfterAuthorizationFlow;
     }
 
-    public Boolean getUseCacheForAllImplicitFlowObjects() {
-        return useCacheForAllImplicitFlowObjects;
-    }
-
-    public void setUseCacheForAllImplicitFlowObjects(Boolean useCacheForAllImplicitFlowObjects) {
-        this.useCacheForAllImplicitFlowObjects = useCacheForAllImplicitFlowObjects;
-    }
-
     public String getDynamicRegistrationCustomObjectClass() {
         return dynamicRegistrationCustomObjectClass;
     }
@@ -1798,6 +1838,15 @@ public class AppConfiguration implements Configuration {
         this.cibaEndUserNotificationConfig = cibaEndUserNotificationConfig;
     }
 
+    public List<String> getDynamicRegistrationAllowedPasswordGrantScopes() {
+        if (dynamicRegistrationAllowedPasswordGrantScopes == null) dynamicRegistrationAllowedPasswordGrantScopes = Lists.newArrayList();
+        return dynamicRegistrationAllowedPasswordGrantScopes;
+    }
+
+    public void setDynamicRegistrationAllowedPasswordGrantScopes(List<String> dynamicRegistrationAllowedPasswordGrantScopes) {
+        this.dynamicRegistrationAllowedPasswordGrantScopes = dynamicRegistrationAllowedPasswordGrantScopes;
+    }
+
     /**
      * Returns a flag to determinate if oxAuth supports password grant type for
      * dynamic client registration.
@@ -1898,5 +1947,21 @@ public class AppConfiguration implements Configuration {
 
     public void setCibaEnabled(Boolean cibaEnabled) {
         this.cibaEnabled = cibaEnabled;
+    }
+
+    public Boolean getRequestUriHashVerificationEnabled() {
+        return requestUriHashVerificationEnabled != null ? requestUriHashVerificationEnabled : false;
+    }
+
+    public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
+        this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
+    }
+
+    public Boolean getIdTokenFilterClaimsBasedOnAccessToken() {
+        return idTokenFilterClaimsBasedOnAccessToken != null ? idTokenFilterClaimsBasedOnAccessToken : false;
+    }
+
+    public void setIdTokenFilterClaimsBasedOnAccessToken(Boolean idTokenFilterClaimsBasedOnAccessToken) {
+        this.idTokenFilterClaimsBasedOnAccessToken = idTokenFilterClaimsBasedOnAccessToken;
     }
 }

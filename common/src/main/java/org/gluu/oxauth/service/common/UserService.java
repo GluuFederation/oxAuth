@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -19,9 +21,9 @@ import javax.inject.Inject;
 import org.gluu.model.GluuStatus;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.util.Util;
-import org.gluu.oxauth.service.common.InumService;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.CustomAttribute;
+import org.gluu.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
@@ -111,7 +113,9 @@ public abstract class UserService {
 
     public User updateUser(User user) {
         user.setUpdatedAt(new Date());
-		return persistenceEntryManager.merge(user);
+		persistenceEntryManager.merge(user);
+
+		return getUserByDn(user.getDn());
 	}
 
     public User addDefaultUser(String uid) {
@@ -122,9 +126,9 @@ public abstract class UserService {
     	User user = new User();
         user.setDn("inum=" + inum + "," + peopleBaseDN);
     	user.setCustomAttributes(Arrays.asList(
-    			new CustomAttribute("inum", inum),
-    			new CustomAttribute("gluuStatus", GluuStatus.ACTIVE.getValue()),
-				new CustomAttribute("displayName", "User " + uid + " added via oxAuth custom plugin")));
+    			new CustomObjectAttribute("inum", inum),
+    			new CustomObjectAttribute("gluuStatus", GluuStatus.ACTIVE.getValue()),
+				new CustomObjectAttribute("displayName", "User " + uid + " added via oxAuth custom plugin")));
     	user.setUserId(uid);
 
     	List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
@@ -168,24 +172,12 @@ public abstract class UserService {
 		return getUserByDn(user.getDn());
 	}
 
-    public User getUserByAttribute(String attributeName, String attributeValue) {
-        log.debug("Getting user information from LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
-        
-        if (StringHelper.isEmpty(attributeName) || StringHelper.isEmpty(attributeValue)) {
-        	return null;
-        }
+    public User getUserByAttribute(String attributeName, Object attributeValue) {
+        return getUserByAttribute(attributeName, attributeValue, null);
+    }
 
-        User user = new User();
-        user.setDn(getPeopleBaseDn());
-
-        List<CustomAttribute> customAttributes =  new ArrayList<CustomAttribute>();
-        customAttributes.add(new CustomAttribute(attributeName, attributeValue));
-
-        user.setCustomAttributes(customAttributes);
-
-        List<User> entries = persistenceEntryManager.findEntries(user, 1);
-        log.debug("Found '{}' entries", entries.size());
-
+    public User getUserByAttribute(String attributeName, Object attributeValue, Boolean multiValued) {
+        List<User> entries = getUsersByAttribute(attributeName, attributeValue, multiValued, 1);
         if (entries.size() > 0) {
             return entries.get(0);
         } else {
@@ -203,8 +195,8 @@ public abstract class UserService {
 				User searchUser = new User();
 				searchUser.setDn(getPeopleBaseDn());
 
-				List<CustomAttribute> customAttributes =  new ArrayList<>();
-				customAttributes.add(new CustomAttribute(attributeName, attributeValue));
+				List<CustomObjectAttribute> customAttributes =  new ArrayList<>();
+				customAttributes.add(new CustomObjectAttribute(attributeName, attributeValue));
 
 				searchUser.setCustomAttributes(customAttributes);
 
@@ -229,7 +221,29 @@ public abstract class UserService {
 		return user;
 	}
 
-	public User getUserByAttributes(String attributeValue, String[] attributeNames, String... returnAttributes) {
+	public List<User> getUsersByAttribute(String attributeName, Object attributeValue, Boolean multiValued, int limit) {
+		log.debug("Getting user information from LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
+
+		if (StringHelper.isEmpty(attributeName) || (attributeValue == null)) {
+			return null;
+		}
+
+		Filter filter = Filter.createEqualityFilter(attributeName, attributeValue);
+		if (multiValued != null) {
+			filter.multiValued(multiValued);
+		}
+
+		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, filter, limit);
+		log.debug("Found '{}' entries", entries.size());
+
+		return entries;
+	}
+
+    public User getUserByAttributes(Object attributeValue, String[] attributeNames, String... returnAttributes) {
+		return getUserByAttributes(attributeValue, attributeNames, null, returnAttributes);
+	}
+
+	public User getUserByAttributes(Object attributeValue, String[] attributeNames, Boolean multiValued, String... returnAttributes) {
 		if (ArrayHelper.isEmpty(attributeNames)) {
 			return null;
 		}
@@ -238,7 +252,10 @@ public abstract class UserService {
 
 		List<Filter> filters = new ArrayList<Filter>(); 
 		for (String attributeName : attributeNames) {
-			Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), StringHelper.toLowerCase(attributeValue));
+			Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), attributeValue);
+	        if (multiValued != null) {
+	        	filter.multiValued(multiValued);
+	        }
 			filters.add(filter);
 		}
 
@@ -249,8 +266,43 @@ public abstract class UserService {
 			searchFiler = Filter.createORFilter(filters);
 		}
 
-		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, searchFiler, returnAttributes);
+		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, searchFiler, returnAttributes, 1);
 		log.debug("Found {} entries for user {} = {}", entries.size(), ArrayHelper.toString(attributeNames), attributeValue);
+
+		if (entries.size() > 0) {
+			return entries.get(0);
+		} else {
+			return null;
+		}
+	}
+
+	public User getUserByAttributes(List<CustomAttribute> attributes, boolean andFilter, String... returnAttributes) {
+		if (attributes == null) {
+			return null;
+		}
+
+		log.debug("Getting user information using next attributes '{}'", attributes);
+
+		List<Filter> filters = new ArrayList<Filter>(); 
+		for (CustomAttribute attribute : attributes) {
+			Filter filter = Filter.createEqualityFilter(attribute.getName(), attribute.getValues());
+        	filter.multiValued(attribute.isMultiValued());
+			filters.add(filter);
+		}
+
+		Filter searchFiler;
+		if (filters.size() == 1) {
+			searchFiler = filters.get(0);
+		} else {
+			if (andFilter) {
+				searchFiler = Filter.createANDFilter(filters);
+			} else {
+				searchFiler = Filter.createORFilter(filters);
+			}
+		}
+
+		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, searchFiler, returnAttributes, 1);
+		log.debug("Found '{}' entries for user by next attributes '{}'", entries.size(), attributes);
 
 		if (entries.size() > 0) {
 			return entries.get(0);
@@ -268,7 +320,7 @@ public abstract class UserService {
         return entries;
     }
 
-    public User addUserAttributeByUserInum(String userInum, String attributeName, String attributeValue) {
+    public User addUserAttributeByUserInum(String userInum, String attributeName, Object attributeValue) {
     	log.debug("Add user attribute by user inum  to LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
 
         User user = getUserByInum(userInum);
@@ -285,8 +337,12 @@ public abstract class UserService {
         return updateUser(user);
     	
     }
+
+    public User addUserAttribute(String userId, String attributeName, Object attributeValue) {
+    	return addUserAttribute(userId, attributeName, attributeValue, null);
+    }
     
-    public User addUserAttribute(String userId, String attributeName, String attributeValue) {
+    public User addUserAttribute(String userId, String attributeName, Object attributeValue, Boolean multiValued) {
         log.debug("Add user attribute to LDAP: attributeName = '{}', attributeValue = '{}'", attributeName, attributeValue);
 
         User user = getUser(userId);
@@ -295,7 +351,7 @@ public abstract class UserService {
         	return null;
         }
         
-        boolean result = addUserAttribute(user, attributeName, attributeValue);
+        boolean result = addUserAttribute(user, attributeName, attributeValue, multiValued);
         if (!result) {
         	// We uses this result in Person Authentication Scripts
         	return null;
@@ -304,15 +360,19 @@ public abstract class UserService {
         return updateUser(user);
     }
 
-    public boolean addUserAttribute(User user, String attributeName, String attributeValue) {
-		CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+    public boolean addUserAttribute(User user, String attributeName, Object attributeValue) {
+    	return addUserAttribute(user, attributeName, attributeValue, null);
+    }
+
+    public boolean addUserAttribute(User user, String attributeName, Object attributeValue, Boolean multiValued) {
+    	CustomObjectAttribute customAttribute = getCustomAttribute(user, attributeName);
         if (customAttribute == null) {
-        	customAttribute = new CustomAttribute(attributeName, attributeValue);
+        	customAttribute = new CustomObjectAttribute(attributeName, attributeValue);
             user.getCustomAttributes().add(customAttribute);
         } else {
-        	List<String> currentAttributeValues = customAttribute.getValues();
+        	List<Object> currentAttributeValues = customAttribute.getValues();
 
-        	List<String> newAttributeValues = new ArrayList<String>();
+        	List<Object> newAttributeValues = new ArrayList<Object>();
         	newAttributeValues.addAll(currentAttributeValues);
 
         	if (newAttributeValues.contains(attributeValue)) {
@@ -322,6 +382,10 @@ public abstract class UserService {
         	}
         	
         	customAttribute.setValues(newAttributeValues);
+        }
+
+        if (multiValued != null) {
+        	customAttribute.setMultiValued(multiValued);
         }
         
         return true;
@@ -335,12 +399,12 @@ public abstract class UserService {
         	return null;
         }
         
-        CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+        CustomObjectAttribute customAttribute = getCustomAttribute(user, attributeName);
         if (customAttribute != null) {
-        	List<String> currentAttributeValues = customAttribute.getValues();
+        	List<Object> currentAttributeValues = customAttribute.getValues();
         	if (currentAttributeValues.contains(attributeValue)) {
 
-        		List<String> newAttributeValues = new ArrayList<String>();
+        		List<Object> newAttributeValues = new ArrayList<Object>();
             	newAttributeValues.addAll(currentAttributeValues);
         		if (currentAttributeValues.contains(attributeValue)) {
             		newAttributeValues.remove(attributeValue);
@@ -356,6 +420,10 @@ public abstract class UserService {
     }
 
     public User replaceUserAttribute(String userId, String attributeName, String oldAttributeValue, String newAttributeValue) {
+    	return replaceUserAttribute(userId, attributeName, oldAttributeValue, newAttributeValue, null);
+    }
+
+    public User replaceUserAttribute(String userId, String attributeName, String oldAttributeValue, String newAttributeValue, Boolean multiValued) {
         log.debug("Replace user attribute in LDAP: attributeName = '{}', oldAttributeValue = '{}', newAttributeValue = '{}'", attributeName, oldAttributeValue, newAttributeValue);
 
         User user = getUser(userId);
@@ -363,10 +431,10 @@ public abstract class UserService {
         	return null;
         }
         
-        CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+        CustomObjectAttribute customAttribute = getCustomAttribute(user, attributeName);
         if (customAttribute != null) {
-        	List<String> currentAttributeValues = customAttribute.getValues();
-    		List<String> newAttributeValues = new ArrayList<String>();
+        	List<Object> currentAttributeValues = customAttribute.getValues();
+    		List<Object> newAttributeValues = new ArrayList<Object>();
         	newAttributeValues.addAll(currentAttributeValues);
 
     		if (currentAttributeValues.contains(oldAttributeValue)) {
@@ -379,12 +447,16 @@ public abstract class UserService {
 
         	customAttribute.setValues(newAttributeValues);
         }
+        
+        if (multiValued != null) {
+        	customAttribute.setMultiValued(multiValued);
+        }
 
 		return updateUser(user);
     }
 
-	public CustomAttribute getCustomAttribute(User user, String attributeName) {
-		for (CustomAttribute customAttribute : user.getCustomAttributes()) {
+	public CustomObjectAttribute getCustomAttribute(User user, String attributeName) {
+		for (CustomObjectAttribute customAttribute : user.getCustomAttributes()) {
 			if (StringHelper.equalsIgnoreCase(attributeName, customAttribute.getName())) {
 				return customAttribute;
 			}
@@ -394,10 +466,10 @@ public abstract class UserService {
 	}
 
 	public void setCustomAttribute(User user, String attributeName, String attributeValue) {
-		CustomAttribute customAttribute = getCustomAttribute(user, attributeName);
+		CustomObjectAttribute customAttribute = getCustomAttribute(user, attributeName);
 		
 		if (customAttribute == null) {
-			customAttribute = new CustomAttribute(attributeName);
+			customAttribute = new CustomObjectAttribute(attributeName);
 			user.getCustomAttributes().add(customAttribute);
 		}
 		

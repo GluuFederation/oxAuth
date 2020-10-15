@@ -43,6 +43,8 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.search.filter.Filter;
+import org.gluu.service.CacheService;
+import org.gluu.service.LocalCacheService;
 import org.gluu.util.StringHelper;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
@@ -77,6 +79,7 @@ public class SessionIdService {
     public static final String OP_BROWSER_STATE = "opbs";
     public static final String SESSION_CUSTOM_STATE = "session_custom_state";
     private static final int MAX_MERGE_ATTEMPTS = 3;
+    private static final int DEFAULT_LOCAL_CACHE_EXPIRATION = 2;
 
     @Inject
     private Logger log;
@@ -119,6 +122,12 @@ public class SessionIdService {
 
     @Inject
     private Identity identity;
+
+    @Inject
+    private LocalCacheService localCacheService;
+
+    @Inject
+    private CacheService cacheService;
 
     private String buildDn(String sessionId) {
         return String.format("oxId=%s,%s", sessionId, staticConfiguration.getBaseDn().getSessions());
@@ -219,7 +228,13 @@ public class SessionIdService {
         return !copyCurrentSessionAttributes.equals(copySessionAttributes);
     }
 
-    public void reinitLogin(SessionId session, boolean force) {
+    /**
+     *
+     * @param session
+     * @param force
+     * @return returns whether session was updated
+     */
+    public boolean reinitLogin(SessionId session, boolean force) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
         final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
 
@@ -249,10 +264,12 @@ public class SessionIdService {
             if (!updateResult) {
                 log.debug("Failed to update session entry: '{}'", session.getId());
             }
+            return updateResult;
         }
+        return false;
     }
 
-    public void resetToStep(SessionId session, int resetToStep) {
+    public SessionId resetToStep(SessionId session, int resetToStep) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
 
         int currentStep = 1;
@@ -270,7 +287,10 @@ public class SessionIdService {
         boolean updateResult = updateSessionId(session, true, true, true);
         if (!updateResult) {
             log.debug("Failed to update session entry: '{}'", session.getId());
+            return null;
         }
+        
+        return session;
     }
 
     private Map<String, String> getCurrentSessionAttributes(Map<String, String> sessionAttributes) {
@@ -292,8 +312,6 @@ public class SessionIdService {
 
         return currentSessionAttributes;
     }
-
-
 
     public SessionId getSessionId() {
         String sessionId = cookieService.getSessionIdFromCookie();
@@ -399,13 +417,14 @@ public class SessionIdService {
     }
 
     private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
-        final String sid = UUID.randomUUID().toString();
+        final String internalSid = UUID.randomUUID().toString();
+        final String outsideSid = UUID.randomUUID().toString();
         final String salt = UUID.randomUUID().toString();
         final String clientId = sessionIdAttributes.get("client_id");
         final String opbs = UUID.randomUUID().toString();
         final String redirectUri = sessionIdAttributes.get("redirect_uri");
         final String sessionState = computeSessionState(clientId, redirectUri, opbs, salt);
-        final String dn = buildDn(sid);
+        final String dn = buildDn(internalSid);
         sessionIdAttributes.put(OP_BROWSER_STATE, opbs);
 
         Preconditions.checkNotNull(dn);
@@ -415,7 +434,8 @@ public class SessionIdService {
         }
 
         final SessionId sessionId = new SessionId();
-        sessionId.setId(sid);
+        sessionId.setId(internalSid);
+        sessionId.setOutsideSid(outsideSid);
         sessionId.setDn(dn);
         sessionId.setUserDn(userDn);
         sessionId.setSessionState(sessionState);
@@ -485,21 +505,22 @@ public class SessionIdService {
 
         final boolean persisted;
         if (appConfiguration.getChangeSessionIdOnAuthentication() && httpResponse != null) {
-            final String oldSesionId = sessionId.getId();
+            final String oldSessionId = sessionId.getId();
             final String newSessionId = UUID.randomUUID().toString();
 
-            log.debug("Changing session id from {} to {} ...", oldSesionId, newSessionId);
+            log.debug("Changing session id from {} to {} ...", oldSessionId, newSessionId);
             remove(sessionId);
 
             sessionId.setId(newSessionId);
             sessionId.setDn(buildDn(newSessionId));
+            sessionId.getSessionAttributes().put(SessionId.OLD_SESSION_ID_ATTR_KEY, oldSessionId);
             if (sessionId.getIsJwt()) {
                 sessionId.setJwt(generateJwt(sessionId, sessionId.getUserDn()).asString());
             }
 
             persisted = persistSessionId(sessionId, true);
             cookieService.createSessionIdCookie(sessionId, httpRequest, httpResponse, false);
-            log.debug("Session identifier changed from {} to {} .", oldSesionId, newSessionId);
+            log.debug("Session identifier changed from {} to {} .", oldSessionId, newSessionId);
         } else {
             persisted = updateSessionId(sessionId, true, true, true);
         }
@@ -539,7 +560,12 @@ public class SessionIdService {
                 sessionId.setExpirationDate(expiration.getFirst());
                 sessionId.setTtl(expiration.getSecond());
                 log.trace("sessionIdAttributes: " + sessionId.getPermissionGrantedMap());
-                persistenceEntryManager.persist(sessionId);
+                if (appConfiguration.getSessionIdPersistInCache()) {
+                    cacheService.put(expiration.getSecond(), sessionId.getDn(), sessionId);
+                } else {
+                    persistenceEntryManager.persist(sessionId);
+                }
+                localCacheService.put(DEFAULT_LOCAL_CACHE_EXPIRATION, sessionId.getDn(), sessionId);
                 return true;
             }
         } catch (Exception e) {
@@ -653,7 +679,12 @@ public class SessionIdService {
         EntryPersistenceException lastException = null;
         for (int i = 1; i <= MAX_MERGE_ATTEMPTS; i++) {
             try {
-                persistenceEntryManager.merge(sessionId);
+                if (appConfiguration.getSessionIdPersistInCache()) {
+                    cacheService.put(expiration.getSecond(), sessionId.getDn(), sessionId);
+                } else {
+                    persistenceEntryManager.merge(sessionId);
+                }
+                localCacheService.put(DEFAULT_LOCAL_CACHE_EXPIRATION, sessionId.getDn(), sessionId);
                 externalEvent(new SessionEvent(SessionEventType.UPDATED, sessionId));
                 return;
             } catch (EntryPersistenceException ex) {
@@ -689,34 +720,43 @@ public class SessionIdService {
     }
 
     @Nullable
-    public SessionId getSessionById(@Nullable String sessionId) {
-        return getSessionId(sessionId, false);
-    }
-
-    @Nullable
     public SessionId getSessionById(@Nullable String sessionId, boolean silently) {
-        if (StringUtils.isBlank(sessionId)) {
-            return null;
-        }
-        try {
-            return persistenceEntryManager.find(SessionId.class, buildDn(sessionId));
-        } catch (Exception e) {
-            if (!silently) {
-                log.error("Failed to get session by id: " + sessionId, e);
-            }
-        }
-        return null;
+        return getSessionByDn(buildDn(sessionId), silently);
     }
 
     @Nullable
     public SessionId getSessionByDn(@Nullable String dn) {
+        return getSessionByDn(dn, false);
+    }
+
+    @Nullable
+    public SessionId getSessionByDn(@Nullable String dn, boolean silently) {
         if (StringUtils.isBlank(dn)) {
             return null;
         }
+
+        final Object localCopy = localCacheService.get(dn);
+        if (localCopy instanceof SessionId) {
+            if (isSessionValid((SessionId) localCopy)) {
+                return (SessionId) localCopy;
+            } else {
+                localCacheService.remove(dn);
+            }
+        }
+
         try {
-            return persistenceEntryManager.find(SessionId.class, dn);
+            final SessionId sessionId;
+            if (appConfiguration.getSessionIdPersistInCache()) {
+                sessionId = (SessionId) cacheService.get(dn);
+            } else {
+                sessionId = persistenceEntryManager.find(SessionId.class, dn);
+            }
+            localCacheService.put(DEFAULT_LOCAL_CACHE_EXPIRATION, sessionId.getDn(), sessionId);
+            return sessionId;
         } catch (Exception e) {
-            log.error("Failed to get session by dn: " + dn, e);
+            if (!silently) {
+                log.error("Failed to get session by dn: " + dn, e);
+            }
         }
         return null;
     }
@@ -727,20 +767,22 @@ public class SessionIdService {
     }
 
     public SessionId getSessionId(HttpServletRequest request) {
-        return getSessionId(cookieService.getSessionIdFromCookie(request));
+        final String sessionIdFromCookie = cookieService.getSessionIdFromCookie(request);
+        log.trace("SessionId from cookie: " + sessionIdFromCookie);
+        return getSessionId(sessionIdFromCookie);
     }
 
     public SessionId getSessionId(String sessionId) {
         return getSessionId(sessionId, false);
     }
 
-    public SessionId getSessionId(String sessionId, boolean siliently) {
+    public SessionId getSessionId(String sessionId, boolean silently) {
         if (StringHelper.isEmpty(sessionId)) {
             return null;
         }
 
         try {
-            final SessionId entity = getSessionById(sessionId, siliently);
+            final SessionId entity = getSessionById(sessionId, silently);
             log.trace("Try to get session by id: {} ...", sessionId);
             if (entity != null) {
                 log.trace("Session dn: {}", entity.getDn());
@@ -750,7 +792,7 @@ public class SessionIdService {
                 }
             }
         } catch (Exception ex) {
-            if (!siliently) {
+            if (!silently) {
                 log.trace(ex.getMessage(), ex);
             }
         }
@@ -761,7 +803,12 @@ public class SessionIdService {
 
     public boolean remove(SessionId sessionId) {
         try {
-            persistenceEntryManager.remove(sessionId.getDn());
+            if (appConfiguration.getSessionIdPersistInCache()) {
+                cacheService.remove(sessionId.getDn());
+            } else {
+                persistenceEntryManager.remove(sessionId.getDn());
+            }
+            localCacheService.remove(sessionId.getDn());
             externalEvent(new SessionEvent(SessionEventType.GONE, sessionId));
             return true;
         } catch (Exception e) {
@@ -804,22 +851,11 @@ public class SessionIdService {
         return Prompt.fromString(promptParam, " ");
     }
 
-
-    public boolean isSessionIdAuthenticated() {
-        SessionId sessionId = getSessionId();
-
-        return isSessionIdAuthenticated(sessionId);
-    }
-
     public boolean isSessionIdAuthenticated(SessionId sessionId) {
         if (sessionId == null) {
             return false;
         }
         return SessionIdState.AUTHENTICATED.equals(sessionId.getState());
-    }
-
-    public boolean isNotSessionIdAuthenticated() {
-        return !isSessionIdAuthenticated();
     }
 
     /**
@@ -882,6 +918,9 @@ public class SessionIdService {
     }
 
     public List<SessionId> findByUser(String userDn) {
+        if (appConfiguration.getSessionIdPersistInCache()) {
+            throw new UnsupportedOperationException("Operation is not supported with sessionIdPersistInCache=true. Set it to false to avoid this exception.");
+        }
         Filter filter = Filter.createEqualityFilter("oxAuthUserDN", userDn);
         return persistenceEntryManager.findEntries(staticConfiguration.getBaseDn().getSessions(), SessionId.class, filter);
     }

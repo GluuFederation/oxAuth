@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -87,6 +88,7 @@ public class JwtAuthorizationRequest {
     private String bindingMessage;
     private String userCode;
     private Integer requestedExpiry;
+    private ResponseMode responseMode;
 
     private String encodedJwt;
     private String payload;
@@ -289,6 +291,9 @@ public class JwtAuthorizationRequest {
                 requestedExpiry = Integer.parseInt(jsonPayload.getString("requested_expiry"));
             }
         }
+        if (jsonPayload.has("response_mode")) {
+            responseMode = ResponseMode.getByValue(jsonPayload.optString("response_mode"));
+        }
     }
 
     private boolean validateSignature(AbstractCryptoProvider cryptoProvider, SignatureAlgorithm signatureAlgorithm, Client client, String signingInput, String signature) throws Exception {
@@ -417,8 +422,13 @@ public class JwtAuthorizationRequest {
         return requestedExpiry;
     }
 
+    public ResponseMode getResponseMode() {
+        return responseMode;
+    }
+
     @Nullable
-    private static String queryRequest(@Nullable String requestUri, @Nullable RedirectUriResponse redirectUriResponse) {
+    private static String queryRequest(@Nullable String requestUri, @Nullable RedirectUriResponse redirectUriResponse,
+                                       AppConfiguration appConfiguration) {
         if (StringUtils.isBlank(requestUri)) {
             return null;
         }
@@ -438,7 +448,7 @@ public class JwtAuthorizationRequest {
             if (status == 200) {
                 request = clientResponse.getEntity(String.class);
 
-                if (StringUtils.isBlank(reqUriHash)) {
+                if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
                     validRequestUri = true;
                 } else {
                     String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
@@ -459,7 +469,7 @@ public class JwtAuthorizationRequest {
     }
 
     public static JwtAuthorizationRequest createJwtRequest(String request, String requestUri, Client client, RedirectUriResponse redirectUriResponse, AbstractCryptoProvider cryptoProvider, AppConfiguration appConfiguration) {
-        final String requestFromClient = queryRequest(requestUri, redirectUriResponse);
+        final String requestFromClient = queryRequest(requestUri, redirectUriResponse, appConfiguration);
         if (StringUtils.isNotBlank(requestFromClient)) {
             request = requestFromClient;
         }

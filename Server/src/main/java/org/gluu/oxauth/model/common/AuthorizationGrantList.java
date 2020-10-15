@@ -7,6 +7,7 @@
 package org.gluu.oxauth.model.common;
 
 import org.apache.commons.lang.StringUtils;
+import org.gluu.model.metric.MetricType;
 import org.gluu.oxauth.model.authorize.JwtAuthorizationRequest;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -16,6 +17,7 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.GrantService;
+import org.gluu.oxauth.service.MetricService;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.oxauth.util.TokenHashUtil;
@@ -63,6 +65,9 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @Inject
     private AbstractCryptoProvider cryptoProvider;
 
+	@Inject
+	private MetricService metricService;
+
     @Override
     public void removeAuthorizationGrants(List<AuthorizationGrant> authorizationGrants) {
         if (authorizationGrants != null && !authorizationGrants.isEmpty()) {
@@ -88,6 +93,8 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         CacheGrant memcachedGrant = new CacheGrant(grant, appConfiguration);
         cacheService.put(grant.getAuthorizationCode().getExpiresIn(), memcachedGrant.cacheKey(), memcachedGrant);
         log.trace("Put authorization grant in cache, code: " + grant.getAuthorizationCode().getCode() + ", clientId: " + grant.getClientId());
+        
+        metricService.incCounter(MetricType.OXAUTH_TOKEN_AUTHORIZATION_CODE_COUNT);
         return grant;
     }
 
@@ -194,9 +201,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     public List<AuthorizationGrant> getAuthorizationGrant(String clientId) {
         final List<AuthorizationGrant> result = new ArrayList<>();
         try {
-            final List<TokenLdap> entries = new ArrayList<TokenLdap>();
-            entries.addAll(grantService.getGrantsOfClient(clientId));
-            entries.addAll(grantService.getCacheClientTokensEntries(clientId));
+            final List<TokenLdap> entries = new ArrayList<>(grantService.getGrantsOfClient(clientId));
 
             for (TokenLdap t : entries) {
                 final AuthorizationGrant grant = asGrant(t);

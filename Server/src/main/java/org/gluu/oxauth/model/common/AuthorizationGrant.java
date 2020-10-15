@@ -8,8 +8,8 @@ package org.gluu.oxauth.model.common;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.model.metric.MetricType;
 import org.gluu.oxauth.claims.Audience;
 import org.gluu.oxauth.model.authorize.JwtAuthorizationRequest;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
@@ -18,14 +18,12 @@ import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.token.HandleTokenFactory;
 import org.gluu.oxauth.model.token.IdTokenFactory;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.model.util.JwtUtil;
-import org.gluu.oxauth.service.AttributeService;
-import org.gluu.oxauth.service.ClientService;
-import org.gluu.oxauth.service.GrantService;
-import org.gluu.oxauth.service.SectorIdentifierService;
+import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalIntrospectionService;
 import org.gluu.oxauth.service.external.context.ExternalIntrospectionContext;
 import org.gluu.oxauth.util.TokenHashUtil;
@@ -74,6 +72,9 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Inject
     private SectorIdentifierService sectorIdentifierService;
 
+	@Inject
+	private MetricService metricService;
+
     private boolean isCachedWithNoPersistence = false;
 
     public AuthorizationGrant() {
@@ -91,9 +92,10 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     public IdToken createIdToken(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse,
+            Void> preProcessing, String claims) throws Exception {
         JsonWebResponse jwr = idTokenFactory.createJwr(grant, nonce, authorizationCode, accessToken, refreshToken,
-                state, scopes, includeIdTokenClaims, preProcessing);
+                state, scopes, includeIdTokenClaims, preProcessing, claims);
         return new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
                 jwr.getClaims().getClaimAsDate(JwtClaimName.EXPIRATION_TIME));
     }
@@ -117,10 +119,6 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                         "Grant caching is not supported for : " + getAuthorizationGrantType());
             }
         } else {
-            if (BooleanUtils.isTrue(appConfiguration.getUseCacheForAllImplicitFlowObjects()) && isImplicitFlow()) {
-                saveInCache();
-                return;
-            }
             saveImpl();
         }
     }
@@ -177,6 +175,9 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             if (accessToken.getExpiresIn() > 0) {
                 persist(asToken(accessToken));
             }
+
+            metricService.incCounter(MetricType.OXAUTH_TOKEN_ACCESS_TOKEN_COUNT);
+
             return accessToken;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -238,7 +239,31 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             if (refreshToken.getExpiresIn() > 0) {
                 persist(asToken(refreshToken));
             }
+
+            metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
+
             return refreshToken;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public RefreshToken createRefreshToken(Date expirationDate) {
+        try {
+            RefreshToken refreshToken = new RefreshToken(HandleTokenFactory.generateHandleToken(), new Date(), expirationDate);
+
+            refreshToken.setAuthMode(getAcrValues());
+            refreshToken.setSessionDn(getSessionDn());
+
+            if (refreshToken.getExpiresIn() > 0) {
+                persist(asToken(refreshToken));
+                metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
+                return refreshToken;
+            }
+
+            log.debug("Token expiration date is in the past. Skip creation.");
+            return null;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
@@ -251,7 +276,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) {
         try {
             final IdToken idToken = createIdToken(this, nonce, authorizationCode, accessToken, refreshToken,
-                    state, getScopes(), includeIdTokenClaims, preProcessing);
+                    state, getScopes(), includeIdTokenClaims, preProcessing, this.getClaims());
             final String acrValues = authorizationGrant.getAcrValues();
             final String sessionDn = authorizationGrant.getSessionDn();
             if (idToken.getExpiresIn() > 0) {
@@ -263,6 +288,9 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
             setAcrValues(acrValues);
             setSessionDn(sessionDn);
+
+            metricService.incCounter(MetricType.OXAUTH_TOKEN_ID_TOKEN_COUNT);
+
             return idToken;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

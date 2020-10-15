@@ -8,23 +8,24 @@ package org.gluu.oxauth.service.custom;
 
 import java.io.UnsupportedEncodingException;
 
-import javax.ejb.Stateless;
+import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
+import javax.interceptor.Interceptor;
 import javax.inject.Inject;
-import javax.inject.Named;
 
+import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.service.custom.script.AbstractCustomScriptService;
-import org.gluu.oxauth.model.config.StaticConfiguration;
 
 /**
  * Operations with custom scripts
  *
  * @author Yuriy Movchan Date: 12/03/2014
  */
-@Stateless
-@Named
 @ApplicationScoped
+@Alternative
+@Priority(Interceptor.Priority.APPLICATION + 1)
 public class CustomScriptService extends AbstractCustomScriptService {
 	
 	@Inject

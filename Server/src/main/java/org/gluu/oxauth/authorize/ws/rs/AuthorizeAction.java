@@ -54,6 +54,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -156,6 +157,9 @@ public class AuthorizeAction {
 	@Inject
 	private Identity identity;
 
+    @Inject
+    private AuthorizeRestWebServiceValidator authorizeRestWebServiceValidator;
+
     // OAuth 2.0 request parameters
     private String scope;
     private String responseType;
@@ -241,6 +245,14 @@ public class AuthorizeAction {
 
         SessionId session = getSession();
         List<Prompt> prompts = Prompt.fromString(prompt, " ");
+
+        try {
+            redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, session != null ? session.getSessionAttributes().get(SESSION_USER_CODE) : null, (HttpServletRequest) externalContext.getRequest());
+        } catch (WebApplicationException e) {
+            log.error(e.getMessage(), e);
+            permissionDenied();
+            return;
+        }
 
         try {
             session = sessionIdService.assertAuthenticatedSessionCorrespondsToNewRequest(session, acrValues);
@@ -355,8 +367,9 @@ public class AuthorizeAction {
             facesContext.responseComplete();
         }
 
-        final User user = sessionIdService.getUser(session);
-        log.trace("checkPermissionGranted, user = " + user);
+        if (log.isTraceEnabled()) {
+            log.trace("checkPermissionGranted, userDn = " + session.getUserDn());
+        }
 
         if (prompts.contains(Prompt.SELECT_ACCOUNT)) {
             Map requestParameterMap = requestParameterService.getAllowedParameters(externalContext.getRequestParameterMap());
@@ -385,6 +398,7 @@ public class AuthorizeAction {
                 return;
             }
 
+            final User user = sessionIdService.getUser(session);
             ClientAuthorization clientAuthorization = clientAuthorizationsService.find(
                     user.getAttribute("inum"),
                     client.getClientId());
@@ -428,8 +442,10 @@ public class AuthorizeAction {
                 String remoteIp = networkService.getRemoteIp();
                 session.getSessionAttributes().put(Constants.REMOTE_IP, remoteIp);
 
-                sessionIdService.updateSessionId(session);
-                sessionIdService.reinitLogin(session, false);
+                final boolean isSessionPersisted = sessionIdService.reinitLogin(session, false);
+                if (!isSessionPersisted) {
+                    sessionIdService.updateSessionId(session);
+                }
             }
         }
         return session;
