@@ -6,28 +6,6 @@
 
 package org.gluu.oxauth.service;
 
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
-
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.ejb.Stateless;
-import javax.faces.context.ExternalContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.GluuStatus;
@@ -58,6 +36,18 @@ import org.gluu.util.Pair;
 import org.gluu.util.StringHelper;
 import org.json.JSONException;
 import org.slf4j.Logger;
+
+import javax.ejb.Stateless;
+import javax.faces.context.ExternalContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.*;
+
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
 
 /**
  * Authentication service methods
@@ -725,9 +715,9 @@ public class AuthenticationService {
         }
 
         final Map<String, String> result = sessionUser.getSessionAttributes();
-        Map<String, String> allowedParameters = requestParameterService.getAllowedParameters(result);
+        result.put(SESSION_ID, sessionUser.getId()); // parameters must be filled before filtering
 
-        result.put(SESSION_ID, sessionUser.getId());
+        Map<String, String> allowedParameters = requestParameterService.getAllowedParameters(result);
 
         log.trace("Logged in successfully! User: {}, page: /authorize.xhtml, map: {}", user, allowedParameters);
         facesService.redirect("/authorize.xhtml", (Map) allowedParameters);
