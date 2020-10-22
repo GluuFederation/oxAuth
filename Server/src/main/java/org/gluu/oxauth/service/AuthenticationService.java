@@ -48,6 +48,7 @@ import java.security.Principal;
 import java.util.*;
 
 import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
 
 /**
  * Authentication service methods
@@ -716,6 +717,7 @@ public class AuthenticationService {
 
         final Map<String, String> result = sessionUser.getSessionAttributes();
         result.put(SESSION_ID, sessionUser.getId()); // parameters must be filled before filtering
+        result.put(SID, sessionUser.getOutsideSid()); // parameters must be filled before filtering
 
         Map<String, String> allowedParameters = requestParameterService.getAllowedParameters(result);
 

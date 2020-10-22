@@ -25,6 +25,7 @@ public interface AuthorizeResponseParam {
      * String that represents the End-User's login state at the OP.
      */
     String SESSION_ID = "session_id";
+    String SID = "sid";
 
     String ACR_VALUES = "acr_values";
 }

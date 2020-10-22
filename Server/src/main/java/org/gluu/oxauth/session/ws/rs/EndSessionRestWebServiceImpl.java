@@ -256,7 +256,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     private void validateSidRequestParameter(String sid, String postLogoutRedirectUri) {
         // sid is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(sid)) {
-            SessionId sessionIdObject = sessionIdService.getSessionId(sid);
+            SessionId sessionIdObject = sessionIdService.getSessionBySid(sid);
             if (sessionIdObject == null) {
                 final String reason = "sid parameter in request is not valid. Logout is rejected. sid parameter in request can be skipped or otherwise valid value must be provided.";
                 log.error(reason);
