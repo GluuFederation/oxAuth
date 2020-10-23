@@ -14,6 +14,7 @@ import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.common.ScopeType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.service.AttributeService;
+import org.gluu.oxauth.service.LocalResponseCache;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
@@ -65,9 +66,11 @@ public class OpenIdConfiguration extends HttpServlet {
 	@Inject
 	private ExternalDynamicScopeService externalDynamicScopeService;
 
+    @Inject
+    private LocalResponseCache localResponseCache;
+
 	/**
-	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-	 * methods.
+	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
 	 *
 	 * @param servletRequest
 	 *            servlet request
@@ -85,6 +88,13 @@ public class OpenIdConfiguration extends HttpServlet {
 		httpResponse.setContentType("application/json");
 		PrintWriter out = httpResponse.getWriter();
 		try {
+            final JSONObject cachedResponse = localResponseCache.getDiscoveryResponse();
+            if (cachedResponse != null) {
+                log.trace("Cached discovery response returned.");
+                out.println(ServerUtil.toPrettyJson(cachedResponse).replace("\\/", "/"));
+                return;
+            }
+
 			JSONObject jsonObj = new JSONObject();
 
 			jsonObj.put(ISSUER, appConfiguration.getIssuer());
@@ -294,6 +304,8 @@ public class OpenIdConfiguration extends HttpServlet {
 			jsonObj.put(FRONTCHANNEL_LOGOUT_SESSION_SUPPORTED, Boolean.TRUE);
 			jsonObj.put(FRONT_CHANNEL_LOGOUT_SESSION_SUPPORTED,
 					appConfiguration.getFrontChannelLogoutSessionSupported());
+
+            localResponseCache.putDiscoveryResponse(jsonObj);
 
 			out.println(ServerUtil.toPrettyJson(jsonObj).replace("\\/", "/"));
 		} catch (JSONException e) {

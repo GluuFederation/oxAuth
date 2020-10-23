@@ -24,7 +24,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
- * @version July 10, 2019
+ * @version November 20, 2019
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration implements Configuration {
@@ -44,6 +44,8 @@ public class AppConfiguration implements Configuration {
     private String openIdConfigurationEndpoint;
     private String idGenerationEndpoint;
     private String introspectionEndpoint;
+
+    public int discoveryCacheLifetimeInMinutes = 60;
 
     private Boolean sessionAsJwt = false;
 
@@ -192,6 +194,14 @@ public class AppConfiguration implements Configuration {
     private Fido2Configuration fido2Configuration;
 
     private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
+
+    public int getDiscoveryCacheLifetimeInMinutes() {
+        return discoveryCacheLifetimeInMinutes;
+    }
+
+    public void setDiscoveryCacheLifetimeInMinutes(int discoveryCacheLifetimeInMinutes) {
+        this.discoveryCacheLifetimeInMinutes = discoveryCacheLifetimeInMinutes;
+    }
 
     public Boolean getDisableJdkLogger() {
         return disableJdkLogger;
