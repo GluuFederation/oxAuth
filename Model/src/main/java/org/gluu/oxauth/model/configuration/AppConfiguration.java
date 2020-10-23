@@ -45,6 +45,8 @@ public class AppConfiguration implements Configuration {
     private String introspectionEndpoint;
     private String deviceAuthzEndpoint;
 
+    public int discoveryCacheLifetimeInMinutes = 60;
+
     private Boolean sessionAsJwt = false;
 
     private String umaConfigurationEndpoint;
@@ -240,6 +242,14 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
+
+    public int getDiscoveryCacheLifetimeInMinutes() {
+        return discoveryCacheLifetimeInMinutes;
+    }
+
+    public void setDiscoveryCacheLifetimeInMinutes(int discoveryCacheLifetimeInMinutes) {
+        this.discoveryCacheLifetimeInMinutes = discoveryCacheLifetimeInMinutes;
+    }
 
     public String getSoftwareStatementValidationType() {
         if (softwareStatementValidationType == null) return softwareStatementValidationType = SoftwareStatementValidationType.DEFAULT.getValue();
