@@ -15,6 +15,7 @@ import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.common.ScopeType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.service.AttributeService;
+import org.gluu.oxauth.service.LocalResponseCache;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
@@ -68,15 +69,16 @@ public class OpenIdConfiguration extends HttpServlet {
 	@Inject
 	private CIBAConfigurationService cibaConfigurationService;
 
+	@Inject
+    private LocalResponseCache localResponseCache;
+
+
 	/**
-	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-	 * methods.
+	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
 	 *
-	 * @param servletRequest
-	 *            servlet request
-	 * @param httpResponse
-	 *            servlet response
-	 * @throws IOException 
+	 * @param servletRequest servlet request
+	 * @param httpResponse servlet response
+	 * @throws IOException I/O exception
 	 */
 	@SuppressWarnings("deprecation")
 	protected void processRequest(HttpServletRequest servletRequest, HttpServletResponse httpResponse) throws IOException {
@@ -88,7 +90,14 @@ public class OpenIdConfiguration extends HttpServlet {
 
 		httpResponse.setContentType("application/json");
 		try (PrintWriter out = httpResponse.getWriter()) {
-			JSONObject jsonObj = new JSONObject();
+            final JSONObject cachedResponse = localResponseCache.getDiscoveryResponse();
+            if (cachedResponse != null) {
+                log.trace("Cached discovery response returned.");
+                out.println(ServerUtil.toPrettyJson(cachedResponse).replace("\\/", "/"));
+                return;
+            }
+
+            JSONObject jsonObj = new JSONObject();
 
 			jsonObj.put(ISSUER, appConfiguration.getIssuer());
 			jsonObj.put(AUTHORIZATION_ENDPOINT, appConfiguration.getAuthorizationEndpoint());
@@ -305,6 +314,7 @@ public class OpenIdConfiguration extends HttpServlet {
 
 			// CIBA Configuration
 			cibaConfigurationService.processConfiguration(jsonObj);
+            localResponseCache.putDiscoveryResponse(jsonObj);
 
 			out.println(ServerUtil.toPrettyJson(jsonObj).replace("\\/", "/"));
 		} catch (Exception e) {
