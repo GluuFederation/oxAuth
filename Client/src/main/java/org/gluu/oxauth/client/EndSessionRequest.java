@@ -24,6 +24,7 @@ public class EndSessionRequest extends BaseRequest {
     private String idTokenHint;
     private String postLogoutRedirectUri;
     private String sessionId;
+    private String sid;
     private String state;
 
     /**
@@ -71,6 +72,14 @@ public class EndSessionRequest extends BaseRequest {
      */
     public void setPostLogoutRedirectUri(String postLogoutRedirectUri) {
         this.postLogoutRedirectUri = postLogoutRedirectUri;
+    }
+
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
     }
 
     /**

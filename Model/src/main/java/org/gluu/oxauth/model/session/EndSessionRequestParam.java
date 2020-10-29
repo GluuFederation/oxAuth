@@ -34,5 +34,7 @@ public interface EndSessionRequestParam {
     /**
      * String that represents the End-User's login state at the OP.
      */
-    public static final String SESSION_ID = "session_id";
+    String SESSION_ID = "session_id";
+
+    String SID = "sid";
 }

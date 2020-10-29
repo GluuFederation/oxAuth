@@ -575,6 +575,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             if (!appConfiguration.getFapiCompatibility()) {
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SESSION_ID, sessionUser.getId());
             }
+            redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SID, sessionUser.getOutsideSid());
             redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SESSION_STATE, sessionIdService.computeSessionState(sessionUser, clientId, redirectUri));
             redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.STATE, state);
             if (scope != null && !scope.isEmpty() && authorizationGrant != null && !appConfiguration.getFapiCompatibility()) {
