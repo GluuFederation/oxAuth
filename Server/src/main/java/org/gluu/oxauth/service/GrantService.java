@@ -352,6 +352,11 @@ public class GrantService {
         cacheService.remove(CacheGrant.cacheKey(p_code, null));
     }
 
+    // authorization code is saved only in cache
+    public void removeAuthorizationCode(String code) {
+        cacheService.remove(CacheGrant.cacheKey(code, null));
+    }
+
     public void removeAllByAuthorizationCode(String p_authorizationCode) {
         removeSilently(getGrantsByAuthorizationCode(p_authorizationCode));
     }
