@@ -199,7 +199,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 authorizationCodeGrant.save();
 
                 RefreshToken reToken = null;
-                if (isRefreshTokenAllowed(client, authorizationCodeGrant)) {
+                if (isRefreshTokenAllowed(client, scope)) {
                     reToken = authorizationCodeGrant.createRefreshToken();
                 }
 
@@ -372,7 +372,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
 
                     RefreshToken reToken = null;
-                    if (isRefreshTokenAllowed(client, resourceOwnerPasswordCredentialsGrant)) {
+                    if (isRefreshTokenAllowed(client, scope)) {
                         reToken = resourceOwnerPasswordCredentialsGrant.createRefreshToken();
                     }
 
@@ -434,7 +434,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             cibaGrant.save();
 
                             RefreshToken reToken = null;
-                            if (isRefreshTokenAllowed(client, cibaGrant)) {
+                            if (isRefreshTokenAllowed(client, scope)) {
                                 reToken = refToken;
                             }
 
@@ -546,7 +546,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     null, deviceCodeGrant, false, null);
 
             RefreshToken reToken = null;
-            if (isRefreshTokenAllowed(client, deviceCodeGrant)) {
+            if (isRefreshTokenAllowed(client, scope)) {
                 reToken = refToken;
             }
 
@@ -600,8 +600,8 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         }
     }
 
-    private boolean isRefreshTokenAllowed(Client client, IAuthorizationGrant grant) {
-        if (appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken() && !grant.getScopes().contains(ScopeConstants.OFFLINE_ACCESS)) {
+    private boolean isRefreshTokenAllowed(Client client, String requestedScope) {
+        if (appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken() && !requestedScope.contains(ScopeConstants.OFFLINE_ACCESS)) {
             return false;
         }
         return Arrays.asList(client.getGrantTypes()).contains(GrantType.REFRESH_TOKEN);
