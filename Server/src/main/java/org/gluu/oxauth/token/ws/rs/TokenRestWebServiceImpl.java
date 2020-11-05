@@ -601,7 +601,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     }
 
     private boolean isRefreshTokenAllowed(Client client, String requestedScope) {
-        if (appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken() && !requestedScope.contains(ScopeConstants.OFFLINE_ACCESS)) {
+        if (appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken() && !Strings.nullToEmpty(requestedScope).contains(ScopeConstants.OFFLINE_ACCESS)) {
             return false;
         }
         return Arrays.asList(client.getGrantTypes()).contains(GrantType.REFRESH_TOKEN);
