@@ -24,12 +24,10 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.jwk.Algorithm;
-import org.gluu.oxauth.model.jwk.JSONWebKey;
-import org.gluu.oxauth.model.jwk.JSONWebKeySet;
-import org.gluu.oxauth.model.jwk.Use;
+import org.gluu.oxauth.model.jwk.*;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
 import org.json.JSONArray;
@@ -51,10 +49,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.gluu.oxauth.model.jwk.JWKParameter.*;
@@ -73,6 +68,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     private String keyStoreSecret;
     private String dnName;
     private final boolean rejectNoneAlg;
+    private final KeySelectionStrategy keySelectionStrategy;
 
     public OxAuthCryptoProvider() throws Exception {
         this(null, null, null);
@@ -83,7 +79,12 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     }
 
     public OxAuthCryptoProvider(String keyStoreFile, String keyStoreSecret, String dnName, boolean rejectNoneAlg) throws Exception {
+        this(keyStoreFile, keyStoreSecret, dnName, rejectNoneAlg, AppConfiguration.DEFAULT_KEY_SELECTION_STRATEGY);
+    }
+
+    public OxAuthCryptoProvider(String keyStoreFile, String keyStoreSecret, String dnName, boolean rejectNoneAlg, KeySelectionStrategy keySelectionStrategy) throws Exception {
         this.rejectNoneAlg = rejectNoneAlg;
+        this.keySelectionStrategy = keySelectionStrategy != null ? keySelectionStrategy : AppConfiguration.DEFAULT_KEY_SELECTION_STRATEGY;
         if (!Util.isNullOrEmpty(keyStoreFile) && !Util.isNullOrEmpty(keyStoreSecret) /* && !Util.isNullOrEmpty(dnName) */) {
             this.keyStoreFile = keyStoreFile;
             this.keyStoreSecret = keyStoreSecret;
@@ -358,20 +359,31 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         }
 
         String kid = null;
-        LOG.trace("WebKeys:" + jsonWebKeySet.getKeys().stream().map(JSONWebKey::getKid).collect(Collectors.toList()));
+        final List<JSONWebKey> keys = jsonWebKeySet.getKeys();
+        LOG.trace("WebKeys:" + keys.stream().map(JSONWebKey::getKid).collect(Collectors.toList()));
         LOG.trace("KeyStoreKeys:" + getKeys());
-        for (JSONWebKey key : jsonWebKeySet.getKeys()) {
+
+        List<JSONWebKey> keysByAlgAndUse = new ArrayList<>();
+
+        for (JSONWebKey key : keys) {
             if (algorithm == key.getAlg() && (use == null || use == key.getUse())) {
                 kid = key.getKid();
                 Key keyFromStore = keyStore.getKey(kid, keyStoreSecret.toCharArray());
                 if (keyFromStore != null) {
-                    return kid;
+                    keysByAlgAndUse.add(key);
                 }
             }
         }
 
-        LOG.trace("kid is not in keystore, algorithm: " + algorithm + ", kid: " + kid + ", keyStorePath:" + keyStoreFile);
-        return kid;
+        if (keysByAlgAndUse.isEmpty()) {
+            LOG.trace("kid is not in keystore, algorithm: " + algorithm + ", kid: " + kid + ", keyStorePath:" + keyStoreFile);
+            return kid;
+        }
+
+        final JSONWebKey selectedKey = keySelectionStrategy.select(keysByAlgAndUse);
+        final String selectedKid = selectedKey != null ? selectedKey.getKid() : null;
+        LOG.trace("Selected kid: " + selectedKid);
+        return selectedKid;
     }
 
     public PrivateKey getPrivateKey(String alias)

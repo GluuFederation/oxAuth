@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.Lists;
 import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
+import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class AppConfiguration implements Configuration {
 
     public static final int DEFAULT_SESSION_ID_LIFETIME = 86400;
+    public static final KeySelectionStrategy DEFAULT_KEY_SELECTION_STRATEGY = KeySelectionStrategy.OLDER;
 
     private String issuer;
     private String baseEndpoint;
@@ -170,6 +172,7 @@ public class AppConfiguration implements Configuration {
     // oxAuth KeyStore
     private String keyStoreFile;
     private String keyStoreSecret;
+    private KeySelectionStrategy keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
     //oxEleven
     private String oxElevenTestModeToken;
     private String oxElevenGenerateKeyEndpoint;
@@ -243,6 +246,15 @@ public class AppConfiguration implements Configuration {
     private int backchannelRequestsProcessorJobChunkSize;
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
+
+    public KeySelectionStrategy getKeySelectionStrategy() {
+        if (keySelectionStrategy == null) keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
+        return keySelectionStrategy;
+    }
+
+    public void setKeySelectionStrategy(KeySelectionStrategy keySelectionStrategy) {
+        this.keySelectionStrategy = keySelectionStrategy;
+    }
 
     public int getDiscoveryCacheLifetimeInMinutes() {
         return discoveryCacheLifetimeInMinutes;
