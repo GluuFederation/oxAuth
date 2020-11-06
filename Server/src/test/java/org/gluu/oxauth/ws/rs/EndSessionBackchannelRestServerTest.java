@@ -38,7 +38,7 @@ public class EndSessionBackchannelRestServerTest extends BaseTest {
 
     private static RegisterResponse registerResponse;
     private static String idToken;
-    private static String sessionId;
+    private static String sid;
 
     @Parameters({"redirectUris", "postLogoutRedirectUri"})
     @Test
@@ -100,7 +100,7 @@ public class EndSessionBackchannelRestServerTest extends BaseTest {
                 assertEquals(params.get(AuthorizeResponseParam.STATE), state);
 
                 idToken = params.get(AuthorizeResponseParam.ID_TOKEN);
-                sessionId = params.get(AuthorizeResponseParam.SESSION_ID);
+                sid = params.get(AuthorizeResponseParam.SID);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
                 fail("Response URI is not well formed");
@@ -118,7 +118,7 @@ public class EndSessionBackchannelRestServerTest extends BaseTest {
         String state = UUID.randomUUID().toString();
 
         EndSessionRequest endSessionRequest = new EndSessionRequest(idToken, postLogoutRedirectUri, state);
-        endSessionRequest.setSessionId(sessionId);
+        endSessionRequest.setSid(sid);
 
         Invocation.Builder request = ResteasyClientBuilder.newClient()
                 .target(url.toString() + endSessionPath + "?" + endSessionRequest.getQueryString()).request();

@@ -23,7 +23,6 @@ public class EndSessionRequest extends BaseRequest {
 
     private String idTokenHint;
     private String postLogoutRedirectUri;
-    private String sessionId;
     private String sid;
     private String state;
 
@@ -83,24 +82,6 @@ public class EndSessionRequest extends BaseRequest {
     }
 
     /**
-     * Gets session id.
-     *
-     * @return session id.
-     */
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    /**
-     * Sets session id.
-     *
-     * @param p_sessionId session id
-     */
-    public void setSessionId(String p_sessionId) {
-        sessionId = p_sessionId;
-    }
-
-    /**
      * Returns the state. The state is an opaque value used by the RP to maintain state between the logout request and
      * the callback to the endpoint specified by the post_logout_redirect_uri parameter. If included in the logout
      * request, the OP passes this value back to the RP using the state query parameter when redirecting the User Agent
@@ -153,11 +134,11 @@ public class EndSessionRequest extends BaseRequest {
                         .append(URLEncoder.encode(state, Util.UTF8_STRING_ENCODING));
             }
 
-            if (StringUtils.isNotBlank(sessionId)) {
+            if (StringUtils.isNotBlank(sid)) {
                 queryStringBuilder.append("&")
-                        .append(EndSessionRequestParam.SESSION_ID)
+                        .append(EndSessionRequestParam.SID)
                         .append("=")
-                        .append(URLEncoder.encode(sessionId, Util.UTF8_STRING_ENCODING));
+                        .append(URLEncoder.encode(sid, Util.UTF8_STRING_ENCODING));
             }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

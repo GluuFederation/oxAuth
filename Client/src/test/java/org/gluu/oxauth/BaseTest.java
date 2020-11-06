@@ -378,12 +378,23 @@ public abstract class BaseTest {
         if (userSecret != null) {
             final String previousUrl = currentDriver.getCurrentUrl();
             if (userId != null) {
-                WebElement usernameElement = currentDriver.findElement(By.id(loginFormUsername));
-                usernameElement.sendKeys(userId);
+                try {
+                    WebElement usernameElement = currentDriver.findElement(By.id(loginFormUsername));
+                    usernameElement.sendKeys(userId);
+                } catch (NoSuchElementException e) {
+                    System.out.println(currentDriver.getCurrentUrl());
+                    System.out.println(currentDriver.getPageSource());
+                }
             }
 
+            try {
             WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
             passwordElement.sendKeys(userSecret);
+            } catch (NoSuchElementException e) {
+                e.printStackTrace();
+                System.out.println(currentDriver.getCurrentUrl());
+                System.out.println(currentDriver.getPageSource());
+            }
 
             WebElement loginButton = currentDriver.findElement(By.id(loginFormLoginButton));
 

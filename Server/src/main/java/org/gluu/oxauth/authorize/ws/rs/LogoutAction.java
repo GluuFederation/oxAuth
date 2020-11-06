@@ -6,15 +6,9 @@
 
 package org.gluu.oxauth.authorize.ws.rs;
 
-import java.io.IOException;
-import java.util.Map;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxauth.i18n.LanguageBean;
@@ -31,9 +25,13 @@ import org.gluu.service.JsonService;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Javier Rojas Blum
@@ -130,7 +128,10 @@ public class LogoutAction {
         }
 
         if (sessionId != null && !postLogoutRedirectUri.isEmpty()) {
-            sb.append("&" + EndSessionRequestParam.SESSION_ID + "=").append(sessionId.getId());
+            if (appConfiguration.getSessionIdRequestParameterEnabled()) {
+                sb.append("&" + EndSessionRequestParam.SESSION_ID + "=").append(sessionId.getId());
+            }
+            sb.append("&" + EndSessionRequestParam.SID + "=").append(sessionId.getOutsideSid());
         }
 
         if (postLogoutRedirectUri != null && !postLogoutRedirectUri.isEmpty()) {
