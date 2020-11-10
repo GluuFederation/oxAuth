@@ -928,6 +928,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         }
 
+        putCustomAttributesInResponse(client, responseJsonObject);
+
         if (claimNames != null && claimNames.length > 0) {
             Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
         }
@@ -935,6 +937,25 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         cibaRegisterClientResponseService.updateResponse(responseJsonObject, client);
 
         return responseJsonObject;
+    }
+
+    private void putCustomAttributesInResponse(Client client,  JSONObject responseJsonObject) {
+        final List<String> allowedCustomAttributeNames = appConfiguration.getDynamicRegistrationCustomAttributes();
+        final List<CustomAttribute> customAttributes = client.getCustomAttributes();
+        if (allowedCustomAttributeNames == null || allowedCustomAttributeNames.isEmpty() || customAttributes == null) {
+            return;
+        }
+
+        for (CustomAttribute attribute : customAttributes) {
+            if (!allowedCustomAttributeNames.contains(attribute.getName()))
+                continue;
+
+            if (attribute.isMultiValued()) {
+                Util.addToJSONObjectIfNotNull(responseJsonObject, attribute.getName(), attribute.getValues());
+            } else {
+                Util.addToJSONObjectIfNotNull(responseJsonObject, attribute.getName(), attribute.getValue());
+            }
+        }
     }
 
     /**
