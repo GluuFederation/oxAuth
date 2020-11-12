@@ -69,12 +69,6 @@ public class ExternalAuthenticationService extends ExternalScriptService {
 	public void reloadAuthScript(@Observes @ReloadAuthScript String event) {
 		reload(event);
 	}
-	
-	public String scriptName(String acr) {
-		if (scriptAliasMap.containsKey(acr))
-			return scriptAliasMap.get(acr);
-		return acr;
-	}
 
 	public String scriptName(String acr) {
 		if (scriptAliasMap.containsKey(acr))
