@@ -891,7 +891,7 @@ public class SessionIdService {
         	resultAcrs.add(externalAuthenticationService.scriptName(acr));
         }
 
-        return acrs;
+        return new ArrayList<String>(resultAcrs);
     }
 
     private void auditLogging(SessionId sessionId) {
