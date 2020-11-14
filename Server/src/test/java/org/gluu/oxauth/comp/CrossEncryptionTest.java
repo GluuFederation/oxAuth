@@ -373,8 +373,7 @@ public class CrossEncryptionTest {
         JSONWebKeySet keySet = new JSONWebKeySet();
         keySet.setKeys(keyArrayList);
 
-        final JwtSigner jwtSigner = new JwtSigner(appConfiguration, keySet, SignatureAlgorithm.RS256, "audience");
-        jwtSigner.setCryptoProvider(new AbstractCryptoProvider() {
+        final JwtSigner jwtSigner = new JwtSigner(appConfiguration, keySet, SignatureAlgorithm.RS256, "audience", null, new AbstractCryptoProvider() {
             @Override
             public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use) throws Exception {
                 return null;
@@ -412,7 +411,7 @@ public class CrossEncryptionTest {
 			}
         });
         Jwt jwt = jwtSigner.newJwt();
-        jwt.getClaims().setSubjectIdentifier("testi");
+        jwt.getClaims().setSubjectIdentifier("testing");
         jwt.getClaims().setIssuer("https:devgluu.saminet.local");
         jwt = jwtSigner.sign();
 
