@@ -884,8 +884,14 @@ public class SessionIdService {
         } catch (JSONException ex) {
             acrs = Util.splittedStringAsList(acrValues, " ");
         }
+        
+        
+        HashSet<String> resultAcrs = new HashSet<String>();
+        for (String acr : acrs) {
+        	resultAcrs.add(externalAuthenticationService.scriptName(acr));
+        }
 
-        return acrs;
+        return new ArrayList<String>(resultAcrs);
     }
 
     private void auditLogging(SessionId sessionId) {
