@@ -12,6 +12,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -63,6 +64,7 @@ import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 
 public class CrossEncryptionTest {
 
@@ -429,10 +431,15 @@ public class CrossEncryptionTest {
         String jweString = encrypter.encrypt(jwe).toString();
 
         decryptAndValidateSignatureWithGluu(jweString);
+        decryptAndValidateSignatureWithNimbus(jweString);
     }
 
     private JSONWebKey getSenderWebKey() throws JSONException {
         return JSONWebKey.fromJSONObject(new JSONObject(senderJwkJson));
+    }
+
+    public RSAPublicKey getSenderPublicKey() {
+        return RSAKeyFactory.valueOf(getSenderWebKey()).getPublicKey();
     }
 
     private void decryptAndValidateSignatureWithGluu(String jweString) throws ParseException, JOSEException, InvalidJweException, JSONException, InvalidJwtException {
@@ -449,9 +456,26 @@ public class CrossEncryptionTest {
 
         final Jwt jwt = jwe.getSignedJWTPayload();
 
-        final RSAPublicKey senderPublicKey = RSAKeyFactory.valueOf(getSenderWebKey()).getPublicKey();
-        Assert.assertTrue(new RSASigner(SignatureAlgorithm.RS256, senderPublicKey).validate(jwt));
+        Assert.assertTrue(new RSASigner(SignatureAlgorithm.RS256, getSenderPublicKey()).validate(jwt));
 
         System.out.println("Gluu decrypt and nested jwt signature verification succeed: " + jwt.getClaims().toJsonString());
+    }
+
+    private void decryptAndValidateSignatureWithNimbus(String jweString) throws ParseException, JOSEException {
+        JWK jwk = JWK.parse(recipientJwkJson);
+        RSAPrivateKey rsaPrivateKey = ((RSAKey) jwk).toRSAPrivateKey();
+
+        JWEObject jweObject = JWEObject.parse(jweString);
+
+        jweObject.decrypt(new RSADecrypter(rsaPrivateKey));
+        SignedJWT signedJWT = jweObject.getPayload().toSignedJWT();
+
+        assertNotNull("Payload not a signed JWT", signedJWT);
+
+        RSAKey senderJWK = (RSAKey) JWK.parse(senderJwkJson);
+        assertTrue(signedJWT.verify(new RSASSAVerifier(senderJWK)));
+
+        assertEquals("testing", signedJWT.getJWTClaimsSet().getSubject());
+        System.out.println("Nimbus decrypt and nested jwt signature verification succeed: " + signedJWT.getJWTClaimsSet().toJSONObject());
     }
 }

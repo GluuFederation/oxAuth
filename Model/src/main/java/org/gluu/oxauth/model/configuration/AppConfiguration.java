@@ -127,6 +127,7 @@ public class AppConfiguration implements Configuration {
     private Boolean returnClientSecretOnRead = false;
     private Boolean rejectJwtWithNoneAlg = true;
     private Boolean expirationNotificatorEnabled = false;
+    private Boolean useNestedJwtDuringEncryption = true;
     private int expirationNotificatorMapSizeLimit = 100000;
     private int expirationNotificatorIntervalInSeconds = 600;
 
@@ -246,6 +247,15 @@ public class AppConfiguration implements Configuration {
     private int backchannelRequestsProcessorJobChunkSize;
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
+
+    public Boolean getUseNestedJwtDuringEncryption() {
+        if (useNestedJwtDuringEncryption == null) useNestedJwtDuringEncryption = true;
+        return useNestedJwtDuringEncryption;
+    }
+
+    public void setUseNestedJwtDuringEncryption(Boolean useNestedJwtDuringEncryption) {
+        this.useNestedJwtDuringEncryption = useNestedJwtDuringEncryption;
+    }
 
     public KeySelectionStrategy getKeySelectionStrategy() {
         if (keySelectionStrategy == null) keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
