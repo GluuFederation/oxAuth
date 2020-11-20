@@ -25,6 +25,8 @@ import java.util.Set;
 
 public interface IAuthorizationGrant {
 
+    GrantType getGrantType();
+
     String getGrantId();
 
     void setGrantId(String p_grantId);

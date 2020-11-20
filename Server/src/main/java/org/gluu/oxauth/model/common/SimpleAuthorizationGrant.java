@@ -6,4 +6,8 @@ package org.gluu.oxauth.model.common;
  */
 public class SimpleAuthorizationGrant extends AuthorizationGrant {
 
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.NONE;
+    }
 }

@@ -6,10 +6,9 @@
 
 package org.gluu.oxauth.model.common;
 
-import java.util.Date;
-
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.common.User;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -55,6 +54,11 @@ public class ImplicitGrant extends AuthorizationGrant {
      */
     public ImplicitGrant(User user, Client client, Date authenticationTime) {
         init(user, client, authenticationTime);
+    }
+
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.IMPLICIT;
     }
 
     public void init(User user, Client client, Date authenticationTime) {

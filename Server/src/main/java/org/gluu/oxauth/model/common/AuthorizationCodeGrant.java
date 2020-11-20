@@ -52,11 +52,16 @@ public class AuthorizationCodeGrant extends AuthorizationGrant {
     public AuthorizationCodeGrant(User user, Client client, Date authenticationTime) {
         init(user, client, authenticationTime);
     }
-    
+
     public void init(User user, Client client, Date authenticationTime) {
         super.init(user, AuthorizationGrantType.AUTHORIZATION_CODE, client, authenticationTime);
         setAuthorizationCode(new AuthorizationCode(appConfiguration.getAuthorizationCodeLifetime()));
         setIsCachedWithNoPersistence(true);
+    }
+
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.AUTHORIZATION_CODE;
     }
 
     /**
