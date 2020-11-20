@@ -85,10 +85,6 @@ public class SectorIdentifierService {
             return "";
         }
 
-        if (grant.getAuthorizationGrantType() == AuthorizationGrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS) {
-            return user.getUserId();
-        }
-
         return getSub(client, user, grant instanceof CIBAGrant);
     }
 
