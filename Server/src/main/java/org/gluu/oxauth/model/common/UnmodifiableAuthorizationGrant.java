@@ -34,6 +34,11 @@ public class UnmodifiableAuthorizationGrant implements IAuthorizationGrant {
     }
 
     @Override
+    public GrantType getGrantType() {
+        return GrantType.NONE;
+    }
+
+    @Override
     public String getGrantId() {
         return grant.getGrantId();
     }
