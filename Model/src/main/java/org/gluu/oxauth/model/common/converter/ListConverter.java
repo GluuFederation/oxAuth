@@ -18,7 +18,7 @@ public class ListConverter extends StdConverter<Object,List<String>> {
 	 * Converts a value to a List of Strings. Conversion is attempted only 
 	 * if parameter obj is already a String or a List. In case of String, a 
 	 * whitespace is assumed as elements separator 
-	 * @param Input object
+	 * @param obj Input object
 	 * @return A list of strings, null if obj is null or does not have the expected type 
 	 */
 	public List<String> convert(Object obj) {
