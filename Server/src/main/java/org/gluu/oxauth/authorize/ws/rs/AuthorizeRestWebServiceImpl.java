@@ -323,7 +323,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 acrValues = Lists.newArrayList(client.getDefaultAcrValues());
             }
 
-            if (scopes.contains(ScopeConstants.OFFLINE_ACCESS)) {
+            if (scopes.contains(ScopeConstants.OFFLINE_ACCESS) && !client.getTrustedClient()) {
                 if (!responseTypes.contains(ResponseType.CODE)) {
                     log.trace("Removed (ignored) offline_scope. Can't find `code` in response_type which is required.");
                     scopes.remove(ScopeConstants.OFFLINE_ACCESS);
