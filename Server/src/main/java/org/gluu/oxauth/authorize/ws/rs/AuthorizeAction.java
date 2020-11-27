@@ -382,7 +382,7 @@ public class AuthorizeAction {
         }
 
         ExternalPostAuthnContext postAuthnContext = new ExternalPostAuthnContext(client, session, (HttpServletRequest)externalContext.getRequest(), (HttpServletResponse) externalContext.getResponse());
-        final boolean forceAuthorization = externalPostAuthnService.externalForceReAuthentication(client, postAuthnContext);
+        final boolean forceAuthorization = externalPostAuthnService.externalForceAuthorization(client, postAuthnContext);
 
         final boolean hasConsentPrompt = prompts.contains(Prompt.CONSENT);
         if (!hasConsentPrompt && !forceAuthorization) {
