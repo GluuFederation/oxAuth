@@ -37,7 +37,10 @@ import org.json.JSONObject;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.PrivateKey;
@@ -380,10 +383,20 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             return kid;
         }
 
+        if (LOG.isTraceEnabled())
+            LOG.trace("Select among keys (älg: "+ algorithm+", use: " + use + "): " + traceWithExp(keysByAlgAndUse));
         final JSONWebKey selectedKey = keySelectionStrategy.select(keysByAlgAndUse);
         final String selectedKid = selectedKey != null ? selectedKey.getKid() : null;
         LOG.trace("Selected kid: " + selectedKid + ", keySelectionStrategy: " + keySelectionStrategy);
         return selectedKid;
+    }
+
+    private String traceWithExp(List<JSONWebKey> list) {
+        StringBuilder sb = new StringBuilder("[");
+        for (JSONWebKey key : list)
+            sb.append("{\"kid\":").append(key.getKid()).append(",\"exp\":").append(key.getExp()).append("},");
+        sb.append("]");
+        return sb.toString();
     }
 
     public PrivateKey getPrivateKey(String alias)
