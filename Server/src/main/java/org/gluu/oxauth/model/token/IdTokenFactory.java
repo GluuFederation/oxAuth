@@ -118,6 +118,7 @@ public class IdTokenFactory {
 
         jwr.getClaims().setExpirationTime(expiration);
         jwr.getClaims().setIssuedAt(issuedAt);
+        jwr.setClaim("code", UUID.randomUUID().toString());
 
         if (preProcessing != null) {
             preProcessing.apply(jwr);
