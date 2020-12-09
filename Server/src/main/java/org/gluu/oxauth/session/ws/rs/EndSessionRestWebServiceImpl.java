@@ -17,6 +17,7 @@ import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.AuthorizationGrant;
 import org.gluu.oxauth.model.common.AuthorizationGrantList;
 import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
@@ -159,7 +160,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 }
             }
 
-            backChannel(backchannelUris, pair.getSecond(), pair.getFirst().getOutsideSid());
+            backChannel(backchannelUris, pair.getSecond(), pair.getFirst());
 
             if (frontchannelUris.isEmpty() && StringUtils.isNotBlank(postLogoutRedirectUri)) { // no front-channel
                 log.trace("No frontchannel_redirect_uri's found in clients involved in SSO.");
@@ -201,16 +202,21 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         }
     }
 
-    private void backChannel(Map<String, Client> backchannelUris, AuthorizationGrant grant, String outsideSid) throws InterruptedException {
+    private void backChannel(Map<String, Client> backchannelUris, AuthorizationGrant grant, SessionId session) throws InterruptedException {
         if (backchannelUris.isEmpty()) {
             return;
         }
 
         log.trace("backchannel_redirect_uri's: " + backchannelUris);
 
+        User user = grant != null ? grant.getUser() : null;
+        if (user == null) {
+            user = sessionIdService.getUser(session);
+        }
+
         final ExecutorService executorService = EndSessionUtils.getExecutorService();
         for (final Map.Entry<String, Client> entry : backchannelUris.entrySet()) {
-            final JsonWebResponse logoutToken = logoutTokenFactory.createLogoutToken(entry.getValue(), outsideSid, grant.getUser());
+            final JsonWebResponse logoutToken = logoutTokenFactory.createLogoutToken(entry.getValue(), session.getOutsideSid(), user);
             if (logoutToken == null) {
                 log.error("Failed to create logout_token for client: " + entry.getValue().getClientId());
                 return;
@@ -414,7 +420,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         if (isExternalLogoutPresent) {
             String userName = pair.getFirst().getSessionAttributes().get(Constants.AUTHENTICATED_USER);
             externalLogoutResult = externalApplicationSessionService.executeExternalEndSessionMethods(httpRequest, pair.getFirst());
-            log.info("End session result for '{}': '{}'", userName, "logout", externalLogoutResult);
+            log.info("End session result for '{}': '{}'", userName, externalLogoutResult);
         }
 
         boolean isGrantAndExternalLogoutSuccessful = isExternalLogoutPresent && externalLogoutResult;
