@@ -20,6 +20,8 @@ import org.gluu.oxauth.model.token.TokenRevocationErrorResponseType;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.GrantService;
+import org.gluu.oxauth.service.external.ExternalRevokeTokenService;
+import org.gluu.oxauth.service.external.context.RevokeTokenContext;
 import org.gluu.oxauth.util.ServerUtil;
 import org.slf4j.Logger;
 
@@ -61,6 +63,9 @@ public class RevokeRestWebServiceImpl implements RevokeRestWebService {
 
     @Inject
     private ClientService clientService;
+
+    @Inject
+    private ExternalRevokeTokenService externalRevokeTokenService;
 
     @Override
     public Response requestAccessToken(String token, String tokenTypeHint, String clientId,
@@ -110,6 +115,13 @@ public class RevokeRestWebServiceImpl implements RevokeRestWebService {
         }
         if (!authorizationGrant.getClientId().equals(client.getClientId())) {
             log.trace("Token was issued with client {} but revoke is requested with client {}. Skip revoking.", authorizationGrant.getClientId(), client.getClientId());
+            return response(builder, oAuth2AuditLog);
+        }
+
+        RevokeTokenContext revokeTokenContext = new RevokeTokenContext(request, client, authorizationGrant, builder);
+        final boolean scriptResult = externalRevokeTokenService.revokeTokenMethods(revokeTokenContext);
+        if (!scriptResult) {
+            log.trace("Revoke is forbidden by 'Revoke Token' custom script (method returned false). Exit without revoking.");
             return response(builder, oAuth2AuditLog);
         }
 
