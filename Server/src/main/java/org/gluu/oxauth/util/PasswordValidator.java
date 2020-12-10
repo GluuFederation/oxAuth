@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @ApplicationScoped
-@FacesValidator("gluuPasswordValidator")
+@FacesValidator(value = "gluuPasswordValidator", managed = true)
 public class PasswordValidator implements javax.faces.validator.Validator {
 
 	private static final String USER_PASSWORD = "userPassword";
@@ -30,10 +30,6 @@ public class PasswordValidator implements javax.faces.validator.Validator {
 
 	@Inject
 	private LanguageBean languageBean;
-
-	public PasswordValidator() {
-
-	}
 
 	@Override
 	public void validate(FacesContext context, UIComponent component, Object value) throws ValidatorException {
