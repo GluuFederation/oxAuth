@@ -3,6 +3,7 @@ package org.gluu.oxauth.util;
 import org.gluu.model.attribute.AttributeValidation;
 import org.gluu.oxauth.i18n.LanguageBean;
 import org.gluu.service.AttributeService;
+import org.gluu.service.cdi.util.CdiUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.faces.application.FacesMessage;
@@ -33,6 +34,14 @@ public class PasswordValidator implements javax.faces.validator.Validator {
 
 	@Override
 	public void validate(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+		// This is workaround unless this bug will be fixed in JSF
+		if (attributeService == null) {
+			attributeService = CdiUtil.bean(AttributeService.class);
+		}
+		if (languageBean == null) {
+			languageBean = CdiUtil.bean(LanguageBean.class);
+		}
+
 		AttributeValidation validation = attributeService.getAttributeByName(USER_PASSWORD).getAttributeValidation();
 		if (validation != null) {
 			String regexp = validation.getRegexp();
