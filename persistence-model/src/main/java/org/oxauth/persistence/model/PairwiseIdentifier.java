@@ -5,8 +5,6 @@ import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.model.base.BaseEntry;
 
-import java.net.URI;
-
 /**
  * @author Javier Rojas Blum
  * @version June 30, 2018
@@ -30,8 +28,8 @@ public class PairwiseIdentifier extends BaseEntry {
     public PairwiseIdentifier() {
     }
 
-    public PairwiseIdentifier(String sectorIdentifierUri, String clientId, String userInum) {
-        this.sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
+    public PairwiseIdentifier(String sectorIdentifier, String clientId, String userInum) {
+        this.sectorIdentifier = sectorIdentifier;
         this.clientId = clientId;
         this.userInum = userInum;
     }

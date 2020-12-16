@@ -69,7 +69,7 @@ public class PairwiseIdentifierService {
 
             String baseDnForPairwiseIdentifiers = getBaseDnForPairwiseIdentifiers(userInum);
 
-            Filter filter = null;
+            final Filter filter;
             if (appConfiguration.isShareSubjectIdBetweenClientsWithSameSectorId()) {
             	Filter sectorIdentifierFilter = Filter.createEqualityFilter("oxSectorIdentifier", sectorIdentifier);
                 Filter userInumFilter = Filter.createEqualityFilter("oxAuthUserId", userInum);
@@ -100,10 +100,12 @@ public class PairwiseIdentifierService {
             String localAccountId = appConfiguration.isShareSubjectIdBetweenClientsWithSameSectorId() ?
                     userInum : userInum + clientId;
 
-            String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(
-                    sectorIdentifierUri, localAccountId, key, salt, appConfiguration);
+            if (appConfiguration.getSubjectIdentifierBasedOnWholeUriBackwardCompatibility()) // todo remove in 5.0
+                sectorIdentifier = sectorIdentifierUri;
 
-            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId, userInum);
+            String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(sectorIdentifier, localAccountId, key, salt, appConfiguration);
+
+            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifier, clientId, userInum);
             pairwiseIdentifier.setId(calculatedSub);
 
             return pairwiseIdentifier;

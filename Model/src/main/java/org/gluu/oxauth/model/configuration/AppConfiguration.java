@@ -48,6 +48,7 @@ public class AppConfiguration implements Configuration {
     private String deviceAuthzEndpoint;
 
     public int discoveryCacheLifetimeInMinutes = 60;
+    public int sectorIdentifierCacheLifetimeInMinutes = 1440;
 
     private Boolean sessionAsJwt = false;
 
@@ -167,6 +168,7 @@ public class AppConfiguration implements Configuration {
     private String pairwiseCalculationKey;
     private String pairwiseCalculationSalt;
     private Boolean shareSubjectIdBetweenClientsWithSameSectorId = false;
+    private Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility = false; // todo remove in 5.0
 
     private WebKeyStorage webKeysStorage;
     private String dnName;
@@ -249,6 +251,14 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
 
+    public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
+        return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
+    }
+
+    public void setSubjectIdentifierBasedOnWholeUriBackwardCompatibility(Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility) {
+        this.subjectIdentifierBasedOnWholeUriBackwardCompatibility = subjectIdentifierBasedOnWholeUriBackwardCompatibility;
+    }
+
     public Boolean getUseNestedJwtDuringEncryption() {
         if (useNestedJwtDuringEncryption == null) useNestedJwtDuringEncryption = true;
         return useNestedJwtDuringEncryption;
@@ -273,6 +283,14 @@ public class AppConfiguration implements Configuration {
 
     public void setDiscoveryCacheLifetimeInMinutes(int discoveryCacheLifetimeInMinutes) {
         this.discoveryCacheLifetimeInMinutes = discoveryCacheLifetimeInMinutes;
+    }
+
+    public int getSectorIdentifierCacheLifetimeInMinutes() {
+        return sectorIdentifierCacheLifetimeInMinutes;
+    }
+
+    public void setSectorIdentifierCacheLifetimeInMinutes(int sectorIdentifierCacheLifetimeInMinutes) {
+        this.sectorIdentifierCacheLifetimeInMinutes = sectorIdentifierCacheLifetimeInMinutes;
     }
 
     public String getSoftwareStatementValidationType() {
