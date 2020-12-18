@@ -8,7 +8,7 @@ This list of steps needed to do to enable Basic Multi person authentication modu
 
 3. Prepare authentication configuration file /etc/certs/multi_auth_conf.json. There is format description and sample configuration in README.txt.  
 
-4. Confire new custom module in oxTrust:
+4. Configure new custom module in oxTrust:
     - Log into oxTrust with administrative permissions.
     - Open "Configuration→Manage Custom Scripts" page.
     - Select "Person Authentication" tab.
