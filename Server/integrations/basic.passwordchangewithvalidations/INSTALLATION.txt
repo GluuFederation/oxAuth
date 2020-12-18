@@ -1,0 +1,53 @@
+﻿This is a person authentication script with validations for the following:
+	1. It checks for the empty password and gives a message to the user for the empty password.
+	2. It detects if the user is disabled/ inactive in the LDAP/ AD and gives a message that your account is disabled.
+	3. It also has an option to change password. During password update it checks for the password complexity and gives a message to the user if the password is not upto the expected complexity 	
+	level. If a user input a complex password then it updates the password. 
+Following are the steps to install this script and associated library.
+
+1. Install zxcvbn python library for complexity checking 
+   a. Notedown the Jython version. To find Jythonversion, inside the chroot change the directory to /opt directory and run ls command. There should be a directory named jython-<version>, it should be 
+   similar to jython-2.7.2 and here 2.7.2 is the Jython version. 
+   b. Now, open the file /etc/gluu/conf/gluu.properties and look for the line starting with pythonModulesDir=. Append the value /opt/jython-<version>/Lib/site-packages to any existing value. Each 
+   value is separated by a colon (:). It should be similar to pythonModulesDir=/opt/gluu/python/libs:/opt/jython-2.7.2/Lib/site-packages
+   c. If this is the first additional library then run the following command /opt/jython-<version>/bin/jython -m ensurepip. This will create pip executables like pip, pip2, pip2.7.
+   d. Now, install zxcvbn library with 
+		/opt/jython-<version>/bin/pip install zxcvbn.
+   e. After successful installation, make sure that there should be read permission to group and others (rw-r--r--) for all the *.class files, as shown below
+		root@test1:~# cd /opt/jython-2.7.2/Lib/site-packages/zxcvbn
+		root@test1:/opt/jython-2.7.2/Lib/site-packages/zxcvbn# ls -lrt
+		-rw-r--r-- 1 root root   3085 Mar 28  2019  time_estimates.py
+		-rw-r--r-- 1 root root  14200 Mar 28  2019  scoring.py
+		-rw-r--r-- 1 root root  21797 Mar 28  2019  matching.py
+		-rw-r--r-- 1 root root 792962 Mar 28  2019  frequency_lists.py
+		-rw-r--r-- 1 root root   4719 Mar 28  2019  feedback.py
+		-rw-r--r-- 1 root root   9800 Mar 28  2019  adjacency_graphs.py
+		-rw-r--r-- 1 root root   1132 Mar 28  2019  __main__.py
+		-rw-r--r-- 1 root root   1171 Mar 28  2019  __init__.py
+		-rw-r--r-- 1 root root 796337 Dec 18 09:19 'frequency_lists$py.class'
+		-rw-r--r-- 1 root root   9764 Dec 18 09:19 'feedback$py.class'
+		-rw-r--r-- 1 root root  24510 Dec 18 09:19 'scoring$py.class'
+		-rw-r--r-- 1 root root   5775 Dec 18 09:19 '__init__$py.class'
+		-rw-r--r-- 1 root root  35478 Dec 18 09:19 'matching$py.class'
+		-rw-r--r-- 1 root root  20699 Dec 18 09:19 'adjacency_graphs$py.class'
+		-rw-r--r-- 1 root root   6962 Dec 18 09:19 '__main__$py.class'
+		-rw-r--r-- 1 root root   8813 Dec 18 09:19 'time_estimates$py.class'
+   f. If not then run “chmod 644 *.class” command in the /opt/jython-<version>/Lib/site-packages/zxcvbn/ directory
+   g. Restart the oxauth service.
+2. Configure this new script in oxTrust:
+        - Log into oxTrust with administrative permissions.
+        - Open "Configuration→Manage Custom Scripts" page.
+        - Select "Person Authentication" tab.
+        - Click on "Add custom script configuration" link.
+        - Enter name = basic_password_change_validations (or any suitable name)
+        - Enter level = 0-100 (priority of this method).
+        - Select usage type "Interactive".
+        - Copy/paste script from PasswordChangeWithValidations.py.
+        - Activate it via "Enabled" checkbox.
+        - Click "Update" button at the bottom of this page.
+
+3. Configure oxAuth to use Basic Multi authentication by default:
+        - Log into oxTrust with administrative permissions.
+        - Open "Configuration→Manage Authentication" page.
+        - Navigate to "Default Authentication Method" panel. Select "basic_password_change_validations" authentication mode.
+        - Click "Update" button at the bottom of this page.
