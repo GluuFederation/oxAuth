@@ -29,12 +29,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DERInteger;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.DistributionPoint;
 import org.bouncycastle.asn1.x509.DistributionPointName;
@@ -229,9 +228,9 @@ public class CRLCertificateVerifier implements CertificateVerifier {
 			return null;
 		}
 
-		DEROctetString octetString = (DEROctetString) (new ASN1InputStream(new ByteArrayInputStream(crlNumberExtensionValue)).readObject());
+		ASN1OctetString octetString = (ASN1OctetString) (new ASN1InputStream(new ByteArrayInputStream(crlNumberExtensionValue)).readObject());
 		byte[] octets = octetString.getOctets();
-		DERInteger integer = (DERInteger) new ASN1InputStream(octets).readObject();
+		ASN1Integer integer = (ASN1Integer) new ASN1InputStream(octets).readObject();
 		BigInteger crlNumber = integer.getPositiveValue();
 
 		return crlNumber;
