@@ -115,8 +115,8 @@ class PersonAuthentication(PersonAuthenticationType):
 
             results = zxcvbn(new_password)
             if results['score'] <2:
-                print 'Its a week Password, its length should be between 6-20 charecters"
-                facesMessages.add(FacesMessage.SEVERITY_INFO, "Its week password, it should be of 6-20 charecters")
+                print 'Its a weak Password, please increase the complexity."
+                facesMessages.add(FacesMessage.SEVERITY_INFO, "Its weak password, please increase the complexity.")
                 return False
 
             find_user_by_uid.setAttribute("userPassword", new_password)
