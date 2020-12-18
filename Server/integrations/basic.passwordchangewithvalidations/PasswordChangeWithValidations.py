@@ -2,6 +2,7 @@
 # Copyright (c) 2016, Gluu
 #
 # Author: Yuriy Movchan
+# Author: Hemant Mehta
 #
 
 from org.gluu.service.cdi.util import CdiUtil
