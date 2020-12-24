@@ -40,6 +40,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 /**
@@ -95,7 +96,7 @@ public class IntrospectionWebService {
 
     private Response introspect(String p_authorization, String p_token, String tokenTypeHint, String responseAsJwt, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         try {
-            log.trace("Introspect token, authorization: {}, token to introsppect: {}, tokenTypeHint:", p_authorization, p_token, tokenTypeHint);
+            log.trace("Introspect token, authorization: {}, token to introspect: {}, tokenTypeHint: {}", p_authorization, p_token, tokenTypeHint);
             if (StringUtils.isBlank(p_authorization) || StringUtils.isBlank(p_token)) {
                 log.trace("Bad request: Authorization header or token is blank.");
                 return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST, "")).build();
@@ -233,7 +234,7 @@ public class IntrospectionWebService {
             
             String encodedCredentials = tokenService.getBasicToken(authorization);
 
-            String token = new String(Base64.decodeBase64(encodedCredentials), Util.UTF8_STRING_ENCODING);
+            String token = new String(Base64.decodeBase64(encodedCredentials), StandardCharsets.UTF_8);
 
             int delim = token.indexOf(":");
 
