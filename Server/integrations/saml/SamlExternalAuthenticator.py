@@ -211,8 +211,10 @@ class PersonAuthentication(PersonAuthenticationType):
                 print "Asimba. Authenticate for step 1. saml_response AuthnFailed"
                 return False
 
+            print "Asimba. Authenticate for step 1. Response is valid"
+
             saml_response_attributes = samlResponse.getAttributes()
-            print "Asimba. Authenticate for step 1. attributes: '%s'" % saml_response_attributes
+            #print "Asimba. Authenticate for step 1. attributes: '%s'" % saml_response_attributes.toString()
             
             if saml_map_user:
                 saml_user_uid = self.getSamlNameId(samlResponse)
@@ -725,12 +727,15 @@ class PersonAuthentication(PersonAuthenticationType):
 
         customAttributes = ArrayList()
         for key in saml_response_attributes.keySet():
+            print "Asimba. Processing saml attribute: '%s' with value: '%s'" % (key, saml_response_attributes.get(key))
             ldapAttributeName = samlUriToAttributesMap.get(key)
+            print "Asimba. Processing saml attribute: '%s'. Destination attribute: '%s'" % (key, ldapAttributeName)
             if ldapAttributeName == None:
                 print "Asimba. Get mapped all attributes user. Skipping saml attribute: '%s'" %  key
                 continue
 
             if StringHelper.equalsIgnoreCase(ldapAttributeName, "uid"):
+                user.setUserId(saml_response_attributes.get(key).get(0))
                 continue
 
             attribute = CustomAttribute(ldapAttributeName)
@@ -764,14 +769,21 @@ class PersonAuthentication(PersonAuthenticationType):
         if self.userEnforceAttributesUniqueness == None:
             print "Asimba. Build local external uid. User enforce attributes uniqueness not specified"
             return None
-        
+
         sb = StringBuilder()
         first = True
         for userAttributeName in self.userEnforceAttributesUniqueness:
+            print "Asimba. Build local external uid. User enforce attributes uniqueness. Attribute: '%s'" % userAttributeName
             if not first:
                 sb.append("!")
             first = False
+
+            if StringHelper.equalsIgnoreCase(userAttributeName, "uid"):
+                sb.append(user.getUserId())
+                continue
+
             attribute_values_list = user.getAttributeValues(userAttributeName)
+            print "Asimba. Build local external uid. User enforce attributes uniqueness. Attribute values: '%s'" % attribute_values_list
             if (attribute_values_list != None) and (attribute_values_list.size() > 0):
                 first_attribute_value = attribute_values_list.get(0)
                 sb.append(first_attribute_value)
