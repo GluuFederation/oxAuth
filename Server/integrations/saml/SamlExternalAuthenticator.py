@@ -662,9 +662,17 @@ class PersonAuthentication(PersonAuthenticationType):
         userToSearch = User()
         userToSearch.setDn(userBaseDn)
 
+        print "Asimba. Check user uniqueness. userEnforceAttributesUniqueness '%s'" % self.userEnforceAttributesUniqueness
         for userAttributeName in self.userEnforceAttributesUniqueness:
+            if StringHelper.equalsIgnoreCase(userAttributeName, "uid"):
+                attribute_values_list = user.getUserId()
+                print "Asimba. Check user uniqueness. Attribute name '%s': '%s'" % (userAttributeName, attribute_values_list)
+                userToSearch.setAttribute(userAttributeName, attribute_values_list)
+                continue
+
             attribute_values_list = user.getAttributeValues(userAttributeName)
             if (attribute_values_list != None) and (attribute_values_list.size() > 0):
+                print "Asimba. Check user uniqueness. Attribute name '%s': '%s'" % (userAttributeName, attribute_values_list)
                 userToSearch.setAttribute(userAttributeName, attribute_values_list)
 
         users = userService.getUsersBySample(userToSearch, 1)
