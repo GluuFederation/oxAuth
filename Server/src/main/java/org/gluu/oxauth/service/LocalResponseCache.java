@@ -7,6 +7,7 @@ import org.gluu.oxauth.service.cdi.event.AuthConfigurationEvent;
 import org.gluu.service.cdi.async.Asynchronous;
 import org.gluu.service.cdi.event.Scheduled;
 import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -30,6 +31,8 @@ public class LocalResponseCache {
 
     @Inject
     private AppConfiguration appConfiguration;
+    @Inject
+    private Logger log;
 
     private final AtomicBoolean rebuilding = new AtomicBoolean(false);
 
@@ -54,11 +57,13 @@ public class LocalResponseCache {
                 currentDiscoveryLifetime = appConfiguration.getDiscoveryCacheLifetimeInMinutes();
                 discoveryCache = CacheBuilder.newBuilder()
                         .expireAfterWrite(appConfiguration.getDiscoveryCacheLifetimeInMinutes(), TimeUnit.MINUTES).build();
+                log.trace("Re-created discovery cache with lifetime: " + appConfiguration.getDiscoveryCacheLifetimeInMinutes());
             }
             if (currentSectorIdentifierLifetime != appConfiguration.getSectorIdentifierCacheLifetimeInMinutes()) {
                 currentSectorIdentifierLifetime = appConfiguration.getSectorIdentifierCacheLifetimeInMinutes();
                 sectorIdentifierCache = CacheBuilder.newBuilder()
                         .expireAfterWrite(appConfiguration.getSectorIdentifierCacheLifetimeInMinutes(), TimeUnit.MINUTES).build();
+                log.trace("Re-created sector identifier cache with lifetime: " + appConfiguration.getSectorIdentifierCacheLifetimeInMinutes());
             }
         } finally {
             rebuilding.set(false);
