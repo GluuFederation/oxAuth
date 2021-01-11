@@ -87,6 +87,8 @@ public class StatService {
     }
 
     public void updateStat() {
+        log.trace("Started updateStat ...");
+
         Date now = new Date();
         prepareMonthlyBranch(now);
         if (StringUtils.isBlank(monthlyDn)) {
@@ -102,6 +104,8 @@ public class StatService {
 
         currentEntry.setUserHllData(new String(hll.toBytes(), StandardCharsets.UTF_8));
         entryManager.merge(currentEntry);
+
+        log.trace("Finished updateStat.");
     }
 
     private void setupCurrentEntry() {

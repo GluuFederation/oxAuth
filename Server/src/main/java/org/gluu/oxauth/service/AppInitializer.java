@@ -83,7 +83,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Named
 public class AppInitializer {
 
-	private final static int DEFAULT_INTERVAL = 30; // 30 seconds
+	private final static int DEFAULT_INTERVAL = 3; // 30 seconds
 
 	@Inject
 	private Logger log;
