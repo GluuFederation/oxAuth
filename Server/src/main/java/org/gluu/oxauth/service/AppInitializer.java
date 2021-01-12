@@ -25,6 +25,7 @@ import org.gluu.oxauth.service.common.EncryptionService;
 import org.gluu.oxauth.service.expiration.ExpirationNotificatorTimer;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.logger.LoggerService;
+import org.gluu.oxauth.service.stat.StatTimer;
 import org.gluu.oxauth.service.status.ldap.LdapStatusTimer;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.PersistenceEntryManagerFactory;
@@ -147,6 +148,9 @@ public class AppInitializer {
 	@Inject
 	private KeyGeneratorTimer keyGeneratorTimer;
 
+    @Inject
+    private StatTimer statTimer;
+
 	@Inject
     private ExpirationNotificatorTimer expirationNotificatorTimer;
 
@@ -222,6 +226,7 @@ public class AppInitializer {
 		cleanerTimer.initTimer();
 		customScriptManager.initTimer(supportedCustomScriptTypes);
 		keyGeneratorTimer.initTimer();
+        statTimer.initTimer();
 		expirationNotificatorTimer.initTimer();
 		initTimer();
 		initCibaRequestsProcessor();
