@@ -27,6 +27,7 @@ import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalIntrospectionService;
 import org.gluu.oxauth.service.external.context.ExternalIntrospectionContext;
+import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.service.CacheService;
 import org.json.JSONObject;
@@ -75,6 +76,9 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
 
 	@Inject
 	private MetricService metricService;
+
+	@Inject
+    private StatService statService;
 
     private boolean isCachedWithNoPersistence = false;
 
@@ -180,6 +184,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
                 persist(asToken(accessToken));
             }
 
+            statService.reportAccessToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ACCESS_TOKEN_COUNT);
 
             return accessToken;
@@ -245,6 +250,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
                 persist(asToken(refreshToken));
             }
 
+            statService.reportRefreshToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
 
             return refreshToken;
@@ -263,6 +269,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
 
             if (refreshToken.getExpiresIn() > 0) {
                 persist(asToken(refreshToken));
+                statService.reportRefreshToken(getGrantType());
                 metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
                 return refreshToken;
             }
@@ -294,6 +301,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             setAcrValues(acrValues);
             setSessionDn(sessionDn);
 
+            statService.reportIdToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ID_TOKEN_COUNT);
 
             return idToken;
