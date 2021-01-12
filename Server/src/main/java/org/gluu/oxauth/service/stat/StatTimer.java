@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Named
 public class StatTimer {
 
-    private static final int TIMER_TICK_INTERVAL_IN_SECONDS = 4; // 1 min
-    private static final int TIMER_INTERVAL_IN_SECONDS = 4;//15 * 60; // 15 min
+    private static final int TIMER_TICK_INTERVAL_IN_SECONDS = 60; // 1 min
+    private static final int TIMER_INTERVAL_IN_SECONDS = 15 * 60; // 15 min
 
     @Inject
     private Logger log;

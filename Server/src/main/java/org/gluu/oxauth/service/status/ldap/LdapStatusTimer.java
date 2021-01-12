@@ -6,6 +6,16 @@
 
 package org.gluu.oxauth.service.status.ldap;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.ejb.DependsOn;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.gluu.oxauth.service.common.ApplicationFactory;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.ldap.operation.LdapOperationService;
@@ -18,15 +28,6 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * @author Yuriy Movchan
  * @version 0.1, 11/18/2012
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Named
 public class LdapStatusTimer {
 
-    private final static int DEFAULT_INTERVAL = 5;//60; // 1 minute
+    private final static int DEFAULT_INTERVAL = 60; // 1 minute
 
     @Inject
     private Logger log;
