@@ -67,13 +67,14 @@ public class KeyGeneratorTimer {
 	private long lastFinishedTime;
 
     public void initTimer() {
-        log.debug("Initializing Key Generator Timer");
+        log.info("Initializing Key Generator Timer");
         this.isActive = new AtomicBoolean(false);
 
 		timerEvent.fire(new TimerEvent(new TimerSchedule(DEFAULT_INTERVAL, DEFAULT_INTERVAL), new KeyGenerationEvent(),
 				Scheduled.Literal.INSTANCE));
 
 		this.lastFinishedTime = System.currentTimeMillis();
+        log.info("Initialized Key Generator Timer");
     }
 
     @Asynchronous
