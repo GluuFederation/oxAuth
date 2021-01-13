@@ -245,6 +245,10 @@ public class StatService {
         if (grantType == null || tokenKey == null) {
             return;
         }
+        if (tokenCounters == null) {
+            log.error("Stat service is not initialized.");
+            return;
+        }
 
         Map<String, Long> tokenMap = tokenCounters.computeIfAbsent(grantType.getValue(), k -> new ConcurrentHashMap<>());
 
