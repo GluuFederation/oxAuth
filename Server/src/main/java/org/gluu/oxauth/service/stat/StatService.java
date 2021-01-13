@@ -120,15 +120,21 @@ public class StatService {
             return;
         }
 
-        StatEntry entryFromPersistence = entryManager.find(StatEntry.class, dn);
-        if (entryFromPersistence != null && month.equals(entryFromPersistence.getStat().getMonth())) {
-            hll = HLL.fromBytes(entryFromPersistence.getUserHllData().getBytes(StandardCharsets.UTF_8));
-            tokenCounters = new ConcurrentHashMap<>(entryFromPersistence.getStat().getTokenCountPerGrantType());
-            currentEntry = entryFromPersistence;
-            return;
+        try {
+            StatEntry entryFromPersistence = entryManager.find(StatEntry.class, dn);
+            if (entryFromPersistence != null && month.equals(entryFromPersistence.getStat().getMonth())) {
+                hll = HLL.fromBytes(entryFromPersistence.getUserHllData().getBytes(StandardCharsets.UTF_8));
+                tokenCounters = new ConcurrentHashMap<>(entryFromPersistence.getStat().getTokenCountPerGrantType());
+                currentEntry = entryFromPersistence;
+                log.trace("Stat entry loaded.");
+                return;
+            }
+        } catch (EntryPersistenceException e) {
+            log.trace("Stat entry is not found in persistence.");
         }
 
         if (currentEntry == null) {
+            log.trace("Creating stat entry ...");
             hll = new HLL(log2m, regwidth);
             tokenCounters = new ConcurrentHashMap<>();
 
@@ -138,6 +144,7 @@ public class StatService {
             currentEntry.setUserHllData(new String(hll.toBytes(), StandardCharsets.UTF_8));
             currentEntry.getStat().setMonth(PERIOD_DATE_FORMAT.format(new Date()));
             entryManager.persist(currentEntry);
+            log.trace("Created stat entry.");
         }
     }
 
