@@ -39,6 +39,7 @@ import org.gluu.oxauth.service.external.ExternalApplicationSessionService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.oxauth.service.external.session.SessionEventType;
+import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
@@ -128,6 +129,9 @@ public class SessionIdService {
 
     @Inject
     private CacheService cacheService;
+
+    @Inject
+    private StatService statService;
 
     private String buildDn(String sessionId) {
         return String.format("oxId=%s,%s", sessionId, staticConfiguration.getBaseDn().getSessions());
@@ -502,6 +506,11 @@ public class SessionIdService {
         sessionId.setUserDn(p_userDn);
         sessionId.setAuthenticationTime(new Date());
         sessionId.setState(SessionIdState.AUTHENTICATED);
+
+        final User user = getUser(sessionId);
+        if (user != null) {
+            statService.reportActiveUser(user.getUserId());
+        }
 
         final boolean persisted;
         if (appConfiguration.getChangeSessionIdOnAuthentication() && httpResponse != null) {
