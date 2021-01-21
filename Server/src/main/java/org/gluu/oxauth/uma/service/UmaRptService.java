@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.lang.ArrayUtils;
 import org.gluu.oxauth.claims.Audience;
 import org.gluu.oxauth.model.common.ExecutionContext;
+import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
@@ -22,6 +23,7 @@ import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.external.ExternalUmaRptClaimsService;
 import org.gluu.oxauth.service.external.context.ExternalUmaRptClaimsContext;
+import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.uma.authorization.UmaPCT;
 import org.gluu.oxauth.uma.authorization.UmaRPT;
 import org.gluu.oxauth.util.ServerUtil;
@@ -82,6 +84,9 @@ public class UmaRptService {
 
     @Inject
     private ExternalUmaRptClaimsService externalUmaRptClaimsService;
+
+    @Inject
+    private StatService statService;
 
     private boolean containsBranch = false;
 
@@ -212,6 +217,7 @@ public class UmaRptService {
             UmaRPT rpt = new UmaRPT(code, creationDate, expirationDate, null, client.getClientId());
             rpt.setPermissions(getPermissionDns(permissions));
             persist(rpt);
+            statService.reportUmaToken(GrantType.OXAUTH_UMA_TICKET);
             return rpt;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
