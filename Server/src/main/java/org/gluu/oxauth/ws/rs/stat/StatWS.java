@@ -11,7 +11,6 @@ import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -22,7 +21,6 @@ import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -67,6 +65,27 @@ public class StatWS {
 
     public Response stat(String month) {
         return null;
+    }
+
+    private long userCardinality(List<StatEntry> entries) {
+        final StatEntry firstEntry = entries.get(0);
+        HLL hll = HLL.fromBytes(firstEntry.getUserHllData().getBytes(StandardCharsets.UTF_8));
+
+        // Union hll
+        if (entries.size() > 1) {
+            for (int i = 1; i < entries.size(); i++) {
+                hll.union(HLL.fromBytes(entries.get(i).getUserHllData().getBytes(StandardCharsets.UTF_8)));
+            }
+        }
+        return hll.cardinality();
+    }
+
+    private void validateAuthorization() {
+        SessionClient sessionClient = identity.getSessionClient();
+        if (sessionClient == null || sessionClient.getClient() == null) {
+            log.trace("Client is not unknown. Skip stat processing.");
+            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.INVALID_CLIENT, "Failed to authenticate client.");
+        }
     }
 
     private List<String> validateMonth(String month) {
