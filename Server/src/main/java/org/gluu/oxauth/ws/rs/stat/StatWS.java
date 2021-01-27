@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -65,6 +66,32 @@ public class StatWS {
 
     public Response stat(String month) {
         return null;
+    }
+
+    private void unionTokenMapIntoResponseItem(List<StatEntry> entries, StatResponseItem responseItem) {
+        for (StatEntry entry : entries) {
+            for (Map.Entry<String, Map<String, Long>> en : entry.getStat().getTokenCountPerGrantType().entrySet()) {
+                if (en.getValue() == null) {
+                    continue;
+                }
+
+                final Map<String, Long> tokenMap = responseItem.getTokenCountPerGrantType().get(en.getKey());
+                if (tokenMap == null) {
+                    responseItem.getTokenCountPerGrantType().put(en.getKey(), en.getValue());
+                    continue;
+                }
+
+                for (Map.Entry<String, Long> tokenEntry : en.getValue().entrySet()) {
+                    final Long counter = tokenMap.get(tokenEntry.getKey());
+                    if (counter == null) {
+                        tokenMap.put(tokenEntry.getKey(), tokenEntry.getValue());
+                        continue;
+                    }
+
+                    tokenMap.put(tokenEntry.getKey(), counter + tokenEntry.getValue());
+                }
+            }
+        }
     }
 
     private long userCardinality(List<StatEntry> entries) {
