@@ -11,6 +11,7 @@ import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -66,6 +67,28 @@ public class StatWS {
 
     public Response stat(String month) {
         return null;
+    }
+
+    private StatResponseItem buildItem(String month) {
+        try {
+            String monthlyDn = String.format("ou=%s,%s", month, statService.getBaseDn());
+
+            final List<StatEntry> entries = entryManager.findEntries(monthlyDn, StatEntry.class, Filter.createPresenceFilter("jansId"));
+            if (entries == null || entries.isEmpty()) {
+                log.trace("Can't find stat entries for month: " + monthlyDn);
+                return null;
+            }
+
+            final StatResponseItem responseItem = new StatResponseItem();
+            responseItem.setMonthlyActiveUsers(userCardinality(entries));
+
+            unionTokenMapIntoResponseItem(entries, responseItem);
+
+            return responseItem;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     private void unionTokenMapIntoResponseItem(List<StatEntry> entries, StatResponseItem responseItem) {
