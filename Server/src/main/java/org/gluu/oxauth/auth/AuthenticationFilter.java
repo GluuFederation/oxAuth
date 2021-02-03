@@ -126,6 +126,7 @@ public class AuthenticationFilter implements Filter {
             boolean deviceAuthorizationEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getDeviceAuthzEndpoint());
             boolean umaTokenEndpoint = requestUrl.endsWith("/uma/token");
             boolean revokeSessionEndpoint = requestUrl.endsWith("/revoke_session");
+            boolean statEndpoint = requestUrl.endsWith("/stat");
             String authorizationHeader = httpRequest.getHeader("Authorization");
 
             if (processMTLS(httpRequest, httpResponse, filterChain)) {
@@ -138,7 +139,7 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
 
-            if (tokenEndpoint || umaTokenEndpoint || revokeSessionEndpoint || tokenRevocationEndpoint || deviceAuthorizationEndpoint) {
+            if (tokenEndpoint || umaTokenEndpoint || revokeSessionEndpoint || tokenRevocationEndpoint || deviceAuthorizationEndpoint || statEndpoint) {
                 log.debug("Starting endpoint authentication {}", requestUrl);
 
                 // #686 : allow authenticated client via user access_token
