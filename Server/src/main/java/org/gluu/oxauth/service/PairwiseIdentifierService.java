@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.net.URI;
 import java.util.List;
 
 /**
@@ -60,9 +59,8 @@ public class PairwiseIdentifierService {
         }
     }
 
-    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifierUri, String clientId) throws Exception {
+    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifier, String clientId) throws Exception {
         PairwiseIdType pairwiseIdType = PairwiseIdType.fromString(appConfiguration.getPairwiseIdType());
-        String sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
 
         if (PairwiseIdType.PERSISTENT == pairwiseIdType) {
             prepareBranch(userInum);
@@ -99,9 +97,6 @@ public class PairwiseIdentifierService {
             String salt = appConfiguration.getPairwiseCalculationSalt();
             String localAccountId = appConfiguration.isShareSubjectIdBetweenClientsWithSameSectorId() ?
                     userInum : userInum + clientId;
-
-            if (appConfiguration.getSubjectIdentifierBasedOnWholeUriBackwardCompatibility()) // todo remove in 5.0
-                sectorIdentifier = sectorIdentifierUri;
 
             String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(sectorIdentifier, localAccountId, key, salt, appConfiguration);
 
