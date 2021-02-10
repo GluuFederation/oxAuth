@@ -41,12 +41,7 @@ import org.gluu.oxauth.model.userinfo.UserInfoErrorResponseType;
 import org.gluu.oxauth.model.userinfo.UserInfoParamsValidator;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
-import org.gluu.oxauth.service.AttributeService;
-import org.gluu.oxauth.service.ClientService;
-import org.gluu.oxauth.service.ScopeService;
-import org.gluu.oxauth.service.ServerCryptoProvider;
-import org.gluu.oxauth.service.UserService;
-import org.gluu.oxauth.service.common.*;
+import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.gluu.oxauth.service.token.TokenService;
@@ -329,8 +324,11 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
             }
 
             Map<String, Object> claims = getClaims(user, scope);
+            if (claims == null) {
+                continue;
+            }
 
-            if (Boolean.TRUE.equals(scope.isOxAuthGroupClaims())) {
+            if (scope != null && Boolean.TRUE.equals(scope.isOxAuthGroupClaims())) {
                 JwtSubClaimObject groupClaim = new JwtSubClaimObject();
                 groupClaim.setName(scope.getId());
                 for (Map.Entry<String, Object> entry : claims.entrySet()) {
