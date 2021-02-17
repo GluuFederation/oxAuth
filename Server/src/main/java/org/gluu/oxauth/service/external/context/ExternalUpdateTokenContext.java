@@ -1,3 +1,9 @@
+/*
+ * oxAuth is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2021, Gluu
+ */
+
 package org.gluu.oxauth.service.external.context;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +32,6 @@ public class ExternalUpdateTokenContext extends ExternalScriptContext {
 		super(httpRequest);
 		this.client = client;
 		this.grant = grant;
-		this.script = script;
 		this.appConfiguration = appConfiguration;
 		this.attributeService = attributeService;
 	}
