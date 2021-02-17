@@ -28,7 +28,9 @@ import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.service.external.ExternalResourceOwnerPasswordCredentialsService;
+import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.ExternalResourceOwnerPasswordCredentialsContext;
+import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.uma.service.UmaTokenService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.exception.AuthenticationException;
@@ -107,6 +109,9 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     @Inject
     private DeviceAuthorizationService deviceAuthorizationService;
+    
+    @Inject
+    private ExternalUpdateTokenService externalUpdateTokenService;
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -222,12 +227,15 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         }
                         return null;
                     };
+                    
+                    ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, authorizationCodeGrant, client, appConfiguration, attributeService);
+                    Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
                     idToken = authorizationCodeGrant.createIdToken(
                             nonce, authorizationCodeGrant.getAuthorizationCode(), accToken, null, null,
-                            authorizationCodeGrant, includeIdTokenClaims, JwrService.wrapWithSidFunction(authorizationCodePreProcessing, sessionIdObj != null ? sessionIdObj.getOutsideSid() : null));
+                            authorizationCodeGrant, includeIdTokenClaims, JwrService.wrapWithSidFunction(authorizationCodePreProcessing, sessionIdObj != null ? sessionIdObj.getOutsideSid() : null),
+                            postProcessor);
                 }
-
 
                 oAuth2AuditLog.updateOAuth2AuditLog(authorizationCodeGrant, true);
 
@@ -278,9 +286,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     boolean includeIdTokenClaims = Boolean.TRUE.equals(
                             appConfiguration.getLegacyIdTokenClaims());
 
+                    ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, authorizationGrant, client, appConfiguration, attributeService);
+                    Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
                     idToken = authorizationGrant.createIdToken(
                             null, null, accToken, null,
-                            null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing);
+                            null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor);
                 }
 
                 builder.entity(getJSonResponse(accToken,
@@ -307,9 +318,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 if (appConfiguration.getOpenidScopeBackwardCompatibility() && clientCredentialsGrant.getScopes().contains("openid")) {
                     boolean includeIdTokenClaims = Boolean.TRUE.equals(
                             appConfiguration.getLegacyIdTokenClaims());
+
+                    ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, clientCredentialsGrant, client, appConfiguration, attributeService);
+                    Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
                     idToken = clientCredentialsGrant.createIdToken(
                             null, null, null, null,
-                            null, clientCredentialsGrant, includeIdTokenClaims, idTokenPreProcessing);
+                            null, clientCredentialsGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor);
                 }
 
                 oAuth2AuditLog.updateOAuth2AuditLog(clientCredentialsGrant, true);
@@ -386,9 +401,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     if (appConfiguration.getOpenidScopeBackwardCompatibility() && resourceOwnerPasswordCredentialsGrant.getScopes().contains("openid")) {
                         boolean includeIdTokenClaims = Boolean.TRUE.equals(
                                 appConfiguration.getLegacyIdTokenClaims());
+
+                        ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, resourceOwnerPasswordCredentialsGrant, client, appConfiguration, attributeService);
+                        Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
                         idToken = resourceOwnerPasswordCredentialsGrant.createIdToken(
                                 null, null, null, null,
-                                null, resourceOwnerPasswordCredentialsGrant, includeIdTokenClaims, idTokenPreProcessing);
+                                null, resourceOwnerPasswordCredentialsGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor);
                     }
 
                     oAuth2AuditLog.updateOAuth2AuditLog(resourceOwnerPasswordCredentialsGrant, true);
@@ -426,9 +445,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             AccessToken accessToken = cibaGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
                             log.debug("Issuing access token: {}", accessToken.getCode());
 
+                            ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, cibaGrant, client, appConfiguration, attributeService);
+                            Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
                             IdToken idToken = cibaGrant.createIdToken(
                                     null, null, accessToken, refToken,
-                                    null, cibaGrant, false, null);
+                                    null, cibaGrant, false, null, postProcessor);
 
                             cibaGrant.setTokensDelivered(true);
                             cibaGrant.save();
@@ -541,9 +563,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             AccessToken accessToken = deviceCodeGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
             log.debug("Issuing access token: {}", accessToken.getCode());
 
+            ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, deviceCodeGrant, client, appConfiguration, attributeService);
+            Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
             IdToken idToken = deviceCodeGrant.createIdToken(
                     null, null, accessToken, refToken,
-                    null, deviceCodeGrant, false, null);
+                    null, deviceCodeGrant, false, null, postProcessor);
 
             RefreshToken reToken = null;
             if (isRefreshTokenAllowed(client, scope, deviceCodeGrant)) {

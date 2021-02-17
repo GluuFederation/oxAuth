@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
 
 import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.text.ParseException;
@@ -54,6 +55,7 @@ import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
  * @author Yuriy Zabrovarnyy
  * @version 12 Feb, 2020
  */
+@ApplicationScoped
 @Stateless
 @Named
 public class IdTokenFactory {
@@ -105,7 +107,7 @@ public class IdTokenFactory {
     private void fillClaims(JsonWebResponse jwr,
                             IAuthorizationGrant authorizationGrant, String nonce,
                             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
+                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
 
         jwr.getClaims().setIssuer(appConfiguration.getIssuer());
         Audience.setAudience(jwr.getClaims(), authorizationGrant.getClient());
@@ -217,6 +219,10 @@ public class IdTokenFactory {
         }
 
         processCiba(jwr, authorizationGrant, refreshToken);
+
+        if (postProcessing != null) {
+        	postProcessing.apply(jwr);
+        }
     }
 
     private void processCiba(JsonWebResponse jwr, IAuthorizationGrant authorizationGrant, RefreshToken refreshToken) {
@@ -258,12 +264,12 @@ public class IdTokenFactory {
     public JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
 
         final Client client = grant.getClient();
 
         JsonWebResponse jwr = jwrService.createJwr(client);
-        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing);
+        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
         return jwrService.encode(jwr, client);
     }
 
