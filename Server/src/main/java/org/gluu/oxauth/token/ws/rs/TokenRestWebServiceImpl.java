@@ -272,7 +272,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     } else {
                         reToken = authorizationGrant.createRefreshToken(refreshTokenObject.getExpirationDate()); // do not extend lifetime
                     }
-                    grantService.removeByCode(refreshToken);
                 }
 
                 if (scope != null && !scope.isEmpty()) {
@@ -292,6 +291,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     idToken = authorizationGrant.createIdToken(
                             null, null, accToken, null,
                             null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor);
+                }
+
+                if (reToken != null && refreshToken != null) {
+                    grantService.removeByCode(refreshToken); // remove refresh token after access token and id_token is created.
                 }
 
                 builder.entity(getJSonResponse(accToken,
