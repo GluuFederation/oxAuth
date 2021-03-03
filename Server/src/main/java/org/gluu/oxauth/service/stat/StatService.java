@@ -3,8 +3,6 @@ package org.gluu.oxauth.service.stat;
 import net.agkn.hll.HLL;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.GrantType;
-import org.gluu.oxauth.model.config.Conf;
-import org.gluu.oxauth.model.config.ConfigurationFactory;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.stat.Stat;
 import org.gluu.oxauth.model.stat.StatEntry;
@@ -40,9 +38,6 @@ public class StatService {
 
     @Inject
     private Logger log;
-
-    @Inject
-    private ConfigurationFactory configurationFactory;
 
     @Inject
     private PersistenceEntryManager entryManager;
@@ -153,19 +148,9 @@ public class StatService {
             return;
         }
 
-        String dn = configurationFactory.getBaseConfiguration().getString("oxauth_ConfigurationEntryDN");
-        Conf conf = entryManager.find(Conf.class, dn);
-
-        if (StringUtils.isNotBlank(conf.getDynamic().getStatNodeId())) {
-            nodeId = conf.getDynamic().getStatNodeId();
-            return;
-        }
-
         try {
             nodeId = UUID.randomUUID().toString();
-            conf.getDynamic().setStatNodeId(nodeId);
-            conf.setRevision(conf.getRevision() + 1);
-            entryManager.merge(conf);
+            // todo save to local file ?
             log.info("Updated statNodeId {} successfully", nodeId);
         } catch (Exception e) {
             nodeId = null;
