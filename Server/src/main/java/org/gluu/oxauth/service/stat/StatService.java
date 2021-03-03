@@ -2,6 +2,7 @@ package org.gluu.oxauth.service.stat;
 
 import net.agkn.hll.HLL;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.net.InetAddressUtility;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.stat.Stat;
@@ -11,6 +12,7 @@ import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.model.base.SimpleBranch;
 import org.slf4j.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -51,6 +53,13 @@ public class StatService {
     private HLL hll;
     private ConcurrentMap<String, Map<String, Long>> tokenCounters;
 
+    private boolean initialized = false;
+
+    @PostConstruct
+    public void create() {
+        initialized = false;
+    }
+
     public boolean init() {
         try {
             log.info("Initializing Stat Service");
@@ -74,6 +83,7 @@ public class StatService {
 
             setupCurrentEntry(now);
             log.info("Initialized Stat Service");
+            initialized = true;
             return true;
         } catch (Exception e) {
             log.error("Failed to initialize Stat Service.", e);
@@ -82,6 +92,10 @@ public class StatService {
     }
 
     public void updateStat() {
+        if (!initialized) {
+            return;
+        }
+
         log.trace("Started updateStat ...");
 
         Date now = new Date();
@@ -149,12 +163,15 @@ public class StatService {
         }
 
         try {
+            nodeId = InetAddressUtility.getMACAddressOrNull();
+            if (StringUtils.isNotBlank(nodeId)) {
+                return;
+            }
+
             nodeId = UUID.randomUUID().toString();
-            // todo save to local file ?
-            log.info("Updated statNodeId {} successfully", nodeId);
         } catch (Exception e) {
-            nodeId = null;
-            log.error("Failed to update statNodeId.", e);
+            log.error("Failed to identify nodeId.", e);
+            nodeId = UUID.randomUUID().toString();
         }
     }
 
@@ -168,12 +185,12 @@ public class StatService {
 
     private void prepareMonthlyBranch(Date now) {
         final String baseDn = getBaseDn();
-
-        final String month = PERIOD_DATE_FORMAT.format(now); // yyyyMM
-        monthlyDn = String.format("ou=%s,%s", month, baseDn); // ou=yyyyMM,ou=stat,o=gluu
         if (!entryManager.hasBranchesSupport(baseDn)) {
             return;
         }
+
+        final String month = PERIOD_DATE_FORMAT.format(now); // yyyyMM
+        monthlyDn = String.format("ou=%s,%s", month, baseDn); // ou=yyyyMM,ou=stat,o=gluu
 
         try {
             if (!entryManager.contains(monthlyDn, SimpleBranch.class)) { // Create ou=yyyyMM branch if needed
@@ -202,6 +219,10 @@ public class StatService {
     }
 
     public void reportActiveUser(String id) {
+        if (!initialized) {
+            return;
+        }
+
         if (StringUtils.isBlank(id)) {
             return;
         }
@@ -227,6 +248,10 @@ public class StatService {
 
 
     private void reportToken(GrantType grantType, String tokenKey) {
+        if (!initialized) {
+            return;
+        }
+
         if (grantType == null || tokenKey == null) {
             return;
         }
