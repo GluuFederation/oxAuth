@@ -11,6 +11,7 @@ import org.gluu.oxauth.model.token.HandleTokenFactory;
 import org.gluu.oxauth.model.util.HashUtil;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.annotation.AttributeName;
+import org.gluu.persist.annotation.Expiration;
 import org.gluu.persist.model.base.Deletable;
 
 import java.io.Serializable;
@@ -52,6 +53,8 @@ public abstract class AbstractToken implements Serializable, Deletable {
     @AttributeName(name = "ssnId")
     private String sessionDn;
     private String x5ts256;
+
+    @Expiration
     private int ttl;
 
     /**
