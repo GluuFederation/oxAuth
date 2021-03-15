@@ -74,6 +74,7 @@ public class UmaPctService {
             pct.setClaims(pctClaims);
             log.trace("PCT code: " + pct.getCode() + ", claims: " + pct.getClaimValuesAsJson());
 
+            pct.resetTtlFromExpirationDate();
             ldapEntryManager.merge(pct);
 
             return ldapEntryManager.find(UmaPCT.class, pct.getDn());
@@ -180,6 +181,7 @@ public class UmaPctService {
 
     public void merge(UmaPCT pct) {
         try {
+            pct.resetTtlFromExpirationDate();
             ldapEntryManager.merge(pct);
         } catch (Exception e) {
             log.error("Failed to merge PCT, code: " + pct.getCode() + ". " + e.getMessage(), e);

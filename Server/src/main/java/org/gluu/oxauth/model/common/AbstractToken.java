@@ -9,6 +9,7 @@ package org.gluu.oxauth.model.common;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.token.HandleTokenFactory;
 import org.gluu.oxauth.model.util.HashUtil;
+import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.Expiration;
@@ -101,6 +102,13 @@ public abstract class AbstractToken implements Serializable, Deletable {
         }
         // unable to calculate ttl (expiration or creation date is not set), thus defaults it to 1 day
         ttl = (int) TimeUnit.DAYS.toSeconds(1);
+    }
+
+    public void resetTtlFromExpirationDate() {
+        final Integer ttl = Util.getNumberOfSecondFromNow(getExpirationDate());
+        if (ttl != null) {
+            this.ttl = ttl;
+        }
     }
 
     /**

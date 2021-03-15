@@ -153,6 +153,7 @@ public class UmaRptService {
         rpt.setPermissions(permissions);
 
         try {
+            rpt.resetTtlFromExpirationDate();
             ldapEntryManager.merge(rpt);
             log.trace("Persisted RPT: " + rpt);
             return true;
@@ -226,6 +227,7 @@ public class UmaRptService {
     }
 
     public void merge(UmaRPT rpt) {
+        rpt.resetTtlFromExpirationDate();
         ldapEntryManager.merge(rpt);
     }
 
