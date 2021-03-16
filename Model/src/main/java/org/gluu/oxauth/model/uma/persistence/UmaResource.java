@@ -8,6 +8,7 @@ package org.gluu.oxauth.model.uma.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
+import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -83,6 +84,13 @@ public class UmaResource implements Serializable {
 
     public void setTtl(Integer ttl) {
         this.ttl = ttl;
+    }
+
+    public void resetTtlFromExpirationDate() {
+        final Integer ttl = Util.getNumberOfSecondFromNow(getExpirationDate());
+        if (ttl != null) {
+            setTtl(ttl);
+        }
     }
 
     public boolean isDeletable() {
