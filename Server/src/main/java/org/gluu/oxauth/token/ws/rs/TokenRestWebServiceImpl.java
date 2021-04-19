@@ -115,9 +115,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
 
-    @Inject
-    private Boolean isCibaEnabled;
-
     @Override
     public Response requestAccessToken(String grantType, String code,
                                        String redirectUri, String username, String password, String scope,
