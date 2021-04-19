@@ -255,6 +255,7 @@ public class AppConfiguration implements Configuration {
     private int backchannelRequestsProcessorJobChunkSize;
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
+    private Boolean cibaEnabled;
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -2052,6 +2053,17 @@ public class AppConfiguration implements Configuration {
 
     public void setDeviceAuthzResponseTypeToProcessAuthz(String deviceAuthzResponseTypeToProcessAuthz) {
         this.deviceAuthzResponseTypeToProcessAuthz = deviceAuthzResponseTypeToProcessAuthz;
+    }
+
+    public Boolean getCibaEnabled() {
+        if (cibaEnabled == null) {
+            return false;
+        }
+        return cibaEnabled;
+    }
+
+    public void setCibaEnabled(Boolean cibaEnabled) {
+        this.cibaEnabled = cibaEnabled;
     }
 
     public Boolean getRequestUriHashVerificationEnabled() {
