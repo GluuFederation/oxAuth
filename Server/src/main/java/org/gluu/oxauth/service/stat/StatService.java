@@ -226,8 +226,13 @@ public class StatService {
         if (StringUtils.isBlank(id)) {
             return;
         }
-        setupCurrentEntry();
-        hll.addRaw(id.hashCode());
+
+        try {
+            setupCurrentEntry();
+            hll.addRaw(id.hashCode());
+        } catch (Exception e) {
+            log.error("Failed to report active user.", e);
+        }
     }
 
     public void reportAccessToken(GrantType grantType) {
