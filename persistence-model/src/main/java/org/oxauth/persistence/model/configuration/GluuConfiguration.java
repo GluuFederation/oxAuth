@@ -6,9 +6,6 @@
 
 package org.oxauth.persistence.model.configuration;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.gluu.model.SmtpConfiguration;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DataEntry;
@@ -17,6 +14,9 @@ import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.model.base.InumEntry;
 import org.gluu.service.cache.CacheConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Gluu Configuration
