@@ -859,7 +859,7 @@ public class AppConfiguration implements Configuration {
     }
 
     public Boolean getStatEnabled() {
-        if (statEnabled == null) statEnabled = true;
+        if (statEnabled == null) statEnabled = false;
         return statEnabled;
     }
 
