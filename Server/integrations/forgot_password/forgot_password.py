@@ -177,6 +177,9 @@ class PersonAuthentication(PersonAuthenticationType):
         # I'm not sure why is 11 and not 2
         return 11
 
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
+
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -193,7 +196,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         #gets custom attribute
         sf = configurationAttributes.get("SCRIPT_FUNCTION").getValue2()
-                    
+
         print "Forgot Password - %s - Authenticate for step %s" % (sf, step)
 
         identity = CdiUtil.bean(Identity)
@@ -351,11 +354,15 @@ class PersonAuthentication(PersonAuthenticationType):
         
             # update user info with new password
             user2.setAttribute("userPassword",new_password)
-
+            print "Forgot Password - user uid is %s" % user_name
+            print "Forgot Password - Updating user with new password..."
             user_service.updateUser(user2)
-
+            print "Forgot Password - User updated with new password"
             # authenticates and login user
+            print "Forgot Password - Loading authentication service..."
             authenticationService2 = CdiUtil.bean(AuthenticationService)
+
+            print "Forgot Password - Trying to authenticate user..."
             login = authenticationService2.authenticate(user_name, new_password)
             
             return True
