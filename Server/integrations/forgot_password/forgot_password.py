@@ -13,8 +13,7 @@ from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.service.cdi.util import CdiUtil
 from org.xdi.util import StringHelper
 from org.xdi.oxauth.util import ServerUtil
-from org.gluu.oxauth.service import ConfigurationService
-from org.gluu.oxauth.service.common import EncryptionService
+from org.gluu.oxauth.service.common import ConfigurationService, EncryptionService
 from org.gluu.jsf2.message import FacesMessages
 from javax.faces.application import FacesMessage
 from org.gluu.persist.exception import AuthenticationException
@@ -165,7 +164,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, configurationAttributes):
+    def init(self, customScript, configurationAttributes):
 
         print "Forgot Password - Initialized successfully"
         return True   
@@ -177,6 +176,9 @@ class PersonAuthentication(PersonAuthenticationType):
     def getApiVersion(self):
         # I'm not sure why is 11 and not 2
         return 11
+
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
 
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
@@ -194,7 +196,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         #gets custom attribute
         sf = configurationAttributes.get("SCRIPT_FUNCTION").getValue2()
-                    
+
         print "Forgot Password - %s - Authenticate for step %s" % (sf, step)
 
         identity = CdiUtil.bean(Identity)
@@ -352,11 +354,15 @@ class PersonAuthentication(PersonAuthenticationType):
         
             # update user info with new password
             user2.setAttribute("userPassword",new_password)
-
+            print "Forgot Password - user uid is %s" % user_name
+            print "Forgot Password - Updating user with new password..."
             user_service.updateUser(user2)
-
+            print "Forgot Password - User updated with new password"
             # authenticates and login user
+            print "Forgot Password - Loading authentication service..."
             authenticationService2 = CdiUtil.bean(AuthenticationService)
+
+            print "Forgot Password - Trying to authenticate user..."
             login = authenticationService2.authenticate(user_name, new_password)
             
             return True
