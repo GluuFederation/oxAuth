@@ -27,7 +27,6 @@ class Utils():
 
         facesContext = CdiUtil.bean(FacesContext)
         authenticationService = CdiUtil.bean(AuthenticationService)
-        utils = Utils()
 
         parameters_as_string = authenticationService.parametersAsString()
         scheme = facesContext.getExternalContext().getRequest().getScheme()
@@ -102,14 +101,14 @@ class PersonAuthentication(PersonAuthenticationType):
     def prepareForStep(self, configurationAttributes, requestParameters, step):
         print "New Acr Link. Prepare for step %s" % step
         if (step == 1):
-            utils = Utils()
+
             identity = CdiUtil.bean(Identity)
 
             # Fetch NEW_ACR_VALUES from custom script attribute and setWorkingParameters
             for item in configurationAttributes:
                 if item.startswith('new_acr_values'):
                     acr_values = configurationAttributes.get(item).getValue2()
-                    new_authz_request_link = utils.getNewAcrValuesUrl(acr_values)
+                    new_authz_request_link = self.utils.getNewAcrValuesUrl(acr_values)
                     print "New Acr Link. Setting working parameter for item %s with value %s"  % (
                         item, new_authz_request_link
                     )
