@@ -101,8 +101,11 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             Function<JsonWebResponse, Void> postProcessing) throws Exception {
         JsonWebResponse jwr = idTokenFactory.createJwr(grant, nonce, authorizationCode, accessToken, refreshToken,
                 state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
-        return new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
+        final IdToken idToken = new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
                 jwr.getClaims().getClaimAsDate(JwtClaimName.EXPIRATION_TIME));
+        if (log.isTraceEnabled())
+            log.trace("Created id_token:" + idToken.getCode() );
+        return idToken;
     }
 
     @Override

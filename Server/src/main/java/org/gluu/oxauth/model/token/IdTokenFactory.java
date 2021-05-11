@@ -31,6 +31,7 @@ import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
+import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
@@ -59,6 +60,9 @@ import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
 @Stateless
 @Named
 public class IdTokenFactory {
+
+    @Inject
+    private Logger log;
 
     @Inject
     private ExternalDynamicScopeService externalDynamicScopeService;
@@ -270,6 +274,10 @@ public class IdTokenFactory {
 
         JsonWebResponse jwr = jwrService.createJwr(client);
         fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
+
+        if (log.isTraceEnabled())
+            log.trace("Created claims for id_token, claims: " + jwr.getClaims().toJsonString());
+
         return jwrService.encode(jwr, client);
     }
 
