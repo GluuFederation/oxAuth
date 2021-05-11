@@ -6,6 +6,15 @@
     - File name of downloaded basic_multi_auth script is: `BasicMultiAuthConfExternalAuthenticator.py`
     - File name of downloaded duo script is: `DuoExternalAuthenticator.py`
  - Make sure the ownership and permission for these two files are:
+   ```
+   [root@xxxx libs]# ll
+   total 36
+   -rw-r--r--. 1 root root 14033 May  6 12:25 BasicMultiAuthConfExternalAuthenticator.py
+   -rw-r--r--. 1 root root  9408 May  6 12:23 DuoExternalAuthenticator.py
+   -rw-r--r--. 1 root gluu  3018 Apr  4 02:24 duo_web.py
+   -rw-r--r--. 1 root gluu    61 Apr  4 02:21 python.txt
+
+   ```
  - Restart oxauth one time.
  - Both scripts should be enabled from oxTrust
  - Add third script which is a new one calling both BasicMultiAuth and Duo scripts
