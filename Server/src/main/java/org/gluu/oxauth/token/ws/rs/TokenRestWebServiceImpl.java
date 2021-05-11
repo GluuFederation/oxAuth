@@ -52,8 +52,6 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
 
-import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_REQUEST;
-
 /**
  * Provides interface for token REST web services
  *
@@ -176,7 +174,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             final SessionId sessionIdObj = sessionIdService.getSessionId(request);
             final Function<JsonWebResponse, Void> idTokenPreProcessing = JwrService.wrapWithSidFunction(idTokenTokingBindingPreprocessing, sessionIdObj != null ? sessionIdObj.getOutsideSid() : null);
 
-
             if (gt == GrantType.AUTHORIZATION_CODE) {
                 if (!TokenParamsValidator.validateGrantType(gt, client.getGrantTypes(), appConfiguration.getGrantTypesSupported())) {
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Grant types are invalid."), oAuth2AuditLog);
@@ -215,7 +212,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 }
 
                 AccessToken accToken = authorizationCodeGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response)); // create token after scopes are checked
-                log.debug("Issuing access token: {}", accToken.getCode());
 
                 IdToken idToken = null;
                 if (authorizationCodeGrant.getScopes().contains("openid")) {
@@ -450,10 +446,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             cibaGrant.getClient().getBackchannelTokenDeliveryMode() == BackchannelTokenDeliveryMode.POLL) {
                         if (!cibaGrant.isTokensDelivered()) {
                             RefreshToken refToken = cibaGrant.createRefreshToken();
-                            log.debug("Issuing refresh token: {}", refToken.getCode());
-
                             AccessToken accessToken = cibaGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
-                            log.debug("Issuing access token: {}", accessToken.getCode());
 
                             ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, cibaGrant, client, appConfiguration, attributeService);
                             Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
@@ -568,10 +561,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 throw new WebApplicationException(response(error(400, TokenErrorResponseType.INVALID_GRANT, "The client is not authorized."), oAuth2AuditLog));
             }
             RefreshToken refToken = deviceCodeGrant.createRefreshToken();
-            log.debug("Issuing refresh token: {}", refToken.getCode());
-
             AccessToken accessToken = deviceCodeGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
-            log.debug("Issuing access token: {}", accessToken.getCode());
 
             ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, deviceCodeGrant, client, appConfiguration, attributeService);
             Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);

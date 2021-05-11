@@ -191,6 +191,9 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             statService.reportAccessToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ACCESS_TOKEN_COUNT);
 
+            if (log.isTraceEnabled())
+                log.trace("Created plain access token: {}", accessToken.getCode());
+
             return accessToken;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -227,7 +230,11 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             runIntrospectionScriptAndInjectValuesIntoJwt(jwt, context);
         }
 
-        return jwtSigner.sign().toString();
+        final String accessTokenCode = jwtSigner.sign().toString();
+        if (log.isTraceEnabled())
+            log.trace("Created access token JWT: {}", accessTokenCode + ", claims: " + jwt.getClaims().toJsonString());
+
+        return accessTokenCode;
     }
 
     private void runIntrospectionScriptAndInjectValuesIntoJwt(Jwt jwt, ExecutionContext executionContext) {
