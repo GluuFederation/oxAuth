@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -154,12 +155,12 @@ public class StatWS {
 
     private long userCardinality(List<StatEntry> entries) {
         final StatEntry firstEntry = entries.get(0);
-        HLL hll = HLL.fromBytes(firstEntry.getUserHllData().getBytes(StandardCharsets.UTF_8));
+        HLL hll = HLL.fromBytes(Base64.getDecoder().decode(firstEntry.getUserHllData()));
 
         // Union hll
         if (entries.size() > 1) {
             for (int i = 1; i < entries.size(); i++) {
-                hll.union(HLL.fromBytes(entries.get(i).getUserHllData().getBytes(StandardCharsets.UTF_8)));
+                hll.union(HLL.fromBytes(Base64.getDecoder().decode(entries.get(i).getUserHllData())));
             }
         }
         return hll.cardinality();
