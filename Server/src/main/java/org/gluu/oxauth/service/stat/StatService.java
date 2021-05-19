@@ -153,7 +153,7 @@ public class StatService {
             currentEntry.setUserHllData(Base64.getEncoder().encodeToString(hll.toBytes()));
             currentEntry.getStat().setMonth(PERIOD_DATE_FORMAT.format(new Date()));
             entryManager.persist(currentEntry);
-            log.trace("Created stat entry.");
+            log.trace("Created stat entry. nodeId:" + nodeId);
         }
     }
 
@@ -165,10 +165,12 @@ public class StatService {
         try {
             nodeId = InetAddressUtility.getMACAddressOrNull();
             if (StringUtils.isNotBlank(nodeId)) {
+                log.trace("NodeId created: " + nodeId);
                 return;
             }
 
             nodeId = UUID.randomUUID().toString();
+            log.trace("NodeId created: " + nodeId);
         } catch (Exception e) {
             log.error("Failed to identify nodeId.", e);
             nodeId = UUID.randomUUID().toString();
