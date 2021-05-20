@@ -26,7 +26,7 @@ This diagram illustrates how script join CAS2 and DUO scripts internally. Result
  - Location Type: Ldap / Usage type: Web
  - Custom property ( key/value ): 
    - `cas_map_user`: false
-   - `cas_review_opt`: true
+   - `cas_renew_opt`: true
    - `cas_host`: [hostname_of_cas_server]
    - `duo_creds_file`: /etc/certs/duo_creds.json
    - `duo_host`: [api-abcd.duosecurity.com]
