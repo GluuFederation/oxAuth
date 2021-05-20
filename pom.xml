@@ -170,32 +170,32 @@
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-annotation</artifactId>
+				<artifactId>gluu-orm-annotation</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-ldap</artifactId>
+				<artifactId>gluu-orm-ldap</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-couchbase</artifactId>
+				<artifactId>gluu-orm-couchbase</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-hybrid</artifactId>
+				<artifactId>gluu-orm-hybrid</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-cdi</artifactId>
+				<artifactId>gluu-orm-cdi</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
-				<artifactId>oxcore-persistence-filter</artifactId>
+				<artifactId>gluu-orm-filter</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>

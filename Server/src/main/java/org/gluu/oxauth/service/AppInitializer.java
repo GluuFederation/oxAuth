@@ -49,7 +49,7 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.gluu.util.OxConstants;
 import org.gluu.util.StringHelper;
-import org.gluu.util.properties.FileConfiguration;
+import org.gluu.orm.util.properties.FileConfiguration;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.jboss.weld.util.reflection.ParameterizedTypeImpl;

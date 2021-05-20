@@ -318,23 +318,31 @@
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-annotation</artifactId>
+			<artifactId>gluu-orm-annotation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-ldap</artifactId>
+			<artifactId>gluu-orm-ldap</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-couchbase</artifactId>
+			<artifactId>gluu-orm-couchbase</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-hybrid</artifactId>
+			<artifactId>gluu-orm-sql</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-cdi</artifactId>
+			<artifactId>gluu-orm-spanner</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-hybrid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-cdi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
