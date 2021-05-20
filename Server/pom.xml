@@ -330,6 +330,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-sql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-spanner</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
 			<artifactId>gluu-orm-hybrid</artifactId>
 		</dependency>
 		<dependency>
