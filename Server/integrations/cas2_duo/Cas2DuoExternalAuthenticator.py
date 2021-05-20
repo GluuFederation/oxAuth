@@ -24,8 +24,8 @@ class PersonAuthentication(PersonAuthenticationType):
     def init(self, customScript, configurationAttributes):
         print "CAS2 + Duo. Initialization"
         
-        cas2_result = self.cas2ExternalAuthenticator.init(configurationAttributes)
-        duo_result = self.duoExternalAuthenticator.init(configurationAttributes)
+        cas2_result = self.cas2ExternalAuthenticator.init(customScript, configurationAttributes)
+        duo_result = self.duoExternalAuthenticator.init(customScript, configurationAttributes)
 
         print "CAS2 + Duo. Initialized successfully"
 
