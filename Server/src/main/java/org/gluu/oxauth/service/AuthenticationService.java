@@ -235,7 +235,7 @@ public class AuthenticationService {
 			// Use local LDAP server for user authentication
 			boolean authenticated = false;
 			try {
-				authenticated = ldapEntryManager.authenticate(user.getDn(), password);
+				authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
 			} catch (AuthenticationException ex) {
 				log.error("Authentication failed: " + ex.getMessage());
 				if (log.isDebugEnabled()) {
@@ -265,7 +265,7 @@ public class AuthenticationService {
 			}
 
 			// Use local LDAP server for user authentication
-			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), password);
+			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
 			if (authenticated) {
 				configureAuthenticatedUser(user);
 				updateLastLogonUserTime(user);
@@ -434,7 +434,7 @@ public class AuthenticationService {
 					if (user != null) {
 						String userDn = user.getDn();
 						log.debug("Attempting to authenticate userDN: {}", userDn);
-						if (ldapAuthEntryManager.authenticate(userDn, password)) {
+						if (ldapAuthEntryManager.authenticate(userDn, User.class, password)) {
 							log.debug("User authenticated: {}", userDn);
 
 							log.debug("Attempting to find userDN by local primary key: {}", localPrimaryKey);

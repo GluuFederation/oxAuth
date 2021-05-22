@@ -21,6 +21,8 @@ import org.gluu.persist.exception.AuthenticationException;
 import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.util.StringHelper;
 
+import com.couchbase.client.java.cluster.User;
+
 /**
  * Provides operations with authentication filters
  *
@@ -65,7 +67,7 @@ public class AuthenticationFilterService extends BaseAuthFilterService {
         bindPasswordAttribute = StringHelper.toLowerCase(bindPasswordAttribute);
 
         try {
-            boolean authenticated = ldapEntryManager.authenticate(resultDn, normalizedAttributeValues.get(bindPasswordAttribute));
+            boolean authenticated = ldapEntryManager.authenticate(resultDn, User.class, normalizedAttributeValues.get(bindPasswordAttribute));
             if (authenticated) {
                 return resultDn;
             }
