@@ -80,10 +80,6 @@ public class StatService {
 
             final Date now = new Date();
             prepareMonthlyBranch(now);
-            if (StringUtils.isBlank(monthlyDn)) {
-                log.error("Failed to initialize stat service. Failed to prepare monthly branch.");
-                return false;
-            }
             log.trace("Monthly branch created: " + monthlyDn);
 
             setupCurrentEntry(now);
@@ -192,12 +188,12 @@ public class StatService {
 
     private void prepareMonthlyBranch(Date now) {
         final String baseDn = getBaseDn();
+        final String month = PERIOD_DATE_FORMAT.format(now); // yyyyMM
+        monthlyDn = String.format("ou=%s,%s", month, baseDn); // ou=yyyyMM,ou=stat,o=gluu
+
         if (!entryManager.hasBranchesSupport(baseDn)) {
             return;
         }
-
-        final String month = PERIOD_DATE_FORMAT.format(now); // yyyyMM
-        monthlyDn = String.format("ou=%s,%s", month, baseDn); // ou=yyyyMM,ou=stat,o=gluu
 
         try {
             if (!entryManager.contains(monthlyDn, SimpleBranch.class)) { // Create ou=yyyyMM branch if needed
@@ -205,7 +201,6 @@ public class StatService {
             }
         } catch (Exception e) {
             log.error("Failed to prepare monthly branch: " + monthlyDn, e);
-            monthlyDn = null;
             throw e;
         }
     }
