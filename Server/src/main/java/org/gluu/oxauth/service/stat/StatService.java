@@ -101,10 +101,6 @@ public class StatService {
 
         Date now = new Date();
         prepareMonthlyBranch(now);
-        if (StringUtils.isBlank(monthlyDn)) {
-            log.error("Failed to update stat. Unable to prepare monthly branch.");
-            return;
-        }
 
         setupCurrentEntry(now);
 
