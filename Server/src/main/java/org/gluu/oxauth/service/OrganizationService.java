@@ -1,5 +1,6 @@
 package org.gluu.oxauth.service;
 
+import org.gluu.model.ApplicationType;
 import org.gluu.oxauth.model.GluuOrganization;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.persist.PersistenceEntryManager;
@@ -43,7 +44,7 @@ public class OrganizationService extends org.gluu.service.OrganizationService {
 
 	public GluuOrganization getOrganization() {
     	BaseCacheService usedCacheService = getCacheService();
-        return usedCacheService.getWithPut(OxConstants.CACHE_ORGANIZATION_KEY, () -> ldapEntryManager.find(GluuOrganization.class, getDnForOrganization()), ONE_MINUTE_IN_SECONDS);
+        return usedCacheService.getWithPut(OxConstants.CACHE_ORGANIZATION_KEY + "_" + getApplicationType(), () -> ldapEntryManager.find(GluuOrganization.class, getDnForOrganization()), ONE_MINUTE_IN_SECONDS);
 	}
 
 	public String getDnForOrganization() {
@@ -57,5 +58,10 @@ public class OrganizationService extends org.gluu.service.OrganizationService {
     	
     	return cacheService;
     }
+
+	@Override
+	public ApplicationType getApplicationType() {
+		return ApplicationType.OX_AUTH;
+	}
 
 }
