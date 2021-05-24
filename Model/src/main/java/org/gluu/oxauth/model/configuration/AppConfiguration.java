@@ -8,12 +8,15 @@ package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -107,7 +110,7 @@ public class AppConfiguration implements Configuration {
 
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
-    private List<String> cleanServiceBaseDns = Lists.newArrayList();
+    private Map<String, String> cleanServiceBaseDns = Maps.newHashMap();
 
     private Boolean keyRegenerationEnabled;
     private int keyRegenerationInterval;
@@ -1184,14 +1187,14 @@ public class AppConfiguration implements Configuration {
         this.cleanServiceBatchChunkSize = cleanServiceBatchChunkSize;
     }
 
-    public List<String> getCleanServiceBaseDns() {
+    public Map<String, String> getCleanServiceBaseDns() {
         if (cleanServiceBaseDns == null) {
-            cleanServiceBaseDns = Lists.newArrayList();
+            cleanServiceBaseDns = Maps.newHashMap();
         }
         return cleanServiceBaseDns;
     }
 
-    public void setCleanServiceBaseDns(List<String> cleanServiceBaseDns) {
+    public void setCleanServiceBaseDns(Map<String, String> cleanServiceBaseDns) {
         this.cleanServiceBaseDns = cleanServiceBaseDns;
     }
 
