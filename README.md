@@ -6,4 +6,4 @@ oxAuth currently implements all required aspects of the OpenID Connect stack, in
 
 **oxAuth is tightly coupled with [oxTrust](https://github.com/GluuFederation/oxTrust)**. 
 
-oxAuth configuration is stored in LDAP, and oxTrust is needed to generate the proper configuration. For deployment instructions, use the [Gluu Server documentation](https://gluu.org/docs/ce)
+oxAuth configuration is stored in LDAP, and oxTrust is needed to generate the proper configuration. For deployment instructions, use the [Gluu Server documentation](https://gluu.org/docs/gluu-server)
