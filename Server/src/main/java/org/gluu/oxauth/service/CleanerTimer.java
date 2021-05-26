@@ -29,7 +29,7 @@ import org.gluu.oxauth.model.fido.u2f.RegisterRequestMessageLdap;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.uma.UmaResource;
+import org.gluu.oxauth.model.uma.persistence.UmaResource;
 import org.gluu.oxauth.service.fido.u2f.RequestService;
 import org.gluu.oxauth.uma.authorization.UmaPCT;
 import org.gluu.oxauth.uma.service.UmaPctService;
