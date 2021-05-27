@@ -113,7 +113,7 @@ public class AppConfiguration implements Configuration {
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
 
-    @JsonSerialize(keyUsing = MapSerializer.class)
+    @JsonSerialize
     private Map<String, String> cleanServiceBaseDns = Maps.newHashMap();
 
     private Boolean keyRegenerationEnabled;
