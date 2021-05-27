@@ -7,6 +7,8 @@
 package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.MapSerializer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -110,6 +112,8 @@ public class AppConfiguration implements Configuration {
 
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
+
+    @JsonSerialize(keyUsing = MapSerializer.class)
     private Map<String, String> cleanServiceBaseDns = Maps.newHashMap();
 
     private Boolean keyRegenerationEnabled;
