@@ -20,6 +20,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.gluu.model.ApplicationType;
 import org.gluu.model.metric.ldap.MetricEntry;
 import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.config.StaticConfiguration;
@@ -88,6 +89,9 @@ public class CleanerTimer {
 
     @Inject
     private Event<TimerEvent> cleanerEvent;
+
+	@Inject
+	private MetricService metricService;
 
     private long lastFinishedTime;
 
@@ -194,7 +198,7 @@ public class CleanerTimer {
         cleanServiceBaseDns.put(String.format("ou=registration_requests,%s", u2fBase), RegisterRequestMessageLdap.class);
         cleanServiceBaseDns.put(String.format("ou=registered_devices,%s", u2fBase), DeviceRegistration.class);
         // cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getPeople(), User.class);
-        cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getMetric(), MetricEntry.class);
+        cleanServiceBaseDns.put(metricService.buildDn(null, null, ApplicationType.OX_AUTH), MetricEntry.class);
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getTokens(), TokenLdap.class);
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getAuthorizations(), ClientAuthorization.class);
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getScopes(), Scope.class);
