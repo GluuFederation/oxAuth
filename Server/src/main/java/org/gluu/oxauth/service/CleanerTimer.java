@@ -35,7 +35,6 @@ import org.gluu.oxauth.uma.authorization.UmaPCT;
 import org.gluu.oxauth.uma.service.UmaPctService;
 import org.gluu.oxauth.uma.service.UmaResourceService;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.model.base.DeletableEntity;
 import org.gluu.search.filter.Filter;
 import org.gluu.service.cache.CacheProvider;
 import org.gluu.service.cdi.async.Asynchronous;
@@ -48,7 +47,6 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -189,14 +187,6 @@ public class CleanerTimer {
         final String u2fBase = staticConfiguration.getBaseDn().getU2fBase();
 
         final Map<String, Class<?>> cleanServiceBaseDns = Maps.newHashMap();
-
-        for (Map.Entry<String, String> entry : appConfiguration.getCleanServiceBaseDns().entrySet()) {
-            try {
-                cleanServiceBaseDns.put(entry.getKey(), Class.forName(entry.getValue()));
-            } catch (Exception e) {
-                log.error("Failed to populate clean up map from cleanServiceBaseDns configuration property. dn:" + entry.getKey() + ", class: " + entry.getValue(), e);
-            }
-        }
 
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getClients(), Client.class);
         cleanServiceBaseDns.put(umaPctService.branchBaseDn(), UmaPCT.class);

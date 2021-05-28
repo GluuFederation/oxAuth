@@ -113,9 +113,6 @@ public class AppConfiguration implements Configuration {
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
 
-    @JsonSerialize
-    private Map<String, String> cleanServiceBaseDns = Maps.newHashMap();
-
     private Boolean keyRegenerationEnabled;
     private int keyRegenerationInterval;
     private String defaultSignatureAlgorithm;
@@ -1189,17 +1186,6 @@ public class AppConfiguration implements Configuration {
 
     public void setCleanServiceBatchChunkSize(int cleanServiceBatchChunkSize) {
         this.cleanServiceBatchChunkSize = cleanServiceBatchChunkSize;
-    }
-
-    public Map<String, String> getCleanServiceBaseDns() {
-        if (cleanServiceBaseDns == null) {
-            cleanServiceBaseDns = Maps.newHashMap();
-        }
-        return cleanServiceBaseDns;
-    }
-
-    public void setCleanServiceBaseDns(Map<String, String> cleanServiceBaseDns) {
-        this.cleanServiceBaseDns = cleanServiceBaseDns;
     }
 
     public Boolean getKeyRegenerationEnabled() {
