@@ -241,7 +241,7 @@ public class StatWS {
                     .labelNames(month)
                     .help("Monthly active users")
                     .register(registry)
-                    .labels("count")
+                    .labels(month)
                     .inc(item.getMonthlyActiveUsers());
 
 
