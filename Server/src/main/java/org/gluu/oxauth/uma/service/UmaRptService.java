@@ -306,7 +306,7 @@ public class UmaRptService {
     }
 
     public void addBranchIfNeeded() {
-        if (!containsBranch() && !containsBranch) {
+        if (ldapEntryManager.hasBranchesSupport(branchDn()) && !containsBranch() && !containsBranch) {
             addBranch();
         } else {
             containsBranch = true;
