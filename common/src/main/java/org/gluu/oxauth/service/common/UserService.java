@@ -20,9 +20,9 @@ import org.gluu.model.GluuStatus;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.cloud.spanner.impl.SpannerEntryManagerFactory;
 import org.gluu.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
+import org.gluu.service.DataSourceTypeService;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
@@ -43,6 +43,9 @@ public abstract class UserService {
 
     @Inject
     protected PersistenceEntryManager persistenceEntryManager;
+    
+    @Inject
+    protected DataSourceTypeService dataSourceTypeService;
 
     @Inject
     private InumService inumService;
@@ -83,7 +86,7 @@ public abstract class UserService {
 
 		String peopleBaseDn = getPeopleBaseDn();
 		Filter userUidFilter;
-		if (persistenceEntryManager.getPersistenceType(peopleBaseDn).equals(SpannerEntryManagerFactory.PERSISTENCE_TYPE)) {
+		if (dataSourceTypeService.isSpanner(peopleBaseDn)) {
 			userUidFilter = Filter.createEqualityFilter("uid", StringHelper.toLowerCase(userId));
 		} else {
 			userUidFilter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(userId));
@@ -152,10 +155,10 @@ public abstract class UserService {
         String inum = inumService.generatePeopleInum();
 
         user.setDn("inum=" + inum + "," + peopleBaseDN);
-        user.setAttribute("inum", inum);
+        user.setAttribute("inum", inum, false);
 
         GluuStatus status = active ? GluuStatus.ACTIVE : GluuStatus.REGISTER;
-        user.setAttribute("gluuStatus",  status.getValue());
+        user.setAttribute("gluuStatus",  status.getValue(), false);
 
         List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
     	if ((personCustomObjectClassList != null) && !personCustomObjectClassList.isEmpty()) {
@@ -253,10 +256,17 @@ public abstract class UserService {
 		}
 
 		log.debug("Getting user information from DB: {} = {}", ArrayHelper.toString(attributeNames), attributeValue);
+		
+		String peopleBaseDn = getPeopleBaseDn();
 
 		List<Filter> filters = new ArrayList<Filter>(); 
 		for (String attributeName : attributeNames) {
-			Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), attributeValue);
+			Filter filter;
+			if (dataSourceTypeService.isSpanner(peopleBaseDn)) {
+				filter = Filter.createEqualityFilter(attributeName, attributeValue);
+			} else {
+				filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), attributeValue);
+			}
 	        if (multiValued != null) {
 	        	filter.multiValued(multiValued);
 	        }
