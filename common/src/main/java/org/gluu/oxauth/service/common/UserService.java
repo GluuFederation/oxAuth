@@ -20,6 +20,7 @@ import org.gluu.model.GluuStatus;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.persist.cloud.spanner.impl.SpannerEntryManagerFactory;
 import org.gluu.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.ArrayHelper;
@@ -80,9 +81,15 @@ public abstract class UserService {
 			return null;
 		}
 
-		Filter userUidFilter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(userId));
+		String peopleBaseDn = getPeopleBaseDn();
+		Filter userUidFilter;
+		if (persistenceEntryManager.getPersistenceType(peopleBaseDn).equals(SpannerEntryManagerFactory.PERSISTENCE_TYPE)) {
+			userUidFilter = Filter.createEqualityFilter("uid", StringHelper.toLowerCase(userId));
+		} else {
+			userUidFilter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(userId));
+		}
 
-		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, userUidFilter, returnAttributes);
+		List<User> entries = persistenceEntryManager.findEntries(peopleBaseDn, User.class, userUidFilter, returnAttributes);
 		log.debug("Found {} entries for user id = {}", entries.size(), userId);
 
 		if (entries.size() > 0) {
