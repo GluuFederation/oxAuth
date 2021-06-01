@@ -156,6 +156,9 @@ public class UmaPermissionService {
     }
 
     public void addBranchIfNeeded(String clientDn) {
+        if (!ldapEntryManager.hasBranchesSupport(clientDn)) {
+            return;
+        }
         if (!containsBranch(clientDn)) {
             addBranch(clientDn);
         }
