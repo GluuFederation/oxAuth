@@ -48,7 +48,6 @@ public abstract class AbstractToken implements Serializable, Deletable {
     private boolean revoked;
     private boolean expired;
 
-    @AttributeName(name = "amr")
     private String authMode;
 
     @AttributeName(name = "ssnId")
