@@ -194,6 +194,7 @@ public class AppConfiguration implements Configuration {
     private String oxElevenDeleteKeyEndpoint;
 
     private Boolean introspectionAccessTokenMustHaveUmaProtectionScope = false;
+    private Boolean introspectionSkipAuthorization;
 
     private Boolean endSessionWithAccessToken;
     private String cookieDomain;
@@ -528,6 +529,15 @@ public class AppConfiguration implements Configuration {
 
     public void setIntrospectionAccessTokenMustHaveUmaProtectionScope(Boolean introspectionAccessTokenMustHaveUmaProtectionScope) {
         this.introspectionAccessTokenMustHaveUmaProtectionScope = introspectionAccessTokenMustHaveUmaProtectionScope;
+    }
+
+    public Boolean getIntrospectionSkipAuthorization() {
+        if (introspectionSkipAuthorization == null) introspectionSkipAuthorization = false;
+        return introspectionSkipAuthorization;
+    }
+
+    public void setIntrospectionSkipAuthorization(Boolean introspectionSkipAuthorization) {
+        this.introspectionSkipAuthorization = introspectionSkipAuthorization;
     }
 
     public Boolean getUmaRptAsJwt() {
