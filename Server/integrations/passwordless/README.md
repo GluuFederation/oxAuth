@@ -26,7 +26,7 @@ Additionally, there are some features worth noting:
 
 1. Log into oxTrust with admin credentials
 2. Visit `Configuration` > `Person Authentication Scripts`, click on `fido2` and ensure the script is flagged as enabled 
-3. If you want to support [Super Gluu](https://super.gluu.org/home/) as second factor too, enable the `super_gluu` script. Support for biometric authentication is available as well, for this purpose follow [these instructions](https://github.com/GluuFederation/docs-gluu-server-prod/blob/4.2/docs/source/authn-guide/BioID.md) 
+3. If you want to support [Super Gluu](https://super.gluu.org/home/) as second factor too, enable the `super_gluu` script. Support for biometric authentication is available as well, for this purpose follow [these instructions](https://www.gluu.org/docs/gluu-server/authn-guide/BioID/) 
 
 ### Add the passwordless script
 
