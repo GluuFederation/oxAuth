@@ -13,7 +13,7 @@ Additionally, there are some features worth noting:
 
 - [login hint](#login-hint) support 
 - [Account choice](#account-choice)
-- Configurable [authentication mechanisms for second factor](#?)
+- Configurable [authentication mechanisms for second factor](#authentication-mechanisms-for-second-factor)
 
 ## Flow setup
 
@@ -33,20 +33,20 @@ Additionally, there are some features worth noting:
 1. Log into oxTrust with admin credentials
 2. Visit `Configuration` > `Person Authentication Scripts`. At the bottom click on `Add custom script configuration` and fill values as follows:
    - For `name` use a meaningful identifier, like `passwordless`
-   - In the `script` field use the contents of this [file](?)
+   - In the `script` field use the contents of this [file](https://github.com/GluuFederation/oxAuth/raw/version_4.2.3/Server/integrations/passwordless/PasswordlessAuthentication.py)
    - Tick the `enabled` checkbox
    - For the rest of fields, you can accept the defaults
-3. Click on `Add new property`. On the left type `snd_step_methods`, on the right use `fido2,super_gluu` or whatever suits your needs best. See [Authentication mechanisms for second factor](#?) for more
+3. Click on `Add new property`. On the left type `snd_step_methods`, on the right use `fido2,super_gluu` or whatever suits your needs best. See [Authentication mechanisms for second factor](#authentication-mechanisms-for-second-factor) for more
 4. If `super_gluu` was listed in the previous step, click on `Add new property`. On the left type `supergluu_app_id`, on the right use `https://<your-gluu-host-name>/casa`. This is the URL (aka application ID) that Super Gluu enrollments are already (or will be) associated to.
 5. Scroll down and click on the `Update` button at the bottom of the page
 
 **Notes:**
 
-If you want to support Account choice see the [corresponding section](#).
+If you want to support Account choice see the [corresponding section](#account-choice).
 
 ### Transfer script assets to your server
 
-Extract [this file](?) to the root (ie. `/`) of your Gluu server. In a standard CE installation this means extraction should take place under `/opt/gluu-server`.
+Extract [this file](https://github.com/GluuFederation/oxAuth/raw/version_4.2.3/Server/integrations/passwordless/bundle.zip) to the root (ie. `/`) of your Gluu server. In a standard CE installation this means extraction should take place under `/opt/gluu-server`.
 
 The zip file contains UI pages (forms), associated javascript and CSS files, as well as miscellaneous python code required for the flow to run properly. When extracting use the `root` user. 
 
