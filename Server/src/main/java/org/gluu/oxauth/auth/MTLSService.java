@@ -81,15 +81,12 @@ public class MTLSService {
 
             final String subjectDn = client.getAttributes().getTlsClientAuthSubjectDn();
             if (StringUtils.isBlank(subjectDn)) {
-                log.debug(
-                        "SubjectDN is not set for client {} which is required to authenticate it via `tls_client_auth`.",
-                        client.getClientId());
+                log.debug("SubjectDN is not set for client {} which is required to authenticate it via `tls_client_auth`.", client.getClientId());
                 return false;
             }
 
-            // we check only `subjectDn`, the PKI certificate validation is performed by
-            // apache/httpd
-            if (subjectDn.equals(cert.getSubjectDN().getName())) {
+            // we check only `subjectDn`, the PKI certificate validation is performed by apache/httpd
+            if (CertUtils.equalsRdn(subjectDn, cert.getSubjectDN().getName())) {
                 log.debug("Client {} authenticated via `tls_client_auth`.", client.getClientId());
                 authenticatedSuccessfully(client, httpRequest);
 
