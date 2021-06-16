@@ -1,6 +1,15 @@
 package org.gluu.oxauth.uma.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaims;
@@ -9,21 +18,12 @@ import org.gluu.oxauth.uma.authorization.UmaPCT;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.SimpleBranch;
 import org.gluu.search.filter.Filter;
-import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
-import org.gluu.oxauth.model.config.StaticConfiguration;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * @author yuriyz on 05/31/2017.
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UmaPctService {
 
     public static final int DEFAULT_PCT_LIFETIME = 2592000;
@@ -101,7 +101,7 @@ public class UmaPctService {
     }
 
     public UmaPCT createPct(String clientId) {
-        String code = UUID.randomUUID().toString() + "_" + INumGenerator.generate(8);
+        String code = generateCode();
 
         UmaPCT pct = new UmaPCT(pctLifetime());
         pct.setCode(code);
@@ -166,6 +166,12 @@ public class UmaPctService {
 
         ldapEntryManager.persist(branch);
     }
+
+	private String generateCode() {
+		String code = UUID.randomUUID().toString();
+
+		return code;
+	}
 
     public String dn(String pctCode) {
         if (StringUtils.isBlank(pctCode)) {
