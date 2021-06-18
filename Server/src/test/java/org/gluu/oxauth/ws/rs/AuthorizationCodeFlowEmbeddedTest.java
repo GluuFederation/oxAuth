@@ -101,7 +101,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * using the refresh token.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 10)
     public void completeFlowStep1(final String authorizePath, final String userId, final String userSecret,
                                   final String redirectUri) throws Exception {
 
@@ -153,7 +153,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "validateTokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep1"}, priority = 10)
     public void completeFlowStep2(final String tokenPath, final String validateTokenPath, final String redirectUri)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -200,6 +200,8 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         }
     }
 
+    @Parameters({"tokenPath"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep2"}, priority = 10)
     public void completeFlowStep3(final String tokenPath, final String refreshToken) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
@@ -240,7 +242,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 20)
     public void completeFlowWithOptionalNonceStep1(final String authorizePath, final String userId,
                                                    final String userSecret, final String redirectUri) throws Exception {
 
@@ -293,7 +295,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "validateTokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep1"}, priority = 20)
     public void completeFlowWithOptionalNonceStep2(final String tokenPath, final String validateTokenPath,
                                                    final String redirectUri) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -343,6 +345,8 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         }
     }
 
+    @Parameters({"tokenPath"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep2"}, priority = 20)
     public void completeFlowWithOptionalNonceStep3(final String tokenPath, final String refreshToken) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
@@ -392,7 +396,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * must fail.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 30)
     public void revokeTokensStep1(final String authorizePath, final String userId, final String userSecret,
                                   final String redirectUri) throws Exception {
 
@@ -445,7 +449,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep1"}, priority = 30)
     public void revokeTokensStep2n3(final String tokenPath, final String redirectUri) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
         TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
@@ -517,7 +521,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep2n3"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep2n3"}, priority = 30)
     public void revokeTokensStep4(final String tokenPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
@@ -548,7 +552,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"userInfoPath"})
-    @Test(dependsOnMethods = "revokeTokensStep4")
+    @Test(dependsOnMethods = "revokeTokensStep4", priority = 30)
     public void revokeTokensStep5(final String userInfoPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + userInfoPath).request();
 
@@ -583,7 +587,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * @throws Exception
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 40)
     public void tokenExpirationStep1(final String authorizePath, final String userId, final String userSecret,
                                      final String redirectUri) throws Exception {
 
@@ -637,7 +641,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "tokenExpirationStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "tokenExpirationStep1"}, priority = 40)
     public void tokenExpirationStep2(final String tokenPath, final String redirectUri) throws Exception {
         // ...Wait until the authorization code expires...
         System.out.println("Sleeping for 20 seconds .....");
