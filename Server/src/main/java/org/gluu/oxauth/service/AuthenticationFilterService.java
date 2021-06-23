@@ -48,7 +48,7 @@ public class AuthenticationFilterService extends BaseAuthFilterService {
             return null;
         }
         final Map<String, String> normalizedAttributeValues = normalizeAttributeMap(attributeValues);
-        final String resultDn = loadEntryDN(ldapEntryManager, authenticationFilterWithParameters, normalizedAttributeValues);
+        final String resultDn = loadEntryDN(ldapEntryManager, User.class, authenticationFilterWithParameters, normalizedAttributeValues);
         if (StringUtils.isBlank(resultDn)) {
             return null;
         }
