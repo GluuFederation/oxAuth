@@ -45,7 +45,7 @@ public class ConsentGatheringSessionService {
 
     public SessionId getConnectSession(HttpServletRequest httpRequest) {
         String cookieId = cookieService.getSessionIdFromCookie(httpRequest);
-        log.trace("Cookie - session_id: ", cookieId);
+        log.trace("Cookie - session_id: {}", cookieId);
         if (StringUtils.isNotBlank(cookieId)) {
             return sessionIdService.getSessionId(cookieId);
         }
