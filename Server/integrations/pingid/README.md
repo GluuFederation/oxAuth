@@ -1,5 +1,7 @@
 # PingID MFA authentication script
 
+Official [doc](https://gluu.org/docs/gluu-server/4.2/integration/saas/pingid/).
+
 ## Overview
 
 This document describes how to integrate Ping Identity's PingID multifactor authentication with Gluu Server by means of an interception script. The script allows users to receive push notifications to their corresponding registered mobile devices in order to get access to applications protected by Gluu Server.
