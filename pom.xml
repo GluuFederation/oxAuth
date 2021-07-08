@@ -385,13 +385,6 @@
 				<version>1.4.7</version>
 			</dependency>
 
-			<!-- LDAP -->
-			<dependency>
-				<groupId>com.unboundid</groupId>
-				<artifactId>unboundid-ldapsdk</artifactId>
-				<version>4.0.14</version>
-			</dependency>
-
 			<!-- Metrics -->
 			<dependency>
 				<groupId>io.dropwizard.metrics</groupId>

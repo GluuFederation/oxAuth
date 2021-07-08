@@ -505,12 +505,6 @@
 			</exclusions>
 		</dependency>
 
-		<!-- LDAP -->
-		<dependency>
-			<groupId>com.unboundid</groupId>
-			<artifactId>unboundid-ldapsdk</artifactId>
-		</dependency>
-
 		<!-- Metrics -->
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
