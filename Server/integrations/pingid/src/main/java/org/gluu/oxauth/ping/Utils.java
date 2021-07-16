@@ -7,8 +7,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.HttpClient;
+import org.apache.http.HttpHost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
@@ -32,10 +34,20 @@ public class Utils {
     static {
         PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
         manager.setMaxTotal(200);
-	manager.setDefaultMaxPerRoute(20);
+	    manager.setDefaultMaxPerRoute(20);
         
-        RequestConfig config = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
-        HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config)
+        String proxyHost = System.getProperty("https.proxyHost");
+        String proxyPort = System.getProperty("https.proxyPort");
+        RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10 * 1000);
+        
+        if (StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPort)) {
+            logger.debug("Using https proxy {}:{}", proxyHost, proxyPort);
+            HttpHost proxy = new HttpHost(proxyHost, Integer.valueOf(proxyPort), "https");
+            configBuilder.setProxy(proxy);
+        }
+
+        HttpClient httpClient = HttpClientBuilder.create()
+                .setDefaultRequestConfig(configBuilder.build())
                 .setConnectionManager(manager).build();
         
         ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
