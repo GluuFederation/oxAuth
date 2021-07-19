@@ -19,7 +19,14 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -32,7 +39,7 @@ import java.util.Map;
 
 /**
  * Provides server with basic statistic.
- *
+ * <p>
  * https://github.com/GluuFederation/oxAuth/issues/1512
  * https://github.com/GluuFederation/oxAuth/issues/1321
  *
@@ -227,56 +234,65 @@ public class StatWS {
         return timeDiff >= timerInterval;
     }
 
-    private String createOpenMetricsResponse(StatResponse statResponse) throws IOException {
+    public static String createOpenMetricsResponse(StatResponse statResponse) throws IOException {
         Writer writer = new StringWriter();
         CollectorRegistry registry = new CollectorRegistry();
+
+        final Counter usersCounter = Counter.build()
+                .name("monthly_active_users")
+                .labelNames("month")
+                .help("Monthly active users")
+                .register(registry);
+
+        final Counter accessTokenCounter = Counter.build()
+                .name(StatService.ACCESS_TOKEN_KEY)
+                .labelNames("month", "grantType")
+                .help("Access Token")
+                .register(registry);
+
+        final Counter idTokenCounter = Counter.build()
+                .name(StatService.ID_TOKEN_KEY)
+                .labelNames("month", "grantType")
+                .help("Id Token")
+                .register(registry);
+
+        final Counter refreshTokenCounter = Counter.build()
+                .name(StatService.REFRESH_TOKEN_KEY)
+                .labelNames("month", "grantType")
+                .help("Refresh Token")
+                .register(registry);
+
+        final Counter umaTokenCounter = Counter.build()
+                .name(StatService.UMA_TOKEN_KEY)
+                .labelNames("month", "grantType")
+                .help("UMA Token")
+                .register(registry);
 
         for (Map.Entry<String, StatResponseItem> entry : statResponse.getResponse().entrySet()) {
             final String month = entry.getKey();
             final StatResponseItem item = entry.getValue();
 
-            Counter.build()
-                    .name("monthly_active_users")
-                    .labelNames("month")
-                    .help("Monthly active users")
-                    .register(registry)
+            usersCounter
                     .labels(month)
                     .inc(item.getMonthlyActiveUsers());
-
 
             for (Map.Entry<String, Map<String, Long>> tokenEntry : item.getTokenCountPerGrantType().entrySet()) {
                 final String grantType = tokenEntry.getKey();
                 final Map<String, Long> tokenMap = tokenEntry.getValue();
 
-                Counter.build()
-                        .name(StatService.ACCESS_TOKEN_KEY)
-                        .labelNames("month", "grantType")
-                        .help("Access Token")
-                        .register(registry)
+                accessTokenCounter
                         .labels(month, grantType)
                         .inc(getToken(tokenMap, StatService.ACCESS_TOKEN_KEY));
 
-                Counter.build()
-                        .name(StatService.ID_TOKEN_KEY)
-                        .labelNames("month", "grantType")
-                        .help("Id Token")
-                        .register(registry)
+                idTokenCounter
                         .labels(month, grantType)
                         .inc(getToken(tokenMap, StatService.ID_TOKEN_KEY));
 
-                Counter.build()
-                        .name(StatService.REFRESH_TOKEN_KEY)
-                        .labelNames("month", "grantType")
-                        .help("Refresh Token")
-                        .register(registry)
+                refreshTokenCounter
                         .labels(month, grantType)
                         .inc(getToken(tokenMap, StatService.REFRESH_TOKEN_KEY));
 
-                Counter.build()
-                        .name(StatService.UMA_TOKEN_KEY)
-                        .labelNames("month", "grantType")
-                        .help("UMA Token")
-                        .register(registry)
+                umaTokenCounter
                         .labels(month, grantType)
                         .inc(getToken(tokenMap, StatService.UMA_TOKEN_KEY));
             }
@@ -286,7 +302,7 @@ public class StatWS {
         return writer.toString();
     }
 
-    private long getToken(Map<String, Long> map, String key) {
+    private static long getToken(Map<String, Long> map, String key) {
         Long v = map.get(key);
         return v != null ? v : 0;
     }
