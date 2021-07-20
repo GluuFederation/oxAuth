@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 public class UserManagerBroker {
 
     enum Endpoints {
+        ADD_USER("https://idpxnyl3m.pingidentity.com/pingid/rest/4/adduser/do"),
         ACTIVATE_USER("https://idpxnyl3m.pingidentity.com/pingid/rest/4/activateuser/do"),
         GET_ACTIVATION_CODE("https://idpxnyl3m.pingidentity.com/pingid/rest/4/getactivationcode/do"),
         GET_USER_DETAILS("https://idpxnyl3m.pingidentity.com/pingid/rest/4/getuserdetails/do"),
+        DELETE_USER("https://idpxnyl3m.pingidentity.com/pingid/rest/4/deleteuser/do"),
         START_AUTHENTICATION("https://idpxnyl3m.pingidentity.com/pingid/rest/4/startauthentication/do"),
         AUTHENTICATE_ONLINE("https://idpxnyl3m.pingidentity.com/pingid/rest/4/authonline/do");
         
@@ -72,6 +74,28 @@ public class UserManagerBroker {
         return getResponseBody(Endpoints.ACTIVATE_USER.getUrl(), jwt);
     }
     
+    public JSONObject addUser() throws HttpException, TokenProcessingException {
+        
+        JSONObject body = new JSONObject();
+        body.put("deviceType", "MOBILE");
+        body.put("userName", userName);
+        body.put("role", "REGULAR");
+        
+        String jwt = signedJWT(body);
+        return getResponseBody(Endpoints.ADD_USER.getUrl(), jwt);
+
+    }
+    
+    public JSONObject deleteUser() throws HttpException, TokenProcessingException {
+
+        JSONObject body = new JSONObject();
+        body.put("userName", userName);
+        
+        String jwt = signedJWT(body);
+        return getResponseBody(Endpoints.DELETE_USER.getUrl(), jwt);
+
+    }
+    
     public JSONObject getActivationCode() throws HttpException, TokenProcessingException {
         //Both activateUser and this API operation have the same parameters
         String jwt = signedJwtForActivateUser();
@@ -85,7 +109,18 @@ public class UserManagerBroker {
         body.put("userName", userName);
         
         String jwt = signedJWT(body);
-        return getResponseBody(Endpoints.GET_USER_DETAILS.getUrl(), jwt);
+        try {
+            return getResponseBody(Endpoints.GET_USER_DETAILS.getUrl(), jwt);
+        } catch (HttpException e) {
+            //Mask the "not found" error
+            JSONObject errBody = tokenParser.parseKey(e.getResponse(), "responseBody");
+            //See ping ID API error codes 
+            if (errBody.getInt("errorId") == 10564) {
+                return errBody;
+            } else {
+                throw e;
+            }
+        }
         
     }
  
@@ -118,5 +153,5 @@ public class UserManagerBroker {
         byte bytes[] = Base64.getEncoder().encode(tmp.getBytes());
         return QRCODE_URL + "?" + new String(bytes, StandardCharsets.UTF_8);
     }
-    
+
 }

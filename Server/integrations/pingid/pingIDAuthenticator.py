@@ -35,8 +35,10 @@ class PersonAuthentication(PersonAuthenticationType):
         self.org_alias = self.configProperty("org_alias")
         self.authenticator_url = self.configProperty("authenticator_url")
         self.pingAttr = self.configProperty("pingUserAttr")
+        self.addNonExistent = False if self.configProperty("addNonExistentPingUser") == None else True
         
-        if StringHelper.isEmpty(use_base64_key) or StringHelper.isEmpty(self.token) or StringHelper.isEmpty(self.org_alias) or StringHelper.isEmpty(self.authenticator_url) or StringHelper.isEmpty(self.pingAttr):
+        if StringHelper.isEmpty(use_base64_key) or StringHelper.isEmpty(self.token) or StringHelper.isEmpty(self.org_alias) \
+            or StringHelper.isEmpty(self.authenticator_url) or StringHelper.isEmpty(self.pingAttr):
             print "PingID MFA. One or more required Script properties are missing. Check the docs"
             return False
         
@@ -81,22 +83,34 @@ class PersonAuthentication(PersonAuthenticationType):
                 user_name = credentials.getUsername()
                 user_password = credentials.getPassword()
     
-                if StringHelper.isEmptyString(user_name) or StringHelper.isEmptyString(user_password) or not authenticationService.authenticate(user_name, user_password):
+                if StringHelper.isEmptyString(user_name) or StringHelper.isEmptyString(user_password) or \
+                    not authenticationService.authenticate(user_name, user_password):
                     return False
 
-                print "PingID MFA. User '%s' has authenticated successfully" % user_name 
-                foundUser = authenticationService.getAuthenticatedUser()
-                remote = foundUser.getAttribute(self.pingAttr)
+                print "PingID MFA. User '%s' has authenticated successfully" % user_name
+                remote = self.remoteUserId(authenticationService.getAuthenticatedUser())
                 
                 if remote == None:
                     # Accept the local-only user
                     identity.setWorkingParameter("singleStep", "yes")
                     return True
+                else:
+                    print "PingID MFA. Local user '%s' mapped to remote '%s'" % (user_name, remote)
                 
                 client = UserManagerBroker(remote, self.org_alias, self.token, self.secret)
                 print "PingID MFA. Calling getUserDetails API endpoint"
-                userJson = client.getUserDetails().getJSONObject("userDetails")
+                userJson = client.getUserDetails()
+
+                # If user does not exist at ping side, create it if required
+                if userJson.isNull("userDetails"):
+                    if self.addNonExistent:
+                        userJson = client.addUser()
+                    else:
+                        # Fail
+                        self.setError("%s is not a PingID user" % remote)
+                        return False
                 
+                userJson = userJson.getJSONObject("userDetails")
                 ndevices = self.devicesCount(userJson)
                 print "PingID MFA. User has %d devices registered" % ndevices
                 
@@ -136,8 +150,8 @@ class PersonAuthentication(PersonAuthenticationType):
                         
                         return False
                     
-                    # This should be non null
-                    remote = foundUser.getAttribute(self.pingAttr)
+                    # This should evaluate non null
+                    remote = self.remoteUserId(foundUser)
     
                     client = UserManagerBroker(remote, self.org_alias, self.token, self.secret)
                     print "PingID MFA. Calling getUserDetails API endpoint"
@@ -164,6 +178,8 @@ class PersonAuthentication(PersonAuthenticationType):
         except HttpException as e:
             if e.getStatusCode() != None:
                 print "PingID MFA. HTTP status %d" % e.getStatusCode()
+            if e.getResponse() != None:
+                print "PingID MFA. HTTP response:", e.getResponse()
             print "PingID MFA. HTTP Error:", sys.exc_info()[1]
         
         # Assume failure by default
@@ -225,6 +241,9 @@ class PersonAuthentication(PersonAuthenticationType):
         prop = self.configProperties.get(name)
         return None if prop == None else prop.getValue2()
         
+    def remoteUserId(self, localUser):
+        # See class org.gluu.persist.model.base.SimpleUser
+        return localUser.getUserId() if self.pingAttr == "uid" else localUser.getAttribute(self.pingAttr) 
         
     def devicesCount(self, userJson):
         devices = userJson.optJSONArray("devicesDetails")

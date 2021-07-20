@@ -34,15 +34,17 @@ public class Utils {
     static {
         PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
         manager.setMaxTotal(200);
-	    manager.setDefaultMaxPerRoute(20);
+        manager.setDefaultMaxPerRoute(20);
         
         String proxyHost = System.getProperty("https.proxyHost");
         String proxyPort = System.getProperty("https.proxyPort");
         RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10 * 1000);
         
         if (StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPort)) {
-            logger.debug("Using https proxy {}:{}", proxyHost, proxyPort);
-            HttpHost proxy = new HttpHost(proxyHost, Integer.valueOf(proxyPort), "https");
+            String scheme = System.getProperty("https.proxyScheme", "http");
+            logger.debug("Using https proxy {}://{}:{}", scheme, proxyHost, proxyPort);
+
+            HttpHost proxy = new HttpHost(proxyHost, Integer.valueOf(proxyPort), scheme);
             configBuilder.setProxy(proxy);
         }
 
@@ -68,28 +70,26 @@ public class Utils {
     
     public static String post(String endpoint, String payload) throws HttpException {
         
-        int status;
-        String data;
+        String data = null;
         try {
             ResteasyWebTarget target = rsClient.target(endpoint);
-            logger.info("Sending payload of {} bytes to {}", payload.getBytes().length, endpoint);
+            logger.info("Sending payload to {}", endpoint);
             logger.debug("{}", payload);
 
             Response response = target.request().post(Entity.json(payload));        
             response.bufferEntity();
-            status = response.getStatus();
+            int status = response.getStatus();
             data = response.readEntity(String.class);
 
-            logger.debug("Response code was {}", status);
+            logger.debug("Response code was {} and body:\n{}", status, data);
             if (status == 200) {
-                logger.debug("Response body:\n{}", data);
                 return data;
+            } else {
+                throw new HttpException(status, "Unsuccessful response obtained", data); 
             }
         } catch (Exception e) {
-            throw new HttpException(e.getMessage(), e.getCause());
+            throw new HttpException(e.getMessage(), e.getCause(), data);
         }
-        logger.error("Response body:\n{}", data);
-        throw new HttpException(status, "Unsuccessful response obtained");        
         
     }
     
