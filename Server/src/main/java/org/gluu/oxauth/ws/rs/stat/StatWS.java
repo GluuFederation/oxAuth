@@ -5,6 +5,8 @@ import io.prometheus.client.Counter;
 import io.prometheus.client.exporter.common.TextFormat;
 import net.agkn.hll.HLL;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.common.AbstractToken;
+import org.gluu.oxauth.model.common.AuthorizationGrant;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.session.SessionClient;
@@ -12,6 +14,7 @@ import org.gluu.oxauth.model.stat.StatEntry;
 import org.gluu.oxauth.model.token.TokenErrorResponseType;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.stat.StatService;
+import org.gluu.oxauth.service.token.TokenService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.search.filter.Filter;
@@ -69,24 +72,27 @@ public class StatWS {
     @Inject
     private AppConfiguration appConfiguration;
 
+    @Inject
+    private TokenService tokenService;
+
     private long lastProcessedAt;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response statGet(@HeaderParam("Authorization") String authorization, @QueryParam("month") String month, @QueryParam("format") String format) {
-        return stat(month, format);
+        return stat(authorization, month, format);
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response statPost(@HeaderParam("Authorization") String authorization, @FormParam("month") String month, @FormParam("format") String format) {
-        return stat(month, format);
+        return stat(authorization, month, format);
     }
 
-    public Response stat(String month, String format) {
+    public Response stat(String authorization, String month, String format) {
         log.debug("Attempting to request stat, month: " + month + ", format: " + format);
 
-        validateAuthorization();
+        validateAuthorization(authorization);
         final List<String> months = validateMonth(month);
 
         if (!allowToRun()) {
@@ -191,11 +197,29 @@ public class StatWS {
         return hll.cardinality();
     }
 
-    private void validateAuthorization() {
-        SessionClient sessionClient = identity.getSessionClient();
-        if (sessionClient == null || sessionClient.getClient() == null) {
-            log.trace("Client is unknown. Skip stat processing.");
-            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.INVALID_CLIENT, "Failed to authenticate client.");
+    private void validateAuthorization(String authorization) {
+        log.trace("Validating authorization: " + authorization);
+
+        AuthorizationGrant grant = tokenService.getAuthorizationGrant(authorization);
+        if (grant == null) {
+            log.trace("Unable to find token by authorization: " + authorization);
+            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.ACCESS_DENIED, "Can't find grant for authorization.");
+        }
+
+        final AbstractToken accessToken = grant.getAccessToken(tokenService.getToken(authorization));
+        if (accessToken == null) {
+            log.trace("Unable to find token by authorization: " + authorization);
+            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.ACCESS_DENIED, "Can't find access token.");
+        }
+
+        if (accessToken.isExpired()) {
+            log.trace("Access Token is expired: " + accessToken.getCode());
+            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.ACCESS_DENIED, "Token expired.");
+        }
+
+        if (!grant.getScopesAsString().contains("stat")) {
+            log.trace("Access Token does NOT have 'stat' scope which is required to call Statistic Endpoint.");
+            throw errorResponseFactory.createWebApplicationException(Response.Status.UNAUTHORIZED, TokenErrorResponseType.ACCESS_DENIED, "stat scope is required for token.");
         }
     }
 
