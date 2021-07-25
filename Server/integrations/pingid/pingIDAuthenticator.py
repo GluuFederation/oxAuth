@@ -37,6 +37,11 @@ class PersonAuthentication(PersonAuthenticationType):
         self.pingAttr = self.configProperty("pingUserAttr")
         self.addNonExistent = False if self.configProperty("addNonExistentPingUser") == None else True
         
+        self.userMgmntApiHost = self.configProperty("pingUserAPIHost")
+        if self.userMgmntApiHost == None:
+            print "PingID MFA. No host for user management API defined. Using a default value"
+            self.userMgmntApiHost = "https://idpxnyl3m.pingidentity.com" 
+        
         if StringHelper.isEmpty(use_base64_key) or StringHelper.isEmpty(self.token) or StringHelper.isEmpty(self.org_alias) \
             or StringHelper.isEmpty(self.authenticator_url) or StringHelper.isEmpty(self.pingAttr):
             print "PingID MFA. One or more required Script properties are missing. Check the docs"
@@ -97,7 +102,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 else:
                     print "PingID MFA. Local user '%s' mapped to remote '%s'" % (user_name, remote)
                 
-                client = UserManagerBroker(remote, self.org_alias, self.token, self.secret)
+                client = UserManagerBroker(remote, self.org_alias, self.token, self.secret, self.userMgmntApiHost)
                 print "PingID MFA. Calling getUserDetails API endpoint"
                 userJson = client.getUserDetails()
 
@@ -153,7 +158,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     # This should evaluate non null
                     remote = self.remoteUserId(foundUser)
     
-                    client = UserManagerBroker(remote, self.org_alias, self.token, self.secret)
+                    client = UserManagerBroker(remote, self.org_alias, self.token, self.secret, self.userMgmntApiHost)
                     print "PingID MFA. Calling getUserDetails API endpoint"
                     userJson = client.getUserDetails().getJSONObject("userDetails")
                     
