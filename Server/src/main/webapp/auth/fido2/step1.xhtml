@@ -179,7 +179,7 @@
             function fillPlatforAuthenticatorField()
             {
             	
-		PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+				PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
 				  .then(function(available){
 				    if(available){
 				    	 document.getElementById("loginForm:platformAuthenticator").value = "true";
