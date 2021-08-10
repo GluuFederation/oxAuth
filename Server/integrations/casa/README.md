@@ -22,6 +22,6 @@ For the main script:
 |-|-|-|
 |`mobile_methods`|Click [here]( https://www.gluu.org/docs/casa/administration/2fa-basics/#associated-strength-of-credentials)|otp, twilio_sms, super_gluu|
 |supergluu_app_id|U2F application ID used by SuperGluu enrollments made using Casa, if any|`https://<your-host-name>/casa`|
-|u2f_app_id|U2F application ID used by FIDO (u2f( enrollments made using Casa, if any|`https://<your-host-name>`|
+|u2f_app_id|U2F application ID used by FIDO (u2f) enrollments made using Casa, if any|`https://<your-host-name>`|
 
 Auxiliary scripts require properties on their own. You can visit [this](https://www.gluu.org/docs/gluu-server/authn-guide/intro/) page to locate specific pages for every authentication method.
