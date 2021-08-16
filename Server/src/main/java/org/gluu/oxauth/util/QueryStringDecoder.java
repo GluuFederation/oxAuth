@@ -6,6 +6,8 @@
 
 package org.gluu.oxauth.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +35,11 @@ public class QueryStringDecoder {
                 String[] nameValue = param.split("=");
                 String name = nameValue.length > 0 ? nameValue[0] : "";
                 String value = nameValue.length > 1 ? nameValue[1] : "";
-                map.put(name, value);
+                try {
+                    map.put(name, URLDecoder.decode(value,"UTF-8"));
+                }catch(UnsupportedEncodingException e) {
+                    map.put(name,value);
+                }
             }
         }
 
