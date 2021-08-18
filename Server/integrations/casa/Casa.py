@@ -115,7 +115,8 @@ class PersonAuthentication(PersonAuthenticationType):
             credentials = identity.getCredentials()
             user_name = credentials.getUsername()
             user_password = credentials.getPassword()
-
+	    identity.setWorkingParameter("platformAuthenticatorAvailable",ServerUtil.getFirstValue(requestParameters, "loginForm:platformAuthenticator"))
+  
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
 
                 foundUser = userService.getUserByAttribute(self.uid_attr, user_name)
@@ -239,7 +240,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             list.addAll(Arrays.asList("ACR", "methods", "trustedDevicesInfo"))
 
-        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl"))
+        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl","platformAuthenticatorAvailable"))
         print "extras are %s" % list
         return list
 

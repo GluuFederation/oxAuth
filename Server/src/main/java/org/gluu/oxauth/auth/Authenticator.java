@@ -194,7 +194,6 @@ public class Authenticator {
 							|| servletRequest.getRequestURI().endsWith("/revoke")
 							|| servletRequest.getRequestURI().endsWith("/revoke_session")
 							|| servletRequest.getRequestURI().endsWith("/userinfo")
-							|| servletRequest.getRequestURI().endsWith("/stat")
 							|| servletRequest.getRequestURI().endsWith("/bc-authorize")
 							|| servletRequest.getRequestURI().endsWith("/device_authorization")))) {
 				boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);

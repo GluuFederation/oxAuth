@@ -216,7 +216,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         ResponseMode responseMode = ResponseMode.getByValue(respMode);
 
         Map<String, String> customParameters = requestParameterService.getCustomParameters(
-                QueryStringDecoder.decode(httpRequest.getQueryString()));
+                QueryStringDecoder.decode(httpRequest.getQueryString(),true));
 
         SessionId sessionUser = identity.getSessionId();
         User user = sessionIdService.getUser(sessionUser);
@@ -587,7 +587,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 sessionUser.setId(newSessionId);
                 log.trace("newSessionId = {}", newSessionId);
             }
-            if (!appConfiguration.getFapiCompatibility()) {
+            if (!appConfiguration.getFapiCompatibility() && appConfiguration.getSessionIdRequestParameterEnabled()) {
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SESSION_ID, sessionUser.getId());
             }
             redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SID, sessionUser.getOutsideSid());

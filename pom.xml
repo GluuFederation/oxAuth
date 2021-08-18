@@ -62,6 +62,10 @@
 			<url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
 		</repository>
 		<repository>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
 			<id>gluu</id>
 			<name>Gluu repository</name>
 			<url>https://ox.gluu.org/maven</url>
@@ -89,11 +93,8 @@
 		<module>persistence-model</module>
 		<module>Client</module>
 		<module>oxAuthStatic</module>
-		<module>RP</module>
-		<module>RP-Demo</module>
 		<module>common</module>
 		<module>Server</module>
-		<module>rp-spring-boot</module>
   </modules>
 
 	<dependencyManagement>

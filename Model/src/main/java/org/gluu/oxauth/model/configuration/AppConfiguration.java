@@ -7,10 +7,7 @@
 package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.MapSerializer;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
@@ -18,7 +15,6 @@ import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,6 +30,7 @@ public class AppConfiguration implements Configuration {
 
     public static final int DEFAULT_SESSION_ID_LIFETIME = 86400;
     public static final KeySelectionStrategy DEFAULT_KEY_SELECTION_STRATEGY = KeySelectionStrategy.OLDER;
+    public static final String DEFAULT_STAT_SCOPE = "jans_stat";
 
     private String issuer;
     private String baseEndpoint;
@@ -69,6 +66,7 @@ public class AppConfiguration implements Configuration {
     private Boolean umaRestrictResourceToAssociatedClient = false;
 
     private Boolean statEnabled = true;
+    private String statAuthorizationScope;
     private int statTimerIntervalInSeconds;
     private int statWebServiceIntervalLimitInSeconds;
 
@@ -889,6 +887,15 @@ public class AppConfiguration implements Configuration {
 
     public void setStatEnabled(Boolean statEnabled) {
         this.statEnabled = statEnabled;
+    }
+
+    public String getStatAuthorizationScope() {
+        if (statAuthorizationScope == null) statAuthorizationScope = DEFAULT_STAT_SCOPE;
+        return statAuthorizationScope;
+    }
+
+    public void setStatAuthorizationScope(String statAuthorizationScope) {
+        this.statAuthorizationScope = statAuthorizationScope;
     }
 
     public int getStatWebServiceIntervalLimitInSeconds() {
