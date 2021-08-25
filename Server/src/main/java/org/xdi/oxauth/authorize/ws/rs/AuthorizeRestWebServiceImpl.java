@@ -254,6 +254,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
                     // Validate redirectUri
                     redirectUri = redirectionUriService.validateRedirectionUri(clientId, redirectUri);
+                    log.trace("Validated URI: {}", redirectUri);
                     boolean validRedirectUri = redirectUri != null;
 
                     if (AuthorizeParamsValidator.validateResponseTypes(responseTypes, client)
@@ -639,6 +640,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                                 clientService.updatAccessTime(client, false);
                                 oAuth2AuditLog.setSuccess(true);
 
+                                log.trace("Preparing redirect to: {}", redirectUriResponse);
                                 builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse, httpRequest);
 
                                 if (appConfiguration.getCustomHeadersWithAuthorizationResponse()) {
