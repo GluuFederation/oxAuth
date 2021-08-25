@@ -229,6 +229,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             Client client = authorizeRestWebServiceValidator.validateClient(clientId, state);
             String deviceAuthzUserCode = deviceAuthorizationService.getUserCodeFromSession(httpRequest);
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, deviceAuthzUserCode, httpRequest);
+            log.trace("Validated URI: {}", redirectUri);
             checkAcrChanged(acrValuesStr, prompts, sessionUser); // check after redirect uri is validated
 
             RedirectUriResponse redirectUriResponse = new RedirectUriResponse(new RedirectUri(redirectUri, responseTypes, responseMode), state, httpRequest, errorResponseFactory);
@@ -602,6 +603,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             clientService.updateAccessTime(client, false);
             oAuth2AuditLog.setSuccess(true);
 
+            log.trace("Preparing redirect to: {}", redirectUriResponse.getRedirectUri());
             builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse.getRedirectUri(), httpRequest);
 
             if (appConfiguration.getCustomHeadersWithAuthorizationResponse()) {
