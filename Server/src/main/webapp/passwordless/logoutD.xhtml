@@ -1,0 +1,35 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	template="/casa/login-template.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}" />
+	</f:metadata>
+	<ui:define name="pageTitle">Logout - Impossible Travel detected</ui:define>
+
+	<ui:define name="maincontent">
+		<script >
+			
+			window.onload = function() {
+				var clientU = document.getElementById("clientU").value;
+				window.setTimeout(function(){ window.location = clientU ; },5000);
+			}
+		</script>
+		<section class="pa4 shadow-4 bg-blank gray cust-section"
+			id="logout_section">
+			<h2 class="f3 dark-blue2">Impossible travel detected</h2>
+			<div class="flex flex-row">
+					<div class="flex flex-column items-center pa3">
+						<h:inputHidden id="clientU" name="clientU"  value="#{identity.getWorkingParameter('clientU')}" ></h:inputHidden>
+						<p class="f4 tc">You will be logged out in 5 seconds </p>
+					</div>
+
+			</div>
+
+		</section>
+		
+	</ui:define>
+
+</ui:composition>
