@@ -1,4 +1,6 @@
 # Author: Jose Gonzalez
+# Author: Madhumita Subramaniam
+
 from java.lang import System
 from java.net import URLDecoder, URLEncoder
 from java.util import Arrays, ArrayList, Collections, HashMap
@@ -8,11 +10,10 @@ from org.gluu.oxauth.service.net import HttpService
 from javax.faces.application import FacesMessage
 from javax.servlet.http import Cookie
 from javax.faces.context import FacesContext
-
 from org.oxauth.persistence.model.configuration import GluuConfiguration
-
 from org.gluu.oxauth.security import Identity
 from org.gluu.oxauth.util import ServerUtil
+from org.gluu.service import CacheService
 from org.gluu.oxauth.service import AuthenticationService, UserService
 from org.gluu.oxauth.service.custom import CustomScriptService
 from org.gluu.model.custom.script import CustomScriptType
@@ -21,7 +22,7 @@ from org.gluu.model import SimpleCustomProperty
 from org.gluu.persist import PersistenceEntryManager
 from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.util import StringHelper
-
+from java.time import LocalDateTime, Duration
 from org.gluu.jsf2.message import FacesMessages
 
 try:
@@ -35,24 +36,26 @@ class PersonAuthentication(PersonAuthenticationType):
         self.currentTimeMillis = currentTimeMillis
         self.ACR_SG = "super_gluu"
         self.PREV_LOGIN_SETTING = "prevLoginsCookieSettings"
-        
         self.modulePrefix = "pwdless-external_"
+        # expiration time in seconds - adds up to 1 year
+        self.lockExpirationTime = 31536000 
+        
 
     def init(self, customScript, configurationAttributes):    	
-        print "Passwordless. init called"
+        print "Deduce Passwordless. init called"
         if not configurationAttributes.containsKey("DEDUCE_ENDPOINT"):
-            print "Deduce. Initialization. Property DEDUCE_ENDPOINT is mandatory"
+            print "Deduce Passwordless. Initialization. Property DEDUCE_ENDPOINT is mandatory"
             return False
         self.DEDUCE_ENDPOINT = configurationAttributes.get("DEDUCE_ENDPOINT").getValue2()
         
         if not configurationAttributes.containsKey("DEDUCE_SITE"):
-            print "Deduce. Initialization. Property DEDUCE_SITE is mandatory"
+            print "Deduce Passwordless. Initialization. Property DEDUCE_SITE is mandatory"
             return False
         self.DEDUCE_SITE = configurationAttributes.get("DEDUCE_SITE").getValue2()
         
         
         if not configurationAttributes.containsKey("DEDUCE_API_KEY"):
-            print "Deduce. Initialization. Property DEDUCE_API_KEY is mandatory"
+            print "Deduce Passwordless. Initialization. Property DEDUCE_API_KEY is mandatory"
             return False
         self.DEDUCE_API_KEY = configurationAttributes.get("DEDUCE_API_KEY").getValue2()
         
@@ -66,7 +69,7 @@ class PersonAuthentication(PersonAuthenticationType):
         dynamicMethods = self.computeMethods(configurationAttributes.get("snd_step_methods"), self.scriptsList)
 
         if len(dynamicMethods) > 0:
-            print "Passwordless. init. Loading scripts for dynamic modules: %s" % dynamicMethods
+            print "Deduce Passwordless. init. Loading scripts for dynamic modules: %s" % dynamicMethods
             
             for acr in dynamicMethods:
                 moduleName = self.modulePrefix + acr
@@ -74,7 +77,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     external = __import__(moduleName, globals(), locals(), ["PersonAuthentication"], -1)
                     module = external.PersonAuthentication(self.currentTimeMillis)
 
-                    print "Passwordless. init. Got dynamic module for acr %s" % acr
+                    print "Deduce Passwordless. init. Got dynamic module for acr %s" % acr
                     configAttrs = self.getConfigurationAttributes(acr, self.scriptsList)
                     
                     if acr == self.ACR_SG:
@@ -85,15 +88,15 @@ class PersonAuthentication(PersonAuthenticationType):
                         module.configAttrs = configAttrs
                         self.authenticators[acr] = module
                     else:
-                        print "Passwordless. init. Call to init in module '%s' returned False" % moduleName
+                        print "Deduce Passwordless. init. Call to init in module '%s' returned False" % moduleName
                 except:
-                    print "Passwordless. init. Failed to load module %s" % moduleName
+                    print "Deduce Passwordless. init. Failed to load module %s" % moduleName
                     print "Exception: ", sys.exc_info()[1]
         else:
-            print "Passwordless. init. Not enough custom scripts enabled. Check config property 'snd_step_methods'"
+            print "Deduce Passwordless. init. Not enough custom scripts enabled. Check config property 'snd_step_methods'"
             return False
         
-        print "Passwordless. init. Initialized successfully"
+        print "Deduce Passwordless. init. Initialized successfully"
         return True
 
     def destroy(self, configurationAttributes):
@@ -112,7 +115,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return None
 
     def authenticate(self, configurationAttributes, requestParameters, step):
-        print "Passwordless. authenticate for step %d" % step
+        print "Deduce Passwordless. authenticate for step %d" % step
 
         userService = CdiUtil.bean(UserService)
         authenticationService = CdiUtil.bean(AuthenticationService)
@@ -125,7 +128,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 foundUser = userService.getUserByAttribute(self.uid_attr, user_name)
                 
                 if foundUser == None:
-                    print "Passwordless. Unknown username '%s'" % user_name
+                    print "Deduce Passwordless. Unknown username '%s'" % user_name
                 elif authenticationService.authenticate(user_name):
                     availMethods = self.getAvailMethodsUser(foundUser)
                     
@@ -139,41 +142,29 @@ class PersonAuthentication(PersonAuthenticationType):
                     action = "auth.success"
                     impossibleTravel = self.sendInsightsRequest(ip, email, platform["name"], action)
                     if (impossibleTravel is True):
-                        identity.setWorkingParameter("impossibleTravel","true")
-                    print "setting impossible travel: %s" % str(impossibleTravel)
-                    
-                    client_id =  self.getSessionAttribute("client_id")
-        
-                    clientService = CdiUtil.bean(ClientService)
-                    client = clientService.getClient(client_id)
-                    if client == None:
-                        print "Deduce.  Failed to find client '%s' in local LDAP" % client_id
-                        return None
-                    # deduce - impossible travel feature ends
-                    
-                    identity.setWorkingParameter("clientU",client.getPostLogoutRedirectUris()[0])
-                    
-                    if availMethods.size() > 0:
-                        acr = availMethods.get(0)
-                        print "Passwordless. Method to try in 2nd step will be: %s" % acr
-                        
-                        module = self.authenticators[acr]
-                        logged_in = module.authenticate(module.configAttrs, requestParameters, step)
-                        
-                        if logged_in:
-                            identity.setWorkingParameter("ACR", acr)
-                            print "Passwordless. Authentication passed for step %d" % step
-                            return True
-                            
+                        self.lockUser(user_name)
                     else:
-                        self.setError("Cannot proceed. You don't have suitable credentials for passwordless login")
+                        if availMethods.size() > 0:
+                            acr = availMethods.get(0)
+                            print "Deduce Passwordless. Method to try in 2nd step will be: %s" % acr
+                            
+                            module = self.authenticators[acr]
+                            logged_in = module.authenticate(module.configAttrs, requestParameters, step)
+                            
+                            if logged_in:
+                                identity.setWorkingParameter("ACR", acr)
+                                print "Deduce Passwordless. Authentication passed for step %d" % step
+                                return True
+                            
+                        else:
+                            self.setError("Cannot proceed. You don't have suitable credentials for passwordless login")
                 else:
                     self.setError("Wrong username or password")
         else:
             print "authenticate step 2"
             user = authenticationService.getAuthenticatedUser()
             if user == None:
-                print "Passwordless. authenticate for step 2. Cannot retrieve logged user"
+                print "Deduce Passwordless. authenticate for step 2. Cannot retrieve logged user"
                 return False
 
             #see alternative.xhtml
@@ -196,11 +187,11 @@ class PersonAuthentication(PersonAuthenticationType):
                 success = module.authenticate(module.configAttrs, requestParameters, step)
 
             if success:
-                print "Passwordless. authenticate. 2FA authentication was successful"
+                print "Deduce Passwordless. authenticate. 2FA authentication was successful"
                 if self.prevLoginsSettings != None:
                     self.persistCookie(user)
             else:
-                print "Passwordless. authenticate. 2FA authentication failed"
+                print "Deduce Passwordless. authenticate. 2FA authentication failed"
 
             return success
             
@@ -208,7 +199,7 @@ class PersonAuthentication(PersonAuthenticationType):
         
 
     def prepareForStep(self, configurationAttributes, requestParameters, step):
-        print "Passwordless. prepareForStep %d" % step
+        print "Deduce Passwordless. prepareForStep %d" % step
 
         identity = CdiUtil.bean(Identity)
         session_attributes = identity.getSessionId().getSessionAttributes()
@@ -216,7 +207,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if step == 1:
             try:
                 loginHint = session_attributes.get("login_hint")
-                print "Passwordless. prepareForStep. Login hint is %s" % loginHint
+                print "Deduce Passwordless. prepareForStep. Login hint is %s" % loginHint
                 isLoginHint = loginHint != None
                 
                 if self.prevLoginsSettings == None:
@@ -239,7 +230,7 @@ class PersonAuthentication(PersonAuthenticationType):
             
                 # In login.xhtml both loginHint and users are used to properly display the login form
             except:
-                print "Passwordless. prepareForStep. Error!", sys.exc_info()[1]
+                print "Deduce Passwordless. prepareForStep. Error!", sys.exc_info()[1]
                 
             return True
             
@@ -247,11 +238,11 @@ class PersonAuthentication(PersonAuthenticationType):
             user = CdiUtil.bean(AuthenticationService).getAuthenticatedUser()
 
             if user == None:
-                print "Passwordless. prepareForStep. Cannot retrieve logged user"
+                print "Deduce Passwordless. prepareForStep. Cannot retrieve logged user"
                 return False
                 
             acr = session_attributes.get("ACR")
-            print "Passwordless. prepareForStep. ACR = %s" % acr
+            print "Deduce Passwordless. prepareForStep. ACR = %s" % acr
             
             identity.setWorkingParameter("methods", ArrayList(self.getAvailMethodsUser(user, acr)))
 
@@ -263,9 +254,8 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getExtraParametersForStep(self, configurationAttributes, step):
 
-        print "Passwordless. getExtraParametersForStep %d" % step
+        print "Deduce Passwordless. getExtraParametersForStep %d" % step
         list = ArrayList()
-        list.addAll(Arrays.asList("impossibleTravel","clientU"))
         if step > 1:
             acr = CdiUtil.bean(Identity).getWorkingParameter("ACR")
 
@@ -285,37 +275,27 @@ class PersonAuthentication(PersonAuthenticationType):
     def getPageForStep(self, configurationAttributes, step):
         if step > 1:
             identity = CdiUtil.bean(Identity)
-            impossibleTravel = identity.getWorkingParameter("impossibleTravel")
-            
-            if impossibleTravel == "true":
-                print "getPageForStep -  impossibleTravel %s" % impossibleTravel
-                return "/passwordless/logoutD.xhtml"
-            else:
-                acr = CdiUtil.bean(Identity).getWorkingParameter("ACR")
-                if acr in self.authenticators:
-                    module = self.authenticators[acr]
-                    page = module.getPageForStep(module.configAttrs, step)
-                    
-                    print "Passwordless. getPageForStep %d is %s" % (step, page)                
-                    return page
+            acr = CdiUtil.bean(Identity).getWorkingParameter("ACR")
+            if acr in self.authenticators:
+                module = self.authenticators[acr]
+                page = module.getPageForStep(module.configAttrs, step)
                 
-        return "/passwordless/loginD.xhtml"
+                print "Deduce Passwordless. getPageForStep %d is %s" % (step, page)                
+                return page
+                
+        return "/auth/deduce/loginD.xhtml"
 
     def getNextStep(self, configurationAttributes, requestParameters, step):
-        print "Passwordless. getNextStep called %d" % step
+        print "Deduce Passwordless. getNextStep called %d" % step
         identity = CdiUtil.bean(Identity)
         if step > 1:
             session_attributes = identity.getSessionId().getSessionAttributes()
             acr = session_attributes.get("alternativeMethod")
             if acr != None:
-                print "Passwordless. getNextStep. Use alternative method %s" % acr
+                print "Deduce Passwordless. getNextStep. Use alternative method %s" % acr
                 CdiUtil.bean(Identity).setWorkingParameter("ACR", acr)
                 #retry step with different acr
                 return 2
-        #impossibleTravel = identity.getWorkingParameter("impossibleTravel")
-        #if impossibleTravel == "true":
-            #print "Passwordless. getNextStep called. setting step 2"  
-            #return 2
         return -1
 
     def logout(self, configurationAttributes, requestParameters):
@@ -329,7 +309,7 @@ class PersonAuthentication(PersonAuthenticationType):
         config = entryManager.find(config.getClass(), "ou=configuration,o=gluu")
         #Pick (one) attribute where user id is stored (e.g. uid/mail)
         uid_attr = config.getOxIDPAuthentication().get(0).getConfig().getPrimaryKey()
-        print "Passwordless. init. uid attribute is '%s'" % uid_attr
+        print "Deduce Passwordless. init. uid attribute is '%s'" % uid_attr
         return uid_attr
 
 
@@ -349,7 +329,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 if customScript.getName() == m and customScript.isEnabled():
                     methods.append(m)
 
-        print "Passwordless. computeMethods. %s" % methods
+        print "Deduce Passwordless. computeMethods. %s" % methods
         return methods
 
 
@@ -361,7 +341,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 for prop in customScript.getConfigurationProperties():
                     configMap.put(prop.getValue1(), SimpleCustomProperty(prop.getValue1(), prop.getValue2()))
 
-        print "Passwordless. getConfigurationAttributes. %d configuration properties were found for %s" % (configMap.size(), acr)
+        print "Deduce Passwordless. getConfigurationAttributes. %d configuration properties were found for %s" % (configMap.size(), acr)
         return configMap
 
 
@@ -374,10 +354,10 @@ class PersonAuthentication(PersonAuthenticationType):
                 if module.hasEnrollments(module.configAttrs, user) and (skip == None or skip != method):
                     methods.add(method)
             except:
-                print "Passwordless. getAvailMethodsUser. hasEnrollments call could not be issued for %s module" % method
+                print "Deduce Passwordless. getAvailMethodsUser. hasEnrollments call could not be issued for %s module" % method
                 print "Exception: ", sys.exc_info()[1]
 
-        print "Passwordless. getAvailMethodsUser %s" % methods.toString()
+        print "Deduce Passwordless. getAvailMethodsUser %s" % methods.toString()
         return methods
 
 
@@ -387,26 +367,26 @@ class PersonAuthentication(PersonAuthenticationType):
         # isValidAuthenticationMethod (by restriction, it returns True)
         # prepareForStep (by restriction, it returns True)
         # getExtraParametersForStep (by restriction, it returns None)
-        print "Passwordless. simulateFirstStep. Calling authenticate (step 1) for %s module" % acr
+        print "Deduce Passwordless. simulateFirstStep. Calling authenticate (step 1) for %s module" % acr
         if acr in self.authenticators:
             module = self.authenticators[acr]
             auth = module.authenticate(module.configAttrs, requestParameters, 1)
-            print "Passwordless. simulateFirstStep. returned value was %s" % auth
+            print "Deduce Passwordless. simulateFirstStep. returned value was %s" % auth
             
     def computePrevLoginsSettings(self, customProperty):
         settings = None
         if customProperty == None:
-            print "Passwordless. Previous logins feature is not configured. Set config property '%s' if desired" % self.PREV_LOGIN_SETTING
+            print "Deduce Passwordless. Previous logins feature is not configured. Set config property '%s' if desired" % self.PREV_LOGIN_SETTING
         else:
             try:
                 settings = json.loads(customProperty.getValue2())
                 if settings['enabled']:
-                	print "Passwordless. PrevLoginsSettings are %s" % settings
+                	print "Deduce Passwordless. PrevLoginsSettings are %s" % settings
                 else:
                     settings = None
-                    print "Passwordless. Previous logins feature is disabled"
+                    print "Deduce Passwordless. Previous logins feature is disabled"
             except:
-                print "Passwordless. Unparsable config property '%s'" % self.PREV_LOGIN_SETTING
+                print "Deduce Passwordless. Unparsable config property '%s'" % self.PREV_LOGIN_SETTING
             
         return settings
         
@@ -421,9 +401,9 @@ class PersonAuthentication(PersonAuthenticationType):
                    coo = cookie
         
         if coo == None:
-            print "Passwordless. getCookie. No cookie found"
+            print "Deduce Passwordless. getCookie. No cookie found"
         else:
-            print "Passwordless. getCookie. Found cookie"
+            print "Deduce Passwordless. getCookie. Found cookie"
             forgetMs = self.prevLoginsSettings['forgetEntriesAfterMinutes'] * 60 * 1000
             
             try:
@@ -437,7 +417,7 @@ class PersonAuthentication(PersonAuthenticationType):
                         ulist.append(v)        
                 # print "==========", ulist
             except:
-                print "Passwordless. getCookie. Unparsable value, dropping cookie..."
+                print "Deduce Passwordless. getCookie. Unparsable value, dropping cookie..."
             
         return ulist
         
@@ -474,7 +454,7 @@ class PersonAuthentication(PersonAuthenticationType):
             
             excess = len(users) - self.prevLoginsSettings['maxListSize']            
             if excess > 0:
-                print "Passwordless. persistCookie. Shortening list..."
+                print "Deduce Passwordless. persistCookie. Shortening list..."
                 users = users[:self.prevLoginsSettings['maxListSize']]
             
             value = json.dumps(users, separators=(',',':'))
@@ -487,17 +467,17 @@ class PersonAuthentication(PersonAuthenticationType):
             
             response = self.getHttpResponse()
             if response != None:
-                print "Passwordless. persistCookie. Adding cookie to response"
+                print "Deduce Passwordless. persistCookie. Adding cookie to response"
                 response.addCookie(coo)
         except:
-            print "Passwordless. persistCookie. Exception: ", sys.exc_info()[1]
+            print "Deduce Passwordless. persistCookie. Exception: ", sys.exc_info()[1]
 
 
     def getHttpResponse(self):
         try:
             return FacesContext.getCurrentInstance().getExternalContext().getResponse()
         except:
-            print "Passwordless. Error accessing HTTP response object: ", sys.exc_info()[1]
+            print "Deduce Passwordless. Error accessing HTTP response object: ", sys.exc_info()[1]
             return None
    
     def getSessionAttribute(self, attribute_name):
@@ -524,18 +504,18 @@ class PersonAuthentication(PersonAuthenticationType):
         data = { "site":self.DEDUCE_SITE,"apikey":self.DEDUCE_API_KEY,"ip":ip, "email":email,"user_agent":platform, "action": action }
         payload = json.dumps(data) 
         headers = {  "Accept" : "application/json" }
-        print "payload %s " % payload
+        print "Deduce Passwordless. payload %s " % payload
         try:
             http_service_response = httpService.executePost(http_client, self.DEDUCE_ENDPOINT, None, headers, payload)
             http_response = http_service_response.getHttpResponse()
             print "http_response %s" % http_response
         except:
-            print "Deduce. Exception: ", sys.exc_info()[1]
+            print "Deduce Passwordless. Exception: ", sys.exc_info()[1]
             return False
 
         try:
             if not httpService.isResponseStastusCodeOk(http_response):
-                print "Deduce. Got invalid response from validation server: ", str(http_response.getStatusLine().getStatusCode())
+                print "Deduce Passwordless. Got invalid response from validation server: ", str(http_response.getStatusLine().getStatusCode())
                 httpService.consume(http_response)
                 return False
     
@@ -544,13 +524,40 @@ class PersonAuthentication(PersonAuthenticationType):
             print "response_string %s" %response_string
             httpService.consume(http_response)
             if ("IMPOSSIBLE_TRAVEL" in response_string):
-                print "IMPOSSIBLE_TRAVEL true"
                 return True
         finally:
             http_service_response.closeConnection()
 
         if response_string is None:
-            print "Deduce. Got empty response from validation server"
+            print "Deduce Passwordless. Got empty response from validation server"
             return False
         
         return False  
+    
+    def lockUser(self, user_name):
+        if StringHelper.isEmpty(user_name):
+            return None
+
+        userService = CdiUtil.bean(UserService)
+        cacheService= CdiUtil.bean(CacheService)
+       
+        find_user_by_uid = userService.getUser(user_name)
+        if (find_user_by_uid == None):
+            return None
+
+        status_attribute_value = userService.getCustomAttribute(find_user_by_uid, "gluuStatus")
+        if status_attribute_value != None:
+            user_status = status_attribute_value.getValue()
+            if StringHelper.equals(user_status, "inactive"):
+                print "Deduce Passwordless. (lock account). Lock user. User '%s' locked already" % user_name
+                return 
+        
+        userService.setCustomAttribute(find_user_by_uid, "gluuStatus", "inactive")
+        updated_user = userService.updateUser(find_user_by_uid)
+
+        object_to_store = json.dumps({'locked': True, 'created': LocalDateTime.now().toString()}, separators=(',',':'))
+
+        cacheService.put(StringHelper.toString(self.lockExpirationTime), "lock_user_"+user_name, object_to_store);
+        self.setError( "Impossible travel detected. Your account has been locked. Please contact the administrator")
+
+        print "Deduce Passwordless. (lock account). Lock user. User '%s' locked" % user_name
