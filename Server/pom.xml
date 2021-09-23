@@ -603,6 +603,12 @@
             <artifactId>annotations</artifactId>
         </dependency>
 
+		<!-- Time -->
+		<dependency>
+		    <groupId>joda-time</groupId>
+		    <artifactId>joda-time</artifactId>
+		</dependency>
+
 		<!-- Test -->
 		<dependency>
 			<groupId>org.gluu</groupId>
