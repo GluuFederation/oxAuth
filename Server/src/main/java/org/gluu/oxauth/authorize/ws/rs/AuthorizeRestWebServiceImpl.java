@@ -744,7 +744,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
                     sessionUser.setState(SessionIdState.UNAUTHENTICATED);
                     sessionUser.getSessionAttributes().put("prompt", org.gluu.oxauth.model.util.StringUtils.implode(prompts, " "));
-                    sessionIdService.persistSessionId(sessionUser);
+                    if (!sessionIdService.persistSessionId(sessionUser)) {
+                        log.trace("Unable persist session_id, try to update it.");
+                        sessionIdService.updateSessionId(sessionUser);
+                    }
+
                     sessionIdService.externalEvent(new SessionEvent(SessionEventType.UNAUTHENTICATED, sessionUser));
                 }
             } else {
