@@ -128,6 +128,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     @Inject
     private CIBARegisterClientResponseService cibaRegisterClientResponseService;
 
+    @Inject
+    private AuthorizationGrantList authorizationGrantList;
+
     @Override
     public Response requestRegister(String requestParams, HttpServletRequest httpRequest, SecurityContext securityContext) {
         com.codahale.metrics.Timer.Context timerContext = metricService.getTimer(MetricType.DYNAMIC_CLIENT_REGISTRATION_RATE).time();
@@ -695,7 +698,18 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             final String accessToken = tokenService.getToken(authorization);
 
             if (StringUtils.isNotBlank(accessToken) && StringUtils.isNotBlank(clientId) && StringUtils.isNotBlank(requestParams)) {
-                final RegisterRequest request = RegisterRequest.fromJson(requestParams, appConfiguration.getLegacyDynamicRegistrationScopeParam());
+                validateAuthorizationAccessToken(accessToken, clientId);
+
+                JSONObject requestObject = new JSONObject(requestParams);
+                final JSONObject softwareStatement = validateSoftwareStatement(httpRequest, requestObject);
+                if (softwareStatement != null) {
+                    log.trace("Override request parameters by software_statement");
+                    for (String key : softwareStatement.keySet()) {
+                        requestObject.putOpt(key, softwareStatement.get(key));
+                    }
+                }
+
+                final RegisterRequest request = RegisterRequest.fromJson(requestObject, appConfiguration.getLegacyDynamicRegistrationScopeParam());
                 if (request != null) {
                     boolean redirectUrisValidated = true;
                     if (request.getRedirectUris() != null && !request.getRedirectUris().isEmpty()) {
@@ -777,6 +791,46 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         }
         applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return internalErrorResponse("Unknown.").build();
+    }
+
+    private void validateAuthorizationAccessToken(String accessToken, String clientId) {
+        if (StringUtils.isBlank(accessToken) || StringUtils.isBlank(clientId)) {
+            log.trace("Access Token or clientId is blank.");
+            throw new WebApplicationException(Response.
+                    status(Response.Status.BAD_REQUEST).
+                    type(MediaType.APPLICATION_JSON_TYPE).
+                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token is not valid for the Client ID."))
+                    .build());
+        }
+
+        final AuthorizationGrant grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
+        if (grant == null) {
+            log.trace("Unable to find grant by access token: {}", accessToken);
+            throw new WebApplicationException(Response.
+                    status(Response.Status.BAD_REQUEST).
+                    type(MediaType.APPLICATION_JSON_TYPE).
+                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token grant is not found."))
+                    .build());
+        }
+
+        final AbstractToken accessTokenObj = grant.getAccessToken(accessToken);
+        if (accessTokenObj == null || !accessTokenObj.isValid()) {
+            log.trace("Unable to find access token object or otherwise it's expired.");
+            throw new WebApplicationException(Response.
+                    status(Response.Status.BAD_REQUEST).
+                    type(MediaType.APPLICATION_JSON_TYPE).
+                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token object is not found or otherwise expired."))
+                    .build());
+        }
+
+        if (!clientId.equals(grant.getClientId())) {
+            log.trace("ClientId from request does not match to access token's client id.");
+            throw new WebApplicationException(Response.
+                    status(Response.Status.BAD_REQUEST).
+                    type(MediaType.APPLICATION_JSON_TYPE).
+                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token object is not found or otherwise expired."))
+                    .build());
+        }
     }
 
     @Override
