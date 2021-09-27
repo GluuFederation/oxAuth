@@ -304,7 +304,11 @@ public class ConsentGathererService {
 		return context;
 	}
 
-    public List<org.oxauth.persistence.model.Scope> getScopes(ConsentGatheringContext context) {
+    public List<org.oxauth.persistence.model.Scope> getScopes() {
+    	if (context == null) {
+    		return Collections.emptyList();
+    	}
+
     	SessionId authenticatedSessionId = sessionIdService.getSessionId();
         // Fix the list of scopes in the authorization page. oxAuth #739
         Set<String> grantedScopes = scopeChecker.checkScopesPolicy(context.getClient(), authenticatedSessionId.getSessionAttributes().get(AuthorizeRequestParam.SCOPE));
