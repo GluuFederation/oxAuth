@@ -150,33 +150,40 @@ public abstract class UserService {
 	}
 
     public User addUser(User user, boolean active) {
-        String peopleBaseDN = getPeopleBaseDn();
+        try {
+            String peopleBaseDN = getPeopleBaseDn();
 
-        String inum = inumService.generatePeopleInum();
+            String inum = inumService.generatePeopleInum();
 
-        user.setDn("inum=" + inum + "," + peopleBaseDN);
-        user.setAttribute("inum", inum, false);
+            user.setDn("inum=" + inum + "," + peopleBaseDN);
+            user.setAttribute("inum", inum, false);
 
-        GluuStatus status = active ? GluuStatus.ACTIVE : GluuStatus.REGISTER;
-        user.setAttribute("gluuStatus",  status.getValue(), false);
+            GluuStatus status = active ? GluuStatus.ACTIVE : GluuStatus.REGISTER;
+            user.setAttribute("gluuStatus", status.getValue(), false);
 
-        List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
-    	if ((personCustomObjectClassList != null) && !personCustomObjectClassList.isEmpty()) {
-    		Set<String> allObjectClasses = new HashSet<>();
-    		allObjectClasses.addAll(personCustomObjectClassList);
+            List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
+            if ((personCustomObjectClassList != null) && !personCustomObjectClassList.isEmpty()) {
+                Set<String> allObjectClasses = new HashSet<>();
+                allObjectClasses.addAll(personCustomObjectClassList);
 
-    		String currentObjectClasses[] = user.getCustomObjectClasses();
-    		if (ArrayHelper.isNotEmpty(currentObjectClasses)) {
-        		allObjectClasses.addAll(Arrays.asList(currentObjectClasses));
-    		}
+                String currentObjectClasses[] = user.getCustomObjectClasses();
+                if (ArrayHelper.isNotEmpty(currentObjectClasses)) {
+                    allObjectClasses.addAll(Arrays.asList(currentObjectClasses));
+                }
 
-    		user.setCustomObjectClasses(allObjectClasses.toArray(new String[allObjectClasses.size()]));
-    	}
+                user.setCustomObjectClasses(allObjectClasses.toArray(new String[allObjectClasses.size()]));
+            }
 
-    	user.setCreatedAt(new Date());
-    	persistenceEntryManager.persist(user);
+            user.setCreatedAt(new Date());
+            persistenceEntryManager.persist(user);
 
-		return getUserByDn(user.getDn());
+            return getUserByDn(user.getDn());
+        } catch (Exception e) {
+            if (log.isErrorEnabled())
+                log.error("Failed to add user entry. " + e.getMessage(), e);
+            throw e;
+        }
+
 	}
 
     public User getUserByAttribute(String attributeName, Object attributeValue) {
