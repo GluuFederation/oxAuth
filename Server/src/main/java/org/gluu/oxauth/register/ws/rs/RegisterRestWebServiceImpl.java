@@ -698,8 +698,6 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             final String accessToken = tokenService.getToken(authorization);
 
             if (StringUtils.isNotBlank(accessToken) && StringUtils.isNotBlank(clientId) && StringUtils.isNotBlank(requestParams)) {
-                validateAuthorizationAccessToken(accessToken, clientId);
-
                 JSONObject requestObject = new JSONObject(requestParams);
                 final JSONObject softwareStatement = validateSoftwareStatement(httpRequest, requestObject);
                 if (softwareStatement != null) {
@@ -791,46 +789,6 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         }
         applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return internalErrorResponse("Unknown.").build();
-    }
-
-    private void validateAuthorizationAccessToken(String accessToken, String clientId) {
-        if (StringUtils.isBlank(accessToken) || StringUtils.isBlank(clientId)) {
-            log.trace("Access Token or clientId is blank.");
-            throw new WebApplicationException(Response.
-                    status(Response.Status.BAD_REQUEST).
-                    type(MediaType.APPLICATION_JSON_TYPE).
-                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token is not valid for the Client ID."))
-                    .build());
-        }
-
-        final AuthorizationGrant grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-        if (grant == null) {
-            log.trace("Unable to find grant by access token: {}", accessToken);
-            throw new WebApplicationException(Response.
-                    status(Response.Status.BAD_REQUEST).
-                    type(MediaType.APPLICATION_JSON_TYPE).
-                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token grant is not found."))
-                    .build());
-        }
-
-        final AbstractToken accessTokenObj = grant.getAccessToken(accessToken);
-        if (accessTokenObj == null || !accessTokenObj.isValid()) {
-            log.trace("Unable to find access token object or otherwise it's expired.");
-            throw new WebApplicationException(Response.
-                    status(Response.Status.BAD_REQUEST).
-                    type(MediaType.APPLICATION_JSON_TYPE).
-                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token object is not found or otherwise expired."))
-                    .build());
-        }
-
-        if (!clientId.equals(grant.getClientId())) {
-            log.trace("ClientId from request does not match to access token's client id.");
-            throw new WebApplicationException(Response.
-                    status(Response.Status.BAD_REQUEST).
-                    type(MediaType.APPLICATION_JSON_TYPE).
-                    entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "The Access Token object is not found or otherwise expired."))
-                    .build());
-        }
     }
 
     @Override
