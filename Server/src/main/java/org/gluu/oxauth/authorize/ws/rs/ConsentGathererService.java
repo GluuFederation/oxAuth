@@ -9,11 +9,14 @@ package org.gluu.oxauth.authorize.ws.rs;
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxauth.i18n.LanguageBean;
+import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
+import org.gluu.oxauth.model.authorize.ScopeChecker;
 import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.service.AuthorizeService;
 import org.gluu.oxauth.service.ClientService;
+import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.service.external.ExternalConsentGatheringService;
 import org.gluu.oxauth.service.external.context.ConsentGatheringContext;
@@ -69,6 +72,12 @@ public class ConsentGathererService {
 
     @Inject
     private ClientService clientService;
+    
+    @Inject
+    private SessionIdService sessionIdService;
+
+    @Inject
+    private ScopeChecker scopeChecker;
 
     private final Map<String, String> pageAttributes = new HashMap<String, String>();
     private ConsentGatheringContext context;
@@ -294,5 +303,18 @@ public class ConsentGathererService {
 	public ConsentGatheringContext getContext() {
 		return context;
 	}
+
+    public List<org.oxauth.persistence.model.Scope> getScopes() {
+    	if (context == null) {
+    		return Collections.emptyList();
+    	}
+
+    	SessionId authenticatedSessionId = sessionIdService.getSessionId();
+        // Fix the list of scopes in the authorization page. oxAuth #739
+        Set<String> grantedScopes = scopeChecker.checkScopesPolicy(context.getClient(), authenticatedSessionId.getSessionAttributes().get(AuthorizeRequestParam.SCOPE));
+        String allowedScope = org.gluu.oxauth.model.util.StringUtils.implode(grantedScopes, " ");
+
+        return authorizeService.getScopes(allowedScope);
+    }
 
 }
