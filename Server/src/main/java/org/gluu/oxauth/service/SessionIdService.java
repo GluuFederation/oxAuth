@@ -39,6 +39,7 @@ import org.gluu.oxauth.service.external.ExternalApplicationSessionService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.oxauth.service.external.session.SessionEventType;
+import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
@@ -128,6 +129,9 @@ public class SessionIdService {
 
     @Inject
     private CacheService cacheService;
+
+    @Inject
+    private StatService statService;
 
     private String buildDn(String sessionId) {
         return String.format("oxId=%s,%s", sessionId, staticConfiguration.getBaseDn().getSessions());
@@ -356,6 +360,8 @@ public class SessionIdService {
     public SessionId generateAuthenticatedSessionId(HttpServletRequest httpRequest, String userDn, Map<String, String> sessionIdAttributes) throws InvalidSessionStateException {
         SessionId sessionId = generateSessionId(userDn, new Date(), SessionIdState.AUTHENTICATED, sessionIdAttributes, true);
 
+        reportActiveUser(sessionId);
+
         if (externalApplicationSessionService.isEnabled()) {
             String userName = sessionId.getSessionAttributes().get(Constants.AUTHENTICATED_USER);
             boolean externalResult = externalApplicationSessionService.executeExternalStartSessionMethods(httpRequest, sessionId);
@@ -370,6 +376,17 @@ public class SessionIdService {
         }
 
         return sessionId;
+    }
+
+    private void reportActiveUser(SessionId sessionId) {
+        try {
+            final User user = getUser(sessionId);
+            if (user != null) {
+                statService.reportActiveUser(user.getUserId());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public SessionId generateUnauthenticatedSessionId(String userDn) {
@@ -502,6 +519,11 @@ public class SessionIdService {
         sessionId.setUserDn(p_userDn);
         sessionId.setAuthenticationTime(new Date());
         sessionId.setState(SessionIdState.AUTHENTICATED);
+
+        final User user = getUser(sessionId);
+        if (user != null) {
+            statService.reportActiveUser(user.getUserId());
+        }
 
         final boolean persisted;
         if (appConfiguration.getChangeSessionIdOnAuthentication() && httpResponse != null) {
@@ -730,6 +752,19 @@ public class SessionIdService {
     }
 
     @Nullable
+    public SessionId getSessionBySid(@Nullable String sid) {
+        if (StringUtils.isBlank(sid)) {
+            return null;
+        }
+
+        final List<SessionId> entries = persistenceEntryManager.findEntries(staticConfiguration.getBaseDn().getSessions(), SessionId.class, Filter.createEqualityFilter("sid", sid));
+        if (entries == null || entries.size() != 1) {
+            return null;
+        }
+        return entries.get(0);
+    }
+
+    @Nullable
     public SessionId getSessionByDn(@Nullable String dn, boolean silently) {
         if (StringUtils.isBlank(dn)) {
             return null;
@@ -806,7 +841,7 @@ public class SessionIdService {
             if (appConfiguration.getSessionIdPersistInCache()) {
                 cacheService.remove(sessionId.getDn());
             } else {
-                persistenceEntryManager.remove(sessionId.getDn());
+                persistenceEntryManager.remove(sessionId.getDn(), SessionId.class);
             }
             localCacheService.remove(sessionId.getDn());
             externalEvent(new SessionEvent(SessionEventType.GONE, sessionId));
@@ -871,8 +906,14 @@ public class SessionIdService {
         } catch (JSONException ex) {
             acrs = Util.splittedStringAsList(acrValues, " ");
         }
+        
+        
+        HashSet<String> resultAcrs = new HashSet<String>();
+        for (String acr : acrs) {
+        	resultAcrs.add(externalAuthenticationService.scriptName(acr));
+        }
 
-        return acrs;
+        return new ArrayList<String>(resultAcrs);
     }
 
     private void auditLogging(SessionId sessionId) {

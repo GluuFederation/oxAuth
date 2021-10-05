@@ -2,7 +2,6 @@ package org.gluu.oxauth.model.util;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -11,6 +10,8 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.util.encoders.Base64;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -23,7 +24,7 @@ import java.security.cert.X509Certificate;
  */
 public class CertUtils {
 
-    private final static Logger log = Logger.getLogger(CertUtils.class);
+    private final static Logger log = LoggerFactory.getLogger(CertUtils.class);
 
     private CertUtils() {
     }
@@ -87,5 +88,15 @@ public class CertUtils {
             log.error(e.getMessage(), e);
         }
         return "";
+    }
+
+    public static boolean equalsRdn(String rdn1, String rdn2) {
+        if (StringUtils.isBlank(rdn1) || StringUtils.isBlank(rdn2))
+            return false;
+
+        X500Name n1 = new X500Name (rdn1);
+        X500Name n2 = new X500Name (rdn2);
+
+        return n1.equals(n2);
     }
 }

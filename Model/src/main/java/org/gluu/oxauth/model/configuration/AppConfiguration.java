@@ -8,8 +8,10 @@ package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.Lists;
+
 import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
+import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.Set;
 public class AppConfiguration implements Configuration {
 
     public static final int DEFAULT_SESSION_ID_LIFETIME = 86400;
+    public static final KeySelectionStrategy DEFAULT_KEY_SELECTION_STRATEGY = KeySelectionStrategy.OLDER;
+    public static final String DEFAULT_STAT_SCOPE = "jans_stat";
 
     private String issuer;
     private String baseEndpoint;
@@ -45,7 +49,8 @@ public class AppConfiguration implements Configuration {
     private String introspectionEndpoint;
     private String deviceAuthzEndpoint;
 
-    public int discoveryCacheLifetimeInMinutes = 60;
+    private int discoveryCacheLifetimeInMinutes = 60;
+    private int sectorIdentifierCacheLifetimeInMinutes = 1440;
 
     private Boolean sessionAsJwt = false;
 
@@ -59,6 +64,11 @@ public class AppConfiguration implements Configuration {
     private Boolean umaValidateClaimToken = false;
     private Boolean umaGrantAccessIfNoPolicies = false;
     private Boolean umaRestrictResourceToAssociatedClient = false;
+
+    private Boolean statEnabled = true;
+    private String statAuthorizationScope;
+    private int statTimerIntervalInSeconds;
+    private int statWebServiceIntervalLimitInSeconds;
 
     private int spontaneousScopeLifetime;
     private String openidSubAttribute;
@@ -96,12 +106,10 @@ public class AppConfiguration implements Configuration {
     private int authorizationCodeLifetime;
     private int refreshTokenLifetime;
     private int idTokenLifetime;
-    private Boolean idTokenFilterClaimsBasedOnAccessToken;
     private int accessTokenLifetime;
 
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
-    private List<String> cleanServiceBaseDns = Lists.newArrayList();
 
     private Boolean keyRegenerationEnabled;
     private int keyRegenerationInterval;
@@ -126,8 +134,11 @@ public class AppConfiguration implements Configuration {
     private Boolean returnClientSecretOnRead = false;
     private Boolean rejectJwtWithNoneAlg = true;
     private Boolean expirationNotificatorEnabled = false;
+    private Boolean useNestedJwtDuringEncryption = true;
     private int expirationNotificatorMapSizeLimit = 100000;
     private int expirationNotificatorIntervalInSeconds = 600;
+
+    private Boolean useCacheForAllImplicitFlowObjects = false;
 
     private Boolean authenticationFiltersEnabled;
     private Boolean clientAuthenticationFiltersEnabled;
@@ -158,17 +169,21 @@ public class AppConfiguration implements Configuration {
     private String imgLocation;
     private int metricReporterInterval;
     private int metricReporterKeepDataDays;
-    private Boolean metricReporterEnabled;
+    private Boolean metricReporterEnabled = true;
     private String pairwiseIdType; // persistent, algorithmic
     private String pairwiseCalculationKey;
     private String pairwiseCalculationSalt;
     private Boolean shareSubjectIdBetweenClientsWithSameSectorId = false;
+    private Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility = false; // todo remove in 5.0
 
     private WebKeyStorage webKeysStorage;
     private String dnName;
     // oxAuth KeyStore
     private String keyStoreFile;
     private String keyStoreSecret;
+    private KeySelectionStrategy keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
+    private List<String> keyAlgsAllowedForGeneration = new ArrayList<>();
+
     //oxEleven
     private String oxElevenTestModeToken;
     private String oxElevenGenerateKeyEndpoint;
@@ -177,6 +192,7 @@ public class AppConfiguration implements Configuration {
     private String oxElevenDeleteKeyEndpoint;
 
     private Boolean introspectionAccessTokenMustHaveUmaProtectionScope = false;
+    private Boolean introspectionSkipAuthorization;
 
     private Boolean endSessionWithAccessToken;
     private String cookieDomain;
@@ -211,6 +227,8 @@ public class AppConfiguration implements Configuration {
     private Boolean refreshTokenExtendLifetimeOnRotation  = false;
     private Boolean consentGatheringScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
     private Boolean introspectionScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
+    private Boolean introspectionResponseScopesBackwardCompatibility = false; // See #1499
+    private Boolean clientAuthorizationBackwardCompatibility = false; // search client authorization by filter (instead of key)
 
     private String softwareStatementValidationType = SoftwareStatementValidationType.DEFAULT.getValue();
     private String softwareStatementValidationClaimName;
@@ -243,12 +261,55 @@ public class AppConfiguration implements Configuration {
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
 
+    public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
+        return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
+    }
+
+    public void setSubjectIdentifierBasedOnWholeUriBackwardCompatibility(Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility) {
+        this.subjectIdentifierBasedOnWholeUriBackwardCompatibility = subjectIdentifierBasedOnWholeUriBackwardCompatibility;
+    }
+
+    public Boolean getUseNestedJwtDuringEncryption() {
+        if (useNestedJwtDuringEncryption == null) useNestedJwtDuringEncryption = true;
+        return useNestedJwtDuringEncryption;
+    }
+
+    public void setUseNestedJwtDuringEncryption(Boolean useNestedJwtDuringEncryption) {
+        this.useNestedJwtDuringEncryption = useNestedJwtDuringEncryption;
+    }
+
+    public KeySelectionStrategy getKeySelectionStrategy() {
+        if (keySelectionStrategy == null) keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
+        return keySelectionStrategy;
+    }
+
+    public void setKeySelectionStrategy(KeySelectionStrategy keySelectionStrategy) {
+        this.keySelectionStrategy = keySelectionStrategy;
+    }
+
+    public List<String> getKeyAlgsAllowedForGeneration() {
+        if (keyAlgsAllowedForGeneration == null) keyAlgsAllowedForGeneration = new ArrayList<>();
+        return keyAlgsAllowedForGeneration;
+    }
+
+    public void setKeyAlgsAllowedForGeneration(List<String> keyAlgsAllowedForGeneration) {
+        this.keyAlgsAllowedForGeneration = keyAlgsAllowedForGeneration;
+    }
+
     public int getDiscoveryCacheLifetimeInMinutes() {
         return discoveryCacheLifetimeInMinutes;
     }
 
     public void setDiscoveryCacheLifetimeInMinutes(int discoveryCacheLifetimeInMinutes) {
         this.discoveryCacheLifetimeInMinutes = discoveryCacheLifetimeInMinutes;
+    }
+
+    public int getSectorIdentifierCacheLifetimeInMinutes() {
+        return sectorIdentifierCacheLifetimeInMinutes;
+    }
+
+    public void setSectorIdentifierCacheLifetimeInMinutes(int sectorIdentifierCacheLifetimeInMinutes) {
+        this.sectorIdentifierCacheLifetimeInMinutes = sectorIdentifierCacheLifetimeInMinutes;
     }
 
     public String getSoftwareStatementValidationType() {
@@ -277,6 +338,14 @@ public class AppConfiguration implements Configuration {
         this.skipRefreshTokenDuringRefreshing = skipRefreshTokenDuringRefreshing;
     }
 
+    public Boolean getClientAuthorizationBackwardCompatibility() {
+        if (clientAuthorizationBackwardCompatibility == null) clientAuthorizationBackwardCompatibility = false;
+        return clientAuthorizationBackwardCompatibility;
+    }
+
+    public void setClientAuthorizationBackwardCompatibility(Boolean clientAuthorizationBackwardCompatibility) {
+        this.clientAuthorizationBackwardCompatibility = clientAuthorizationBackwardCompatibility;
+    }
     public Boolean getRefreshTokenExtendLifetimeOnRotation() {
         if (refreshTokenExtendLifetimeOnRotation == null) refreshTokenExtendLifetimeOnRotation = false;
         return refreshTokenExtendLifetimeOnRotation;
@@ -328,6 +397,15 @@ public class AppConfiguration implements Configuration {
 
     public void setIntrospectionScriptBackwardCompatibility(Boolean introspectionScriptBackwardCompatibility) {
         this.introspectionScriptBackwardCompatibility = introspectionScriptBackwardCompatibility;
+    }
+
+    public Boolean getIntrospectionResponseScopesBackwardCompatibility() {
+        if (introspectionResponseScopesBackwardCompatibility == null) introspectionResponseScopesBackwardCompatibility = false;
+        return introspectionScriptBackwardCompatibility;
+    }
+
+    public void setIntrospectionResponseScopesBackwardCompatibility(Boolean introspectionResponseScopesBackwardCompatibility) {
+        this.introspectionResponseScopesBackwardCompatibility = introspectionResponseScopesBackwardCompatibility;
     }
 
     public Boolean getConsentGatheringScriptBackwardCompatibility() {
@@ -449,6 +527,15 @@ public class AppConfiguration implements Configuration {
 
     public void setIntrospectionAccessTokenMustHaveUmaProtectionScope(Boolean introspectionAccessTokenMustHaveUmaProtectionScope) {
         this.introspectionAccessTokenMustHaveUmaProtectionScope = introspectionAccessTokenMustHaveUmaProtectionScope;
+    }
+
+    public Boolean getIntrospectionSkipAuthorization() {
+        if (introspectionSkipAuthorization == null) introspectionSkipAuthorization = false;
+        return introspectionSkipAuthorization;
+    }
+
+    public void setIntrospectionSkipAuthorization(Boolean introspectionSkipAuthorization) {
+        this.introspectionSkipAuthorization = introspectionSkipAuthorization;
     }
 
     public Boolean getUmaRptAsJwt() {
@@ -793,6 +880,40 @@ public class AppConfiguration implements Configuration {
         this.defaultSubjectType = defaultSubjectType;
     }
 
+    public Boolean getStatEnabled() {
+        if (statEnabled == null) statEnabled = true;
+        return statEnabled;
+    }
+
+    public void setStatEnabled(Boolean statEnabled) {
+        this.statEnabled = statEnabled;
+    }
+
+    public String getStatAuthorizationScope() {
+        if (statAuthorizationScope == null) statAuthorizationScope = DEFAULT_STAT_SCOPE;
+        return statAuthorizationScope;
+    }
+
+    public void setStatAuthorizationScope(String statAuthorizationScope) {
+        this.statAuthorizationScope = statAuthorizationScope;
+    }
+
+    public int getStatWebServiceIntervalLimitInSeconds() {
+        return statWebServiceIntervalLimitInSeconds;
+    }
+
+    public void setStatWebServiceIntervalLimitInSeconds(int statWebServiceIntervalLimitInSeconds) {
+        this.statWebServiceIntervalLimitInSeconds = statWebServiceIntervalLimitInSeconds;
+    }
+
+    public int getStatTimerIntervalInSeconds() {
+        return statTimerIntervalInSeconds;
+    }
+
+    public void setStatTimerIntervalInSeconds(int statTimerIntervalInSeconds) {
+        this.statTimerIntervalInSeconds = statTimerIntervalInSeconds;
+    }
+
     public List<String> getUserInfoSigningAlgValuesSupported() {
         return userInfoSigningAlgValuesSupported;
     }
@@ -1084,17 +1205,6 @@ public class AppConfiguration implements Configuration {
         this.cleanServiceBatchChunkSize = cleanServiceBatchChunkSize;
     }
 
-    public List<String> getCleanServiceBaseDns() {
-        if (cleanServiceBaseDns == null) {
-            cleanServiceBaseDns = Lists.newArrayList();
-        }
-        return cleanServiceBaseDns;
-    }
-
-    public void setCleanServiceBaseDns(List<String> cleanServiceBaseDns) {
-        this.cleanServiceBaseDns = cleanServiceBaseDns;
-    }
-
     public Boolean getKeyRegenerationEnabled() {
         return keyRegenerationEnabled;
     }
@@ -1218,6 +1328,14 @@ public class AppConfiguration implements Configuration {
 
     public void setInvalidateSessionCookiesAfterAuthorizationFlow(Boolean invalidateSessionCookiesAfterAuthorizationFlow) {
         this.invalidateSessionCookiesAfterAuthorizationFlow = invalidateSessionCookiesAfterAuthorizationFlow;
+    }
+
+    public Boolean getUseCacheForAllImplicitFlowObjects() {
+        return useCacheForAllImplicitFlowObjects;
+    }
+
+    public void setUseCacheForAllImplicitFlowObjects(Boolean useCacheForAllImplicitFlowObjects) {
+        this.useCacheForAllImplicitFlowObjects = useCacheForAllImplicitFlowObjects;
     }
 
     public String getDynamicRegistrationCustomObjectClass() {
@@ -1909,6 +2027,7 @@ public class AppConfiguration implements Configuration {
     }
 
     public Boolean getClientRegDefaultToCodeFlowWithRefresh() {
+        if (clientRegDefaultToCodeFlowWithRefresh == null) clientRegDefaultToCodeFlowWithRefresh = false;
         return clientRegDefaultToCodeFlowWithRefresh;
     }
 
@@ -1965,13 +2084,5 @@ public class AppConfiguration implements Configuration {
 
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
-    }
-
-    public Boolean getIdTokenFilterClaimsBasedOnAccessToken() {
-        return idTokenFilterClaimsBasedOnAccessToken != null ? idTokenFilterClaimsBasedOnAccessToken : false;
-    }
-
-    public void setIdTokenFilterClaimsBasedOnAccessToken(Boolean idTokenFilterClaimsBasedOnAccessToken) {
-        this.idTokenFilterClaimsBasedOnAccessToken = idTokenFilterClaimsBasedOnAccessToken;
     }
 }

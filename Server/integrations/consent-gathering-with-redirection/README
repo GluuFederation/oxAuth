@@ -1,0 +1,45 @@
+
+## Developer notes: Redirecting to a third-party application in a custom script.
+
+In many cases of user authentication, consent gathering there might be a need to redirect to a third party application to perform some operation and redirect back to the Gluu server.
+This can be done inside ```prepareForStep``` method of the custom script. 
+
+### Steps for redirection in a ***Consent Gathering script***. - 
+
+1. Return from def getPageForStep(self, step, context) a page /authz/method_name/redirect.html with content similar to the code snippet below - 
+
+```
+    def getPageForStep(self, step, context):
+        return "/authz/method_name/redirect.html"
+```
+
+```
+...
+ <f:metadata>
+     <f:viewAction action="#{consentGatherer.prepareForStep}" if="#{identity.loggedIn}"/>
+ </f:metadata>
+	
+```
+
+2. In method prepareForStep prepare data needed for redirect and do redirect to external service. 
+
+```
+def prepareForStep(self, step, context):
+	facesService = CdiUtil.bean(FacesService)
+	facesService.redirectToExternalURL(self.third_party_URL )
+
+	return True
+	
+```
+
+3. In order to resume flow after the redirection we can add postauthorize.html.
+In this new page we need make a call:
+```
+ <f:metadata>
+     <f:viewAction action="#{consentGatherer.authorize}" />
+ </f:metadata>
+```
+
+4. The action in step 3 takes us to the ``` def authorize(self, step, context) ```. Here you can use parameters from request, call external API to validate data if needed etc. And finally, return false/true from this method.
+
+

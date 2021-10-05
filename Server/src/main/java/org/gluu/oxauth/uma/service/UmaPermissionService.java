@@ -113,11 +113,13 @@ public class UmaPermissionService {
     }
 
     public void merge(UmaPermission permission) {
+        permission.resetTtlFromExpirationDate();
         ldapEntryManager.merge(permission);
     }
 
     public void mergeSilently(UmaPermission permission) {
         try {
+            permission.resetTtlFromExpirationDate();
             ldapEntryManager.merge(permission);
         } catch (Exception e) {
             log.error("Failed to persist permission: " + permission, e);
@@ -154,6 +156,9 @@ public class UmaPermissionService {
     }
 
     public void addBranchIfNeeded(String clientDn) {
+        if (!ldapEntryManager.hasBranchesSupport(clientDn)) {
+            return;
+        }
         if (!containsBranch(clientDn)) {
             addBranch(clientDn);
         }

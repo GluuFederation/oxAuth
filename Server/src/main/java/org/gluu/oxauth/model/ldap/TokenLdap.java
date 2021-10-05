@@ -74,6 +74,8 @@ public class TokenLdap implements Serializable {
     @JsonObject
     private TokenAttributes attributes;
 
+    private boolean isFromCache;
+
     public TokenLdap() {
     }
 
@@ -272,6 +274,18 @@ public class TokenLdap implements Serializable {
 
     public void setSessionDn(String sessionDn) {
         this.sessionDn = sessionDn;
+    }
+
+    public boolean isFromCache() {
+        return isFromCache;
+    }
+
+    public void setIsFromCache(boolean isFromCache) {
+        this.isFromCache = isFromCache;
+    }
+
+    public final void setFromCache(boolean isFromCache) {
+        this.isFromCache = isFromCache;
     }
 
     public boolean isImplicitFlow() {

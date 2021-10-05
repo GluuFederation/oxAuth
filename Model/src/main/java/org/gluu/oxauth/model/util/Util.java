@@ -13,13 +13,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.common.HasParamName;
 import org.gluu.persist.annotation.AttributeEnum;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -37,7 +36,7 @@ import java.util.*;
 
 public class Util {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final Logger LOG = Logger.getLogger(Util.class);
 
     public static final String UTF8_STRING_ENCODING = "UTF-8";
 
@@ -281,5 +280,19 @@ public class Util {
                     Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
         }
         return result;
+    }
+
+    public static Integer getNumberOfSecondFromNow(Date date) {
+        if (date == null) {
+            return 0;
+        }
+
+        long now = new Date().getTime();
+        final long time = date.getTime();
+        if (time > now) {
+            return (int) (time - now) / 1000;
+        }
+
+        return null;
     }
 }

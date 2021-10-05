@@ -22,7 +22,7 @@ import org.gluu.oxauth.model.configuration.BaseFilter;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.persist.ldap.impl.LdapFilterConverter;
-import org.gluu.persist.model.base.DummyEntry;
+import org.gluu.persist.model.base.BaseEntry;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
@@ -218,11 +218,11 @@ public abstract class BaseAuthFilterService {
         return filter;
     }
 
-    public String loadEntryDN(PersistenceEntryManager p_manager, AuthenticationFilterWithParameters authenticationFilterWithParameters, Map<String, String> normalizedAttributeValues) throws SearchException {
+    public <T> String loadEntryDN(PersistenceEntryManager p_manager, Class<T> entryClass, AuthenticationFilterWithParameters authenticationFilterWithParameters, Map<String, String> normalizedAttributeValues) throws SearchException {
         final String filter = buildFilter(authenticationFilterWithParameters, normalizedAttributeValues);
 
         Filter ldapFilter = ldapFilterConverter.convertRawLdapFilterToFilter(filter).multiValued(false);
-        List<DummyEntry> foundEntries = p_manager.findEntries(authenticationFilterWithParameters.getAuthenticationFilter().getBaseDn(), DummyEntry.class, ldapFilter, new String[0]);
+        List<T> foundEntries = p_manager.findEntries(authenticationFilterWithParameters.getAuthenticationFilter().getBaseDn(), entryClass, ldapFilter, new String[0]);
 
         if (foundEntries.size() > 1) {
             log.error("Found more than one entry by filter: '{}'. Entries:\n", ldapFilter, foundEntries);
@@ -233,7 +233,7 @@ public abstract class BaseAuthFilterService {
             return null;
         }
 
-        return foundEntries.get(0).getDn();
+        return ((BaseEntry) foundEntries.get(0)).getDn();
     }
 
     public String processAuthenticationFilters(Map<?, ?> attributeValues) throws SearchException {

@@ -8,6 +8,7 @@ package org.gluu.oxauth.model.common;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.metric.MetricType;
 import org.gluu.oxauth.claims.Audience;
@@ -26,6 +27,7 @@ import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalIntrospectionService;
 import org.gluu.oxauth.service.external.context.ExternalIntrospectionContext;
+import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.service.CacheService;
 import org.json.JSONObject;
@@ -44,7 +46,7 @@ import java.util.Set;
  * @author Yuriy Movchan
  * @version April 10, 2020
  */
-public class AuthorizationGrant extends AbstractAuthorizationGrant {
+public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationGrant.class);
 
@@ -75,6 +77,9 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 	@Inject
 	private MetricService metricService;
 
+	@Inject
+    private StatService statService;
+
     private boolean isCachedWithNoPersistence = false;
 
     public AuthorizationGrant() {
@@ -92,12 +97,15 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     public IdToken createIdToken(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse,
-            Void> preProcessing, String claims) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
+            Function<JsonWebResponse, Void> postProcessing) throws Exception {
         JsonWebResponse jwr = idTokenFactory.createJwr(grant, nonce, authorizationCode, accessToken, refreshToken,
-                state, scopes, includeIdTokenClaims, preProcessing, claims);
-        return new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
+                state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
+        final IdToken idToken = new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
                 jwr.getClaims().getClaimAsDate(JwtClaimName.EXPIRATION_TIME));
+        if (log.isTraceEnabled())
+            log.trace("Created id_token:" + idToken.getCode() );
+        return idToken;
     }
 
     @Override
@@ -119,6 +127,10 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                         "Grant caching is not supported for : " + getAuthorizationGrantType());
             }
         } else {
+            if (BooleanUtils.isTrue(appConfiguration.getUseCacheForAllImplicitFlowObjects()) && isImplicitFlow()) {
+                saveInCache();
+                return;
+            }
             saveImpl();
         }
     }
@@ -176,7 +188,11 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                 persist(asToken(accessToken));
             }
 
+            statService.reportAccessToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ACCESS_TOKEN_COUNT);
+
+            if (log.isTraceEnabled())
+                log.trace("Created plain access token: {}", accessToken.getCode());
 
             return accessToken;
         } catch (Exception e) {
@@ -203,6 +219,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
         jwt.getClaims().setClaim("client_id", getClientId());
         jwt.getClaims().setClaim("username", user != null ? user.getAttribute("displayName") : null);
         jwt.getClaims().setClaim("token_type", accessToken.getTokenType().getName());
+        jwt.getClaims().setClaim("code", accessToken.getCode()); // guarantee uniqueness : without it we can get race condition
         jwt.getClaims().setExpirationTime(accessToken.getExpirationDate());
         jwt.getClaims().setIssuedAt(accessToken.getCreationDate());
         jwt.getClaims().setSubjectIdentifier(getSub());
@@ -213,7 +230,11 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             runIntrospectionScriptAndInjectValuesIntoJwt(jwt, context);
         }
 
-        return jwtSigner.sign().toString();
+        final String accessTokenCode = jwtSigner.sign().toString();
+        if (log.isTraceEnabled())
+            log.trace("Created access token JWT: {}", accessTokenCode + ", claims: " + jwt.getClaims().toJsonString());
+
+        return accessTokenCode;
     }
 
     private void runIntrospectionScriptAndInjectValuesIntoJwt(Jwt jwt, ExecutionContext executionContext) {
@@ -240,7 +261,11 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
                 persist(asToken(refreshToken));
             }
 
+            statService.reportRefreshToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
+
+            if (log.isTraceEnabled())
+                log.trace("Created refresh token: " + refreshToken.getCode());
 
             return refreshToken;
         } catch (Exception e) {
@@ -258,7 +283,12 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
 
             if (refreshToken.getExpiresIn() > 0) {
                 persist(asToken(refreshToken));
+                statService.reportRefreshToken(getGrantType());
                 metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
+
+                if (log.isTraceEnabled())
+                    log.trace("Created refresh token: " + refreshToken.getCode());
+
                 return refreshToken;
             }
 
@@ -273,10 +303,11 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Override
     public IdToken createIdToken(
             String nonce, AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) {
+            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
+            Function<JsonWebResponse, Void> postProcessing) {
         try {
             final IdToken idToken = createIdToken(this, nonce, authorizationCode, accessToken, refreshToken,
-                    state, getScopes(), includeIdTokenClaims, preProcessing, this.getClaims());
+                    state, getScopes(), includeIdTokenClaims, preProcessing, postProcessing);
             final String acrValues = authorizationGrant.getAcrValues();
             final String sessionDn = authorizationGrant.getSessionDn();
             if (idToken.getExpiresIn() > 0) {
@@ -289,6 +320,7 @@ public class AuthorizationGrant extends AbstractAuthorizationGrant {
             setAcrValues(acrValues);
             setSessionDn(sessionDn);
 
+            statService.reportIdToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ID_TOKEN_COUNT);
 
             return idToken;

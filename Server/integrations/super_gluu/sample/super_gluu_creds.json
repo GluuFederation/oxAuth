@@ -10,8 +10,8 @@
         },
         "gluu":{
             "enabled":true,
-            "access_key":"xxxxxxxxxxxxx",
-            "secret_access_key":"xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            "access_key":"36WH2JiexBOoAIBP",
+            "secret_access_key":"ueqsU2Dc7m3r4HmLz4M79DpzzCNqTfek"
         }
     },
     "ios":{
@@ -28,8 +28,8 @@
         },
         "gluu":{
             "enabled":true,
-            "access_key":"xxxxxxxxxxxxxxx",
-            "secret_access_key":"xxxxxxxxxxxxxxxxxx"
+            "access_key":"auONAdePWoYFBX6V",
+            "secret_access_key":"f050aW0nnihym0GwktWd7O15jGSQcoei"
         }
     },
     "sns":{
@@ -38,6 +38,6 @@
         "region":""
     },
     "gluu":{
-        "server_uri":"https://your.api.yourdomain.com"
+        "server_uri":"https://api.gluu.org"
     }
 }

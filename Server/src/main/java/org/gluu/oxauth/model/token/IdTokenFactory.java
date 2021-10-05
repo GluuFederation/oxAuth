@@ -21,7 +21,6 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.exception.InvalidClaimException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
-import org.gluu.oxauth.model.jwt.JwtClaims;
 import org.gluu.oxauth.model.jwt.JwtSubClaimObject;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.AttributeService;
@@ -31,10 +30,11 @@ import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
+import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.text.ParseException;
@@ -56,9 +56,13 @@ import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
  * @author Yuriy Zabrovarnyy
  * @version 12 Feb, 2020
  */
+@ApplicationScoped
 @Stateless
 @Named
 public class IdTokenFactory {
+
+    @Inject
+    private Logger log;
 
     @Inject
     private ExternalDynamicScopeService externalDynamicScopeService;
@@ -107,8 +111,7 @@ public class IdTokenFactory {
     private void fillClaims(JsonWebResponse jwr,
                             IAuthorizationGrant authorizationGrant, String nonce,
                             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse,
-                            Void> preProcessing, String requestedClaims) throws Exception {
+                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
 
         jwr.getClaims().setIssuer(appConfiguration.getIssuer());
         Audience.setAudience(jwr.getClaims(), authorizationGrant.getClient());
@@ -121,6 +124,7 @@ public class IdTokenFactory {
 
         jwr.getClaims().setExpirationTime(expiration);
         jwr.getClaims().setIssuedAt(issuedAt);
+        jwr.setClaim("code", UUID.randomUUID().toString());
 
         if (preProcessing != null) {
             preProcessing.apply(jwr);
@@ -151,6 +155,9 @@ public class IdTokenFactory {
         if (Strings.isNotBlank(state)) {
             String stateHash = AbstractToken.getHash(state, jwr.getHeader().getSignatureAlgorithm());
             jwr.setClaim(JwtClaimName.STATE_HASH, stateHash);
+        }
+        if (authorizationGrant.getGrantType() != null) {
+            jwr.setClaim("grant", authorizationGrant.getGrantType().getValue());
         }
         jwr.setClaim(JwtClaimName.OX_OPENID_CONNECT_VERSION, appConfiguration.getOxOpenIdConnectVersion());
 
@@ -207,8 +214,6 @@ public class IdTokenFactory {
         }
 
         setClaimsFromJwtAuthorizationRequest(jwr, authorizationGrant, scopes);
-        setClaimsFromRequestedClaims(requestedClaims, jwr, user);
-        filterClaimsBasedOnAccessToken(jwr, accessToken, authorizationCode);
         jwrService.setSubjectIdentifier(jwr, authorizationGrant);
 
         if ((dynamicScopes.size() > 0) && externalDynamicScopeService.isEnabled()) {
@@ -218,58 +223,9 @@ public class IdTokenFactory {
         }
 
         processCiba(jwr, authorizationGrant, refreshToken);
-    }
 
-    /**
-     * Filters some claims from id_token based on if access_token is issued or not.
-     * openid-connect-core-1_0.html Section 5.4
-     * @param jwr Json object that contains all claims used in the id_token.
-     * @param accessToken Access token issued for this authorization.
-     * @param authorizationCode Code issued for this authorization.
-     */
-    private void filterClaimsBasedOnAccessToken(JsonWebResponse jwr, AccessToken accessToken, AuthorizationCode authorizationCode) {
-        if ((accessToken != null || authorizationCode != null) && appConfiguration.getIdTokenFilterClaimsBasedOnAccessToken()) {
-            JwtClaims claims = jwr.getClaims();
-            claims.removeClaim(JwtClaimName.PROFILE);
-            claims.removeClaim(JwtClaimName.EMAIL);
-            claims.removeClaim(JwtClaimName.ADDRESS);
-            claims.removeClaim(JwtClaimName.PHONE_NUMBER);
-        }
-    }
-
-    /**
-     * Process requested claims in the authorization request.
-     * @param requestedClaims Json containing all claims listed in authz request.
-     * @param jwr Json that contains all claims that should go in id_token.
-     * @param user Authenticated user.
-     */
-    private void setClaimsFromRequestedClaims(String requestedClaims, JsonWebResponse jwr, User user)
-            throws InvalidClaimException {
-        if (requestedClaims != null) {
-            JSONObject claimsObj = new JSONObject(requestedClaims);
-            if (claimsObj.has("id_token")) {
-                JSONObject idTokenObj = claimsObj.getJSONObject("id_token");
-                for (Iterator<String> it = idTokenObj.keys(); it.hasNext(); ) {
-                    String claimName = it.next();
-                    GluuAttribute gluuAttribute = attributeService.getByClaimName(claimName);
-
-                    if (gluuAttribute != null) {
-                        String ldapClaimName = gluuAttribute.getName();
-
-                        Object attribute = user.getAttribute(ldapClaimName, false, gluuAttribute.getOxMultiValuedAttribute());
-
-                        if (attribute instanceof List) {
-                            jwr.getClaims().setClaim(claimName, (List) attribute);
-                        } else if (attribute instanceof Boolean) {
-                            jwr.getClaims().setClaim(claimName, (Boolean) attribute);
-                        } else if (attribute instanceof Date) {
-                            jwr.getClaims().setClaim(claimName, ((Date) attribute).getTime());
-                        } else {
-                            jwr.setClaim(claimName, (String) attribute);
-                        }
-                    }
-                }
-            }
+        if (postProcessing != null) {
+        	postProcessing.apply(jwr);
         }
     }
 
@@ -312,14 +268,16 @@ public class IdTokenFactory {
     public JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse,
-            Void> preProcessing, String claims) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
 
         final Client client = grant.getClient();
 
         JsonWebResponse jwr = jwrService.createJwr(client);
-        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes,
-                includeIdTokenClaims, preProcessing, claims);
+        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
+
+        if (log.isTraceEnabled())
+            log.trace("Created claims for id_token, claims: " + jwr.getClaims().toJsonString());
+
         return jwrService.encode(jwr, client);
     }
 
@@ -367,9 +325,7 @@ public class IdTokenFactory {
             if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
                 if (ldapName.equals("uid")) {
                     attribute = user.getUserId();
-                } else if (ldapName.equals("updatedAt")) {
-                    attribute = user.getUpdatedAt();
-                } if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
+                } else if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
                     attribute = Boolean.parseBoolean(String.valueOf(user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute())));
                 } else if (AttributeDataType.DATE.equals(gluuAttribute.getDataType())) {
                     SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss.SSS'Z'");

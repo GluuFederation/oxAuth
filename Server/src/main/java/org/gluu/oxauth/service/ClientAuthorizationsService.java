@@ -14,6 +14,7 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.model.base.SimpleBranch;
+import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
@@ -21,6 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -74,7 +76,10 @@ public class ClientAuthorizationsService {
 
         final String id = createId(userInum, clientId);
         try {
-            return ldapEntryManager.find(ClientAuthorization.class, createDn(id));
+            if (appConfiguration.getClientAuthorizationBackwardCompatibility()) {
+                return findToRemoveIn50(userInum, clientId);
+            }
+            return ldapEntryManager.find(ClientAuthorization.class, createDn(createId(userInum, clientId)));
         } catch (EntryPersistenceException e) {
             log.trace("Unable to find client persistence for {}", id);
             return null;
@@ -82,6 +87,28 @@ public class ClientAuthorizationsService {
             log.error(e.getMessage(), e);
             return null;
         }
+    }
+
+    // old version should should be removed in 5.0 version. (We have to fetch entry by key instead of query to improve performance)
+    public ClientAuthorization findToRemoveIn50(String userInum, String clientId) {
+        Filter filter = Filter.createANDFilter(
+                Filter.createEqualityFilter("oxAuthClientId", clientId),
+                Filter.createEqualityFilter("oxAuthUserId", userInum)
+        );
+
+        List<ClientAuthorization> entries = ldapEntryManager.findEntries(staticConfiguration.getBaseDn().getAuthorizations(), ClientAuthorization.class, filter);
+        if (entries != null && !entries.isEmpty()) {
+            if (entries.size() > 1) {
+                for (ClientAuthorization entry : entries) {
+                    if (entry.getId().equals(createId(entry.getUserId(), entry.getClientId()))) {
+                        return entry; // return entry where id fits to "userId + _ + clientId" pattern
+                    }
+                }
+            }
+            return entries.get(0);
+        }
+
+        return null;
     }
 
     public void clearAuthorizations(ClientAuthorization clientAuthorization, boolean persistInPersistence) {

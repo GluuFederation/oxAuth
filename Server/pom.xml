@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>5.0.0-SNAPSHOT</version>
+		<version>4.3.0.Final</version>
 	</parent>
 
 	<prerequisites>
@@ -130,6 +130,7 @@
 								</resource>
 							</resources>
 							<filters>
+								<filter>${basedir}/profiles/${cfg}/config-oxauth.properties</filter>
 								<filter>${basedir}/profiles/${cfg}/config-oxauth-test.properties</filter>
 							</filters>
 						</configuration>
@@ -268,6 +269,16 @@
 	</reporting>
 
 	<dependencies>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_common</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.agkn</groupId>
+            <artifactId>hll</artifactId>
+            <version>1.6.0</version>
+        </dependency>
 		<!-- https://github.com/wywygmbh/log4j-plugin-fluency -->
 		<dependency>
 			<groupId>com.wywy</groupId>
@@ -308,23 +319,31 @@
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-annotation</artifactId>
+			<artifactId>gluu-orm-annotation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-ldap</artifactId>
+			<artifactId>gluu-orm-ldap</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-couchbase</artifactId>
+			<artifactId>gluu-orm-couchbase</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-hybrid</artifactId>
+			<artifactId>gluu-orm-sql</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-cdi</artifactId>
+			<artifactId>gluu-orm-spanner</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-hybrid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-cdi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
@@ -364,7 +383,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxnotify-client</artifactId>
+			<artifactId>oxnotify-client2</artifactId>
 		</dependency>
 
 		<!-- oxLicense -->
@@ -476,20 +495,8 @@
 			<artifactId>httpcore</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- LDAP -->
-		<dependency>
-			<groupId>com.unboundid</groupId>
-			<artifactId>unboundid-ldapsdk</artifactId>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>jakarta.mail</artifactId>
 		</dependency>
 
 		<!-- Metrics -->
@@ -595,6 +602,12 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
+
+		<!-- Time -->
+		<dependency>
+		    <groupId>joda-time</groupId>
+		    <artifactId>joda-time</artifactId>
+		</dependency>
 
 		<!-- Test -->
 		<dependency>

@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.AuthenticationException;
@@ -47,7 +48,7 @@ public class AuthenticationFilterService extends BaseAuthFilterService {
             return null;
         }
         final Map<String, String> normalizedAttributeValues = normalizeAttributeMap(attributeValues);
-        final String resultDn = loadEntryDN(ldapEntryManager, authenticationFilterWithParameters, normalizedAttributeValues);
+        final String resultDn = loadEntryDN(ldapEntryManager, User.class, authenticationFilterWithParameters, normalizedAttributeValues);
         if (StringUtils.isBlank(resultDn)) {
             return null;
         }
@@ -65,7 +66,7 @@ public class AuthenticationFilterService extends BaseAuthFilterService {
         bindPasswordAttribute = StringHelper.toLowerCase(bindPasswordAttribute);
 
         try {
-            boolean authenticated = ldapEntryManager.authenticate(resultDn, normalizedAttributeValues.get(bindPasswordAttribute));
+            boolean authenticated = ldapEntryManager.authenticate(resultDn, User.class, normalizedAttributeValues.get(bindPasswordAttribute));
             if (authenticated) {
                 return resultDn;
             }

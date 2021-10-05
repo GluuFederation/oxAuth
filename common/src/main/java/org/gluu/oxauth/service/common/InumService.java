@@ -6,13 +6,13 @@
 
 package org.gluu.oxauth.service.common;
 
-import org.gluu.oxauth.model.util.Pair;
-import org.gluu.util.StringHelper;
-import org.slf4j.Logger;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.UUID;
+
+import org.gluu.oxauth.model.util.Pair;
+import org.slf4j.Logger;
 
 /**
  * Provides operations with clients.
@@ -22,13 +22,8 @@ import java.util.UUID;
 @ApplicationScoped
 public class InumService {
 
-    public static final int MAX_IDGEN_TRY_COUNT = 10;
-
     @Inject
     private Logger log;
-
-    @Inject
-    private ExternalIdGeneratorService externalIdGenerationService;
 
     public String generateClientInum() {
         return UUID.randomUUID().toString();
@@ -49,21 +44,6 @@ public class InumService {
         final String dn = dnSb.toString();
         log.trace("Generated dn: {}", dn);
         return new Pair<>(inum, dn);
-    }
-
-    public String generateId(String idType) {
-        if (externalIdGenerationService.isEnabled()) {
-            final String generatedId = externalIdGenerationService.executeExternalDefaultGenerateIdMethod("oxauth", idType, "");
-
-            if (StringHelper.isNotEmpty(generatedId)) {
-                return generatedId;
-            }
-        }
-        return generateDefaultId();
-    }
-
-    public String generateDefaultId() {
-        return UUID.randomUUID().toString();
     }
 
 }

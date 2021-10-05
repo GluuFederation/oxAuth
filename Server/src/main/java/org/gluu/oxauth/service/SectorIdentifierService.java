@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -85,10 +86,6 @@ public class SectorIdentifierService {
             return "";
         }
 
-        if (grant.getAuthorizationGrantType() == AuthorizationGrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS) {
-            return user.getUserId();
-        }
-
         return getSub(client, user, grant instanceof CIBAGrant);
     }
 
@@ -102,7 +99,7 @@ public class SectorIdentifierService {
             return "";
         }
 
-        final boolean isClientPairwise = SubjectType.PAIRWISE.equals(client.getSubjectType());
+        final boolean isClientPairwise = SubjectType.PAIRWISE.equals(SubjectType.fromString(client.getSubjectType()));
         if (isClientPairwise) {
             final String sectorIdentifierUri;
 
@@ -123,16 +120,23 @@ public class SectorIdentifierService {
             String userInum = user.getAttribute("inum");
 
             try {
-                PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(userInum,
-                        sectorIdentifierUri, client.getClientId());
-                if (pairwiseIdentifier == null) {
-                    pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, client.getClientId(), userInum);
-                    pairwiseIdentifier.setId(UUID.randomUUID().toString());
-                    pairwiseIdentifier.setDn(
-                            pairwiseIdentifierService.getDnForPairwiseIdentifier(pairwiseIdentifier.getId(), userInum));
-                    pairwiseIdentifierService.addPairwiseIdentifier(userInum, pairwiseIdentifier);
+                if (StringUtils.isNotBlank(sectorIdentifierUri)) {
+                    String sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
+                    if (appConfiguration.getSubjectIdentifierBasedOnWholeUriBackwardCompatibility()) // todo remove in 5.0
+                        sectorIdentifier = sectorIdentifierUri;
+
+                    PairwiseIdentifier pairwiseIdentifier = pairwiseIdentifierService.findPairWiseIdentifier(userInum,
+                            sectorIdentifier, client.getClientId());
+                    if (pairwiseIdentifier == null) {
+                        pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifier, client.getClientId(), userInum);
+                        pairwiseIdentifier.setId(UUID.randomUUID().toString());
+                        pairwiseIdentifier.setDn(pairwiseIdentifierService.getDnForPairwiseIdentifier(pairwiseIdentifier.getId(), userInum));
+                        pairwiseIdentifierService.addPairwiseIdentifier(userInum, pairwiseIdentifier);
+                    }
+                    return pairwiseIdentifier.getId();
+                } else {
+                    log.trace("Sector identifier uri is blank for client: " + client.getClientId());
                 }
-                return pairwiseIdentifier.getId();
             } catch (Exception e) {
                 log.error("Failed to get sub claim. PairwiseIdentifierService failed to find pair wise identifier.", e);
                 return "";

@@ -43,6 +43,7 @@ public class Manual {
 		final Properties props = PropertiesDecrypter.decryptProperties(fileConfiguration.getProperties(), "passoword");
 		final LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory(); 
 		final LdapConnectionProvider connectionProvider = new LdapConnectionProvider(props);
+		connectionProvider.create();
 		MANAGER = ldapEntryManagerFactory.createEntryManager(props);
 	}
 

@@ -6,6 +6,7 @@
 
 package org.gluu.oxauth.authorize.ws.rs;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,13 +30,16 @@ import org.gluu.oxauth.model.exception.InvalidSessionStateException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.token.JwrService;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.service.external.ExternalPostAuthnService;
+import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.ExternalPostAuthnContext;
+import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.oxauth.service.external.session.SessionEventType;
 import org.gluu.oxauth.util.QueryStringDecoder;
@@ -137,6 +141,12 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
     @Inject
     private DeviceAuthorizationService deviceAuthorizationService;
 
+    @Inject
+    private AttributeService attributeService;
+
+    @Inject
+    private ExternalUpdateTokenService externalUpdateTokenService;
+
     @Context
     private HttpServletRequest servletRequest;
 
@@ -206,7 +216,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         ResponseMode responseMode = ResponseMode.getByValue(respMode);
 
         Map<String, String> customParameters = requestParameterService.getCustomParameters(
-                QueryStringDecoder.decode(httpRequest.getQueryString()));
+                QueryStringDecoder.decode(httpRequest.getQueryString(),true));
 
         SessionId sessionUser = identity.getSessionId();
         User user = sessionIdService.getUser(sessionUser);
@@ -219,6 +229,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             Client client = authorizeRestWebServiceValidator.validateClient(clientId, state);
             String deviceAuthzUserCode = deviceAuthorizationService.getUserCodeFromSession(httpRequest);
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, deviceAuthzUserCode, httpRequest);
+            log.trace("Validated URI: {}", redirectUri);
             checkAcrChanged(acrValuesStr, prompts, sessionUser); // check after redirect uri is validated
 
             RedirectUriResponse redirectUriResponse = new RedirectUriResponse(new RedirectUri(redirectUri, responseTypes, responseMode), state, httpRequest, errorResponseFactory);
@@ -275,9 +286,6 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     if (!jwtRequest.getPrompts().isEmpty()) {
                         prompts = Lists.newArrayList(jwtRequest.getPrompts());
                     }
-                    if (jwtRequest.getResponseMode() != null) {
-                        redirectUriResponse.getRedirectUri().setResponseMode(jwtRequest.getResponseMode());
-                    }
 
                     final IdTokenMember idTokenMember = jwtRequest.getIdTokenMember();
                     if (idTokenMember != null) {
@@ -326,7 +334,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 acrValues = Lists.newArrayList(client.getDefaultAcrValues());
             }
 
-            if (scopes.contains(ScopeConstants.OFFLINE_ACCESS)) {
+            if (scopes.contains(ScopeConstants.OFFLINE_ACCESS) && !client.getTrustedClient()) {
                 if (!responseTypes.contains(ResponseType.CODE)) {
                     log.trace("Removed (ignored) offline_scope. Can't find `code` in response_type which is required.");
                     scopes.remove(ScopeConstants.OFFLINE_ACCESS);
@@ -557,10 +565,15 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     authorizationGrant.setSessionDn(sessionUser.getDn());
                     authorizationGrant.save(); // call save after object modification, call is asynchronous!!!
                 }
+
+                ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(httpRequest, authorizationGrant, client, appConfiguration, attributeService);
+                Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
                 IdToken idToken = authorizationGrant.createIdToken(
                         nonce, authorizationCode, newAccessToken, null,
                         state, authorizationGrant, includeIdTokenClaims,
-                        JwrService.wrapWithSidFunction(TokenBindingMessage.createIdTokenTokingBindingPreprocessing(tokenBindingHeader, client.getIdTokenTokenBindingCnf()), sessionUser.getOutsideSid()));
+                        JwrService.wrapWithSidFunction(TokenBindingMessage.createIdTokenTokingBindingPreprocessing(tokenBindingHeader, client.getIdTokenTokenBindingCnf()), sessionUser.getOutsideSid()),
+                        postProcessor);
 
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.ID_TOKEN, idToken.getCode());
             }
@@ -575,9 +588,10 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 sessionUser.setId(newSessionId);
                 log.trace("newSessionId = {}", newSessionId);
             }
-            if (!appConfiguration.getFapiCompatibility()) {
+            if (!appConfiguration.getFapiCompatibility() && appConfiguration.getSessionIdRequestParameterEnabled()) {
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SESSION_ID, sessionUser.getId());
             }
+            redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SID, sessionUser.getOutsideSid());
             redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.SESSION_STATE, sessionIdService.computeSessionState(sessionUser, clientId, redirectUri));
             redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.STATE, state);
             if (scope != null && !scope.isEmpty() && authorizationGrant != null && !appConfiguration.getFapiCompatibility()) {
@@ -589,6 +603,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             clientService.updateAccessTime(client, false);
             oAuth2AuditLog.setSuccess(true);
 
+            log.trace("Preparing redirect to: {}", redirectUriResponse.getRedirectUri());
             builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse.getRedirectUri(), httpRequest);
 
             if (appConfiguration.getCustomHeadersWithAuthorizationResponse()) {
@@ -598,7 +613,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
 
             if (StringUtils.isNotBlank(authReqId)) {
-                runCiba(authReqId, httpRequest, httpResponse);
+                runCiba(authReqId, client, httpRequest, httpResponse);
             }
             if (StringUtils.isNotBlank(deviceAuthzUserCode)) {
                 processDeviceAuthorization(deviceAuthzUserCode, user);
@@ -638,7 +653,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         return StringUtils.isNotBlank(acr) ? acr : acrValuesStr;
     }
 
-    private void runCiba(String authReqId, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    private void runCiba(String authReqId, Client client, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         CibaRequestCacheControl cibaRequest = cibaRequestService.getCibaRequest(authReqId);
 
         if (cibaRequest == null || cibaRequest.getStatus() == CibaRequestStatus.EXPIRED) {
@@ -655,9 +670,12 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         AccessToken accessToken = cibaGrant.createAccessToken(httpRequest.getHeader("X-ClientCert"), new ExecutionContext(httpRequest, httpResponse));
         log.debug("Issuing access token: {}", accessToken.getCode());
 
+        ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(httpRequest, cibaGrant, client, appConfiguration, attributeService);
+        Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
+
         IdToken idToken = cibaGrant.createIdToken(
                 null, null, accessToken, refreshToken,
-                null, cibaGrant, false, null);
+                null, cibaGrant, false, null, postProcessor);
 
         cibaGrant.setTokensDelivered(true);
         cibaGrant.save();
@@ -726,7 +744,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
                     sessionUser.setState(SessionIdState.UNAUTHENTICATED);
                     sessionUser.getSessionAttributes().put("prompt", org.gluu.oxauth.model.util.StringUtils.implode(prompts, " "));
-                    sessionIdService.persistSessionId(sessionUser);
+                    if (!sessionIdService.persistSessionId(sessionUser)) {
+                        log.trace("Unable persist session_id, try to update it.");
+                        sessionIdService.updateSessionId(sessionUser);
+                    }
+
                     sessionIdService.externalEvent(new SessionEvent(SessionEventType.UNAUTHENTICATED, sessionUser));
                 }
             } else {

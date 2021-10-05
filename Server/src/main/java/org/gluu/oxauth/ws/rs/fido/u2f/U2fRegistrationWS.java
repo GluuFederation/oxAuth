@@ -115,7 +115,7 @@ public class U2fRegistrationWS {
 
                 if (removeEnrollment) {
                     // We allow to use enrollment code only one time
-                    user.setAttribute(U2fConstants.U2F_ENROLLMENT_CODE_ATTRIBUTE, (String) null);
+                    user.setAttribute(U2fConstants.U2F_ENROLLMENT_CODE_ATTRIBUTE, "");
                     userService.updateUser(user);
                 }
             }

@@ -12,6 +12,7 @@ import org.gluu.oxauth.model.authorize.AuthorizeResponseParam;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.register.ApplicationType;
@@ -24,6 +25,7 @@ import org.json.JSONObject;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
+import javax.inject.Inject;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
@@ -49,6 +51,9 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     @ArquillianResource
     private URI url;
 
+    @Inject
+    private AppConfiguration appConfiguration;
+
     private static String clientId;
     private static String clientSecret;
     private static String authorizationCode1;
@@ -57,6 +62,8 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     private static String authorizationCode4;
     private static String accessToken1;
     private static String refreshToken1;
+    private static String refreshToken2;
+    private static String refreshToken3;
 
     @Parameters({"registerPath", "redirectUris"})
     @Test
@@ -65,7 +72,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
 
         String registerRequestContent = null;
         try {
-            RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
+            org.gluu.oxauth.client.RegisterRequest registerRequest = new RegisterRequest(ApplicationType.WEB, "oxAuth test app",
                     StringUtils.spaceSeparatedToList(redirectUris));
             registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
@@ -83,7 +90,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         assertEquals(response.getStatus(), 200, "Unexpected response code. " + entity);
         assertNotNull(entity, "Unexpected result: " + entity);
         try {
-            final RegisterResponse registerResponse = RegisterResponse.valueOf(entity);
+            final org.gluu.oxauth.client.RegisterResponse registerResponse = org.gluu.oxauth.client.RegisterResponse.valueOf(entity);
             ClientTestUtil.assert_(registerResponse);
 
             clientId = registerResponse.getClientId();
@@ -101,7 +108,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * using the refresh token.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 10)
     public void completeFlowStep1(final String authorizePath, final String userId, final String userSecret,
                                   final String redirectUri) throws Exception {
 
@@ -109,7 +116,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         List<ResponseType> responseTypes = Arrays.asList(ResponseType.CODE);
         List<String> scopes = Arrays.asList("openid", "profile", "address", "email");
 
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
+        org.gluu.oxauth.client.AuthorizationRequest authorizationRequest = new org.gluu.oxauth.client.AuthorizationRequest(responseTypes, clientId, scopes,
                 redirectUri, null);
         authorizationRequest.setState(state);
         authorizationRequest.getPrompts().add(Prompt.NONE);
@@ -134,7 +141,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
                 URI uri = new URI(response.getLocation().toString());
                 assertNotNull(uri.getQuery(), "The query string is null");
 
-                Map<String, String> params = QueryStringDecoder.decode(uri.getQuery());
+                Map<String, String> params = org.gluu.oxauth.client.QueryStringDecoder.decode(uri.getQuery());
 
                 assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
                 assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope is null");
@@ -153,12 +160,12 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "validateTokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep1"}, priority = 10)
     public void completeFlowStep2(final String tokenPath, final String validateTokenPath, final String redirectUri)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.AUTHORIZATION_CODE);
         tokenRequest.setCode(authorizationCode1);
         tokenRequest.setRedirectUri(redirectUri);
         tokenRequest.setAuthUsername(clientId);
@@ -188,9 +195,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
             assertTrue(jsonObj.has("id_token"), "Unexpected result: id_token not found");
 
             String accessToken = jsonObj.getString("access_token");
-            String refreshToken = jsonObj.getString("refresh_token");
-
-            completeFlowStep3(tokenPath, refreshToken);
+            refreshToken2 = jsonObj.getString("refresh_token");
         } catch (JSONException e) {
             e.printStackTrace();
             fail(e.getMessage() + "\nResponse was: " + entity);
@@ -200,11 +205,13 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         }
     }
 
-    public void completeFlowStep3(final String tokenPath, final String refreshToken) throws Exception {
+    @Parameters({"tokenPath"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowStep2"}, priority = 10)
+    public void completeFlowStep3(final String tokenPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.REFRESH_TOKEN);
-        tokenRequest.setRefreshToken(refreshToken);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.REFRESH_TOKEN);
+        tokenRequest.setRefreshToken(refreshToken2);
         tokenRequest.setScope("email read_stream manage_pages");
         tokenRequest.setAuthUsername(clientId);
         tokenRequest.setAuthPassword(clientSecret);
@@ -240,7 +247,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 20)
     public void completeFlowWithOptionalNonceStep1(final String authorizePath, final String userId,
                                                    final String userSecret, final String redirectUri) throws Exception {
 
@@ -249,7 +256,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         List<String> scopes = Arrays.asList("openid", "profile", "address", "email");
         String nonce = UUID.randomUUID().toString();
 
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
+        org.gluu.oxauth.client.AuthorizationRequest authorizationRequest = new org.gluu.oxauth.client.AuthorizationRequest(responseTypes, clientId, scopes,
                 redirectUri, nonce);
         authorizationRequest.setState(state);
         authorizationRequest.getPrompts().add(Prompt.NONE);
@@ -274,7 +281,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
                 URI uri = new URI(response.getLocation().toString());
                 assertNotNull(uri.getQuery(), "The query string is null");
 
-                Map<String, String> params = QueryStringDecoder.decode(uri.getQuery());
+                Map<String, String> params = org.gluu.oxauth.client.QueryStringDecoder.decode(uri.getQuery());
 
                 assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
                 assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope is null");
@@ -293,12 +300,12 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "validateTokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep1"}, priority = 20)
     public void completeFlowWithOptionalNonceStep2(final String tokenPath, final String validateTokenPath,
                                                    final String redirectUri) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.AUTHORIZATION_CODE);
         tokenRequest.setCode(authorizationCode4);
         tokenRequest.setRedirectUri(redirectUri);
         tokenRequest.setAuthUsername(clientId);
@@ -328,12 +335,10 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
             assertTrue(jsonObj.has("id_token"), "Unexpected result: id_token not found");
 
             String accessToken = jsonObj.getString("access_token");
-            String refreshToken = jsonObj.getString("refresh_token");
+            refreshToken3 = jsonObj.getString("refresh_token");
             String idToken = jsonObj.getString("id_token");
             Jwt jwt = Jwt.parse(idToken);
             assertNotNull(jwt.getClaims().getClaimAsString(JwtClaimName.NONCE));
-
-            completeFlowWithOptionalNonceStep3(tokenPath, refreshToken);
         } catch (JSONException e) {
             e.printStackTrace();
             fail(e.getMessage() + "\nResponse was: " + entity);
@@ -343,11 +348,13 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         }
     }
 
-    public void completeFlowWithOptionalNonceStep3(final String tokenPath, final String refreshToken) throws Exception {
+    @Parameters({"tokenPath"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "completeFlowWithOptionalNonceStep2"}, priority = 20)
+    public void completeFlowWithOptionalNonceStep3(final String tokenPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.REFRESH_TOKEN);
-        tokenRequest.setRefreshToken(refreshToken);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.REFRESH_TOKEN);
+        tokenRequest.setRefreshToken(refreshToken3);
         tokenRequest.setScope("email read_stream manage_pages");
         tokenRequest.setAuthUsername(clientId);
         tokenRequest.setAuthPassword(clientSecret);
@@ -392,7 +399,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * must fail.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 30)
     public void revokeTokensStep1(final String authorizePath, final String userId, final String userSecret,
                                   final String redirectUri) throws Exception {
 
@@ -400,7 +407,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
         List<ResponseType> responseTypes = Arrays.asList(ResponseType.CODE);
         List<String> scopes = Arrays.asList("openid", "profile", "address", "email");
 
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
+        org.gluu.oxauth.client.AuthorizationRequest authorizationRequest = new org.gluu.oxauth.client.AuthorizationRequest(responseTypes, clientId, scopes,
                 redirectUri, null);
         authorizationRequest.getPrompts().add(Prompt.NONE);
         authorizationRequest.setAuthUsername(userId);
@@ -426,7 +433,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
                 URI uri = new URI(response.getLocation().toString());
                 assertNotNull(uri.getQuery(), "The query string is null");
 
-                Map<String, String> params = QueryStringDecoder.decode(uri.getQuery());
+                Map<String, String> params = org.gluu.oxauth.client.QueryStringDecoder.decode(uri.getQuery());
 
                 assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
                 assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope is null");
@@ -445,10 +452,10 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep1"}, priority = 30)
     public void revokeTokensStep2n3(final String tokenPath, final String redirectUri) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
-        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.AUTHORIZATION_CODE);
         tokenRequest.setCode(authorizationCode2);
         tokenRequest.setRedirectUri(redirectUri);
         tokenRequest.setAuthUsername(clientId);
@@ -481,7 +488,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
             refreshToken1 = jsonObj.getString("refresh_token");
 
             Builder request2 = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
-            TokenRequest tokenRequest2 = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+            org.gluu.oxauth.client.TokenRequest tokenRequest2 = new org.gluu.oxauth.client.TokenRequest(GrantType.AUTHORIZATION_CODE);
             tokenRequest2.setCode(authorizationCode2);
             tokenRequest2.setRedirectUri(redirectUri);
             tokenRequest2.setAuthUsername(clientId);
@@ -517,11 +524,11 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"tokenPath"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep2n3"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "revokeTokensStep2n3"}, priority = 30)
     public void revokeTokensStep4(final String tokenPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.REFRESH_TOKEN);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.REFRESH_TOKEN);
         tokenRequest.setRefreshToken(refreshToken1);
         tokenRequest.setScope("email read_stream manage_pages");
         tokenRequest.setAuthUsername(clientId);
@@ -548,13 +555,13 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
     }
 
     @Parameters({"userInfoPath"})
-    @Test(dependsOnMethods = "revokeTokensStep4")
+    @Test(dependsOnMethods = "revokeTokensStep4", priority = 30)
     public void revokeTokensStep5(final String userInfoPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + userInfoPath).request();
 
         request.header("Authorization", "Bearer " + accessToken1);
 
-        UserInfoRequest userInfoRequest = new UserInfoRequest(null);
+        org.gluu.oxauth.client.UserInfoRequest userInfoRequest = new org.gluu.oxauth.client.UserInfoRequest(null);
 
         Response response = request
                 .post(Entity.form(new MultivaluedHashMap<String, String>(userInfoRequest.getParameters())));
@@ -583,61 +590,74 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
      * @throws Exception
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "dynamicClientRegistration")
+    @Test(dependsOnMethods = "dynamicClientRegistration", priority = 40)
     public void tokenExpirationStep1(final String authorizePath, final String userId, final String userSecret,
                                      final String redirectUri) throws Exception {
 
-        final String state = UUID.randomUUID().toString();
-
-        List<ResponseType> responseTypes = Arrays.asList(ResponseType.CODE);
-        List<String> scopes = Arrays.asList("openid", "profile", "address", "email");
-
-        AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes,
-                redirectUri, null);
-        authorizationRequest.getPrompts().add(Prompt.NONE);
-        authorizationRequest.setAuthUsername(userId);
-        authorizationRequest.setAuthPassword(userSecret);
-        authorizationRequest.setState(state);
-
-        Builder request = ResteasyClientBuilder.newClient()
-                .target(url.toString() + authorizePath + "?" + authorizationRequest.getQueryString()).request();
-
-        request.header("Authorization", "Basic " + authorizationRequest.getEncodedCredentials());
-        request.header("Accept", MediaType.TEXT_PLAIN);
-
-        Response response = request.get();
-        String entity = response.readEntity(String.class);
-
-        showResponse("tokenExpirationStep1", response, entity);
-
-        assertEquals(response.getStatus(), 302, "Unexpected response code.");
-        assertNotNull(response.getLocation(), "Unexpected result: " + response.getLocation());
-
-        if (response.getLocation() != null) {
-            try {
-                URI uri = new URI(response.getLocation().toString());
-                assertNotNull(uri.getQuery(), "The query string is null");
-
-                Map<String, String> params = QueryStringDecoder.decode(uri.getQuery());
-
-                assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
-                assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope is null");
-                assertNotNull(params.get(AuthorizeResponseParam.STATE), "The state is null");
-                assertEquals(params.get(AuthorizeResponseParam.STATE), state);
-
-                authorizationCode3 = params.get(AuthorizeResponseParam.CODE);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                fail("Response URI is not well formed");
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail(e.getMessage());
-            }
-        }
+    	// Store current configuration
+    	int currentAuthorizationCodeLifetime = appConfiguration.getAuthorizationCodeLifetime();
+    	int currentCleanServiceInterval = appConfiguration.getCleanServiceInterval();
+    	
+    	// We need to expire in test test code token faster than usual to avoid sleeping test for long time
+    	appConfiguration.setAuthorizationCodeLifetime(8);
+    	appConfiguration.setCleanServiceInterval(6);
+    	try {
+	        final String state = UUID.randomUUID().toString();
+	
+	        List<ResponseType> responseTypes = Arrays.asList(ResponseType.CODE);
+	        List<String> scopes = Arrays.asList("openid", "profile", "address", "email");
+	
+	        org.gluu.oxauth.client.AuthorizationRequest authorizationRequest = new org.gluu.oxauth.client.AuthorizationRequest(responseTypes, clientId, scopes,
+	                redirectUri, null);
+	        authorizationRequest.getPrompts().add(Prompt.NONE);
+	        authorizationRequest.setAuthUsername(userId);
+	        authorizationRequest.setAuthPassword(userSecret);
+	        authorizationRequest.setState(state);
+	
+	        Builder request = ResteasyClientBuilder.newClient()
+	                .target(url.toString() + authorizePath + "?" + authorizationRequest.getQueryString()).request();
+	
+	        request.header("Authorization", "Basic " + authorizationRequest.getEncodedCredentials());
+	        request.header("Accept", MediaType.TEXT_PLAIN);
+	
+	        Response response = request.get();
+	        String entity = response.readEntity(String.class);
+	
+	        showResponse("tokenExpirationStep1", response, entity);
+	
+	        assertEquals(response.getStatus(), 302, "Unexpected response code.");
+	        assertNotNull(response.getLocation(), "Unexpected result: " + response.getLocation());
+	
+	        if (response.getLocation() != null) {
+	            try {
+	                URI uri = new URI(response.getLocation().toString());
+	                assertNotNull(uri.getQuery(), "The query string is null");
+	
+	                Map<String, String> params = org.gluu.oxauth.client.QueryStringDecoder.decode(uri.getQuery());
+	
+	                assertNotNull(params.get(AuthorizeResponseParam.CODE), "The code is null");
+	                assertNotNull(params.get(AuthorizeResponseParam.SCOPE), "The scope is null");
+	                assertNotNull(params.get(AuthorizeResponseParam.STATE), "The state is null");
+	                assertEquals(params.get(AuthorizeResponseParam.STATE), state);
+	
+	                authorizationCode3 = params.get(AuthorizeResponseParam.CODE);
+	            } catch (URISyntaxException e) {
+	                e.printStackTrace();
+	                fail("Response URI is not well formed");
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                fail(e.getMessage());
+	            }
+	        }
+    	} finally {
+        	// Restore configuration
+    		appConfiguration.setAuthorizationCodeLifetime(currentAuthorizationCodeLifetime);
+    		appConfiguration.setCleanServiceInterval(currentCleanServiceInterval);
+    	}
     }
 
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"dynamicClientRegistration", "tokenExpirationStep1"})
+    @Test(dependsOnMethods = {"dynamicClientRegistration", "tokenExpirationStep1"}, priority = 40)
     public void tokenExpirationStep2(final String tokenPath, final String redirectUri) throws Exception {
         // ...Wait until the authorization code expires...
         System.out.println("Sleeping for 20 seconds .....");
@@ -645,7 +665,7 @@ public class AuthorizationCodeFlowEmbeddedTest extends BaseTest {
 
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
-        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
+        org.gluu.oxauth.client.TokenRequest tokenRequest = new org.gluu.oxauth.client.TokenRequest(GrantType.AUTHORIZATION_CODE);
         tokenRequest.setCode(authorizationCode3);
         tokenRequest.setRedirectUri(redirectUri);
         tokenRequest.setAuthUsername(clientId);

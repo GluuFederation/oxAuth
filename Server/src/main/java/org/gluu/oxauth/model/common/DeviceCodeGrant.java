@@ -24,6 +24,11 @@ public class DeviceCodeGrant extends AuthorizationGrant {
     public DeviceCodeGrant() {
     }
 
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.DEVICE_CODE;
+    }
+
     public void init(DeviceAuthorizationCacheControl cacheData, User user) {
         super.init(user, AuthorizationGrantType.DEVICE_CODE, cacheData.getClient(), null);
         setDeviceCode(cacheData.getDeviceCode());

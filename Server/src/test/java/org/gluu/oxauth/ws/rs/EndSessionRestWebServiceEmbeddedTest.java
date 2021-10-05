@@ -6,13 +6,26 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_ID;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import com.google.common.collect.Lists;
+import org.gluu.oxauth.BaseTest;
+import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.model.authorize.AuthorizeResponseParam;
+import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.register.ApplicationType;
+import org.gluu.oxauth.model.util.StringUtils;
+import org.gluu.oxauth.util.ServerUtil;
+import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -20,32 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.AuthorizationRequest;
-import org.gluu.oxauth.client.EndSessionRequest;
-import org.gluu.oxauth.client.QueryStringDecoder;
-import org.gluu.oxauth.client.RegisterRequest;
-import org.gluu.oxauth.client.RegisterResponse;
-import org.gluu.oxauth.model.authorize.AuthorizeResponseParam;
-import org.gluu.oxauth.model.common.Prompt;
-import org.gluu.oxauth.model.common.ResponseType;
-import org.gluu.oxauth.model.register.ApplicationType;
-import org.gluu.oxauth.model.util.StringUtils;
-import org.gluu.oxauth.ws.rs.ClientTestUtil;
-import org.gluu.oxauth.util.ServerUtil;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
-
-import com.google.common.collect.Lists;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_ID;
+import static org.testng.Assert.*;
 
 /**
  * Test cases for the end session web service (embedded)
@@ -60,7 +49,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
 
     private static String clientId;
     private static String idToken;
-    private static String sessionId;
+    private static String sid;
 
     @Parameters({"registerPath", "redirectUris", "postLogoutRedirectUri"})
     @Test
@@ -74,7 +63,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                     StringUtils.spaceSeparatedToList(redirectUris));
             registerRequest.setResponseTypes(Arrays.asList(ResponseType.TOKEN, ResponseType.ID_TOKEN));
             registerRequest.setPostLogoutRedirectUris(Arrays.asList(postLogoutRedirectUri));
-            registerRequest.setFrontChannelLogoutUri(postLogoutRedirectUri);
+            registerRequest.setFrontChannelLogoutUris(Lists.newArrayList(postLogoutRedirectUri));
             registerRequest.addCustomAttribute("oxAuthTrustedClient", "true");
 
             registerRequestContent = ServerUtil.toPrettyJson(registerRequest.getJSONParameters());
@@ -151,7 +140,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
                 assertEquals(params.get(AuthorizeResponseParam.STATE), state);
 
                 idToken = params.get(AuthorizeResponseParam.ID_TOKEN);
-                sessionId = params.get(AuthorizeResponseParam.SESSION_ID);
+                sid = params.get(AuthorizeResponseParam.SID);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
                 fail("Response URI is not well formed");
@@ -169,7 +158,7 @@ public class EndSessionRestWebServiceEmbeddedTest extends BaseTest {
         String state = UUID.randomUUID().toString();
 
         EndSessionRequest endSessionRequest = new EndSessionRequest(idToken, postLogoutRedirectUri, state);
-        endSessionRequest.setSessionId(sessionId);
+        endSessionRequest.setSid(sid);
 
         Builder request = ResteasyClientBuilder.newClient()
                 .target(url.toString() + endSessionPath + "?" + endSessionRequest.getQueryString()).request();

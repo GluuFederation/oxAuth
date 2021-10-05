@@ -201,7 +201,9 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     public List<AuthorizationGrant> getAuthorizationGrant(String clientId) {
         final List<AuthorizationGrant> result = new ArrayList<>();
         try {
-            final List<TokenLdap> entries = new ArrayList<>(grantService.getGrantsOfClient(clientId));
+            final List<TokenLdap> entries = new ArrayList<TokenLdap>();
+            entries.addAll(grantService.getGrantsOfClient(clientId));
+            entries.addAll(grantService.getCacheClientTokensEntries(clientId));
 
             for (TokenLdap t : entries) {
                 final AuthorizationGrant grant = asGrant(t);
@@ -221,7 +223,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     }
 
     public AuthorizationGrant getAuthorizationGrantByAccessToken(String accessToken, boolean onlyFromCache) {
-        final TokenLdap tokenLdap = grantService.getGrantByCode(accessToken, onlyFromCache);
+        final TokenLdap tokenLdap = grantService.getGrantByCode(accessToken);
         if (tokenLdap != null    && (tokenLdap.getTokenTypeEnum() == org.gluu.oxauth.model.ldap.TokenType.ACCESS_TOKEN || tokenLdap.getTokenTypeEnum() == org.gluu.oxauth.model.ldap.TokenType.LONG_LIVED_ACCESS_TOKEN)) {
             return asGrant(tokenLdap);
         }

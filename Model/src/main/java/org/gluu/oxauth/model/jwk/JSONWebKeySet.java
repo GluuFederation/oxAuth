@@ -6,23 +6,23 @@
 
 package org.gluu.oxauth.model.jwk;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
-import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
-import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
+
+import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
+import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+
+import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
 
 /**
  * @author Javier Rojas Blum
@@ -30,8 +30,7 @@ import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
  */
 public class JSONWebKeySet {
 
-    @JsonIgnore
-    private static final Logger LOG = LoggerFactory.getLogger(JSONWebKeySet.class);
+    private static final Logger LOG = Logger.getLogger(JSONWebKeySet.class);
 
     private List<JSONWebKey> keys;
 

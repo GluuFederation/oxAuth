@@ -8,14 +8,11 @@ import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.ObjectClass;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 /**
  * @author Javier Rojas Blum
  * @version March 20, 2018
  */
-@DataEntry(sortBy = {"id","description"})
+@DataEntry(sortBy = {"id", "description"}, sortByName = {"oxId", "description"})
 @ObjectClass(value = "oxSectorIdentifier")
 public class SectorIdentifier extends BaseEntry implements Serializable {
 
@@ -23,10 +20,7 @@ public class SectorIdentifier extends BaseEntry implements Serializable {
 
     @AttributeName(name = "oxId", ignoreDuringUpdate = true)
     private String id;
-    @NotNull
-    @Size(min = 0, max = 250, message = "Length of the Description should not exceed 250")
-    @AttributeName(name = "description")
-    private String description;
+
     @AttributeName(name = "oxAuthRedirectURI")
     private List<String> redirectUris;
 
@@ -55,17 +49,6 @@ public class SectorIdentifier extends BaseEntry implements Serializable {
 
     public void setClientIds(List<String> clientIds) {
         this.clientIds = clientIds;
-    }
-
-    public String getDescription() {
-        if (description == null) {
-            description = "Default description";
-        }
-        return description;
-    }
-
-    public void setDescription(String des) {
-        this.description = des;
     }
 
     @Override

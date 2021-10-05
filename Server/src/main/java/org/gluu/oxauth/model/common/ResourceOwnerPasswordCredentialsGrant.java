@@ -7,7 +7,6 @@
 package org.gluu.oxauth.model.common;
 
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.common.User;
 
 /**
  * <p>
@@ -43,6 +42,11 @@ public class ResourceOwnerPasswordCredentialsGrant extends AuthorizationGrant {
      */
     public ResourceOwnerPasswordCredentialsGrant(User user, Client client) {
         init(user, client);
+    }
+
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS;
     }
 
     public void init(User user, Client client) {

@@ -128,6 +128,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     @Inject
     private CIBARegisterClientResponseService cibaRegisterClientResponseService;
 
+    @Inject
+    private AuthorizationGrantList authorizationGrantList;
+
     @Override
     public Response requestRegister(String requestParams, HttpServletRequest httpRequest, SecurityContext securityContext) {
         com.codahale.metrics.Timer.Context timerContext = metricService.getTimer(MetricType.DYNAMIC_CLIENT_REGISTRATION_RATE).time();
@@ -204,7 +207,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                     log.debug("The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema: " + r.getInitiateLoginUri());
                     throw errorResponseFactory.createWebApplicationException(
                             Response.Status.BAD_REQUEST,
-                            RegisterErrorResponseType.INVALID_CLIENT_METADATA,
+                            RegisterErrorResponseType.INVALID_CLAIMS_REDIRECT_URI,
                             "The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema.");
                 }
             }
@@ -241,7 +244,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
 
 
-            registerParamsValidator.validateLogoutUri(r.getFrontChannelLogoutUri(), r.getRedirectUris(), errorResponseFactory);
+            registerParamsValidator.validateLogoutUri(r.getFrontChannelLogoutUris(), r.getRedirectUris(), errorResponseFactory);
             registerParamsValidator.validateLogoutUri(r.getBackchannelLogoutUris(), r.getRedirectUris(), errorResponseFactory);
 
             String clientsBaseDN = staticConfiguration.getBaseDn().getClients();
@@ -446,7 +449,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             p_client.setClaimRedirectUris(claimsRedirectUris.toArray(new String[claimsRedirectUris.size()]));
         }
         if (requestObject.getApplicationType() != null) {
-            p_client.setApplicationType(requestObject.getApplicationType());
+            p_client.setApplicationType(requestObject.getApplicationType().toString());
         }
         if (StringUtils.isNotBlank(requestObject.getClientName())) {
             p_client.setClientName(requestObject.getClientName());
@@ -526,7 +529,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             p_client.setJwks(requestObject.getJwks());
         }
         if (requestObject.getSubjectType() != null) {
-            p_client.setSubjectType(requestObject.getSubjectType());
+            p_client.setSubjectType(requestObject.getSubjectType().toString());
         }
         if (requestObject.getRptAsJwt() != null) {
             p_client.setRptAsJwt(requestObject.getRptAsJwt());
@@ -607,8 +610,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             p_client.setPostLogoutRedirectUris(postLogoutRedirectUris.toArray(new String[postLogoutRedirectUris.size()]));
         }
 
-        if (StringUtils.isNotBlank(requestObject.getFrontChannelLogoutUri())) {
-            p_client.setFrontChannelLogoutUri(requestObject.getFrontChannelLogoutUri());
+        if (requestObject.getFrontChannelLogoutUris() != null && !requestObject.getFrontChannelLogoutUris().isEmpty()) {
+            p_client.setFrontChannelLogoutUri(requestObject.getFrontChannelLogoutUris().toArray(new String[requestObject.getFrontChannelLogoutUris().size()]));
         }
         p_client.setFrontChannelLogoutSessionRequired(requestObject.getFrontChannelLogoutSessionRequired());
 
@@ -695,7 +698,16 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             final String accessToken = tokenService.getToken(authorization);
 
             if (StringUtils.isNotBlank(accessToken) && StringUtils.isNotBlank(clientId) && StringUtils.isNotBlank(requestParams)) {
-                final RegisterRequest request = RegisterRequest.fromJson(requestParams, appConfiguration.getLegacyDynamicRegistrationScopeParam());
+                JSONObject requestObject = new JSONObject(requestParams);
+                final JSONObject softwareStatement = validateSoftwareStatement(httpRequest, requestObject);
+                if (softwareStatement != null) {
+                    log.trace("Override request parameters by software_statement");
+                    for (String key : softwareStatement.keySet()) {
+                        requestObject.putOpt(key, softwareStatement.get(key));
+                    }
+                }
+
+                final RegisterRequest request = RegisterRequest.fromJson(requestObject, appConfiguration.getLegacyDynamicRegistrationScopeParam());
                 if (request != null) {
                     boolean redirectUrisValidated = true;
                     if (request.getRedirectUris() != null && !request.getRedirectUris().isEmpty()) {
@@ -928,6 +940,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
         }
 
+        putCustomAttributesInResponse(client, responseJsonObject);
+
         if (claimNames != null && claimNames.length > 0) {
             Util.addToJSONObjectIfNotNull(responseJsonObject, CLAIMS.toString(), implode(claimNames, " "));
         }
@@ -935,6 +949,25 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         cibaRegisterClientResponseService.updateResponse(responseJsonObject, client);
 
         return responseJsonObject;
+    }
+
+    private void putCustomAttributesInResponse(Client client,  JSONObject responseJsonObject) {
+        final List<String> allowedCustomAttributeNames = appConfiguration.getDynamicRegistrationCustomAttributes();
+        final List<CustomAttribute> customAttributes = client.getCustomAttributes();
+        if (allowedCustomAttributeNames == null || allowedCustomAttributeNames.isEmpty() || customAttributes == null) {
+            return;
+        }
+
+        for (CustomAttribute attribute : customAttributes) {
+            if (!allowedCustomAttributeNames.contains(attribute.getName()))
+                continue;
+
+            if (attribute.isMultiValued()) {
+                Util.addToJSONObjectIfNotNull(responseJsonObject, attribute.getName(), attribute.getValues());
+            } else {
+                Util.addToJSONObjectIfNotNull(responseJsonObject, attribute.getName(), attribute.getValue());
+            }
+        }
     }
 
     /**

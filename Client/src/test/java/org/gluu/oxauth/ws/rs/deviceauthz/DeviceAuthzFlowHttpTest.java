@@ -513,8 +513,7 @@ public class DeviceAuthzFlowHttpTest extends BaseTest {
             }
         }
 
-        String authorizationResponseStr = acceptAuthorization(currentDriver, null);
-        navigateToAuhorizationUrl(currentDriver, authorizationResponseStr);
+        acceptAuthorization(currentDriver, null);
 
         String deviceAuthzResponseStr = currentDriver.getCurrentUrl();
 

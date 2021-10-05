@@ -562,7 +562,8 @@ class PersonAuthentication(PersonAuthenticationType):
         # Check if jwt has expired
         jwt_claims = jwt.getClaims()
         try:
-            exp_date = jwt_claims.getClaimAsDate(JwtClaimName.EXPIRATION_TIME)
+            exp_date_timestamp = float(jwt_claims.getClaimAsString(JwtClaimName.EXPIRATION_TIME))
+            exp_date = datetime.datetime.fromtimestamp(exp_date_timestamp)
             hasExpired = exp_date < datetime.datetime.now()
         except:
             print "Exception: The JWT does not have '%s' attribute" % JwtClaimName.EXPIRATION_TIME
@@ -823,3 +824,4 @@ class PersonAuthentication(PersonAuthenticationType):
     def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
         print "Get external logout URL call"
         return None
+    

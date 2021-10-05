@@ -78,7 +78,7 @@ public abstract class AbstractCryptoProvider {
 
     public JwksRequestParam getJwksRequestParam(JSONObject jwkJsonObject) throws JSONException {
         JwksRequestParam jwks = new JwksRequestParam();
-        jwks.setKeyRequestParams(new ArrayList<KeyRequestParam>());
+        jwks.setKeyRequestParams(new ArrayList<>());
 
         KeyRequestParam key = new KeyRequestParam();
         key.setAlg(jwkJsonObject.getString(ALGORITHM));
@@ -98,10 +98,27 @@ public abstract class AbstractCryptoProvider {
         return jwks;
     }
 
-    public static JSONObject generateJwks(AbstractCryptoProvider cryptoProvider, int keyRegenerationInterval, int idTokenLifeTime, AppConfiguration configuration) throws Exception {
+    public static JSONObject generateJwks(AbstractCryptoProvider cryptoProvider, AppConfiguration configuration) {
+        GregorianCalendar expirationTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        expirationTime.add(GregorianCalendar.HOUR, configuration.getKeyRegenerationInterval());
+        expirationTime.add(GregorianCalendar.SECOND, configuration.getIdTokenLifetime());
+
+        long expiration = expirationTime.getTimeInMillis();
+
+        final List<String> allowedAlgs = configuration.getKeyAlgsAllowedForGeneration();
         JSONArray keys = new JSONArray();
-        generateJwks(cryptoProvider, keys, keyRegenerationInterval, idTokenLifeTime, configuration, Use.SIGNATURE);
-        generateJwks(cryptoProvider, keys, keyRegenerationInterval, idTokenLifeTime, configuration, Use.ENCRYPTION);
+
+        for (Algorithm alg : Algorithm.values()) {
+            try {
+                if (!allowedAlgs.isEmpty() && !allowedAlgs.contains(alg.getParamName())) {
+                    LOG.debug("Key generation for " + alg + " is skipped because it's not allowed by keyAlgsAllowedForGeneration configuration property.");
+                    continue;
+                }
+                keys.put(cryptoProvider.generateKey(alg, expiration, alg.getUse()));
+            } catch (Exception ex) {
+                LOG.error("Algorithm: " + alg + ex.getMessage(), ex);
+            }
+        }
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(JSON_WEB_KEY_SET, keys);
@@ -109,139 +126,49 @@ public abstract class AbstractCryptoProvider {
         return jsonObject;
     }
 
-    public static void generateJwks(AbstractCryptoProvider cryptoProvider, JSONArray keys, int keyRegenerationInterval, int idTokenLifeTime, AppConfiguration configuration, Use use) throws Exception {
-        GregorianCalendar expirationTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        expirationTime.add(GregorianCalendar.HOUR, keyRegenerationInterval);
-        expirationTime.add(GregorianCalendar.SECOND, idTokenLifeTime);
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.RS256, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.RS384, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.RS512, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.ES256, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.ES384, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.ES512, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.PS256, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.PS384, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.PS512, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.RSA1_5, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        try {
-            keys.put(cryptoProvider.generateKey(Algorithm.RSA_OAEP, expirationTime.getTimeInMillis(), use));
-        } catch (Exception ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-    }
-
     public PublicKey getPublicKey(String alias, JSONObject jwks, Algorithm requestedAlgorithm) throws Exception {
         java.security.PublicKey publicKey = null;
 
         JSONArray webKeys = jwks.getJSONArray(JSON_WEB_KEY_SET);
-        if (alias == null) {
-            if (webKeys.length() == 1) {
-                JSONObject key = webKeys.getJSONObject(0);
-                return processKey(requestedAlgorithm, alias, key);
-            } else {
-                return null;
-            }
-        }
         for (int i = 0; i < webKeys.length(); i++) {
             JSONObject key = webKeys.getJSONObject(i);
             if (alias.equals(key.getString(KEY_ID))) {
-                publicKey = processKey(requestedAlgorithm, alias, key);
-                if (publicKey != null) {
-                    return publicKey;
+                AlgorithmFamily family = null;
+                if (key.has(ALGORITHM)) {
+                    Algorithm algorithm = Algorithm.fromString(key.optString(ALGORITHM));
+
+                    if (requestedAlgorithm != null && algorithm != requestedAlgorithm) {
+                        LOG.trace("kid matched but algorithm does not match. kid algorithm:" + algorithm + ", requestedAlgorithm:" + requestedAlgorithm + ", kid:" + alias);
+                        continue;
+                    }
+                    family = algorithm.getFamily();
+                } else if (key.has(KEY_TYPE)) {
+                    family = AlgorithmFamily.fromString(key.getString(KEY_TYPE));
+                }
+
+                if (AlgorithmFamily.RSA.equals(family)) {
+                    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                    RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(
+                            new BigInteger(1, Base64Util.base64urldecode(key.getString(MODULUS))),
+                            new BigInteger(1, Base64Util.base64urldecode(key.getString(EXPONENT))));
+                    publicKey = keyFactory.generatePublic(pubKeySpec);
+                } else if (AlgorithmFamily.EC.equals(family)) {
+                    ECEllipticCurve curve = ECEllipticCurve.fromString(key.optString(CURVE));
+                    AlgorithmParameters parameters = AlgorithmParameters.getInstance(AlgorithmFamily.EC.toString());
+                    parameters.init(new ECGenParameterSpec(curve.getAlias()));
+                    ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+
+                    publicKey = KeyFactory.getInstance(AlgorithmFamily.EC.toString()).generatePublic(new ECPublicKeySpec(
+                            new ECPoint(
+                                    new BigInteger(1, Base64Util.base64urldecode(key.getString(X))),
+                                    new BigInteger(1, Base64Util.base64urldecode(key.getString(Y)))
+                            ), ecParameters));
+                }
+
+                if (key.has(EXPIRATION_TIME)) {
+                    checkKeyExpiration(alias, key.getLong(EXPIRATION_TIME));
                 }
             }
-        }
-
-        return null;
-    }
-
-    private PublicKey processKey(Algorithm requestedAlgorithm, String alias, JSONObject key) throws Exception {
-        PublicKey publicKey = null;
-        AlgorithmFamily family = null;
-        if (key.has(ALGORITHM)) {
-            Algorithm algorithm = Algorithm.fromString(key.optString(ALGORITHM));
-
-            if (requestedAlgorithm != null && algorithm != requestedAlgorithm) {
-                LOG.trace("kid matched but algorithm does not match. kid algorithm:" + algorithm + ", requestedAlgorithm:" + requestedAlgorithm + ", kid:" + alias);
-                return null;
-            }
-            family = algorithm.getFamily();
-        } else if (key.has(KEY_TYPE)) {
-            family = AlgorithmFamily.fromString(key.getString(KEY_TYPE));
-        }
-
-        if (AlgorithmFamily.RSA.equals(family)) {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(
-                    new BigInteger(1, Base64Util.base64urldecode(key.getString(MODULUS))),
-                    new BigInteger(1, Base64Util.base64urldecode(key.getString(EXPONENT))));
-            publicKey = keyFactory.generatePublic(pubKeySpec);
-        } else if (AlgorithmFamily.EC.equals(family)) {
-            ECEllipticCurve curve = ECEllipticCurve.fromString(key.optString(CURVE));
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance(AlgorithmFamily.EC.toString());
-            parameters.init(new ECGenParameterSpec(curve.getAlias()));
-            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
-
-            publicKey = KeyFactory.getInstance(AlgorithmFamily.EC.toString()).generatePublic(new ECPublicKeySpec(
-                    new ECPoint(
-                            new BigInteger(1, Base64Util.base64urldecode(key.getString(X))),
-                            new BigInteger(1, Base64Util.base64urldecode(key.getString(Y)))
-                    ), ecParameters));
-        }
-
-        if (key.has(EXPIRATION_TIME)) {
-            checkKeyExpiration(alias, key.getLong(EXPIRATION_TIME));
         }
 
         return publicKey;

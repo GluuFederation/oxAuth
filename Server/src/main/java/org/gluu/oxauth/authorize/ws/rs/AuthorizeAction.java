@@ -63,7 +63,6 @@ import java.net.URLEncoder;
 import java.util.*;
 
 import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
-
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
@@ -383,7 +382,7 @@ public class AuthorizeAction {
         }
 
         ExternalPostAuthnContext postAuthnContext = new ExternalPostAuthnContext(client, session, (HttpServletRequest)externalContext.getRequest(), (HttpServletResponse) externalContext.getResponse());
-        final boolean forceAuthorization = externalPostAuthnService.externalForceReAuthentication(client, postAuthnContext);
+        final boolean forceAuthorization = externalPostAuthnService.externalForceAuthorization(client, postAuthnContext);
 
         final boolean hasConsentPrompt = prompts.contains(Prompt.CONSENT);
         if (!hasConsentPrompt && !forceAuthorization) {

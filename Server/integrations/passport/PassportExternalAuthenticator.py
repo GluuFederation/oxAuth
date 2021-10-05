@@ -84,6 +84,11 @@ class PersonAuthentication(PersonAuthenticationType):
         print "Passport. authenticate for step %s called" % str(step)
         identity = CdiUtil.bean(Identity)
 
+        # Loading self.registeredProviders in case passport destroyed
+        if not hasattr(self,'registeredProviders'):
+            print "Passport. Fetching registered providers."
+            self.parseProviderConfigs()
+
         if step == 1:
             # Get JWT token
             jwt_param = ServerUtil.getFirstValue(requestParameters, "user")
@@ -102,6 +107,9 @@ class PersonAuthentication(PersonAuthenticationType):
                 (user_profile, jsonp) = self.getUserProfile(jwt)
                 if user_profile == None:
                     return False
+
+                sessionAttributes = identity.getSessionId().getSessionAttributes()
+                self.skipProfileUpdate = StringHelper.equalsIgnoreCase(sessionAttributes.get("skipPassportProfileUpdate"), "true")
 
                 return self.attemptAuthentication(identity, user_profile, jsonp)
 
@@ -453,7 +461,8 @@ class PersonAuthentication(PersonAuthenticationType):
         # Check if jwt has expired
         jwt_claims = jwt.getClaims()
         try:
-            exp_date = jwt_claims.getClaimAsDate(JwtClaimName.EXPIRATION_TIME)
+            exp_date_timestamp = float(jwt_claims.getClaimAsString(JwtClaimName.EXPIRATION_TIME))
+            exp_date = datetime.datetime.fromtimestamp(exp_date_timestamp)
             hasExpired = exp_date < datetime.datetime.now()
         except:
             print "Exception: The JWT does not have '%s' attribute" % JwtClaimName.EXPIRATION_TIME

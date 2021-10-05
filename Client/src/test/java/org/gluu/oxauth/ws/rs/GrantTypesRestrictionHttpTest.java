@@ -60,7 +60,7 @@ public class GrantTypesRestrictionHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PAIRWISE);
         registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
         registerRequest.setPostLogoutRedirectUris(Arrays.asList(postLogoutRedirectUri));
-        registerRequest.setFrontChannelLogoutUri(logoutUri);
+        registerRequest.setFrontChannelLogoutUris(Lists.newArrayList(logoutUri));
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
@@ -241,7 +241,7 @@ public class GrantTypesRestrictionHttpTest extends BaseTest {
                 // 8. End session
                 String endSessionId = UUID.randomUUID().toString();
                 EndSessionRequest endSessionRequest = new EndSessionRequest(idToken, postLogoutRedirectUri, endSessionId);
-                endSessionRequest.setSessionId(authorizationResponse.getSessionId());
+                endSessionRequest.setSid(authorizationResponse.getSid());
 
                 EndSessionClient endSessionClient = new EndSessionClient(endSessionEndpoint);
                 endSessionClient.setRequest(endSessionRequest);

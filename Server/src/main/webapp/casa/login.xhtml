@@ -32,6 +32,7 @@
 				</div>
 				
 				<h:inputHidden id="platform" />
+                <h:inputHidden id="platformAuthenticator" />
 			</h:form>
 		</section>
 		<script>
@@ -39,7 +40,8 @@
 			$(".focused-text").attr("required", "true")
 			
 			$(document).ready(function () {
-				fillPlatformField()
+				fillPlatformField();
+				fillPlatforAuthenticatorField();
 			})
 			
 			function fillPlatformField() {
@@ -55,6 +57,23 @@
 				} catch (e) {
 				}
 			}
+			 function fillPlatforAuthenticatorField()
+	            {
+	            	
+					PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+					  .then(function(available){
+					    if(available){
+					    	 document.getElementById("loginForm:platformAuthenticator").value = "true";
+					    }
+					    else
+					    {
+					    	 document.getElementById("loginForm:platformAuthenticator").value = "false";
+					    }
+					    
+					  }).catch(function(err){
+					    console.error("Error in detecting platform authenticator : "+err);
+					  });
+	            }
 		</script>
 	</ui:define>
 

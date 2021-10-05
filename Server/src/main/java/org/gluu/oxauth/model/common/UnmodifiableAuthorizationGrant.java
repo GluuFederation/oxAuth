@@ -34,6 +34,11 @@ public class UnmodifiableAuthorizationGrant implements IAuthorizationGrant {
     }
 
     @Override
+    public GrantType getGrantType() {
+        return GrantType.NONE;
+    }
+
+    @Override
     public String getGrantId() {
         return grant.getGrantId();
     }
@@ -81,7 +86,8 @@ public class UnmodifiableAuthorizationGrant implements IAuthorizationGrant {
     @Override
     public IdToken createIdToken(
             String nonce, AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) {
+            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
+            Function<JsonWebResponse, Void> postProcessing) {
         throw new UnsupportedOperationException("Not allowed for UnmodifiableAuthorizationGrant.");
     }
 

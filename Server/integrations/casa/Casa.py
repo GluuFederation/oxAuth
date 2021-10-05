@@ -1,5 +1,6 @@
 # Author: Jose Gonzalez
 
+from java.lang import Integer
 from java.util import Collections, HashMap, HashSet, ArrayList, Arrays, Date
 from java.nio.charset import Charset
 
@@ -114,7 +115,8 @@ class PersonAuthentication(PersonAuthenticationType):
             credentials = identity.getCredentials()
             user_name = credentials.getUsername()
             user_password = credentials.getPassword()
-
+	    identity.setWorkingParameter("platformAuthenticatorAvailable",ServerUtil.getFirstValue(requestParameters, "loginForm:platformAuthenticator"))
+  
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
 
                 foundUser = userService.getUserByAttribute(self.uid_attr, user_name)
@@ -123,13 +125,14 @@ class PersonAuthentication(PersonAuthenticationType):
                     print "Casa. authenticate for step 1. Unknown username"
                 else:
                     platform_data = self.parsePlatformData(requestParameters)
-                    mfaOff = foundUser.getAttribute("oxPreferredMethod") == None
+                    preferred = foundUser.getAttribute("oxPreferredMethod")
+                    mfaOff = preferred == None
                     logged_in = False
 
                     if mfaOff:
                         logged_in = authenticationService.authenticate(user_name, user_password)
                     else:
-                        acr = self.getSuitableAcr(foundUser, platform_data)
+                        acr = self.getSuitableAcr(foundUser, platform_data, preferred)
                         if acr != None:
                             module = self.authenticators[acr]
                             logged_in = module.authenticate(module.configAttrs, requestParameters, step)
@@ -237,7 +240,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             list.addAll(Arrays.asList("ACR", "methods", "trustedDevicesInfo"))
 
-        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl"))
+        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl","platformAuthenticatorAvailable"))
         print "extras are %s" % list
         return list
 
@@ -434,7 +437,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return deviceInf
 
 
-    def getSuitableAcr(self, user, deviceInf):
+    def getSuitableAcr(self, user, deviceInf, preferred):
 
         onMobile = deviceInf != None and 'isMobile' in deviceInf and deviceInf['isMobile']
         id = user.getUserId()
@@ -444,9 +447,10 @@ class PersonAuthentication(PersonAuthenticationType):
 
         for s in self.scriptsList:
             name = s.getName()
-            if user_methods.contains(name) and name in self.authenticators and s.getLevel() > strongest and (not onMobile or name in self.mobile_methods):
+            level = Integer.MAX_VALUE if name == preferred else s.getLevel()
+            if user_methods.contains(name) and level > strongest and (not onMobile or name in self.mobile_methods):
                 acr = name
-                strongest = s.getLevel()
+                strongest = level
 
         print "Casa. getSuitableAcr. On mobile = %s" % onMobile
         if acr == None and onMobile:

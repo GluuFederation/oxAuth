@@ -11,13 +11,13 @@ How they work:
 * Step 2: User enters token received by e-mail
 * Step 3: User enters new password
 
-### Email 2FA
+### Emai 2FA
 * Step 1: User enters username and password
 * Step 2: User enters token received by e-mail
 
-## Installation
+## Instalation
 
-* Make sure that you have a correct **SMTP settings in Gluu Server** - Navigate to Configuration > Organization Configuration > SMTP Server Configuration
+* Make sure you have your **SMTP settings correctly Gluu Server** - Navigate to Configuration > Organization Configuration > SMTP Server Configuration
 * Set up the script function (Forgot Password or Email 2FA) - Navigate to Configuration > Manage Custom Scripts, choose the script and set a **custom attribute** with key `SCRIPT_FUNCTION` and value `forgot_password` for Forgot Password mode, or `email_2FA` for Email 2FA mode.
 * Enable the custom script. 
 

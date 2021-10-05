@@ -7,7 +7,6 @@
 package org.gluu.oxauth.model.common;
 
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.common.User;
 
 /**
  * The client credentials (or other forms of client authentication) can be used
@@ -35,6 +34,11 @@ public class ClientCredentialsGrant extends AuthorizationGrant {
      */
     public ClientCredentialsGrant(User user, Client client) {
         init(user, client);
+    }
+
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.CLIENT_CREDENTIALS;
     }
 
     public void init(User user, Client client) {

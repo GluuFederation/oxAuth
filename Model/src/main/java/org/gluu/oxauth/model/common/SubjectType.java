@@ -8,25 +8,14 @@ package org.gluu.oxauth.model.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.gluu.persist.annotation.AttributeEnum;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Javier Rojas Blum Date: 05.11.2012
  */
-public enum SubjectType implements AttributeEnum {
+public enum SubjectType {
 
     PAIRWISE("pairwise"),
     PUBLIC("public");
-    private static Map<String, SubjectType> mapByValues = new HashMap<>();
-
-    static {
-        for (SubjectType enumType : values()) {
-            mapByValues.put(enumType.getValue(), enumType);
-        }
-    }
 
     private final String paramName;
 
@@ -39,7 +28,7 @@ public enum SubjectType implements AttributeEnum {
      *
      * @param param The parameter.
      * @return The corresponding user id type if found, otherwise
-     * <code>null</code>.
+     *         <code>null</code>.
      */
     @JsonCreator
     public static SubjectType fromString(String param) {
@@ -53,10 +42,6 @@ public enum SubjectType implements AttributeEnum {
         return null;
     }
 
-    public static SubjectType getByValue(String value) {
-        return mapByValues.get(value);
-    }
-
     /**
      * Returns a string representation of the object. In this case the parameter
      * name for the user id type parameter.
@@ -65,13 +50,5 @@ public enum SubjectType implements AttributeEnum {
     @JsonValue
     public String toString() {
         return paramName;
-    }
-
-    public String getValue() {
-        return paramName;
-    }
-
-    public Enum<? extends AttributeEnum> resolveByValue(String value) {
-        return getByValue(value);
     }
 }

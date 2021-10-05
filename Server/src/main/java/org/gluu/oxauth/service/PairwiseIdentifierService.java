@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.net.URI;
 import java.util.List;
 
 /**
@@ -60,16 +59,15 @@ public class PairwiseIdentifierService {
         }
     }
 
-    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifierUri, String clientId) throws Exception {
+    public PairwiseIdentifier findPairWiseIdentifier(String userInum, String sectorIdentifier, String clientId) throws Exception {
         PairwiseIdType pairwiseIdType = PairwiseIdType.fromString(appConfiguration.getPairwiseIdType());
-        String sectorIdentifier = URI.create(sectorIdentifierUri).getHost();
 
         if (PairwiseIdType.PERSISTENT == pairwiseIdType) {
             prepareBranch(userInum);
 
             String baseDnForPairwiseIdentifiers = getBaseDnForPairwiseIdentifiers(userInum);
 
-            Filter filter = null;
+            final Filter filter;
             if (appConfiguration.isShareSubjectIdBetweenClientsWithSameSectorId()) {
             	Filter sectorIdentifierFilter = Filter.createEqualityFilter("oxSectorIdentifier", sectorIdentifier);
                 Filter userInumFilter = Filter.createEqualityFilter("oxAuthUserId", userInum);
@@ -100,10 +98,9 @@ public class PairwiseIdentifierService {
             String localAccountId = appConfiguration.isShareSubjectIdBetweenClientsWithSameSectorId() ?
                     userInum : userInum + clientId;
 
-            String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(
-                    sectorIdentifierUri, localAccountId, key, salt, appConfiguration);
+            String calculatedSub = SubjectIdentifierGenerator.generatePairwiseSubjectIdentifier(sectorIdentifier, localAccountId, key, salt, appConfiguration);
 
-            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifierUri, clientId, userInum);
+            PairwiseIdentifier pairwiseIdentifier = new PairwiseIdentifier(sectorIdentifier, clientId, userInum);
             pairwiseIdentifier.setId(calculatedSub);
 
             return pairwiseIdentifier;

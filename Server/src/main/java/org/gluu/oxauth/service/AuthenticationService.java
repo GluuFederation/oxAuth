@@ -6,28 +6,6 @@
 
 package org.gluu.oxauth.service;
 
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
-
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.ejb.Stateless;
-import javax.faces.context.ExternalContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.GluuStatus;
@@ -58,6 +36,19 @@ import org.gluu.util.Pair;
 import org.gluu.util.StringHelper;
 import org.json.JSONException;
 import org.slf4j.Logger;
+
+import javax.ejb.Stateless;
+import javax.faces.context.ExternalContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.*;
+
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
 
 /**
  * Authentication service methods
@@ -244,7 +235,7 @@ public class AuthenticationService {
 			// Use local LDAP server for user authentication
 			boolean authenticated = false;
 			try {
-				authenticated = ldapEntryManager.authenticate(user.getDn(), password);
+				authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
 			} catch (AuthenticationException ex) {
 				log.error("Authentication failed: " + ex.getMessage());
 				if (log.isDebugEnabled()) {
@@ -274,7 +265,7 @@ public class AuthenticationService {
 			}
 
 			// Use local LDAP server for user authentication
-			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), password);
+			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
 			if (authenticated) {
 				configureAuthenticatedUser(user);
 				updateLastLogonUserTime(user);
@@ -443,7 +434,7 @@ public class AuthenticationService {
 					if (user != null) {
 						String userDn = user.getDn();
 						log.debug("Attempting to authenticate userDN: {}", userDn);
-						if (ldapAuthEntryManager.authenticate(userDn, password)) {
+						if (ldapAuthEntryManager.authenticate(userDn, User.class, password)) {
 							log.debug("User authenticated: {}", userDn);
 
 							log.debug("Attempting to find userDN by local primary key: {}", localPrimaryKey);
@@ -710,7 +701,7 @@ public class AuthenticationService {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void onSuccessfulLogin(SessionId sessionUser) {
-		log.info("Attempting to redirect user: SessionUser: {}", sessionUser);
+		log.info("Attempting to redirect user: SessionUser: {}", sessionUser != null ? sessionUser.getId() : "");
 
 		if ((sessionUser == null) || StringUtils.isBlank(sessionUser.getUserDn())) {
 			return;
@@ -725,9 +716,10 @@ public class AuthenticationService {
         }
 
         final Map<String, String> result = sessionUser.getSessionAttributes();
-        Map<String, String> allowedParameters = requestParameterService.getAllowedParameters(result);
+        result.put(SESSION_ID, sessionUser.getId()); // parameters must be filled before filtering
+        result.put(SID, sessionUser.getOutsideSid()); // parameters must be filled before filtering
 
-        result.put(SESSION_ID, sessionUser.getId());
+        Map<String, String> allowedParameters = requestParameterService.getAllowedParameters(result);
 
         log.trace("Logged in successfully! User: {}, page: /authorize.xhtml, map: {}", user, allowedParameters);
         facesService.redirect("/authorize.xhtml", (Map) allowedParameters);

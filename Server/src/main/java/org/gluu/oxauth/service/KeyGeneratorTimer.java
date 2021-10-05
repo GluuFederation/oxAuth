@@ -67,13 +67,14 @@ public class KeyGeneratorTimer {
 	private long lastFinishedTime;
 
     public void initTimer() {
-        log.debug("Initializing Key Generator Timer");
+        log.info("Initializing Key Generator Timer");
         this.isActive = new AtomicBoolean(false);
 
 		timerEvent.fire(new TimerEvent(new TimerSchedule(DEFAULT_INTERVAL, DEFAULT_INTERVAL), new KeyGenerationEvent(),
 				Scheduled.Literal.INSTANCE));
 
 		this.lastFinishedTime = System.currentTimeMillis();
+        log.info("Initialized Key Generator Timer");
     }
 
     @Asynchronous
@@ -141,8 +142,7 @@ public class KeyGeneratorTimer {
     }
 
     private JSONObject updateKeys(JSONObject jwks) throws Exception {
-        JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, appConfiguration.getKeyRegenerationInterval(),
-                appConfiguration.getIdTokenLifetime(), appConfiguration);
+        JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, appConfiguration);
 
         JSONArray keys = jwks.getJSONArray(JSON_WEB_KEY_SET);
         for (int i = 0; i < keys.length(); i++) {

@@ -3,7 +3,8 @@ package org.gluu.oxauth.model.uma;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -16,7 +17,7 @@ import java.io.InputStream;
  */
 public class JsonLogic {
 
-    private final static Logger LOG = Logger.getLogger(JsonLogic.class);
+    private final static Logger LOG = LoggerFactory.getLogger(JsonLogic.class);
 
     private static final JsonLogic INSTANCE = new JsonLogic();
 

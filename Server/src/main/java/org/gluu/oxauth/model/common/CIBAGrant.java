@@ -27,6 +27,11 @@ public class CIBAGrant extends AuthorizationGrant {
     public CIBAGrant() {
     }
 
+    @Override
+    public GrantType getGrantType() {
+        return GrantType.CIBA;
+    }
+
     public void init(CibaRequestCacheControl cibaRequest) {
         super.init(cibaRequest.getUser(), AuthorizationGrantType.CIBA, cibaRequest.getClient(), null);
         setAuthReqId(cibaRequest.getAuthReqId());

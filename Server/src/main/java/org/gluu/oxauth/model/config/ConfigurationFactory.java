@@ -104,7 +104,7 @@ public class ConfigurationFactory {
 	private static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
 
 	private static final String BASE_PROPERTIES_FILE = DIR + "gluu.properties";
-	private static final String LDAP_PROPERTIES_FILE = DIR + "oxauth.properties";
+	private static final String LDAP_PROPERTIES_FILE = "oxauth.properties";
 
 	private final String CONFIG_FILE_NAME = "oxauth-config.json";
 	private final String ERRORS_FILE_NAME = "oxauth-errors.json";
@@ -474,8 +474,7 @@ public class ConfigurationFactory {
             final AbstractCryptoProvider cryptoProvider = CryptoProviderFactory.getCryptoProvider(getAppConfiguration());
 
 			// Generate new JWKS
-			JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, getAppConfiguration().getKeyRegenerationInterval(),
-                    getAppConfiguration().getIdTokenLifetime(),	getAppConfiguration());
+			JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, getAppConfiguration());
 			newWebKeys = jsonObject.toString();
 
 			// Attempt to load new JWKS
