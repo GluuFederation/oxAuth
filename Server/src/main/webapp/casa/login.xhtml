@@ -40,9 +40,24 @@
 			$(".focused-text").attr("required", "true")
 			
 			$(document).ready(function () {
+                storedCredsWorkaround();
 				fillPlatformField();
 				fillPlatforAuthenticatorField();
 			})
+            
+            function storedCredsWorkaround() {
+                //Needed when browser pre-fills usr/pwd due to JSF issue with required attribute (see above)
+                let user = document.getElementById("loginForm:username")
+                let pwd = document.getElementById("loginForm:password")
+                if ($(user).val()) {
+                    $(user).focus()
+                    $(user).blur()
+                }
+                if ($(pwd).val()) {
+                    $(pwd).focus()
+                    $(pwd).blur()
+                }
+            }
 			
 			function fillPlatformField() {
 				try {

@@ -65,14 +65,23 @@
 				form["loginForm:username"].value = uid
 				form["loginForm:loginButton"].click()
 		    }
-		
+
+            function storedCredsWorkaround() {
+                //Needed when browser pre-fills usr/pwd due to JSF issue with required attribute (see above)
+                let user = document.getElementById("loginForm:username")
+                if ($(user).val()) {
+                    $(user).focus()
+                    $(user).blur()
+                }
+            }
+            
 			//This is needed since JSF does not allow to set required attribute
 			$(".focused-text").attr("required", "true")
 			
 			let loginHint = '${identity.getWorkingParameter('loginHint')}'			
 			if (loginHint.length > 0) {
 			    //Populate input text
-			    $("#loginForm:username").val(loginHint)
+			    $("#loginForm\\:username").val(loginHint)
 			}
 			
 			let users = '${identity.getWorkingParameter('users')}'			
@@ -103,7 +112,10 @@
 			    $("#panel_list").removeClass("dn")
 			    
 			} else {
-			    $("#loginForm").removeClass("dn")			    
+			    $("#loginForm").removeClass("dn")
+			    if (loginHint.length == 0) {
+			        storedCredsWorkaround()
+			    }
 			}
 					//    	]]>
 		</script>
