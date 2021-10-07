@@ -1108,6 +1108,10 @@
                     <groupId>ca.juliusdavies</groupId>
                     <artifactId>not-yet-commons-ssl</artifactId>
                 </dependency>
+                <dependency>
+                    <groupId>org.apache.santuario</groupId>
+                    <artifactId>xmlsec</artifactId>
+                </dependency>
 			</dependencies>
 		</profile>
 
