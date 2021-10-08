@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.CertificateValidity;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.ValidatorSourceType;
@@ -178,11 +178,11 @@ public class PathCertificateVerifier implements CertificateVerifier {
 		pkixParams.addCertStore(intermediateCertStore);
 
 		// Build and verify the certification chain
-		CertPathBuilder builder = CertPathBuilder.getInstance("PKIX", BouncyCastleProvider.PROVIDER_NAME);
+		CertPathBuilder builder = CertPathBuilder.getInstance("PKIX", BouncyCastleFipsProvider.PROVIDER_NAME);
 		PKIXCertPathBuilderResult certPathBuilderResult = (PKIXCertPathBuilderResult) builder.build(pkixParams);
 
 		// Additional check to Verify cert path
-		CertPathValidator certPathValidator = CertPathValidator.getInstance("PKIX", BouncyCastleProvider.PROVIDER_NAME);
+		CertPathValidator certPathValidator = CertPathValidator.getInstance("PKIX", BouncyCastleFipsProvider.PROVIDER_NAME);
 		PKIXCertPathValidatorResult certPathValidationResult = (PKIXCertPathValidatorResult) certPathValidator.validate(certPathBuilderResult.getCertPath(), pkixParams);
 
 		return certPathBuilderResult;

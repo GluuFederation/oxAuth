@@ -9,26 +9,30 @@ package org.gluu.oxauth.model.util;
 import java.security.Security;
 
 import org.apache.log4j.Logger;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 
+/**
+ * @author madhumitas
+ *
+ */
 public class SecurityProviderUtility {
 
 	private static final Logger log = Logger.getLogger(JwtUtil.class);
 
-	private static BouncyCastleProvider bouncyCastleProvider;
+	private static BouncyCastleFipsProvider bouncyCastleFipsProvider;
 
 	public static void installBCProvider(boolean silent) {
-		bouncyCastleProvider = (BouncyCastleProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-		if (bouncyCastleProvider == null) {
+		bouncyCastleFipsProvider = (BouncyCastleFipsProvider) Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+		if (bouncyCastleFipsProvider == null) {
 			if (!silent) {
-				log.info("Adding Bouncy Castle Provider");
+				log.info("Adding Bouncy Castle FIPS Provider");
 			}
 
-			bouncyCastleProvider = new BouncyCastleProvider();
-			Security.addProvider(bouncyCastleProvider);
+			bouncyCastleFipsProvider = new BouncyCastleFipsProvider();
+			Security.addProvider(bouncyCastleFipsProvider);
 		} else {
 			if (!silent) {
-				log.info("Bouncy Castle Provider was added already");
+				log.info("Bouncy Castle FIPS Provider was added already");
 			}
 		}
 	}
@@ -36,10 +40,10 @@ public class SecurityProviderUtility {
 	public static void installBCProvider() {
 		installBCProvider(false);
 	}
-	
-	public static BouncyCastleProvider getInstance() {
-	    return bouncyCastleProvider;
-	    
+
+	public static BouncyCastleFipsProvider getInstance() {
+		return bouncyCastleFipsProvider;
+
 	}
 
 }

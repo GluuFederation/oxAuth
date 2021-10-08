@@ -6,10 +6,31 @@
 
 package org.gluu.oxauth.model.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
+import static org.gluu.oxauth.model.jwk.JWKParameter.ALGORITHM;
+import static org.gluu.oxauth.model.jwk.JWKParameter.CERTIFICATE_CHAIN;
+import static org.gluu.oxauth.model.jwk.JWKParameter.EXPONENT;
+import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
+import static org.gluu.oxauth.model.jwk.JWKParameter.KEY_ID;
+import static org.gluu.oxauth.model.jwk.JWKParameter.MODULUS;
+import static org.gluu.oxauth.model.jwk.JWKParameter.PUBLIC_KEY;
+import static org.gluu.oxauth.model.jwk.JWKParameter.X;
+import static org.gluu.oxauth.model.jwk.JWKParameter.Y;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
+import java.security.Security;
+import java.security.cert.X509Certificate;
+import java.util.Set;
+
+import javax.ws.rs.HttpMethod;
+
 import org.apache.log4j.Logger;
-import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.openssl.PEMParser;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.PublicKey;
@@ -24,16 +45,8 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.ws.rs.HttpMethod;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.X509Certificate;
-import java.util.Set;
-
-import static org.gluu.oxauth.model.jwk.JWKParameter.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 
 /**
  * @author Javier Rojas Blum
@@ -84,19 +97,19 @@ public class JwtUtil {
 
     public static byte[] getMessageDigestSHA256(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-256", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-256", "BCFIPS");
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA384(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-384", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-384", "BCFIPS");
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA512(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-512", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-512", "BCFIPS");
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
@@ -159,7 +172,7 @@ public class JwtUtil {
                 String certificateString = BEGIN + "\n" + certChain.getString(0) + "\n" + END;
                 StringReader sr = new StringReader(certificateString);
                 PEMParser pemReader = new PEMParser(sr);
-                X509Certificate cert = (X509CertificateObject) pemReader.readObject();
+                X509Certificate cert = (X509Certificate) pemReader.readObject();
                 Certificate certificate = new Certificate(signatureAlgorithm, cert);
                 publicKey.setCertificate(certificate);
             }

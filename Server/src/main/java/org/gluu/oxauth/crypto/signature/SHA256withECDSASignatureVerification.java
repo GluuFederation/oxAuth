@@ -35,7 +35,7 @@ public class SHA256withECDSASignatureVerification implements SignatureVerificati
     public boolean checkSignature(PublicKey publicKey, byte[] signedBytes, byte[] signature) throws SignatureException {
         boolean isValid = false;
 		try {
-			Signature ecdsaSignature = Signature.getInstance("SHA256withECDSA", "BC");
+			Signature ecdsaSignature = Signature.getInstance("SHA256withECDSA", "BCFIPS");
 			ecdsaSignature.initVerify(publicKey);
 			ecdsaSignature.update(signedBytes);
 
