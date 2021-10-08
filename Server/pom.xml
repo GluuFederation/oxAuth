@@ -1083,39 +1083,6 @@
 		</profile>
 
 		<profile>
-			<id>saml</id>
-			<activation>
-				<property>
-					<name>!saml-disabled</name>
-				</property>
-			</activation>
-			<properties>
-			</properties>
-			<build>
-				<plugins>
-				</plugins>
-			</build>
-			<dependencies>
-				<dependency>
-					<groupId>org.gluu</groupId>
-					<artifactId>oxcore-saml</artifactId>
-				</dependency>
-                <dependency>
-                    <groupId>org.owasp.esapi</groupId>
-                    <artifactId>esapi</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>ca.juliusdavies</groupId>
-                    <artifactId>not-yet-commons-ssl</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.santuario</groupId>
-                    <artifactId>xmlsec</artifactId>
-                </dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
 			<id>push_sender</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
