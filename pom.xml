@@ -49,6 +49,11 @@
         <arquillian.drone.version>2.0.0.Final</arquillian.drone.version>
         <arquillian.graphene.version>2.1.0.CR1</arquillian.graphene.version>
 		<shrinkwrap.version>2.1.0</shrinkwrap.version>
+
+		<sonar.projectKey>GluuFederation_oxAuth</sonar.projectKey>
+		<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+		<sonar.organization>gluufederation</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<prerequisites>
