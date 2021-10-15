@@ -17,7 +17,7 @@ The following are the assets involved in casa authentication script:
 
 - Main script: `https://github.com/GluuFederation/community-edition-setup/blob/version_<version>/static/extension/person_authentication/Casa.py`
 - Dependant scripts: `https://github.com/GluuFederation/community-edition-setup/tree/version_<version>/static/casa/scripts`. These are bundled with a default installation; more scripts may be required depending on the authentication mechanisms to support. Gluu installer already copies the default scripts in their destination: `/opt/gluu/python/libs`
-- XHTML templates: `https://github.com/GluuFederation/oxAuth/tree/version_<version>/Server/src/main/webapp/casa`. More files may be required depending on the authentication mechanisms to support. These files are already hosted by oxAuth application
+- XHTML templates: `https://github.com/GluuFederation/oxAuth/tree/version_<version>/Server/src/main/webapp/casa`. More files may be required depending on the authentication mechanisms to support. These files are already hosted by oxAuth web application.
 
 Note: to locate the files that match your Gluu installation replace `<version>` with the (semantic) version of your Server. 
 
@@ -29,8 +29,8 @@ For the main script:
 |-|-|-|
 |`mobile_methods`|Optional. Click [here]( https://www.gluu.org/docs/casa/administration/2fa-basics/#associated-strength-of-credentials)|otp, twilio_sms, super_gluu|
 |`2fa_requisite`|Optional. Click [here]( https://gluu.org/docs/casa/administration/2fa-basics/#forcing-users-to-enroll-a-specific-credential-before-2fa-is-available)|`true`|
-|supergluu_app_id|U2F application ID used by SuperGluu enrollments made using Casa, if any|`https://<your-host-name>/casa`|
-|u2f_app_id|U2F application ID used by FIDO (u2f) enrollments made using Casa, if any|`https://<your-host-name>`|
+|`supergluu_app_id`|U2F application ID used by SuperGluu enrollments made using Casa, if any|`https://<your-host-name>/casa`|
+|`u2f_app_id`|U2F application ID used by FIDO (u2f) enrollments made using Casa, if any|`https://<your-host-name>`|
 
 Auxiliary scripts require properties on their own. You can visit [this](https://www.gluu.org/docs/gluu-server/authn-guide/intro/) page to locate specific pages for every authentication method.
 
@@ -42,11 +42,11 @@ An important restriction to account is that users must present a username and pa
 
 ### Adding authentication mechanisms (new factors)
 
-If the method you want to add is already supported out-of-the-box, it is a matter of enabling it: Casa's admin console [doc page](https://gluu.org/docs/casa/administration/admin-console/#enabled-methods) has the required steps. If you are planning to onboard a different mechanism more work is required and we suggest start reading [this page](https://gluu.org/docs/casa/developer/authn-methods/) of Casa's developer guide.
+If the method you want to add is already supported out-of-the-box, it is a matter of enabling it: Casa's admin console [doc page](https://gluu.org/docs/casa/administration/admin-console/#enabled-methods) has the required steps. If you are planning to onboard a different mechanism more work is required. In that case, we suggest reading [this page](https://gluu.org/docs/casa/developer/authn-methods/) of Casa's developer guide.
 
 ## Flow look&feel
 
 Casa flow pages inherit many of the design elements already set in the [custom branding](https://gluu.org/docs/casa/plugins/custom-branding/) plugin. Changes in design elements such as color scheme or custom CSS rules should take effect in flow pages immediately.
 
-If you require a full customization of the look and feel you are advised to create your own flow pages. Follow [this](https://gluu.org/docs/gluu-server/operation/custom-design/) as a guide. Account relevant pages are located at `casa` folder inside oxAuth war.
+If you require a full customization of the look and feel you have to modify the flow pages. Follow [this](https://gluu.org/docs/gluu-server/operation/custom-design/) as a guide. Account relevant pages are located in `casa` folder of oxAuth war.
 
