@@ -42,6 +42,7 @@ import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtType;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
@@ -398,7 +399,7 @@ public class CrossEncryptionTest {
             public String sign(String signingInput, String keyId, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception {
                 RSAPrivateKey privateKey = ((RSAKey) JWK.parse(senderJwkJson)).toRSAPrivateKey();
 
-                Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BCFIPS");
+                Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
                 signature.initSign(privateKey);
                 signature.update(signingInput.getBytes());
 

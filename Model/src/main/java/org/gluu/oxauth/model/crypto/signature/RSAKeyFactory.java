@@ -15,12 +15,16 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.crypto.asymmetric.AsymmetricRSAPrivateKey;
 import org.bouncycastle.crypto.asymmetric.AsymmetricRSAPublicKey;
 import org.bouncycastle.crypto.fips.FipsRSA;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.KeyFactory;
 import org.gluu.oxauth.model.jwk.JSONWebKey;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;
@@ -41,88 +45,114 @@ import java.util.Random;
 @Deprecated
 public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
-    private RSAPrivateKey rsaPrivateKey;
-    private RSAPublicKey rsaPublicKey;
-    private Certificate certificate;
+	private RSAPrivateKey rsaPrivateKey;
+	private RSAPublicKey rsaPublicKey;
+	private Certificate certificate;
 
-    @Deprecated
-    public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
-            throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
-            InvalidKeyException, OperatorCreationException, CertificateException {
-        if (signatureAlgorithm == null) {
-            throw new InvalidParameterException("The signature algorithm cannot be null");
-        }
+	@Deprecated
+	public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
+			throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
+			InvalidKeyException, OperatorCreationException, CertificateException {
+		if (signatureAlgorithm == null) {
+			throw new InvalidParameterException("The signature algorithm cannot be null");
+		}
 
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BCFIPS");
-        keyGen.initialize(2048, new SecureRandom());
+		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA",
+				SecurityProviderUtility.getInstance(false).getName());
+		keyGen.initialize(2048, new SecureRandom());
 
-        KeyPair keyPair = keyGen.generateKeyPair();
+		KeyPair keyPair = keyGen.generateKeyPair();
 
-        AsymmetricRSAPrivateKey jcersaPrivateCrtKey = new AsymmetricRSAPrivateKey(FipsRSA.ALGORITHM, keyPair.getPrivate().getEncoded());
-        AsymmetricRSAPublicKey jcersaPublicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM, keyPair.getPublic().getEncoded());
+		if (SecurityProviderUtility.hasFipsMode()) {
+			AsymmetricRSAPrivateKey jcersaPrivateCrtKey = new AsymmetricRSAPrivateKey(FipsRSA.ALGORITHM,
+					keyPair.getPrivate().getEncoded());
+			AsymmetricRSAPublicKey jcersaPublicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM,
+					keyPair.getPublic().getEncoded());
 
-        rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
-                jcersaPrivateCrtKey.getPrivateExponent());
+			rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
+					jcersaPrivateCrtKey.getPrivateExponent());
 
-        rsaPublicKey = new RSAPublicKey(jcersaPublicKey.getModulus(),
-                jcersaPublicKey.getPublicExponent());
+			rsaPublicKey = new RSAPublicKey(jcersaPublicKey.getModulus(), jcersaPublicKey.getPublicExponent());
 
-        if (StringUtils.isNotBlank(dnName)) {
-            // Create certificate
-            GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
-            GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
-            expiryDate.add(Calendar.YEAR, 1);
-            BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
+			if (StringUtils.isNotBlank(dnName)) {
+				// Create certificate
+				GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
+				GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
+				expiryDate.add(Calendar.YEAR, 1);
+				BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
+				SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
+				X509v1CertificateBuilder certGen = new X509v1CertificateBuilder(new X500Name(dnName), serialNumber,
+						startDate.getTime(), expiryDate.getTime(), new X500Name(dnName), subPubKeyInfo);
 
+				JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(signatureAlgorithm.getAlgorithm());
+				ContentSigner signer = csBuilder.build(keyPair.getPrivate());
+				X509CertificateHolder certHolder = certGen.build(signer);
+				X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider("BCFIPS")
+						.getCertificate(certHolder);
 
-           
-            SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
-			X509v1CertificateBuilder certGen = new X509v1CertificateBuilder(new X500Name(dnName), serialNumber,
-					startDate.getTime(), expiryDate.getTime(), new X500Name(dnName), subPubKeyInfo);
+				this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
 
-			JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(signatureAlgorithm.getAlgorithm());
-			ContentSigner signer = csBuilder.build(keyPair.getPrivate());
-			X509CertificateHolder certHolder = certGen.build(signer);
-			X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider("BCFIPS")
-					.getCertificate(certHolder);
+			}
+		} else {
+			BCRSAPrivateCrtKey jcersaPrivateCrtKey = (BCRSAPrivateCrtKey) keyPair.getPrivate();
+			BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) keyPair.getPublic();
 
-			this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
-			
-            
-        }
-    }
+			rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
+					jcersaPrivateCrtKey.getPrivateExponent());
 
-    @Deprecated
-    public RSAKeyFactory(JSONWebKey p_key) {
-        if (p_key == null) {
-            throw new IllegalArgumentException("Key value must not be null.");
-        }
+			rsaPublicKey = new RSAPublicKey(jcersaPublicKey.getModulus(), jcersaPublicKey.getPublicExponent());
 
-        rsaPrivateKey = new RSAPrivateKey(
-                p_key.getN(),
-                p_key.getE());
-        rsaPublicKey = new RSAPublicKey(
-                p_key.getN(),
-                p_key.getE());
-        certificate = null;
-    }
+			if (StringUtils.isNotBlank(dnName)) {
+				// Create certificate
+				GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
+				GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
+				expiryDate.add(Calendar.YEAR, 1);
+				BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
+				X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+				X500Principal principal = new X500Principal(dnName);
 
-    public static RSAKeyFactory valueOf(JSONWebKey p_key) {
-        return new RSAKeyFactory(p_key);
-    }
+				certGen.setSerialNumber(serialNumber);
+				certGen.setIssuerDN(principal);
+				certGen.setNotBefore(startDate.getTime());
+				certGen.setNotAfter(expiryDate.getTime());
+				certGen.setSubjectDN(principal); // note: same as issuer
+				certGen.setPublicKey(keyPair.getPublic());
+				certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-    @Override
-    public RSAPrivateKey getPrivateKey() {
-        return rsaPrivateKey;
-    }
+				X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getInstance(false).getName());
+				certificate = new Certificate(signatureAlgorithm, x509Certificate);
+			}
+		}
 
-    @Override
-    public RSAPublicKey getPublicKey() {
-        return rsaPublicKey;
-    }
+	}
 
-    @Override
-    public Certificate getCertificate() {
-        return certificate;
-    }
+	@Deprecated
+	public RSAKeyFactory(JSONWebKey p_key) {
+		if (p_key == null) {
+			throw new IllegalArgumentException("Key value must not be null.");
+		}
+
+		rsaPrivateKey = new RSAPrivateKey(p_key.getN(), p_key.getE());
+		rsaPublicKey = new RSAPublicKey(p_key.getN(), p_key.getE());
+		certificate = null;
+	}
+
+	public static RSAKeyFactory valueOf(JSONWebKey p_key) {
+		return new RSAKeyFactory(p_key);
+	}
+
+	@Override
+	public RSAPrivateKey getPrivateKey() {
+		return rsaPrivateKey;
+	}
+
+	@Override
+	public RSAPublicKey getPublicKey() {
+		return rsaPublicKey;
+	}
+
+	@Override
+	public Certificate getCertificate() {
+		return certificate;
+	}
 }

@@ -29,6 +29,7 @@ import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwk.*;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -147,11 +148,11 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         if (algorithm == null) {
             throw new RuntimeException("The signature algorithm parameter cannot be null");
         } else if (AlgorithmFamily.RSA.equals(algorithm.getFamily())) {
-            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BCFIPS");
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getInstance(false).getName());
             keyGen.initialize(2048, new SecureRandom());
         } else if (AlgorithmFamily.EC.equals(algorithm.getFamily())) {
             ECGenParameterSpec eccgen = new ECGenParameterSpec(signatureAlgorithm.getCurve().getAlias());
-            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BCFIPS");
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getInstance(false).getName());
             keyGen.initialize(eccgen, new SecureRandom());
         } else {
             throw new RuntimeException("The provided signature algorithm parameter is not supported");
@@ -255,7 +256,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 throw new RuntimeException(error);
             }
 
-            Signature signer = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BCFIPS");
+            Signature signer = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes());
 
@@ -300,7 +301,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 	signatureDer = ECDSA.transcodeSignatureToDER(signatureDer);
                 }
 
-                Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BCFIPS");
+                Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
                 verifier.initVerify(publicKey);
                 verifier.update(signingInput.getBytes());
                 try {
@@ -444,9 +445,9 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         ASN1ObjectIdentifier extendedKeyUsage = new ASN1ObjectIdentifier("2.5.29.37").intern();
         builder.addExtension(extendedKeyUsage, false, new DERSequence(purposes));
 
-        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).setProvider("BCFIPS").build(privateKey);
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).setProvider(SecurityProviderUtility.getInstance(false).getName()).build(privateKey);
         X509CertificateHolder holder = builder.build(signer);
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider("BCFIPS").getCertificate(holder);
+        X509Certificate cert = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getInstance(false).getName()).getCertificate(holder);
 
         return cert;
     }

@@ -61,7 +61,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 	private static final Logger log = LoggerFactory.getLogger(OCSPCertificateVerifier.class);
 
 	public OCSPCertificateVerifier() {
-		SecurityProviderUtility.installBCProvider(true);
+		SecurityProviderUtility.getInstance(true);
 	}
 
 	@Override
