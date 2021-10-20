@@ -11,7 +11,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.gluu.model.GluuAttribute;
-import org.gluu.model.attribute.AttributeDataType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.model.custom.script.type.auth.PersonAuthenticationType;
 import org.gluu.oxauth.claims.Audience;
@@ -29,7 +28,6 @@ import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
-import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
@@ -37,8 +35,6 @@ import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
@@ -175,7 +171,7 @@ public class IdTokenFactory {
                     continue;
                 }
 
-                Map<String, Object> claims = getClaims(user, scope);
+                Map<String, Object> claims = scopeService.getClaims(user, scope);
 
                 if (Boolean.TRUE.equals(scope.isOxAuthGroupClaims())) {
                     JwtSubClaimObject groupClaim = new JwtSubClaimObject();
@@ -202,7 +198,7 @@ public class IdTokenFactory {
                         } else if (value instanceof Boolean) {
                             jwr.getClaims().setClaim(key, (Boolean) value);
                         } else if (value instanceof Date) {
-                            jwr.getClaims().setClaim(key, ((Date) value).getTime());
+                            jwr.getClaims().setClaim(key, ((Date) value).getTime() / 1000);
                         } else {
                             jwr.setClaim(key, (String) value);
                         }
@@ -306,55 +302,5 @@ public class IdTokenFactory {
             }
         }
         return false;
-    }
-
-    public Map<String, Object> getClaims(User user, Scope scope) throws InvalidClaimException, ParseException {
-        Map<String, Object> claims = new HashMap<>();
-
-        if (scope == null || scope.getOxAuthClaims() == null) {
-            return claims;
-        }
-
-        for (String claimDn : scope.getOxAuthClaims()) {
-            GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
-
-            String claimName = gluuAttribute.getOxAuthClaimName();
-            String ldapName = gluuAttribute.getName();
-            Object attribute = null;
-
-            if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
-                if (ldapName.equals("uid")) {
-                    attribute = user.getUserId();
-                } else if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
-                    attribute = Boolean.parseBoolean(String.valueOf(user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute())));
-                } else if (AttributeDataType.DATE.equals(gluuAttribute.getDataType())) {
-                    SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss.SSS'Z'");
-                    Object attributeValue = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
-                    if (attributeValue != null) {
-                        attribute = format.parse(attributeValue.toString());
-                    }
-                } else {
-                    attribute = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
-                }
-
-                if (attribute != null) {
-                    if (attribute instanceof JSONArray) {
-                        JSONArray jsonArray = (JSONArray) attribute;
-                        List<String> values = new ArrayList<>();
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            String value = jsonArray.optString(i);
-                            if (value != null) {
-                                values.add(value);
-                            }
-                        }
-                        claims.put(claimName, values);
-                    } else {
-                        claims.put(claimName, attribute);
-                    }
-                }
-            }
-        }
-
-        return claims;
     }
 }
