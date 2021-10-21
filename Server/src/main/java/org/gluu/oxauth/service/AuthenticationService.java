@@ -37,10 +37,11 @@ import org.gluu.util.StringHelper;
 import org.json.JSONException;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import javax.faces.context.ExternalContext;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
@@ -57,8 +58,7 @@ import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
  * @author Javier Rojas Blum
  * @version November 23, 2017
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class AuthenticationService {
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";

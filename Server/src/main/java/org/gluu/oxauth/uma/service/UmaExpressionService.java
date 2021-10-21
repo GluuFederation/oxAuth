@@ -15,9 +15,8 @@ import org.gluu.oxauth.uma.authorization.UmaScriptByScope;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +26,7 @@ import java.util.Map;
 /**
  * @author yuriyz
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UmaExpressionService {
 
     @Inject

@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.IdType;
@@ -21,6 +19,9 @@ import org.gluu.persist.model.base.DummyEntry;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
+
+import javax.enterprise.context.ApplicationScoped;
+
 import org.gluu.oxauth.model.config.BaseDnConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
@@ -30,8 +31,7 @@ import org.gluu.oxauth.model.config.StaticConfiguration;
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 26/06/2013
  */
-@Stateless
-@Named("inumGenerator")
+@ApplicationScoped
 public class InumGenerator {
 
     public static final String SEPARATOR = "!";

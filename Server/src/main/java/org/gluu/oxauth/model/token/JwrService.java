@@ -1,6 +1,9 @@
 package org.gluu.oxauth.model.token;
 
 import com.google.common.base.Function;
+
+import javax.enterprise.context.ApplicationScoped;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.IAuthorizationGrant;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
@@ -25,9 +28,7 @@ import org.gluu.oxauth.service.ServerCryptoProvider;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 
@@ -37,8 +38,7 @@ import static org.gluu.oxauth.model.jwt.JwtHeaderName.ALGORITHM;
  * @author Yuriy Zabrovarnyy
  * @version April 10, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class JwrService {
 
     @Inject

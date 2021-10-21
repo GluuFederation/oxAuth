@@ -25,9 +25,9 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -44,8 +44,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @version October 22, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class RegisterParamsValidator {
 
     @Inject

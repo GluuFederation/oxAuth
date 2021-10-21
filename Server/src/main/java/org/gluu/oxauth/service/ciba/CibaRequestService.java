@@ -19,9 +19,8 @@ import org.gluu.search.filter.Filter;
 import org.gluu.service.CacheService;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Date;
 import java.util.List;
 
@@ -31,8 +30,7 @@ import java.util.List;
  * @author Milton BO
  * @version May 28, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CibaRequestService {
 
     @Inject

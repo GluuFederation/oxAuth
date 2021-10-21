@@ -18,9 +18,8 @@ import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.*;
 
 /**
@@ -28,8 +27,7 @@ import java.util.*;
  *
  * @author Yuriy Zabrovarnyy
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UmaPermissionService {
 
     private static final String ORGUNIT_OF_RESOURCE_PERMISSION = "uma_permission";

@@ -12,9 +12,9 @@ import org.json.JSONObject;
 import org.msgpack.core.Preconditions;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
@@ -23,8 +23,7 @@ import java.util.UUID;
  * @author Yuriy Zabrovarnyy
  * @version April 10, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class LogoutTokenFactory {
 
     private static final String EVENTS_KEY = "http://schemas.openid.net/event/backchannel-logout";

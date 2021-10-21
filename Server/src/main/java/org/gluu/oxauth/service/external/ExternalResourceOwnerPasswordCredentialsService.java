@@ -7,17 +7,13 @@ import org.gluu.oxauth.service.external.context.ExternalResourceOwnerPasswordCre
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalResourceOwnerPasswordCredentialsService extends ExternalScriptService {
 
     private static final long serialVersionUID = -1070021905117551202L;

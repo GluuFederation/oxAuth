@@ -15,7 +15,6 @@ import org.gluu.service.metric.inject.ReportMetric;
 import org.gluu.service.net.NetworkService;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -27,7 +26,6 @@ import javax.inject.Named;
  * @author Yuriy Movchan Date: 07/30/2015
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
 @Named(MetricService.METRIC_SERVICE_COMPONENT_NAME)
 public class MetricService extends org.gluu.service.metric.MetricService {
 	

@@ -2,22 +2,21 @@ package org.gluu.oxauth.service.external.internal;
 
 import java.util.Map;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.type.auth.DummyPersonAuthenticationType;
 import org.gluu.model.security.Credentials;
 import org.gluu.oxauth.service.AuthenticationService;
 
+import javax.enterprise.context.ApplicationScoped;
+
 /**
  * Wrapper to call internal authentication method
  *
  * @author Yuriy Movchan Date: 06/04/2015
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class InternalDefaultPersonAuthenticationType extends DummyPersonAuthenticationType {
 
 	@Inject

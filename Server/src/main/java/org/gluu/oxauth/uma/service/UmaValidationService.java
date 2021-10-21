@@ -44,9 +44,8 @@ import org.python.google.common.base.Function;
 import org.python.google.common.collect.Iterables;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,8 +58,7 @@ import static org.gluu.oxauth.model.uma.UmaErrorResponseType.*;
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 04/02/2013
  */
-@Named
-@Stateless
+@ApplicationScoped
 public class UmaValidationService {
 
     @Inject

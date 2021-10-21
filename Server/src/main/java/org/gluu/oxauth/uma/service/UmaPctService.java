@@ -3,7 +3,6 @@ package org.gluu.oxauth.uma.service;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;

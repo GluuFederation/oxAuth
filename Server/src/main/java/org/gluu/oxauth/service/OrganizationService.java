@@ -9,12 +9,10 @@ import org.gluu.service.CacheService;
 import org.gluu.service.LocalCacheService;
 import org.gluu.util.OxConstants;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
-@Stateless
-@Named("organizationService")
+@ApplicationScoped
 public class OrganizationService extends org.gluu.service.OrganizationService {
 
     private static final long serialVersionUID = -8966940469789981584L;

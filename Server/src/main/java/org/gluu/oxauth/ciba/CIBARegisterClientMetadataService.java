@@ -13,16 +13,15 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
 import org.gluu.oxauth.model.registration.Client;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * @author Javier Rojas Blum
  * @version August 20, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBARegisterClientMetadataService {
 
     @Inject

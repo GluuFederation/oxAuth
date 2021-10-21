@@ -8,9 +8,7 @@ package org.gluu.oxauth.service.external;
 
 import java.util.Map;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.CustomScriptType;
@@ -24,8 +22,6 @@ import org.gluu.service.custom.script.ExternalScriptService;
  * @author Yuriy Movchan Date: 01/16/2015
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalIdGeneratorService extends ExternalScriptService {
 
 	private static final long serialVersionUID = 1727751544454591273L;

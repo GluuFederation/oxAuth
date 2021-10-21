@@ -11,9 +11,8 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.gluu.oxauth.model.fido.u2f.exception.BadInputException;
@@ -25,8 +24,7 @@ import org.slf4j.Logger;
  *
  * @author Yuriy Movchan Date: 05/20/2015
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class ClientDataValidationService {
 
 	@Inject

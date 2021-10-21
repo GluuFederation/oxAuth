@@ -20,9 +20,8 @@ import org.gluu.service.CacheService;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,8 +35,7 @@ import java.util.Set;
  * @author Yuriy Zabrovarnyy
  *         Date: 10.05.2012
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UmaResourceService {
 
     private static final int RESOURCE_CACHE_EXPIRATION_IN_SECONDS = 120;

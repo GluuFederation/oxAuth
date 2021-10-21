@@ -9,7 +9,7 @@ package org.gluu.oxauth.service.fido.u2f;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -33,8 +33,7 @@ import com.google.common.io.ByteStreams;
  *
  * @author Yuriy Movchan Date: 05/20/2015
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class RawRegistrationService {
 
 	@Inject

@@ -7,17 +7,13 @@ import org.gluu.oxauth.service.external.context.ExternalCibaEndUserNotificationC
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * @author Milton BO
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalCibaEndUserNotificationService extends ExternalScriptService {
 
     private static final long serialVersionUID = -8609727759114795446L;

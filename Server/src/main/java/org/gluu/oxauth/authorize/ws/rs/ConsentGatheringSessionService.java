@@ -17,7 +17,6 @@ import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
  * @author Yuriy Movchan
  * @version December 8, 2018
  */
-@Stateless
 @Named
 public class ConsentGatheringSessionService {
 

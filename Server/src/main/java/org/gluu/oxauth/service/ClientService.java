@@ -28,9 +28,8 @@ import org.oxauth.persistence.model.Scope;
 import org.python.jline.internal.Preconditions;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.*;
 
 /**
@@ -40,8 +39,7 @@ import java.util.*;
  * @author Yuriy Movchan Date: 04/15/2014
  * @version October 22, 2016
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class ClientService {
 
 	public static final String[] CLIENT_OBJECT_CLASSES = new String[] { "oxAuthClient" };

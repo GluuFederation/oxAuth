@@ -18,9 +18,8 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.service.CacheService;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -33,8 +32,7 @@ import java.util.Map;
 /**
  * Service used to process data related to device code grant type.
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class DeviceAuthorizationService implements Serializable {
 
     public static final String SESSION_ATTEMPTS = "attemps";

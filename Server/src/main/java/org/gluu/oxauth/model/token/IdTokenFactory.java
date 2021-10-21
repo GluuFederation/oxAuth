@@ -33,10 +33,8 @@ import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -57,8 +55,6 @@ import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
  * @version 12 Feb, 2020
  */
 @ApplicationScoped
-@Stateless
-@Named
 public class IdTokenFactory {
 
     @Inject

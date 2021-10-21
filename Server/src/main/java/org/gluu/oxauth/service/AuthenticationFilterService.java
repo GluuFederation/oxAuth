@@ -9,10 +9,8 @@ package org.gluu.oxauth.service;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.User;
@@ -28,8 +26,6 @@ import org.gluu.util.StringHelper;
  * @author Yuriy Movchan Date: 07.20.2012
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class AuthenticationFilterService extends BaseAuthFilterService {
 
     @Inject

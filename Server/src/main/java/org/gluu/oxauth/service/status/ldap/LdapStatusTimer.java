@@ -9,7 +9,6 @@ package org.gluu.oxauth.service.status.ldap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
@@ -33,8 +32,6 @@ import org.slf4j.Logger;
  * @version 0.1, 11/18/2012
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class LdapStatusTimer {
 
     private final static int DEFAULT_INTERVAL = 60; // 1 minute

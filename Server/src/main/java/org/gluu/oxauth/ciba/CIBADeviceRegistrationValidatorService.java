@@ -9,8 +9,8 @@ package org.gluu.oxauth.ciba;
 import org.apache.logging.log4j.util.Strings;
 import org.gluu.oxauth.model.error.DefaultErrorResponse;
 
-import javax.ejb.Stateless;
-import javax.inject.Named;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.ws.rs.core.Response;
 
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_REQUEST;
@@ -20,8 +20,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseT
  * @author Javier Rojas Blum
  * @version October 7, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBADeviceRegistrationValidatorService {
 
     public DefaultErrorResponse validateParams(String idTokenHint, String deviceRegistrationToken) {

@@ -13,10 +13,8 @@ import org.gluu.persist.model.base.SimpleBranch;
 import org.slf4j.Logger;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -29,8 +27,6 @@ import java.util.concurrent.ConcurrentMap;
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class StatService {
 
     // January - 202001, December - 202012

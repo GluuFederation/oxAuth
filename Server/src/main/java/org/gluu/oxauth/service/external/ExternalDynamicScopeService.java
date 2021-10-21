@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.CustomScriptType;
@@ -32,8 +30,6 @@ import com.google.common.collect.Sets;
  * @author Yuriy Movchan Date: 01/08/2015
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalDynamicScopeService extends ExternalScriptService {
 
 	private static final long serialVersionUID = 1416361273036208685L;

@@ -17,9 +17,7 @@ import org.gluu.oxauth.service.external.context.DynamicClientRegistrationContext
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.json.JSONObject;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
@@ -29,8 +27,6 @@ import java.util.Map;
  * @author Yuriy Movchan Date: 01/08/2015
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalDynamicClientRegistrationService extends ExternalScriptService {
 
 	private static final long serialVersionUID = 1416361273036208686L;

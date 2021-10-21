@@ -8,15 +8,11 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.external.context.SpontaneousScopeExternalContext;
 import org.gluu.service.custom.script.ExternalScriptService;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalSpontaneousScopeService extends ExternalScriptService {
 
     public ExternalSpontaneousScopeService() {

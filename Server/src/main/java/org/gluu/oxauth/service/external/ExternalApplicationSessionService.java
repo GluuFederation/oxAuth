@@ -14,9 +14,7 @@ import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.service.custom.script.ExternalScriptService;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
@@ -27,8 +25,6 @@ import java.util.Map;
  * @version August 9, 2017
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalApplicationSessionService extends ExternalScriptService {
 
     private static final long serialVersionUID = 2316361273036208685L;

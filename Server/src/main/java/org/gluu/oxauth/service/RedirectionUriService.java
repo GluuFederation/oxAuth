@@ -23,9 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -37,8 +36,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @version August 9, 2017
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class RedirectionUriService {
 
     @Inject

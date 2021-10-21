@@ -8,9 +8,8 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import java.util.Map;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.SessionIdState;
@@ -26,8 +25,7 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UserSessionIdService {
 
     @Inject

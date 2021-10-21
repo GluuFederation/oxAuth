@@ -13,15 +13,13 @@ import org.gluu.oxauth.model.ciba.PushErrorResponseType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.inject.Named;
+import javax.enterprise.context.ApplicationScoped;
 
 /**
  * @author Javier Rojas Blum
  * @version May 9, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBAPushErrorService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBAPushErrorService.class);

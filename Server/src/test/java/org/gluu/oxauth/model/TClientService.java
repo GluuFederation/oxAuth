@@ -8,8 +8,7 @@ import org.gluu.oxauth.register.ws.rs.RegisterRestWebService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.oxauth.ws.rs.ClientTestUtil;
 
-import javax.ejb.Stateless;
-import javax.inject.Named;
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
@@ -19,9 +18,7 @@ import static org.testng.Assert.assertNotNull;
 /**
  * @author Yuriy Zabrovarnyy
  */
-@Stateless
-@Named
-
+@ApplicationScoped
 public class TClientService {
 
     private TClientService() {

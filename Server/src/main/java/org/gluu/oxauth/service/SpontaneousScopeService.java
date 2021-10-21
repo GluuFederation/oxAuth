@@ -10,14 +10,12 @@ import org.oxauth.persistence.model.Scope;
 import org.python.google.common.collect.Sets;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.*;
 import java.util.regex.Pattern;
 
-@Stateless
-@Named
+@ApplicationScoped
 public class SpontaneousScopeService {
 
     private static final int DEFAULT_SPONTANEOUS_SCOPE_LIFETIME_IN_SECONDS = 60 * 60 * 24; // 24h

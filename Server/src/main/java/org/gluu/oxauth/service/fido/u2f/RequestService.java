@@ -9,7 +9,7 @@ package org.gluu.oxauth.service.fido.u2f;
 import java.util.Date;
 import java.util.List;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -26,7 +26,7 @@ import org.gluu.oxauth.model.config.StaticConfiguration;
  *
  * @author Yuriy Movchan Date: 05/19/2015
  */
-@Stateless
+@ApplicationScoped
 @Named("u2fRequestService")
 public class RequestService {
 

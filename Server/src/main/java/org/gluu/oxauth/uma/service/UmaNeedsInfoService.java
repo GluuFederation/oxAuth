@@ -16,9 +16,8 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -27,8 +26,7 @@ import java.util.*;
 /**
  * @author yuriyz on 06/16/2017.
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class UmaNeedsInfoService {
 
     @Inject

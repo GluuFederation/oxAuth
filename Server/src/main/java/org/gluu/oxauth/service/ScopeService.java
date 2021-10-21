@@ -19,9 +19,8 @@ import org.gluu.util.StringHelper;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,8 +28,7 @@ import java.util.List;
  * @author Javier Rojas Blum Date: 07.05.2012
  * @author Yuriy Movchan Date: 2016/04/26
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class ScopeService {
 
     @Inject

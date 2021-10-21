@@ -19,9 +19,8 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,8 +30,7 @@ import java.util.List;
  *
  * @author Yuriy Movchan Date: 05/14/2015
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class DeviceRegistrationService {
 
 	@Inject

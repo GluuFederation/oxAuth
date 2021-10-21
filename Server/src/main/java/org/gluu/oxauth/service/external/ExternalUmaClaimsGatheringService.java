@@ -8,10 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
@@ -27,8 +25,6 @@ import org.slf4j.Logger;
  * @author yuriyz on 06/18/2017.
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalUmaClaimsGatheringService extends ExternalScriptService {
 
     @Inject

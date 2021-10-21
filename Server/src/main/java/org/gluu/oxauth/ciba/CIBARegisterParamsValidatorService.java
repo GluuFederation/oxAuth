@@ -19,9 +19,9 @@ import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
 import java.util.List;
 
@@ -32,8 +32,7 @@ import static org.gluu.oxauth.model.common.GrantType.CIBA;
  * @author Javier Rojas Blum
  * @version May 20, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBARegisterParamsValidatorService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBARegisterParamsValidatorService.class);

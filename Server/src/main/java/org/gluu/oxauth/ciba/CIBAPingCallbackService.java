@@ -13,16 +13,15 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * @author Javier Rojas Blum
  * @version December 21, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBAPingCallbackService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBAPingCallbackService.class);
