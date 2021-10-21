@@ -6,9 +6,7 @@
 
 package org.gluu.oxauth.userinfo.ws.rs;
 
-import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
-import org.gluu.model.attribute.AttributeDataType;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.claims.Audience;
 import org.gluu.oxauth.model.audit.Action;
@@ -22,9 +20,7 @@ import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
-import org.gluu.oxauth.model.exception.InvalidClaimException;
 import org.gluu.oxauth.model.exception.InvalidJweException;
-import org.gluu.oxauth.model.json.JsonApplier;
 import org.gluu.oxauth.model.jwe.Jwe;
 import org.gluu.oxauth.model.jwe.JweEncrypter;
 import org.gluu.oxauth.model.jwe.JweEncrypterImpl;
@@ -46,9 +42,7 @@ import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.gluu.oxauth.service.token.TokenService;
 import org.gluu.oxauth.util.ServerUtil;
-import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
@@ -60,7 +54,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.security.PublicKey;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -107,9 +100,6 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
     @Inject
     private AbstractCryptoProvider cryptoProvider;
-
-    @Inject
-    private PersistenceEntryManager entryManager;
 
     @Inject
     private TokenService tokenService;
@@ -323,7 +313,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
                 continue;
             }
 
-            Map<String, Object> claims = getClaims(user, scope);
+            Map<String, Object> claims = scopeService.getClaims(user, scope);
             if (claims == null) {
                 continue;
             }
@@ -435,70 +425,5 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
         }
 
         return false;
-    }
-
-    public Map<String, Object> getClaims(User user, Scope scope) throws InvalidClaimException, ParseException {
-        Map<String, Object> claims = new HashMap<String, Object>();
-
-        if (scope == null) {
-            log.trace("Scope is null.");
-            return claims;
-        }
-
-        final List<String> scopeClaims = scope.getOxAuthClaims();
-        if (scopeClaims == null) {
-            log.trace("No claims set for scope: " + scope.getId());
-            return claims;
-        }
-
-        for (String claimDn : scopeClaims) {
-            GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
-
-            String claimName = gluuAttribute.getOxAuthClaimName();
-            String ldapName = gluuAttribute.getName();
-            Object attribute = null;
-
-            if (StringUtils.isBlank(claimName)) {
-                log.error("Failed to get claim because claim name is not set for attribute, id: " + gluuAttribute.getDn());
-                continue;
-            }
-            if (StringUtils.isBlank(ldapName)) {
-                log.error("Failed to get claim because name is not set for attribute, id: " + gluuAttribute.getDn());
-                continue;
-            }
-
-
-            if (ldapName.equals("uid")) {
-                attribute = user.getUserId();
-            } else if (ldapName.equals("updatedAt")) {
-                attribute = user.getUpdatedAt();
-            } else if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
-                final Object value = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
-                if (value instanceof String) {
-                    attribute = Boolean.parseBoolean(String.valueOf(value));
-                } else {
-                    attribute = value;
-                }
-            } else if (AttributeDataType.DATE.equals(gluuAttribute.getDataType())) {
-                Object value = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
-                if (value instanceof Date) {
-                    attribute = value;
-                } else if (value != null) {
-                    attribute = entryManager.decodeTime(user.getDn(), value.toString());
-                }
-            } else {
-                attribute = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
-            }
-
-            if (attribute != null) {
-                if (attribute instanceof JSONArray) {
-                    claims.put(claimName, JsonApplier.getStringList((JSONArray) attribute));
-                } else {
-                    claims.put(claimName, attribute);
-                }
-            }
-        }
-
-        return claims;
     }
 }
