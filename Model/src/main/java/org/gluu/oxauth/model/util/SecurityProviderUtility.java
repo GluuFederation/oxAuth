@@ -11,11 +11,9 @@ import java.io.FileInputStream;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Properties;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.bouncycastle.crypto.fips.FipsStatus;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * @author madhumitas
@@ -48,7 +46,8 @@ public class SecurityProviderUtility {
 	private static final String BASE_PROPERTIES_FILE = DIR + "gluu.properties";
 
 	public static Provider getInstance(boolean silent) {
-
+		String className = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+		String providerName = "BC";
 		if (!fipsMode) {
 			String propertiesFile = BASE_PROPERTIES_FILE;
 			FileInputStream conf = null;
@@ -65,27 +64,38 @@ public class SecurityProviderUtility {
 			} finally {
 				IOUtils.closeQuietly(conf);
 			}
-
-			log.info("fipsMode - "+fipsMode);
-			if (fipsMode) {
-				bouncyCastleProvider = (BouncyCastleFipsProvider) Security
-						.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
-				if (bouncyCastleProvider == null) {
-					bouncyCastleProvider = new BouncyCastleFipsProvider();
-					Security.addProvider(bouncyCastleProvider);
-				}
-			} else {
-				log.info("In else");
-				//bouncyCastleProvider = (BouncyCastleProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-				//if (bouncyCastleProvider == null) {
-				//	bouncyCastleProvider = new BouncyCastleProvider();
-				//	Security.addProvider(bouncyCastleProvider);
-				//}
-			}
-
 		}
+		log.info("fipsMode - " + fipsMode);
+
+		if (fipsMode) {
+
+			className = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
+			providerName = "BCFIPS";
+		}
+		Class<?> bouncyCastleProviderClass;
+		try {
+			bouncyCastleProviderClass = Class.forName(className);
+			if (bouncyCastleProvider == null) {
+				bouncyCastleProvider = (Provider) bouncyCastleProviderClass.newInstance();
+				Security.addProvider(bouncyCastleProvider);
+			}
+		} catch (ClassNotFoundException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		} catch (InstantiationException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		} catch (IllegalAccessException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		}
+		bouncyCastleProvider = Security.getProvider(providerName);
 
 		return bouncyCastleProvider;
+
 	}
 
 	public static boolean hasFipsMode() {
