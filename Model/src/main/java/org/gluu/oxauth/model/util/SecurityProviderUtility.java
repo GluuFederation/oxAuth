@@ -49,9 +49,7 @@ public class SecurityProviderUtility {
 
 	public static Provider getInstance(boolean silent) {
 
-		if (bouncyCastleProvider == null) {
-			// determine if the deployment is in an environment where FIPS-mode has been
-			// enabled.
+		if (!fipsMode) {
 			String propertiesFile = BASE_PROPERTIES_FILE;
 			FileInputStream conf = null;
 			try {
@@ -60,33 +58,31 @@ public class SecurityProviderUtility {
 				prop = new Properties();
 				prop.load(conf);
 				if (Boolean.valueOf(prop.getProperty("fipsMode")) == true) {
-					bouncyCastleProvider = (BouncyCastleFipsProvider) Security
-							.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
-					log.info("FipsStatus: " + FipsStatus.isReady());
-					log.info("FIPS Status Message: " + FipsStatus.getStatusMessage());
-					// this additional flag is needed because during runtime, an instanceOf operator
-					// to determine which BC library to use will not be useful given that the
-					// existence of the BouncyCastleFipsProvider and BouncyCastleProvider is
-					// mutually exclusive
 					fipsMode = true;
-				} else {
-					bouncyCastleProvider = (BouncyCastleProvider) Security
-							.getProvider(BouncyCastleProvider.PROVIDER_NAME);
 				}
-				Security.addProvider(bouncyCastleProvider);
 			} catch (Exception e) {
-				log.error("Failed to load - " + BASE_PROPERTIES_FILE, e);
+				log.error(e.getMessage(), e);
 			} finally {
 				IOUtils.closeQuietly(conf);
 			}
-			if (!silent) {
-				log.info("Adding Bouncy Castle FIPS Provider" + bouncyCastleProvider.getName());
+
+			log.info("fipsMode - "+fipsMode);
+			if (fipsMode) {
+				bouncyCastleProvider = (BouncyCastleFipsProvider) Security
+						.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+				if (bouncyCastleProvider == null) {
+					bouncyCastleProvider = new BouncyCastleFipsProvider();
+					Security.addProvider(bouncyCastleProvider);
+				}
+			} else {
+				log.info("In else");
+				//bouncyCastleProvider = (BouncyCastleProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+				//if (bouncyCastleProvider == null) {
+				//	bouncyCastleProvider = new BouncyCastleProvider();
+				//	Security.addProvider(bouncyCastleProvider);
+				//}
 			}
 
-		} else {
-			if (!silent) {
-				log.info("Bouncy Castle FIPS Provider was added already" + bouncyCastleProvider.getName());
-			}
 		}
 
 		return bouncyCastleProvider;

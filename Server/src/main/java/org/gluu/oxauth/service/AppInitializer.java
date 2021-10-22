@@ -187,7 +187,7 @@ public class AppInitializer {
 
 	@PostConstruct
 	public void createApplicationComponents() {
-		SecurityProviderUtility.getInstance(true);
+		SecurityProviderUtility.getInstance(false);
 	}
 
 	public void applicationInitialized(@Observes @Initialized(ApplicationScoped.class) Object init) {
