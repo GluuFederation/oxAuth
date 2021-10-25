@@ -38,6 +38,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 
 import javax.faces.context.ExternalContext;
@@ -58,7 +59,7 @@ import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
  * @author Javier Rojas Blum
  * @version November 23, 2017
  */
-@ApplicationScoped
+@RequestScoped
 public class AuthenticationService {
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
