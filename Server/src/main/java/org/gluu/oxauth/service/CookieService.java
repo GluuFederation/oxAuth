@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
@@ -29,7 +30,7 @@ import static org.gluu.oxauth.model.util.StringUtils.toList;
 /**
  * @author Yuriy Zabrovarnyy
  */
-@ApplicationScoped
+@RequestScoped
 public class CookieService {
 
     private static final String SESSION_STATE_COOKIE_NAME = "session_state";
