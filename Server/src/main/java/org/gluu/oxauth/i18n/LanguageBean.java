@@ -14,7 +14,6 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
@@ -34,7 +33,7 @@ import org.slf4j.Logger;
  * @version August 9, 2017
  */
 @Named("language")
-@RequestScoped
+@ApplicationScoped
 public class LanguageBean implements Serializable {
 
 	private static final long serialVersionUID = -6723715664277907737L;
