@@ -12,10 +12,8 @@ import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.jboss.resteasy.specimpl.ResteasyUriBuilder;
-
-import javax.ws.rs.core.UriBuilder;
 
 /**
  * Helper class which creates proxied UMA services
@@ -27,7 +25,7 @@ public class UmaClientFactory {
 
     private final static UmaClientFactory instance = new UmaClientFactory();
 
-    private ApacheHttpClient4Engine engine;
+    private ApacheHttpClient43Engine engine;
 
     private UmaClientFactory() {
         this.engine = ClientFactory.instance().createEngine(true);
@@ -92,6 +90,6 @@ public class UmaClientFactory {
     }
 
     public ResteasyClient newClient(ClientHttpEngine engine) {
-        return new ResteasyClientBuilder().httpEngine(engine).build();
+        return ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     }
 }
