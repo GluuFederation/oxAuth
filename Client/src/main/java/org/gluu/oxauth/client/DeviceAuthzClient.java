@@ -64,6 +64,7 @@ public class DeviceAuthzClient extends BaseClient<DeviceAuthzRequest, DeviceAuth
         try {
     //        clientRequest.setHttpMethod(getHttpMethod());
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             clientRequest.header("Content-Type", request.getContentType());
             new ClientAuthnEnabler(clientRequest, requestForm).exec(getRequest());

@@ -44,6 +44,7 @@ public class GluuConfigurationClient extends BaseClient<GluuConfigurationRequest
         setRequest(new GluuConfigurationRequest());
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         // Prepare request parameters
         clientRequest.header("Content-Type", MediaType.APPLICATION_JSON);

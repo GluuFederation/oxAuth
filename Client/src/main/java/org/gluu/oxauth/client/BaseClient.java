@@ -231,7 +231,6 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
         return sb.toString();
     }
 
-    // TODO: Rename method
     protected void initClientRequest() {
         if (this.executor == null) {
         	resteasyClient = (ResteasyClient) ResteasyClientBuilder.newClient();
@@ -240,16 +239,15 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
         }
 
         webTarget = resteasyClient.target(getUrl());
+    }
 
-        // TODO: move cookies to place where we invoce clientRequest
-/*
+    protected void applyCookies(Builder clientRequest) {
 		for (Cookie cookie : cookies) {
             clientRequest.cookie(cookie);
         }
         for (Map.Entry<String, String> headerEntry : headers.entrySet()) {
             clientRequest.header(headerEntry.getKey(), headerEntry.getValue());
         }
-*/
     }
 
     public void closeConnection() {

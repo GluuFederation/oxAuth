@@ -258,6 +258,8 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
         }
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
+
         new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
 
         clientRequest.header("Content-Type", request.getContentType());

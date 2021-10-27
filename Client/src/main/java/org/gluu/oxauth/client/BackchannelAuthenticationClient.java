@@ -119,6 +119,7 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
         }
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         // Prepare request parameters
 ////    clientRequest.setHttpMethod(getHttpMethod());

@@ -48,6 +48,7 @@ public class FirebaseCloudMessagingClient extends BaseClient<FirebaseCloudMessag
             // Prepare request parameters
     //        clientRequest.setHttpMethod(getHttpMethod());
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             clientRequest.header("Content-Type", getRequest().getContentType());
             clientRequest.accept(getRequest().getMediaType());

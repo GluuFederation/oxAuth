@@ -85,6 +85,8 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
         // Call REST Service and handle response
         try {
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
+
             clientRequest.accept(mediaType);
 //          clientRequest.setHttpMethod(getHttpMethod());
 

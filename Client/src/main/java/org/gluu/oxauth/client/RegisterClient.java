@@ -346,6 +346,7 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
             }
             
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             if (getHttpMethod().equals(HttpMethod.POST) || getHttpMethod().equals(HttpMethod.PUT)) {
                 clientRequest.header("Content-Type", getRequest().getContentType());

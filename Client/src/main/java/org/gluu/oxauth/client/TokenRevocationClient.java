@@ -90,6 +90,7 @@ public class TokenRevocationClient extends BaseClient<TokenRevocationRequest, To
         }
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
 

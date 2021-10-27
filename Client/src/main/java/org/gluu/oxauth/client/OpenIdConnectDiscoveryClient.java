@@ -93,6 +93,8 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
         Response clientResponse1;
         try {
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
+
             clientRequest.accept(MEDIA_TYPE);
 //          clientRequest.setHttpMethod(getHttpMethod());
             clientResponse1 = clientRequest.buildGet().invoke();

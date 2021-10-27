@@ -127,6 +127,8 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
         String entity = null;
         try {
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
+
             // Prepare request parameters
             clientRequest.accept(mediaTypes);
 //            clientRequest.setHttpMethod(getHttpMethod());

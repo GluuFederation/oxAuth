@@ -42,6 +42,7 @@ public class PushTokenDeliveryClient extends BaseClient<PushTokenDeliveryRequest
             // Prepare request parameters
     //        clientRequest.setHttpMethod(getHttpMethod());
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             clientRequest.header("Content-Type", getRequest().getContentType());
 

@@ -42,6 +42,7 @@ public class PushErrorClient extends BaseClient<PushErrorRequest, PushErrorRespo
             // Prepare request parameters
     //        clientRequest.setHttpMethod(getHttpMethod());
             Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             clientRequest.header("Content-Type", getRequest().getContentType());
 

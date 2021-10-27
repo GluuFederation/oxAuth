@@ -249,6 +249,7 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
         }
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         // Prepare request parameters
         clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);

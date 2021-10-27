@@ -37,6 +37,7 @@ public class RevokeSessionClient extends BaseClient<RevokeSessionRequest, Revoke
         initClientRequest();
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
 

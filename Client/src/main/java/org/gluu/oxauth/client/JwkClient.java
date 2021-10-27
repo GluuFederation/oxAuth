@@ -61,6 +61,7 @@ public class JwkClient extends BaseClient<JwkRequest, JwkResponse> {
         initClientRequest();
 
         Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
 
         if (getRequest().hasCredentials()) {
             String encodedCredentials = getRequest().getEncodedCredentials();
