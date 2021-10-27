@@ -65,7 +65,9 @@ import java.io.IOException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -126,19 +128,14 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
         // Call REST Service and handle response
         String entity = null;
         try {
-            Builder clientRequest = webTarget.request();
-            applyCookies(clientRequest);
+            requestClientResponse(webTarget);
 
-            // Prepare request parameters
-            clientRequest.accept(mediaTypes);
-//            clientRequest.setHttpMethod(getHttpMethod());
-
-            // Support AWS LB
-            // TODO: Implement follow redirect manually because we have to set engine.setFollowRedirects(true); on engine layer 
-//            clientRequest.followRedirects(true);
-
-            clientResponse = clientRequest.buildGet().invoke();
             int status = clientResponse.getStatus();
+            // Support AWS LB which requires follow redirect
+            if (status == Response.Status.FOUND.getStatusCode()) {
+            	webTarget = resteasyClient.target(clientResponse.getLocation());
+                requestClientResponse(webTarget);
+            }
 
             setResponse(new OpenIdConfigurationResponse(status));
 
@@ -160,6 +157,18 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
 
         return getResponse();
     }
+
+	private void requestClientResponse(WebTarget webTarget) {
+        Builder clientRequest = webTarget.request();
+
+        applyCookies(clientRequest);
+
+		// Prepare request parameters
+		clientRequest.accept(mediaTypes);
+//            clientRequest.setHttpMethod(getHttpMethod());
+
+		clientResponse = clientRequest.buildGet().invoke();
+	}
 
     public static void parse(String json, OpenIdConfigurationResponse response) {
         if (StringUtils.isBlank(json)) {
