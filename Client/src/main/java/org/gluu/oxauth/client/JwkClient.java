@@ -9,6 +9,7 @@ package org.gluu.oxauth.client;
 import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -58,6 +59,9 @@ public class JwkClient extends BaseClient<JwkRequest, JwkResponse> {
 
         // Prepare request parameters
         initClientRequest();
+
+        Builder clientRequest = webTarget.request();
+
         if (getRequest().hasCredentials()) {
             String encodedCredentials = getRequest().getEncodedCredentials();
             clientRequest.header("Authorization", "Basic " + encodedCredentials);

@@ -48,7 +48,6 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
     protected V response;
     protected ResteasyClient resteasyClient = null;
     protected WebTarget webTarget = null;
-    protected Builder clientRequest = null;
     protected Form requestForm = new Form();
     protected Response clientResponse = null;
     private final List<Cookie> cookies = new ArrayList<Cookie>();
@@ -106,7 +105,7 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
             if (request.getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
             	requestForm.param(p_key, p_value);
             } else {
-                webTarget.queryParam(p_key, p_value);
+            	webTarget = webTarget.queryParam(p_key, p_value);
             }
         }
     }
@@ -232,6 +231,7 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
         return sb.toString();
     }
 
+    // TODO: Rename method
     protected void initClientRequest() {
         if (this.executor == null) {
         	resteasyClient = (ResteasyClient) ResteasyClientBuilder.newClient();
@@ -240,14 +240,16 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
         }
 
         webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
 
+        // TODO: move cookies to place where we invoce clientRequest
+/*
 		for (Cookie cookie : cookies) {
             clientRequest.cookie(cookie);
         }
         for (Map.Entry<String, String> headerEntry : headers.entrySet()) {
             clientRequest.header(headerEntry.getKey(), headerEntry.getValue());
         }
+*/
     }
 
     public void closeConnection() {

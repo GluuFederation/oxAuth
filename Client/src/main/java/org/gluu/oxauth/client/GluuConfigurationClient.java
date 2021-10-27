@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +42,8 @@ public class GluuConfigurationClient extends BaseClient<GluuConfigurationRequest
         initClientRequest();
 
         setRequest(new GluuConfigurationRequest());
+
+        Builder clientRequest = webTarget.request();
 
         // Prepare request parameters
         clientRequest.header("Content-Type", MediaType.APPLICATION_JSON);

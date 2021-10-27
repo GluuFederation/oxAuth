@@ -8,6 +8,7 @@ package org.gluu.oxauth.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -78,11 +79,6 @@ public class TokenRevocationClient extends BaseClient<TokenRevocationRequest, To
         // Prepare request parameters
         initClientRequest();
 
-        new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
-
-        clientRequest.header("Content-Type", request.getContentType());
-//        clientRequest.setHttpMethod(getHttpMethod());
-
         if (StringUtils.isNotBlank(getRequest().getToken())) {
             requestForm.param(TokenRevocationRequestParam.TOKEN, getRequest().getToken());
         }
@@ -92,6 +88,13 @@ public class TokenRevocationClient extends BaseClient<TokenRevocationRequest, To
         if (request.getAuthUsername() != null && !request.getAuthUsername().isEmpty()) {
             requestForm.param("client_id", request.getAuthUsername());
         }
+
+        Builder clientRequest = webTarget.request();
+
+        new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
+
+        clientRequest.header("Content-Type", request.getContentType());
+//        clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {

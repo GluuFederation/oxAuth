@@ -8,6 +8,7 @@ package org.gluu.oxauth.client.ciba.push;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -40,6 +41,7 @@ public class PushErrorClient extends BaseClient<PushErrorRequest, PushErrorRespo
         try {
             // Prepare request parameters
     //        clientRequest.setHttpMethod(getHttpMethod());
+            Builder clientRequest = webTarget.request();
 
             clientRequest.header("Content-Type", getRequest().getContentType());
 

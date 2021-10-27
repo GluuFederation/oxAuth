@@ -24,6 +24,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -77,13 +78,6 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
     }
 
     private BackchannelAuthenticationResponse exec_() throws Exception {
-        // Prepare request parameters
-////        clientRequest.setHttpMethod(getHttpMethod());
-        clientRequest.header("Content-Type", request.getContentType());
-        if (request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC && request.hasCredentials()) {
-            clientRequest.header("Authorization", "Basic " + request.getEncodedCredentials());
-        }
-
         final String scopesAsString = Util.listAsString(getRequest().getScope());
         final String acrValuesAsString = Util.listAsString(getRequest().getAcrValues());
 
@@ -123,6 +117,17 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
         if (StringUtils.isNotBlank(getRequest().getRequestUri())) {
             requestForm.param(REQUEST_URI, getRequest().getRequestUri());
         }
+
+        Builder clientRequest = webTarget.request();
+
+        // Prepare request parameters
+////    clientRequest.setHttpMethod(getHttpMethod());
+	    clientRequest.header("Content-Type", request.getContentType());
+	    if (request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC && request.hasCredentials()) {
+	        clientRequest.header("Authorization", "Basic " + request.getEncodedCredentials());
+	    }
+
+
         new ClientAuthnEnabler(clientRequest, requestForm).exec(getRequest());
 
         // Call REST Service and handle response

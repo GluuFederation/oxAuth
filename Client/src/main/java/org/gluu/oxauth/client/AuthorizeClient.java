@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Logger;
@@ -188,7 +189,6 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
         try {
         	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
         	webTarget = resteasyClient.target(getUrl());
-			clientRequest = webTarget.request();
 
 			response = exec_();
         } catch (Exception e) {
@@ -200,14 +200,6 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
     }
 
     private AuthorizationResponse exec_() throws Exception {
-        // Prepare request parameters
-        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-////        clientRequest.setHttpMethod(getHttpMethod());
-
-        if (getRequest().isUseNoRedirectHeader()) {
-            clientRequest.header(NO_REDIRECT_HEADER, "true");
-        }
-
         final String responseTypesAsString = getRequest().getResponseTypesAsString();
         final String scopesAsString = getRequest().getScopesAsString();
         final String promptsAsString = getRequest().getPromptsAsString();
@@ -252,6 +244,16 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
         // Custom params
         for (String key : request.getCustomParameters().keySet()) {
             addReqParam(key, request.getCustomParameters().get(key));
+        }
+
+        Builder clientRequest = webTarget.request();
+
+        // Prepare request parameters
+        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+////        clientRequest.setHttpMethod(getHttpMethod());
+
+        if (getRequest().isUseNoRedirectHeader()) {
+            clientRequest.header(NO_REDIRECT_HEADER, "true");
         }
 
         if (request.getAuthorizationMethod() != AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER && request.hasCredentials()) {

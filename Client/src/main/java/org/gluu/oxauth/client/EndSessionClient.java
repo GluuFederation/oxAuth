@@ -9,6 +9,7 @@ package org.gluu.oxauth.client;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,8 +68,6 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
     public EndSessionResponse exec() {
         // Prepare request parameters
         initClientRequest();
-        clientRequest.accept(mediaType);
-//        clientRequest.setHttpMethod(getHttpMethod());
 
         if (StringUtils.isNotBlank(getRequest().getIdTokenHint())) {
         	addReqParam(EndSessionRequestParam.ID_TOKEN_HINT, getRequest().getIdTokenHint());
@@ -85,6 +84,10 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
 
         // Call REST Service and handle response
         try {
+            Builder clientRequest = webTarget.request();
+            clientRequest.accept(mediaType);
+//          clientRequest.setHttpMethod(getHttpMethod());
+
             clientResponse = clientRequest.buildGet().invoke();
             int status = clientResponse.getStatus();
 

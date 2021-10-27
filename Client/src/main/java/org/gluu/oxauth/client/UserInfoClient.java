@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -79,12 +80,12 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
     public UserInfoResponse exec() {
         // Prepare request parameters
         initClientRequest();
-        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-//        clientRequest.setHttpMethod(getHttpMethod());
 
+        Builder clientRequest = null;
         if (getRequest().getAuthorizationMethod() == null
                 || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            	clientRequest = webTarget.request();
                 clientRequest.header("Authorization", "Bearer " + getRequest().getAccessToken());
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
@@ -96,6 +97,13 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
             	addReqParam("access_token", getRequest().getAccessToken().toString());
             }
         }
+
+        if (clientRequest == null) {
+        	clientRequest = webTarget.request();
+        }
+
+        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+//      clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {

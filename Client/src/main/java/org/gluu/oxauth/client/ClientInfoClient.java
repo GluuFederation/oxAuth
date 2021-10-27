@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -76,8 +77,6 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
     public ClientInfoResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     	webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
-
         return _exec();
     }
 
@@ -89,12 +88,12 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
      */
     private ClientInfoResponse _exec() {
         // Prepare request parameters
-        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-//        clientRequest.setHttpMethod(getHttpMethod());
 
+        Builder clientRequest = null;
         if (getRequest().getAuthorizationMethod() == null
                 || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
+            	clientRequest = webTarget.request();
                 clientRequest.header("Authorization", "Bearer " + getRequest().getAccessToken());
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
@@ -106,6 +105,13 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
             	addReqParam("access_token", getRequest().getAccessToken());
             }
         }
+
+        if (clientRequest == null) {
+        	clientRequest = webTarget.request();
+        }
+
+        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+//      clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {

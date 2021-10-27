@@ -64,6 +64,7 @@ import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.USE
 import java.io.IOException;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -110,8 +111,6 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     public OpenIdConfigurationResponse execOpenIdConfiguration(ClientHttpEngine engine) throws IOException {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     	webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
-
 
         return _execOpenIdConfiguration();
     }
@@ -124,17 +123,18 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     private OpenIdConfigurationResponse _execOpenIdConfiguration() throws IOException {
         setRequest(new OpenIdConfigurationRequest());
 
-        // Prepare request parameters
-        clientRequest.accept(mediaTypes);
-//        clientRequest.setHttpMethod(getHttpMethod());
-
-        // Support AWS LB
-        // TODO: Implement follow redirect manually because we have to set engine.setFollowRedirects(true); on engine layer 
-//        clientRequest.followRedirects(true);
-
         // Call REST Service and handle response
         String entity = null;
         try {
+            Builder clientRequest = webTarget.request();
+            // Prepare request parameters
+            clientRequest.accept(mediaTypes);
+//            clientRequest.setHttpMethod(getHttpMethod());
+
+            // Support AWS LB
+            // TODO: Implement follow redirect manually because we have to set engine.setFollowRedirects(true); on engine layer 
+//            clientRequest.followRedirects(true);
+
             clientResponse = clientRequest.buildGet().invoke();
             int status = clientResponse.getStatus();
 

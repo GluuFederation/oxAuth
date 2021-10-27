@@ -17,6 +17,7 @@ import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.V
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -55,7 +56,6 @@ public class DeviceAuthzClient extends BaseClient<DeviceAuthzRequest, DeviceAuth
     public DeviceAuthzResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     	webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
 
         return _exec();
     }
@@ -63,6 +63,8 @@ public class DeviceAuthzClient extends BaseClient<DeviceAuthzRequest, DeviceAuth
     private DeviceAuthzResponse _exec() {
         try {
     //        clientRequest.setHttpMethod(getHttpMethod());
+            Builder clientRequest = webTarget.request();
+
             clientRequest.header("Content-Type", request.getContentType());
             new ClientAuthnEnabler(clientRequest, requestForm).exec(getRequest());
 

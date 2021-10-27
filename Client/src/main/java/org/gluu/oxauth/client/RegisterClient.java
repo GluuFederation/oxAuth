@@ -70,6 +70,7 @@ import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -140,7 +141,6 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
     public RegisterResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     	webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
 
         return _exec();
     }
@@ -153,14 +153,7 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
             Entity requestEntity = null;
 			// POST - Client Register, PUT - update client
             if (getHttpMethod().equals(HttpMethod.POST) || getHttpMethod().equals(HttpMethod.PUT)) {
-                clientRequest.header("Content-Type", getRequest().getContentType());
-                clientRequest.accept(getRequest().getMediaType());
-
                 JSONObject requestBody = new JSONObject();
-
-                if (StringUtils.isNotBlank(getRequest().getRegistrationAccessToken())) {
-                    clientRequest.header("Authorization", "Bearer " + getRequest().getRegistrationAccessToken());
-                }
                 if (getRequest().getRedirectUris() != null && !getRequest().getRedirectUris().isEmpty()) {
                     requestBody.put(REDIRECT_URIS.toString(), new JSONArray(getRequest().getRedirectUris()));
                 }
@@ -350,6 +343,17 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                     }
                 }
                 requestEntity = Entity.json(ClientUtil.toPrettyJson(requestBody));
+            }
+            
+            Builder clientRequest = webTarget.request();
+
+            if (getHttpMethod().equals(HttpMethod.POST) || getHttpMethod().equals(HttpMethod.PUT)) {
+                clientRequest.header("Content-Type", getRequest().getContentType());
+                clientRequest.accept(getRequest().getMediaType());
+
+                if (StringUtils.isNotBlank(getRequest().getRegistrationAccessToken())) {
+                    clientRequest.header("Authorization", "Bearer " + getRequest().getRegistrationAccessToken());
+                }
             } else { // GET, Client Read
                 clientRequest.accept(MediaType.APPLICATION_JSON);
 

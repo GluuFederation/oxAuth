@@ -2,6 +2,7 @@ package org.gluu.oxauth.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
 
 import org.apache.log4j.Logger;
 
@@ -34,6 +35,9 @@ public class RevokeSessionClient extends BaseClient<RevokeSessionRequest, Revoke
 
     public RevokeSessionResponse exec() {
         initClientRequest();
+
+        Builder clientRequest = webTarget.request();
+
         new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
 
         clientRequest.header("Content-Type", request.getContentType());

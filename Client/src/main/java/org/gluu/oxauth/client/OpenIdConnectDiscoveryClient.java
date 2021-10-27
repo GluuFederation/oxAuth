@@ -13,12 +13,16 @@ import static org.gluu.oxauth.model.discovery.WebFingerParam.REL_VALUE;
 import static org.gluu.oxauth.model.discovery.WebFingerParam.RESOURCE;
 import static org.gluu.oxauth.model.discovery.WebFingerParam.SUBJECT;
 
+import java.io.InputStream;
 import java.net.URISyntaxException;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.discovery.WebFingerLink;
@@ -60,7 +64,6 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
     public OpenIdConnectDiscoveryResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     	webTarget = resteasyClient.target(getUrl());
-		clientRequest = webTarget.request();
 
         return _exec();
     }
@@ -81,9 +84,6 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
 
     private OpenIdConnectDiscoveryResponse _exec2() {
         // Prepare request parameters
-        clientRequest.accept(MEDIA_TYPE);
-//        clientRequest.setHttpMethod(getHttpMethod());
-
         if (StringUtils.isNotBlank(getRequest().getResource())) {
         	addReqParam(RESOURCE, getRequest().getResource());
         }
@@ -92,7 +92,11 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
         // Call REST Service and handle response
         Response clientResponse1;
         try {
+            Builder clientRequest = webTarget.request();
+            clientRequest.accept(MEDIA_TYPE);
+//          clientRequest.setHttpMethod(getHttpMethod());
             clientResponse1 = clientRequest.buildGet().invoke();
+
             int status = clientResponse1.getStatus();
 
             setResponse(new OpenIdConnectDiscoveryResponse(status));
