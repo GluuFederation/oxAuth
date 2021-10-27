@@ -6,27 +6,18 @@
 
 package org.gluu.oxauth.model.uma;
 
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.Id;
-import org.gluu.oxauth.model.uma.PermissionTicket;
-import org.gluu.oxauth.model.uma.RPTResponse;
-import org.gluu.oxauth.model.uma.RptIntrospectionResponse;
-import org.gluu.oxauth.model.uma.UmaMetadata;
-import org.gluu.oxauth.model.uma.UmaNeedInfoResponse;
-import org.gluu.oxauth.model.uma.UmaResource;
-import org.gluu.oxauth.model.uma.UmaResourceResponse;
-import org.gluu.oxauth.model.uma.UmaScopeDescription;
-import org.gluu.oxauth.model.uma.UmaTokenResponse;
 import org.gluu.oxauth.model.uma.wrapper.Token;
-import org.jboss.resteasy.client.ClientResponse;
-
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -89,7 +80,7 @@ public class UmaTestUtil {
         assertNotNull(response.getRpt(), "RPT is null");
     }
 
-    public static void assert_(ClientResponse p_response) {
+    public static void assert_(Response p_response) {
         assertNotNull(p_response, "Response is null");
         assertTrue(p_response.getStatus() == Response.Status.OK.getStatusCode(), "Response http code is not OK.");
     }
