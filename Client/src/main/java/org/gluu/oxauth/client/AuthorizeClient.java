@@ -8,6 +8,8 @@ package org.gluu.oxauth.client;
 
 import static org.gluu.oxauth.client.AuthorizationRequest.NO_REDIRECT_HEADER;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
