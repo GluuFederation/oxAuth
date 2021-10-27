@@ -139,7 +139,9 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
     @Deprecated
     public RegisterResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-		clientRequest = resteasyClient.target(getUrl()).request();
+    	webTarget = resteasyClient.target(getUrl());
+		clientRequest = webTarget.request();
+
         return _exec();
     }
 

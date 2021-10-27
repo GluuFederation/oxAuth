@@ -109,7 +109,9 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     @Deprecated
     public OpenIdConfigurationResponse execOpenIdConfiguration(ClientHttpEngine engine) throws IOException {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-		clientRequest = resteasyClient.target(getUrl()).request();
+    	webTarget = resteasyClient.target(getUrl());
+		clientRequest = webTarget.request();
+
 
         return _execOpenIdConfiguration();
     }

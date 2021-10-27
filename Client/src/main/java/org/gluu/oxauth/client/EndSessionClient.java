@@ -71,16 +71,16 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
 //        clientRequest.setHttpMethod(getHttpMethod());
 
         if (StringUtils.isNotBlank(getRequest().getIdTokenHint())) {
-            webTarget.queryParam(EndSessionRequestParam.ID_TOKEN_HINT, getRequest().getIdTokenHint());
+        	addReqParam(EndSessionRequestParam.ID_TOKEN_HINT, getRequest().getIdTokenHint());
         }
         if (StringUtils.isNotBlank(getRequest().getPostLogoutRedirectUri())) {
-        	webTarget.queryParam(EndSessionRequestParam.POST_LOGOUT_REDIRECT_URI, getRequest().getPostLogoutRedirectUri());
+        	addReqParam(EndSessionRequestParam.POST_LOGOUT_REDIRECT_URI, getRequest().getPostLogoutRedirectUri());
         }
         if (StringUtils.isNotBlank(getRequest().getState())) {
-        	webTarget.queryParam(EndSessionRequestParam.STATE, getRequest().getState());
+        	addReqParam(EndSessionRequestParam.STATE, getRequest().getState());
         }
         if (StringUtils.isNotBlank(getRequest().getSid())) {
-        	webTarget.queryParam(EndSessionRequestParam.SID, getRequest().getSid());
+        	addReqParam(EndSessionRequestParam.SID, getRequest().getSid());
         }
 
         // Call REST Service and handle response

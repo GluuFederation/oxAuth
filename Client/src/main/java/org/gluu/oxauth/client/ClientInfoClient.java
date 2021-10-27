@@ -75,7 +75,9 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
     @Deprecated
     public ClientInfoResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-		clientRequest = resteasyClient.target(getUrl()).request();
+    	webTarget = resteasyClient.target(getUrl());
+		clientRequest = webTarget.request();
+
         return _exec();
     }
 
@@ -101,7 +103,7 @@ public class ClientInfoClient extends BaseClient<ClientInfoRequest, ClientInfoRe
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                webTarget.queryParam("access_token", getRequest().getAccessToken());
+            	addReqParam("access_token", getRequest().getAccessToken());
             }
         }
 

@@ -187,8 +187,10 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
 
         try {
         	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-			clientRequest = resteasyClient.target(getUrl()).request();
-            response = exec_();
+        	webTarget = resteasyClient.target(getUrl());
+			clientRequest = webTarget.request();
+
+			response = exec_();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

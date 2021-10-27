@@ -59,7 +59,9 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
     @Deprecated
     public OpenIdConnectDiscoveryResponse exec(ClientHttpEngine engine) {
     	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-		clientRequest = resteasyClient.target(getUrl()).request();
+    	webTarget = resteasyClient.target(getUrl());
+		clientRequest = webTarget.request();
+
         return _exec();
     }
 
@@ -83,9 +85,9 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
 //        clientRequest.setHttpMethod(getHttpMethod());
 
         if (StringUtils.isNotBlank(getRequest().getResource())) {
-            webTarget.queryParam(RESOURCE, getRequest().getResource());
+        	addReqParam(RESOURCE, getRequest().getResource());
         }
-        webTarget.queryParam(REL, REL_VALUE);
+        addReqParam(REL, REL_VALUE);
 
         // Call REST Service and handle response
         Response clientResponse1;
@@ -118,4 +120,5 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
 
         return getResponse();
     }
+
 }

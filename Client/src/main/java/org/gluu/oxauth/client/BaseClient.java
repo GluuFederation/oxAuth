@@ -235,12 +235,14 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
     protected void initClientRequest() {
         if (this.executor == null) {
         	resteasyClient = (ResteasyClient) ResteasyClientBuilder.newClient();
-    		clientRequest = resteasyClient.target(getUrl()).request();
         } else {
         	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(executor).build();
-    		clientRequest = resteasyClient.target(getUrl()).request();
         }
-        for (Cookie cookie : cookies) {
+
+        webTarget = resteasyClient.target(getUrl());
+		clientRequest = webTarget.request();
+
+		for (Cookie cookie : cookies) {
             clientRequest.cookie(cookie);
         }
         for (Map.Entry<String, String> headerEntry : headers.entrySet()) {

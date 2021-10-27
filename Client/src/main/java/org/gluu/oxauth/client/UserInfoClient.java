@@ -93,7 +93,7 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-            	webTarget.queryParam("access_token", getRequest().getAccessToken().toString());
+            	addReqParam("access_token", getRequest().getAccessToken().toString());
             }
         }
 
