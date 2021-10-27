@@ -134,11 +134,8 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
         clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
 
         setResponse(new BackchannelAuthenticationResponse(clientResponse));
-        String entity = clientResponse.readEntity(String.class);
-        getResponse().setEntity(entity);
-        getResponse().setHeaders(clientResponse.getMetadata());
-        if (StringUtils.isNotBlank(entity)) {
-            JSONObject jsonObj = new JSONObject(entity);
+        if (StringUtils.isNotBlank(response.getEntity())) {
+            JSONObject jsonObj = new JSONObject(response.getEntity());
 
             if (jsonObj.has(AUTH_REQ_ID)) {
                 getResponse().setAuthReqId(jsonObj.getString(AUTH_REQ_ID));

@@ -81,7 +81,7 @@ public class DeviceAuthzClient extends BaseClient<DeviceAuthzRequest, DeviceAuth
             clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
 
             setResponse(new DeviceAuthzResponse(clientResponse));
-            if (response.getEntity() != null) {
+            if (StringUtils.isNotBlank(response.getEntity())) {
                 JSONObject jsonObj = new JSONObject(response.getEntity());
 
                 if (jsonObj.has(USER_CODE)) {
