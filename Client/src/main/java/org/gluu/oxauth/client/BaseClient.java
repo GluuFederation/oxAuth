@@ -255,9 +255,10 @@ public abstract class BaseClient<T extends BaseRequest, V extends BaseResponse> 
             if (clientResponse != null) {
                 clientResponse.close();
             }
-            if (resteasyClient != null && resteasyClient.httpEngine() != null) {
-            	resteasyClient.httpEngine().close();
-            }
+            // Why we should close engine after processing response?
+//            if (resteasyClient != null && resteasyClient.httpEngine() != null) {
+//            	resteasyClient.httpEngine().close();
+//            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
