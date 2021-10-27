@@ -1,11 +1,33 @@
 package org.gluu.oxauth.ciba;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_TOKEN_DELIVERY_MODE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_USER_CODE_PARAMETER;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.BackchannelAuthenticationClient;
+import org.gluu.oxauth.client.BackchannelAuthenticationRequest;
+import org.gluu.oxauth.client.BackchannelAuthenticationResponse;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
 import org.gluu.oxauth.client.model.authorize.JwtAuthorizationRequest;
 import org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType;
-import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -21,11 +43,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.*;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.testng.Assert.*;
 
 /**
  * Responsible to validate many cases using JWT Requests for Ciba Ping flows.

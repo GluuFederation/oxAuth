@@ -1,12 +1,16 @@
 package org.gluu.oxauth.client;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.gluu.oxauth.model.register.RegisterResponseParam;
-
-import static org.gluu.oxauth.model.register.RegisterResponseParam.*;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_ID_ISSUED_AT;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET_EXPIRES_AT;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.REGISTRATION_ACCESS_TOKEN;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.REGISTRATION_CLIENT_URI;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
+
+import org.gluu.oxauth.model.register.RegisterResponseParam;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author yuriyz

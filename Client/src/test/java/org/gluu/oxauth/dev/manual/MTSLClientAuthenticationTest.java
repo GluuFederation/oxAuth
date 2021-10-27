@@ -1,5 +1,16 @@
 package org.gluu.oxauth.dev.manual;
 
+import static org.gluu.oxauth.BaseTest.showClient;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
@@ -9,18 +20,7 @@ import org.gluu.oxauth.client.TokenRequest;
 import org.gluu.oxauth.client.TokenResponse;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
-import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
-import static org.gluu.oxauth.BaseTest.showClient;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.KeyStore;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -75,7 +75,7 @@ public class MTSLClientAuthenticationTest {
         tokenRequest.setAuthenticationMethod(AuthenticationMethod.TLS_CLIENT_AUTH);
 
         TokenClient tokenClient = new TokenClient("https://ce-ob.gluu.org/oxauth/restv1/token");
-        tokenClient.setExecutor(new ApacheHttpClient4Executor(httpclient));
+        tokenClient.setExecutor(new ApacheHttpClient43Engine(httpclient));
         tokenClient.setRequest(tokenRequest);
         TokenResponse tokenResponse = tokenClient.exec();
 

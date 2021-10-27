@@ -6,9 +6,16 @@
 
 package org.gluu.oxauth.service;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.QueryStringDecoder;
 import org.gluu.oxauth.model.common.SessionId;
@@ -17,20 +24,13 @@ import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
 import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Javier Rojas Blum
@@ -73,17 +73,22 @@ public class RedirectionUriService {
             return sectorRedirectUris;
         }
 
-        ClientRequest clientRequest = new ClientRequest(sectorIdentiferUri);
-        clientRequest.setHttpMethod(HttpMethod.GET);
+        javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+		String entity = null;
+		try {
+			Response clientResponse = clientRequest.target(sectorIdentiferUri).request().buildGet().invoke();
 
-        ClientResponse<String> clientResponse = clientRequest.get(String.class);
-        int status = clientResponse.getStatus();
-        if (status != 200) {
-            return result;
-        }
+	        int status = clientResponse.getStatus();
+	        if (status != 200) {
+	            return result;
+	        }
 
-        String entity = clientResponse.getEntity(String.class);
-        JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
+	        entity = clientResponse.readEntity(String.class);
+		} finally {
+			clientRequest.close();
+		}
+
+		JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
 
         for (int i = 0; i < sectorIdentifierJsonArray.length(); i++) {
             result.add(sectorIdentifierJsonArray.getString(i));

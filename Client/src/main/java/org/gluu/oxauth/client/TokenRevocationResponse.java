@@ -6,11 +6,12 @@
 
 package org.gluu.oxauth.client;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.token.TokenRevocationErrorResponseType;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.gluu.oxauth.model.token.TokenRevocationErrorResponseType;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * @author Javier Rojas Blum
@@ -25,7 +26,7 @@ public class TokenRevocationResponse extends BaseResponse {
     /**
      * Constructs an token revocation response.
      */
-    public TokenRevocationResponse(ClientResponse<String> clientResponse) {
+    public TokenRevocationResponse(Response clientResponse) {
         super(clientResponse);
 
         if (StringUtils.isNotBlank(entity)) {

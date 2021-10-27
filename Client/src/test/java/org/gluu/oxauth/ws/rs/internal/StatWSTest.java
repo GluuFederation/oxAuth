@@ -1,8 +1,8 @@
 package org.gluu.oxauth.ws.rs.internal;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.testng.Assert.assertTrue;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.BaseRequest;
 import org.gluu.oxauth.client.service.ClientFactory;
 import org.gluu.oxauth.client.service.StatService;
 import org.gluu.oxauth.client.uma.wrapper.UmaClient;
@@ -10,7 +10,7 @@ import org.gluu.oxauth.model.uma.wrapper.Token;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertTrue;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Yuriy Zabrovarnyy

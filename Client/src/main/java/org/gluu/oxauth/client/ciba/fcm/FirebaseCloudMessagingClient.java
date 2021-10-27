@@ -6,13 +6,13 @@
 
 package org.gluu.oxauth.client.ciba.fcm;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.client.BaseClient;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 
 /**
  * @author Javier Rojas Blum
@@ -45,7 +45,7 @@ public class FirebaseCloudMessagingClient extends BaseClient<FirebaseCloudMessag
     private FirebaseCloudMessagingResponse _exec() {
         try {
             // Prepare request parameters
-            clientRequest.setHttpMethod(getHttpMethod());
+    //        clientRequest.setHttpMethod(getHttpMethod());
 
             clientRequest.header("Content-Type", getRequest().getContentType());
             clientRequest.accept(getRequest().getMediaType());
@@ -55,10 +55,9 @@ public class FirebaseCloudMessagingClient extends BaseClient<FirebaseCloudMessag
             }
 
             JSONObject requestBody = getRequest().getJSONParameters();
-            clientRequest.body(MediaType.APPLICATION_JSON, requestBody.toString(4));
 
             // Call REST Service and handle response
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.json(requestBody.toString(4))).invoke();
             setResponse(new FirebaseCloudMessagingResponse(clientResponse));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

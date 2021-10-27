@@ -6,23 +6,43 @@
 
 package org.gluu.oxauth.ciba;
 
-import org.gluu.oxauth.client.*;
-import org.gluu.oxauth.model.common.AuthenticationMethod;
-import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_TOKEN_DELIVERY_MODE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_USER_CODE_PARAMETER;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SECTOR_IDENTIFIER_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SUBJECT_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_METHOD;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_SIGNING_ALG;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+
+import javax.ws.rs.HttpMethod;
+
 import org.gluu.oxauth.BaseTest;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.JwkResponse;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.SubjectType;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
+import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.register.ApplicationType;
-
-import javax.ws.rs.HttpMethod;
-import java.util.Arrays;
-
-import static org.testng.Assert.*;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 
 /**
  * @author Javier Rojas Blum

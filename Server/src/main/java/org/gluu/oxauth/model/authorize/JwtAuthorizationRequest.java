@@ -6,8 +6,18 @@
 
 package org.gluu.oxauth.model.authorize;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
@@ -29,8 +39,6 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.RedirectUriResponse;
 import org.gluu.service.cdi.util.CdiUtil;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,15 +46,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.WebApplicationException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 /**
  * @author Javier Rojas Blum
@@ -429,22 +430,24 @@ public class JwtAuthorizationRequest {
             String reqUriHash = reqUri.getFragment();
             String reqUriWithoutFragment = reqUri.getScheme() + ":" + reqUri.getSchemeSpecificPart();
 
-            ClientRequest clientRequest = new ClientRequest(reqUriWithoutFragment);
-            clientRequest.setHttpMethod(HttpMethod.GET);
-
-            ClientResponse<String> clientResponse = clientRequest.get(String.class);
-            int status = clientResponse.getStatus();
-
+            javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
             String request = null;
-            if (status == 200) {
-                request = clientResponse.getEntity(String.class);
-
-                if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
-                    validRequestUri = true;
-                } else {
-                    String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
-                    validRequestUri = StringUtils.equals(reqUriHash, hash);
-                }
+            try {
+	            Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
+	            int status = clientResponse.getStatus();
+	
+	            if (status == 200) {
+	                request = clientResponse.readEntity(String.class);
+	
+	                if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
+	                    validRequestUri = true;
+	                } else {
+	                    String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
+	                    validRequestUri = StringUtils.equals(reqUriHash, hash);
+	                }
+	            }
+            } finally {
+            	clientRequest.close();
             }
 
             if (!validRequestUri && redirectUriResponse != null) {

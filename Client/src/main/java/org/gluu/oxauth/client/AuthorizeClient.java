@@ -6,21 +6,23 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.client.AuthorizationRequest.NO_REDIRECT_HEADER;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.AuthorizationMethod;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseType;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gluu.oxauth.client.AuthorizationRequest.NO_REDIRECT_HEADER;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 
 /**
  * Encapsulates functionality to make authorization request calls to an authorization server via REST Services.
@@ -180,11 +182,12 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
     }
 
     @Deprecated
-    public AuthorizationResponse exec(ClientExecutor clientExecutor) {
+    public AuthorizationResponse exec(ClientHttpEngine engine) {
         AuthorizationResponse response = null;
 
         try {
-            clientRequest = new ClientRequest(getUrl(), clientExecutor);
+        	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+			clientRequest = resteasyClient.target(getUrl()).request();
             response = exec_();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -197,7 +200,7 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
     private AuthorizationResponse exec_() throws Exception {
         // Prepare request parameters
         clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-        clientRequest.setHttpMethod(getHttpMethod());
+////        clientRequest.setHttpMethod(getHttpMethod());
 
         if (getRequest().isUseNoRedirectHeader()) {
             clientRequest.header(NO_REDIRECT_HEADER, "true");
@@ -255,9 +258,9 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
 
         // Call REST Service and handle response
         if (request.getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
         } else {
-            clientResponse = clientRequest.get(String.class);
+            clientResponse = clientRequest.buildGet().invoke();
         }
 
         setResponse(new AuthorizationResponse(clientResponse));

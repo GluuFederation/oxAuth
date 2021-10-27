@@ -77,9 +77,6 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
 import org.gluu.util.StringHelper;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.jetbrains.annotations.Nullable;
@@ -795,7 +792,7 @@ public abstract class BaseTest {
             showTitle("OpenID Connect Discovery");
 
             OpenIdConnectDiscoveryClient openIdConnectDiscoveryClient = new OpenIdConnectDiscoveryClient(resource);
-            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientExecutor(true));
+            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientEngine(true));
 
             showClient(openIdConnectDiscoveryClient);
             assertEquals(openIdConnectDiscoveryResponse.getStatus(), 200, "Unexpected response code");
@@ -808,7 +805,7 @@ public abstract class BaseTest {
             System.out.println("OpenID Connect Configuration");
 
             OpenIdConfigurationClient client = new OpenIdConfigurationClient(configurationEndpoint);
-            client.setExecutor(clientExecutor(true));
+            client.setExecutor(clientEngine(true));
             OpenIdConfigurationResponse response = client.execOpenIdConfiguration();
 
             showClient(client);
@@ -928,15 +925,15 @@ public abstract class BaseTest {
         		.build();
     }
 
-    public static ClientExecutor clientExecutor() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        return clientExecutor(false);
+    public static ClientHttpEngine engine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        return clientEngine(false);
     }
 
-    public static ClientExecutor clientExecutor(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    public static ClientHttpEngine engine(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         if (trustAll) {
-            return new ApacheHttpClient4Executor(createHttpClientTrustAll());
+            return new ApacheHttpClient43Engine(createHttpClientTrustAll());
         }
-        return ClientRequest.getDefaultExecutor();
+        return new ApacheHttpClient43Engine();
     }
 
     public static ClientHttpEngine clientEngine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -1018,8 +1015,8 @@ public abstract class BaseTest {
 		}
 	}
 
-	private ClientExecutor getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return clientExecutor(true);
+	private ClientHttpEngine getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return clientEngine(true);
     }
 
 	protected RegisterClient newRegisterClient(RegisterRequest request) {

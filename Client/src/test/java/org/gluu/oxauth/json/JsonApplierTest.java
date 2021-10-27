@@ -1,16 +1,17 @@
 package org.gluu.oxauth.json;
 
-import com.google.common.collect.Lists;
+import static org.testng.Assert.assertEquals;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gluu.oxauth.client.RegisterRequest;
 import org.gluu.oxauth.model.json.JsonApplier;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.testng.Assert.assertEquals;
+import com.google.common.collect.Lists;
 
 /**
  * @author Yuriy Zabrovarnyy

@@ -6,13 +6,7 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.model.util.Base64Util;
-import org.testng.ITestContext;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import sun.security.x509.X509CertImpl;
+import static org.testng.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
@@ -20,7 +14,13 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 
-import static org.testng.Assert.assertEquals;
+import org.gluu.oxauth.BaseTest;
+import org.gluu.oxauth.model.util.Base64Util;
+import org.testng.ITestContext;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import sun.security.x509.X509CertImpl;
 
 /**
  * @author Javier Rojas Blum

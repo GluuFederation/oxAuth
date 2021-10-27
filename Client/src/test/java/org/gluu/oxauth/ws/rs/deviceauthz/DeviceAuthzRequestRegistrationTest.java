@@ -6,8 +6,23 @@
 
 package org.gluu.oxauth.ws.rs.deviceauthz;
 
+import static org.gluu.oxauth.model.util.StringUtils.EASY_TO_READ_CHARACTERS;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.DeviceAuthzClient;
+import org.gluu.oxauth.client.DeviceAuthzRequest;
+import org.gluu.oxauth.client.DeviceAuthzResponse;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
 import org.gluu.oxauth.model.authorize.DeviceAuthzErrorResponseType;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
@@ -16,13 +31,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.gluu.oxauth.model.util.StringUtils.EASY_TO_READ_CHARACTERS;
-import static org.testng.Assert.*;
 
 /**
  * Tests for WS used to register device authz requests.

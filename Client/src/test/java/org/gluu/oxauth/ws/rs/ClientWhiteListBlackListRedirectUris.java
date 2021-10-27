@@ -6,6 +6,17 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;
 import org.gluu.oxauth.client.RegisterRequest;
@@ -15,13 +26,6 @@ import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.oxauth.model.util.URLPatternList;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import javax.ws.rs.HttpMethod;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
-import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
@@ -84,7 +88,7 @@ public class ClientWhiteListBlackListRedirectUris extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -111,7 +115,7 @@ public class ClientWhiteListBlackListRedirectUris extends BaseTest {
 
         final RegisterClient registerClient = new RegisterClient(registrationClientUri1);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);

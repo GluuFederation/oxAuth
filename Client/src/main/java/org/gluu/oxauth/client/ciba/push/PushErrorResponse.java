@@ -6,9 +6,10 @@
 
 package org.gluu.oxauth.client.ciba.push;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.client.BaseResponse;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * @author Javier Rojas Blum
@@ -18,10 +19,10 @@ public class PushErrorResponse extends BaseResponse {
 
     private static final Logger LOG = Logger.getLogger(PushErrorResponse.class);
 
-    public PushErrorResponse(ClientResponse<String> clientResponse) {
+    public PushErrorResponse(Response clientResponse) {
         super(clientResponse);
 
-        String entity = clientResponse.getEntity(String.class);
+        String entity = clientResponse.readEntity(String.class);
         setEntity(entity);
         setHeaders(clientResponse.getMetadata());
     }

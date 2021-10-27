@@ -6,16 +6,30 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.ACR_VALUES;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.BINDING_MESSAGE;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.CLIENT_ID;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.CLIENT_NOTIFICATION_TOKEN;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.ID_TOKEN_HINT;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.LOGIN_HINT;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.LOGIN_HINT_TOKEN;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.REQUEST;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.REQUESTED_EXPIRY;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.REQUEST_URI;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.SCOPE;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.USER_CODE;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.AUTH_REQ_ID;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.EXPIRES_IN;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.INTERVAL;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.util.Util;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-
-import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam.*;
-import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.*;
 
 /**
  * Encapsulates functionality to make backchannel authentication request calls to an authorization server via REST Services.
@@ -64,7 +78,7 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
 
     private BackchannelAuthenticationResponse exec_() throws Exception {
         // Prepare request parameters
-        clientRequest.setHttpMethod(getHttpMethod());
+////        clientRequest.setHttpMethod(getHttpMethod());
         clientRequest.header("Content-Type", request.getContentType());
         if (request.getAuthenticationMethod() == AuthenticationMethod.CLIENT_SECRET_BASIC && request.hasCredentials()) {
             clientRequest.header("Authorization", "Basic " + request.getEncodedCredentials());
@@ -74,48 +88,48 @@ public class BackchannelAuthenticationClient extends BaseClient<BackchannelAuthe
         final String acrValuesAsString = Util.listAsString(getRequest().getAcrValues());
 
         if (StringUtils.isNotBlank(scopesAsString)) {
-            clientRequest.formParameter(SCOPE, scopesAsString);
+        	requestForm.param(SCOPE, scopesAsString);
         }
         if (StringUtils.isNotBlank(getRequest().getClientNotificationToken())) {
-            clientRequest.formParameter(CLIENT_NOTIFICATION_TOKEN, getRequest().getClientNotificationToken());
+            requestForm.param(CLIENT_NOTIFICATION_TOKEN, getRequest().getClientNotificationToken());
         }
         if (StringUtils.isNotBlank(acrValuesAsString)) {
-            clientRequest.formParameter(ACR_VALUES, acrValuesAsString);
+            requestForm.param(ACR_VALUES, acrValuesAsString);
         }
         if (StringUtils.isNotBlank(getRequest().getLoginHintToken())) {
-            clientRequest.formParameter(LOGIN_HINT_TOKEN, getRequest().getLoginHintToken());
+            requestForm.param(LOGIN_HINT_TOKEN, getRequest().getLoginHintToken());
         }
         if (StringUtils.isNotBlank(getRequest().getIdTokenHint())) {
-            clientRequest.formParameter(ID_TOKEN_HINT, getRequest().getIdTokenHint());
+            requestForm.param(ID_TOKEN_HINT, getRequest().getIdTokenHint());
         }
         if (StringUtils.isNotBlank(getRequest().getLoginHint())) {
-            clientRequest.formParameter(LOGIN_HINT, getRequest().getLoginHint());
+            requestForm.param(LOGIN_HINT, getRequest().getLoginHint());
         }
         if (StringUtils.isNotBlank(getRequest().getBindingMessage())) {
-            clientRequest.formParameter(BINDING_MESSAGE, getRequest().getBindingMessage());
+            requestForm.param(BINDING_MESSAGE, getRequest().getBindingMessage());
         }
         if (StringUtils.isNotBlank(getRequest().getUserCode())) {
-            clientRequest.formParameter(USER_CODE, getRequest().getUserCode());
+            requestForm.param(USER_CODE, getRequest().getUserCode());
         }
         if (getRequest().getRequestedExpiry() != null) {
-            clientRequest.formParameter(REQUESTED_EXPIRY, getRequest().getRequestedExpiry());
+            requestForm.param(REQUESTED_EXPIRY, getRequest().getRequestedExpiry().toString());
         }
         if (StringUtils.isNotBlank(getRequest().getClientId())) {
-            clientRequest.formParameter(CLIENT_ID, getRequest().getClientId());
+            requestForm.param(CLIENT_ID, getRequest().getClientId());
         }
         if (StringUtils.isNotBlank(getRequest().getRequest())) {
-            clientRequest.formParameter(REQUEST, getRequest().getRequest());
+            requestForm.param(REQUEST, getRequest().getRequest());
         }
         if (StringUtils.isNotBlank(getRequest().getRequestUri())) {
-            clientRequest.formParameter(REQUEST_URI, getRequest().getRequestUri());
+            requestForm.param(REQUEST_URI, getRequest().getRequestUri());
         }
-        new ClientAuthnEnabler(clientRequest).exec(getRequest());
+        new ClientAuthnEnabler(clientRequest, requestForm).exec(getRequest());
 
         // Call REST Service and handle response
-        clientResponse = clientRequest.post(String.class);
+        clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
 
         setResponse(new BackchannelAuthenticationResponse(clientResponse));
-        String entity = clientResponse.getEntity(String.class);
+        String entity = clientResponse.readEntity(String.class);
         getResponse().setEntity(entity);
         getResponse().setHeaders(clientResponse.getMetadata());
         if (StringUtils.isNotBlank(entity)) {

@@ -6,22 +6,80 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_LIFETIME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ALLOW_SPONTANEOUS_SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.AUTHORIZED_ORIGINS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_TOKEN_DELIVERY_MODE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_USER_CODE_PARAMETER;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLAIMS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLAIMS_REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CONTACTS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.DEFAULT_ACR_VALUES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.DEFAULT_MAX_AGE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.GRANT_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_TOKEN_BINDING_CNF;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.INITIATE_LOGIN_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.KEEP_CLIENT_AUTHORIZATION_AFTER_EXPIRATION;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.LOGO_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POLICY_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POST_LOGOUT_REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUIRE_AUTH_TIME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RPT_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RUN_INTROSPECTION_SCRIPT_BEFORE_ACCESS_TOKEN_CREATION_AS_JWT_AND_INCLUDE_CLAIMS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SECTOR_IDENTIFIER_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_ID;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_STATEMENT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_VERSION;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SPONTANEOUS_SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SUBJECT_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TLS_CLIENT_AUTH_SUBJECT_DN;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_METHOD;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.util.StringUtils.implode;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.util.ClientUtil;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import java.util.List;
-import java.util.Map;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.gluu.oxauth.model.util.StringUtils.implode;
 
 /**
  * Encapsulates functionality to make Register request calls to an authorization server via REST Services.
@@ -79,17 +137,19 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
     }
 
     @Deprecated
-    public RegisterResponse exec(ClientExecutor clientExecutor) {
-        this.clientRequest = new ClientRequest(getUrl(), clientExecutor);
+    public RegisterResponse exec(ClientHttpEngine engine) {
+    	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+		clientRequest = resteasyClient.target(getUrl()).request();
         return _exec();
     }
 
     private RegisterResponse _exec() {
         try {
             // Prepare request parameters
-            clientRequest.setHttpMethod(getHttpMethod());
+    //        clientRequest.setHttpMethod(getHttpMethod());
 
-            // POST - Client Register, PUT - update client
+            Entity requestEntity = null;
+			// POST - Client Register, PUT - update client
             if (getHttpMethod().equals(HttpMethod.POST) || getHttpMethod().equals(HttpMethod.PUT)) {
                 clientRequest.header("Content-Type", getRequest().getContentType());
                 clientRequest.accept(getRequest().getMediaType());
@@ -267,7 +327,7 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                     requestBody.put(BACKCHANNEL_TOKEN_DELIVERY_MODE.toString(), getRequest().getBackchannelTokenDeliveryMode());
                 }
                 if (StringUtils.isNotBlank(getRequest().getBackchannelClientNotificationEndpoint())) {
-                    requestBody.put(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString(), getRequest().getBackchannelClientNotificationEndpoint());
+                	requestBody.put(BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT.toString(), getRequest().getBackchannelClientNotificationEndpoint());
                 }
                 if (getRequest().getBackchannelAuthenticationRequestSigningAlg() != null) {
                     requestBody.put(BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG.toString(), getRequest().getBackchannelAuthenticationRequestSigningAlg());
@@ -287,7 +347,7 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
                         }
                     }
                 }
-                clientRequest.body(MediaType.APPLICATION_JSON, ClientUtil.toPrettyJson(requestBody));
+                requestEntity = Entity.json(ClientUtil.toPrettyJson(requestBody));
             } else { // GET, Client Read
                 clientRequest.accept(MediaType.APPLICATION_JSON);
 
@@ -299,13 +359,13 @@ public class RegisterClient extends BaseClient<RegisterRequest, RegisterResponse
             // Call REST Service and handle response
 
             if (getHttpMethod().equals(HttpMethod.POST)) {
-                clientResponse = clientRequest.post(String.class);
+                clientResponse = clientRequest.buildPost(requestEntity).invoke();
             } else if (getHttpMethod().equals(HttpMethod.PUT)) {
-                clientResponse = clientRequest.put(String.class);
+                clientResponse = clientRequest.buildPut(requestEntity).invoke();
             } else if (getHttpMethod().equals(HttpMethod.DELETE)) {
-                clientResponse = clientRequest.delete(String.class);
+                clientResponse = clientRequest.buildDelete().invoke();
             } else { // GET
-                clientResponse = clientRequest.get(String.class);
+                clientResponse = clientRequest.buildGet().invoke();
             }
             setResponse(new RegisterResponse(clientResponse));
         } catch (Exception e) {

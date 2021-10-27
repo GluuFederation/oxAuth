@@ -6,7 +6,17 @@
 
 package org.gluu.oxauth.client.uma.wrapper;
 
-import org.gluu.oxauth.client.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.TokenResponse;
 import org.gluu.oxauth.client.uma.exception.UmaException;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
@@ -18,12 +28,7 @@ import org.gluu.oxauth.model.uma.UmaScopeType;
 import org.gluu.oxauth.model.uma.wrapper.Token;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.util.StringHelper;
-import org.jboss.resteasy.client.ClientExecutor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -49,8 +54,8 @@ public class UmaClient {
         return requestPat(tokenUrl, umaClientId, umaClientSecret, null, scopeArray);
     }
 
-    public static Token requestPat(final String tokenUrl, final String umaClientId, final String umaClientSecret, ClientExecutor clientExecutor, String... scopeArray) throws Exception {
-        return request(tokenUrl, umaClientId, umaClientSecret, UmaScopeType.PROTECTION, clientExecutor, scopeArray);
+    public static Token requestPat(final String tokenUrl, final String umaClientId, final String umaClientSecret, ClientHttpEngine engine, String... scopeArray) throws Exception {
+        return request(tokenUrl, umaClientId, umaClientSecret, UmaScopeType.PROTECTION, engine, scopeArray);
     }
 
     @Deprecated
@@ -113,7 +118,7 @@ public class UmaClient {
     }
 
     public static Token request(final String tokenUrl, final String umaClientId, final String umaClientSecret, UmaScopeType scopeType,
-                                ClientExecutor clientExecutor, String... scopeArray) throws Exception {
+                                ClientHttpEngine engine, String... scopeArray) throws Exception {
 
         String scope = scopeType.getValue();
         if (scopeArray != null && scopeArray.length > 0) {
@@ -123,8 +128,8 @@ public class UmaClient {
         }
 
         TokenClient tokenClient = new TokenClient(tokenUrl);
-        if (clientExecutor != null) {
-            tokenClient.setExecutor(clientExecutor);
+        if (engine != null) {
+            tokenClient.setExecutor(engine);
         }
         TokenResponse response = tokenClient.execClientCredentialsGrant(scope, umaClientId, umaClientSecret);
 

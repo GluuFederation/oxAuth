@@ -6,6 +6,19 @@
 
 package org.gluu.oxauth.model.registration;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.RegisterRequest;
 import org.gluu.oxauth.model.common.GrantType;
@@ -20,23 +33,8 @@ import org.gluu.oxauth.model.util.Pair;
 import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONArray;
 import org.slf4j.Logger;
-
-import javax.enterprise.context.ApplicationScoped;
-
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Validates the parameters received for the register web service.
@@ -290,18 +288,21 @@ public class RegisterParamsValidator {
                     valid = false;
                 }
 
-                ClientRequest clientRequest = new ClientRequest(sectorIdentifierUrl);
-                clientRequest.setHttpMethod(HttpMethod.GET);
-
-                ClientResponse<String> clientResponse = clientRequest.get(String.class);
-                int status = clientResponse.getStatus();
-
-                if (status == 200) {
-                    String entity = clientResponse.getEntity(String.class);
-
-                    JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
-                    valid = Util.asList(sectorIdentifierJsonArray).containsAll(redirectUris);
-                }
+                javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+        		String entity = null;
+        		try {
+        			Response clientResponse = clientRequest.target(sectorIdentifierUrl).request().buildGet().invoke();
+	                int status = clientResponse.getStatus();
+	
+	                if (status == 200) {
+	                    entity = clientResponse.readEntity(String.class);
+	
+	                    JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
+	                    valid = Util.asList(sectorIdentifierJsonArray).containsAll(redirectUris);
+	                }
+        		} finally {
+        			clientRequest.close();
+        		}
             } catch (Exception e) {
                 log.debug(e.getMessage(), e);
                 valid = false;

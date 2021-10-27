@@ -1,11 +1,11 @@
 package org.gluu.oxauth.client;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.jwt.JwtHeaderName;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 /**
  * @author Yuriy Zabrovarnyy

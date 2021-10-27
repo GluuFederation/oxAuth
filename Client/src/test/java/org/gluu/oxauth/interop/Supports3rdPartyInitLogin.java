@@ -1,5 +1,14 @@
 package org.gluu.oxauth.interop;
 
+import static org.gluu.oxauth.model.common.GrantType.AUTHORIZATION_CODE;
+import static org.gluu.oxauth.model.common.ResponseType.CODE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.INITIATE_LOGIN_URI;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.util.Arrays;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;
 import org.gluu.oxauth.client.RegisterRequest;
@@ -9,15 +18,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
-
-import static org.gluu.oxauth.model.common.GrantType.AUTHORIZATION_CODE;
-import static org.gluu.oxauth.model.common.ResponseType.CODE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.INITIATE_LOGIN_URI;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 /**
  * OP-3rd_party-init-login

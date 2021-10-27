@@ -6,14 +6,16 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.JwkClient;
 import org.gluu.oxauth.client.JwkResponse;
 import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * Functional tests for JWK Web Services (HTTP)

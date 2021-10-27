@@ -6,7 +6,26 @@
 
 package org.gluu.oxauth.util;
 
-import org.apache.commons.cli.*;
+import static org.gluu.oxauth.model.jwk.JWKParameter.CERTIFICATE_CHAIN;
+import static org.gluu.oxauth.model.jwk.JWKParameter.EXPIRATION_TIME;
+import static org.gluu.oxauth.model.jwk.JWKParameter.EXPONENT;
+import static org.gluu.oxauth.model.jwk.JWKParameter.KEY_ID;
+import static org.gluu.oxauth.model.jwk.JWKParameter.MODULUS;
+import static org.gluu.oxauth.model.jwk.JWKParameter.X;
+import static org.gluu.oxauth.model.jwk.JWKParameter.Y;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
@@ -15,20 +34,17 @@ import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxElevenCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.jwk.*;
+import org.gluu.oxauth.model.jwk.Algorithm;
+import org.gluu.oxauth.model.jwk.JSONWebKey;
+import org.gluu.oxauth.model.jwk.JSONWebKeySet;
+import org.gluu.oxauth.model.jwk.KeyType;
+import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.util.StringHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import static org.gluu.oxauth.model.jwk.JWKParameter.*;
 
 /**
  * Command example:

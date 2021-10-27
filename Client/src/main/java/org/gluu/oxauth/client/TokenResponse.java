@@ -6,13 +6,14 @@
 
 package org.gluu.oxauth.client;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.gluu.oxauth.model.common.TokenType;
 import org.gluu.oxauth.model.token.TokenErrorResponseType;
-import org.jboss.resteasy.client.ClientResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Represents a token response received from the authorization server.
@@ -38,7 +39,7 @@ public class TokenResponse extends BaseResponseWithErrors<TokenErrorResponseType
      *
      * @param clientResponse The response
      */
-    public TokenResponse(ClientResponse<String> clientResponse) {
+    public TokenResponse(Response clientResponse) {
         super(clientResponse);
     }
 

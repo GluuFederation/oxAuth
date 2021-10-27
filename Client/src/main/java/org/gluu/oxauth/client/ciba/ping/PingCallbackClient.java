@@ -6,15 +6,15 @@
 
 package org.gluu.oxauth.client.ciba.ping;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.client.BaseClient;
 import org.gluu.oxauth.util.ClientUtil;
-import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 
 /**
  * @author Javier Rojas Blum
@@ -47,7 +47,7 @@ public class PingCallbackClient extends BaseClient<PingCallbackRequest, PingCall
     private PingCallbackResponse _exec() {
         try {
             // Prepare request parameters
-            clientRequest.setHttpMethod(getHttpMethod());
+    //        clientRequest.setHttpMethod(getHttpMethod());
 
             clientRequest.header("Content-Type", getRequest().getContentType());
 
@@ -56,10 +56,9 @@ public class PingCallbackClient extends BaseClient<PingCallbackRequest, PingCall
             }
 
             JSONObject requestBody = getRequest().getJSONParameters();
-            clientRequest.body(MediaType.APPLICATION_JSON, requestBody.toString(4));
 
             // Call REST Service and handle response
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.json(requestBody.toString(4))).invoke();
             setResponse(new PingCallbackResponse(clientResponse));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -73,10 +72,10 @@ public class PingCallbackClient extends BaseClient<PingCallbackRequest, PingCall
     /**
      * Creates an executor responsible to process rest calls using special SSL context defined in FAPI-CIBA specs.
      */
-    private ApacheHttpClient4Executor getApacheHttpClient4ExecutorForMTLS() {
+    private ApacheHttpClient43Engine getApacheHttpClient4ExecutorForMTLS() {
         // Ciphers accepted by FAPI-CIBA specs and OpenJDK.
         String[] ciphers = new String[] { "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" };
-        return new ApacheHttpClient4Executor(ClientUtil.createHttpClient("TLSv1.2", ciphers));
+        return new ApacheHttpClient43Engine(ClientUtil.createHttpClient("TLSv1.2", ciphers));
     }
 
 }

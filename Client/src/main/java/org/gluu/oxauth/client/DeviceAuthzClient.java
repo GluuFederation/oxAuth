@@ -6,18 +6,24 @@
 
 package org.gluu.oxauth.client;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.gluu.oxauth.model.common.AuthenticationMethod;
-import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-import org.json.JSONObject;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationRequestParam.CLIENT_ID;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationRequestParam.SCOPE;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.DEVICE_CODE;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.EXPIRES_IN;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.INTERVAL;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.USER_CODE;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.VERIFICATION_URI;
+import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.VERIFICATION_URI_COMPLETE;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
 
-import static org.gluu.oxauth.model.authorize.DeviceAuthorizationRequestParam.*;
-import static org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.gluu.oxauth.model.util.Util;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.json.JSONObject;
 
 /**
  * Encapsulates functionality to make Device Authz request calls to an authorization server via REST Services.
@@ -46,31 +52,32 @@ public class DeviceAuthzClient extends BaseClient<DeviceAuthzRequest, DeviceAuth
     }
 
     @Deprecated
-    public DeviceAuthzResponse exec(ClientExecutor clientExecutor) {
-        this.clientRequest = new ClientRequest(getUrl(), clientExecutor);
+    public DeviceAuthzResponse exec(ClientHttpEngine engine) {
+    	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+		clientRequest = resteasyClient.target(getUrl()).request();
         return _exec();
     }
 
     private DeviceAuthzResponse _exec() {
         try {
-            clientRequest.setHttpMethod(getHttpMethod());
+    //        clientRequest.setHttpMethod(getHttpMethod());
             clientRequest.header("Content-Type", request.getContentType());
-            new ClientAuthnEnabler(clientRequest).exec(getRequest());
+            new ClientAuthnEnabler(clientRequest, requestForm).exec(getRequest());
 
             final String scopesAsString = Util.listAsString(getRequest().getScopes());
 
             if (StringUtils.isNotBlank(scopesAsString)) {
-                clientRequest.formParameter(SCOPE, scopesAsString);
+                requestForm.param(SCOPE, scopesAsString);
             }
             if (StringUtils.isNotBlank(getRequest().getClientId())) {
-                clientRequest.formParameter(CLIENT_ID, getRequest().getClientId());
+                requestForm.param(CLIENT_ID, getRequest().getClientId());
             }
 
             // Call REST Service and handle response
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
 
             setResponse(new DeviceAuthzResponse(clientResponse));
-            String entity = clientResponse.getEntity(String.class);
+            String entity = clientResponse.readEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
             if (StringUtils.isNotBlank(entity)) {

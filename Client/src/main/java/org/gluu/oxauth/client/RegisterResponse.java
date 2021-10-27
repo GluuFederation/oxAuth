@@ -6,24 +6,32 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.GRANT_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_ID_ISSUED_AT;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET_EXPIRES_AT;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.REGISTRATION_CLIENT_URI;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.register.RegisterErrorResponseType;
 import org.gluu.oxauth.model.register.RegisterResponseParam;
 import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientResponse;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.GRANT_TYPES;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
-import static org.gluu.oxauth.model.register.RegisterResponseParam.*;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Represents a register response received from the authorization server.
@@ -51,10 +59,10 @@ public class RegisterResponse extends BaseResponseWithErrors<RegisterErrorRespon
     /**
      * Constructs a register response.
      */
-    public RegisterResponse(ClientResponse<String> clientResponse) {
+    public RegisterResponse(Response clientResponse) {
         super(clientResponse);
 
-        String entity = clientResponse.getEntity(String.class);
+        String entity = clientResponse.readEntity(String.class);
         setEntity(entity);
         setHeaders(clientResponse.getMetadata());
         injectDataFromJson(entity);

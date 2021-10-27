@@ -6,20 +6,24 @@
 
 package org.gluu.oxauth.load;
 
-import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
-import org.gluu.oxauth.model.common.Prompt;
-import org.gluu.oxauth.model.common.ResponseType;
-import org.gluu.oxauth.model.jwt.JwtClaimName;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import org.gluu.oxauth.BaseTest;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoResponse;
+import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.jwt.JwtClaimName;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 
 /**
  * DON'T INCLUDE IT IN TEST SUITE.
