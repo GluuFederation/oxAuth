@@ -460,7 +460,12 @@ public class AuthorizationRequest extends BaseRequest {
     }
 
     public String getCustomResponseHeadersAsString() throws JSONException {
-        return URLEncoder.encode(Util.mapAsString(customResponseHeaders), StandardCharsets.UTF_8);
+        String header = Util.mapAsString(customResponseHeaders);
+        if (header == null) {
+        	return null;
+        }
+
+        return URLEncoder.encode(header, StandardCharsets.UTF_8);
     }
 
     public Map<String, String> getCustomResponseHeaders() {
