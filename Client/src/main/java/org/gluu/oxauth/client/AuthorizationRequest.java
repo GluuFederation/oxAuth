@@ -8,7 +8,7 @@ package org.gluu.oxauth.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -465,7 +465,13 @@ public class AuthorizationRequest extends BaseRequest {
         	return null;
         }
 
-        return URLEncoder.encode(header, StandardCharsets.UTF_8);
+        try {
+			return URLEncoder.encode(header, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+		}
+
+        return null;
     }
 
     public Map<String, String> getCustomResponseHeaders() {
