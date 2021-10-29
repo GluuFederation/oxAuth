@@ -5,6 +5,7 @@
     <test name="Unit Tests" enabled="true">
         <classes>
             <class name="org.gluu.oxauth.service.ScopeServiceTest" />
+            <class name="org.gluu.oxauth.model.CIBAGrantTest" />
         </classes>
     </test>
 
