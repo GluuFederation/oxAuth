@@ -36,6 +36,7 @@ public class CIBAGrant extends AuthorizationGrant {
         super.init(cibaRequest.getUser(), AuthorizationGrantType.CIBA, cibaRequest.getClient(), null);
         setAuthReqId(cibaRequest.getAuthReqId());
         setAcrValues(cibaRequest.getAcrValues());
+        setScopes(cibaRequest.getScopes());
         setIsCachedWithNoPersistence(true);
     }
 
