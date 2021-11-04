@@ -50,6 +50,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_REQUEST;
 
 /**
@@ -241,19 +242,20 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
             if (gt == GrantType.REFRESH_TOKEN) {
                 if (!TokenParamsValidator.validateGrantType(gt, client.getGrantTypes(), appConfiguration.getGrantTypesSupported())) {
+                    log.debug("grant_type is not present in client {}", client.getClientId());
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "grant_type is not present in client."), oAuth2AuditLog);
                 }
 
                 AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByRefreshToken(client.getClientId(), refreshToken);
 
                 if (authorizationGrant == null) {
-                    log.trace("Grant object is not found by refresh token.");
+                    log.debug("Grant object is not found by refresh token {}, clientId: {}", refreshToken, client.getClientId());
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find grant object by refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
                 final RefreshToken refreshTokenObject = authorizationGrant.getRefreshToken(refreshToken);
                 if (refreshTokenObject == null || !refreshTokenObject.isValid()) {
-                    log.trace("Invalid refresh token.");
+                    log.debug("Invalid refresh token {}, isRTObjNull: {}", refreshToken, refreshTokenObject == null);
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
@@ -263,10 +265,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 if (!appConfiguration.getSkipRefreshTokenDuringRefreshing()) {
                     if (appConfiguration.getRefreshTokenExtendLifetimeOnRotation()) {
                         reToken = authorizationGrant.createRefreshToken(); // extend lifetime
+                        log.debug("Created RT with extended lifetime, token: {}", reToken.getCode());
                     } else {
                         reToken = authorizationGrant.createRefreshToken(refreshTokenObject.getExpirationDate()); // do not extend lifetime
+                        log.debug("Created RT token: {}", reToken.getCode());
                     }
                     grantService.removeByCode(refreshToken);
+                    log.debug("Removed request's RT token: {}", refreshToken);
                 }
 
                 if (scope != null && !scope.isEmpty()) {
@@ -608,10 +613,14 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     }
 
     private boolean isRefreshTokenAllowed(Client client, String requestedScope, AbstractAuthorizationGrant grant) {
-        if (appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken() && !grant.getScopes().contains(ScopeConstants.OFFLINE_ACCESS) && !Strings.nullToEmpty(requestedScope).contains(ScopeConstants.OFFLINE_ACCESS)) {
+        log.debug("Checking whether RT is allowed, client: {}, requestedScope: {}, grantId: {}", client.getClientId(), requestedScope, grant.getGrantId());
+        if (isTrue(appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken()) && !grant.getScopes().contains(ScopeConstants.OFFLINE_ACCESS) && !Strings.nullToEmpty(requestedScope).contains(ScopeConstants.OFFLINE_ACCESS)) {
+            log.debug("RT is not allowed.");
             return false;
         }
-        return Arrays.asList(client.getGrantTypes()).contains(GrantType.REFRESH_TOKEN);
+        final boolean contains = Arrays.asList(client.getGrantTypes()).contains(GrantType.REFRESH_TOKEN);
+        log.debug("RT allowed: {}", contains);
+        return contains;
     }
 
     private void validatePKCE(AuthorizationCodeGrant grant, String codeVerifier, OAuth2AuditLog oAuth2AuditLog) {

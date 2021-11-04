@@ -172,17 +172,24 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         if (cachedGrant == null) {
             // retry one time : sometimes during high load cache client may be not fast enough
             cachedGrant = cacheService.get(CacheGrant.cacheKey(authorizationCode, null));
-            log.trace("Failed to fetch authorization grant from cache, code: " + authorizationCode);
+            log.trace("Failed to fetch authorization grant from cache, code: {}", authorizationCode);
         }
         return cachedGrant instanceof CacheGrant ? ((CacheGrant) cachedGrant).asCodeGrant(grantInstance) : null;
     }
 
     @Override
     public AuthorizationGrant getAuthorizationGrantByRefreshToken(String clientId, String refreshTokenCode) {
-        if (!ServerUtil.isTrue(appConfiguration.getPersistRefreshTokenInLdap())) {
-            return assertTokenType((TokenLdap) cacheService.get(TokenHashUtil.hash(refreshTokenCode)), TokenType.REFRESH_TOKEN, clientId);
+        final boolean loadFromCache = !ServerUtil.isTrue(appConfiguration.getPersistRefreshTokenInLdap());
+        log.debug("Getting grant by RT: {}, clientId: {}, loadFromCache: {}", refreshTokenCode, clientId, loadFromCache);
+        if (loadFromCache) {
+            final AuthorizationGrant authorizationGrant = assertTokenType((TokenLdap) cacheService.get(TokenHashUtil.hash(refreshTokenCode)), TokenType.REFRESH_TOKEN, clientId);
+            log.debug("Loaded from cache {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+            return authorizationGrant;
         }
-        return assertTokenType(grantService.getGrantByCode(refreshTokenCode), TokenType.REFRESH_TOKEN, clientId);
+
+        final AuthorizationGrant authorizationGrant = assertTokenType(grantService.getGrantByCode(refreshTokenCode), TokenType.REFRESH_TOKEN, clientId);
+        log.debug("Loaded from persistence {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+        return authorizationGrant;
     }
 
     public AuthorizationGrant assertTokenType(TokenLdap tokenLdap, TokenType tokenType, String clientId) {
