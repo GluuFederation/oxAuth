@@ -172,7 +172,8 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         if (cachedGrant == null) {
             // retry one time : sometimes during high load cache client may be not fast enough
             cachedGrant = cacheService.get(CacheGrant.cacheKey(authorizationCode, null));
-            log.trace("Failed to fetch authorization grant from cache, code: {}", authorizationCode);
+            if (cachedGrant == null)
+                log.trace("Failed to fetch authorization grant from cache");
         }
         return cachedGrant instanceof CacheGrant ? ((CacheGrant) cachedGrant).asCodeGrant(grantInstance) : null;
     }
