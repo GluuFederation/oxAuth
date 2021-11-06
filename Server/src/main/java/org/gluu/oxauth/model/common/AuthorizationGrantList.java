@@ -180,15 +180,14 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
     @Override
     public AuthorizationGrant getAuthorizationGrantByRefreshToken(String clientId, String refreshTokenCode) {
         final boolean loadFromCache = !ServerUtil.isTrue(appConfiguration.getPersistRefreshTokenInLdap());
-        log.debug("Getting grant by RT: {}, clientId: {}, loadFromCache: {}", refreshTokenCode, clientId, loadFromCache);
         if (loadFromCache) {
             final AuthorizationGrant authorizationGrant = assertTokenType((TokenLdap) cacheService.get(TokenHashUtil.hash(refreshTokenCode)), TokenType.REFRESH_TOKEN, clientId);
-            log.debug("Loaded from cache {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+            log.trace("Loaded from cache {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
             return authorizationGrant;
         }
 
         final AuthorizationGrant authorizationGrant = assertTokenType(grantService.getGrantByCode(refreshTokenCode), TokenType.REFRESH_TOKEN, clientId);
-        log.debug("Loaded from persistence {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+        log.trace("Loaded from persistence {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
         return authorizationGrant;
     }
 

@@ -249,13 +249,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByRefreshToken(client.getClientId(), refreshToken);
 
                 if (authorizationGrant == null) {
-                    log.debug("Grant object is not found by refresh token {}, clientId: {}", refreshToken, client.getClientId());
+                    log.debug("Grant object is not found by refresh token, clientId: {}", client.getClientId());
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find grant object by refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
                 final RefreshToken refreshTokenObject = authorizationGrant.getRefreshToken(refreshToken);
                 if (refreshTokenObject == null || !refreshTokenObject.isValid()) {
-                    log.debug("Invalid refresh token {}, isRTObjNull: {}", refreshToken, refreshTokenObject == null);
+                    log.debug("Invalid refresh token, isRTObjNull: {}", refreshTokenObject == null);
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
@@ -265,13 +265,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 if (!appConfiguration.getSkipRefreshTokenDuringRefreshing()) {
                     if (appConfiguration.getRefreshTokenExtendLifetimeOnRotation()) {
                         reToken = authorizationGrant.createRefreshToken(); // extend lifetime
-                        log.debug("Created RT with extended lifetime, token: {}", reToken.getCode());
+                        log.trace("Created RT with extended lifetime");
                     } else {
                         reToken = authorizationGrant.createRefreshToken(refreshTokenObject.getExpirationDate()); // do not extend lifetime
-                        log.debug("Created RT token: {}", reToken.getCode());
+                        log.trace("Created RT token.");
                     }
                     grantService.removeByCode(refreshToken);
-                    log.debug("Removed request's RT token: {}", refreshToken);
+                    log.trace("Removed request's RT token (original).");
                 }
 
                 if (scope != null && !scope.isEmpty()) {
@@ -613,13 +613,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     }
 
     private boolean isRefreshTokenAllowed(Client client, String requestedScope, AbstractAuthorizationGrant grant) {
-        log.debug("Checking whether RT is allowed, client: {}, requestedScope: {}, grantId: {}", client.getClientId(), requestedScope, grant.getGrantId());
+        log.trace("Checking whether RT is allowed, client: {}, requestedScope: {}, grantId: {}", client.getClientId(), requestedScope, grant.getGrantId());
         if (isTrue(appConfiguration.getForceOfflineAccessScopeToEnableRefreshToken()) && !grant.getScopes().contains(ScopeConstants.OFFLINE_ACCESS) && !Strings.nullToEmpty(requestedScope).contains(ScopeConstants.OFFLINE_ACCESS)) {
-            log.debug("RT is not allowed.");
+            log.trace("RT is not allowed.");
             return false;
         }
         final boolean contains = Arrays.asList(client.getGrantTypes()).contains(GrantType.REFRESH_TOKEN);
-        log.debug("RT allowed: {}", contains);
+        log.trace("RT allowed: {}", contains);
         return contains;
     }
 
