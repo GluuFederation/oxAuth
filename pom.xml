@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 	<version>4.3.1-SNAPSHOT</version>
 	<name>oxAuth</name>
-	<url>http://www.gluu.org</url>
+	<url>https://www.gluu.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -67,7 +67,7 @@
             </snapshots>
 			<id>gluu</id>
 			<name>Gluu repository</name>
-			<url>https://ox.gluu.org/maven</url>
+			<url>https://maven.gluu.org/maven</url>
 		</repository>
 		<repository>
 			<id>bouncycastle</id>
