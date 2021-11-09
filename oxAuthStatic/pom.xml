@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>oxauth-static</name>
-	<url>http://www.gluu.org</url>
+	<url>https://www.gluu.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
