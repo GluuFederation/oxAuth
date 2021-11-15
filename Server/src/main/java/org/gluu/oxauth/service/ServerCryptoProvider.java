@@ -59,6 +59,11 @@ public class ServerCryptoProvider extends AbstractCryptoProvider {
     }
 
     @Override
+    public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception {
+        return cryptoProvider.generateKey(algorithm, expirationTime, use, keyLength);
+    }
+
+    @Override
     public String sign(String signingInput, String keyId, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception {
         if (configurationFactory.getAppConfiguration().getRejectJwtWithNoneAlg() && signatureAlgorithm == SignatureAlgorithm.NONE) {
             throw new UnsupportedOperationException("None algorithm is forbidden by `rejectJwtWithNoneAlg` configuration property.");
