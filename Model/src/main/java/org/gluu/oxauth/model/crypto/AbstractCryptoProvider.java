@@ -49,6 +49,8 @@ public abstract class AbstractCryptoProvider {
 
     public abstract JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use) throws Exception;
 
+    public abstract JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception;
+
     public abstract String sign(String signingInput, String keyId, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception;
 
     public abstract boolean verifySignature(String signingInput, String encodedSignature, String keyId, JSONObject jwks, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception;

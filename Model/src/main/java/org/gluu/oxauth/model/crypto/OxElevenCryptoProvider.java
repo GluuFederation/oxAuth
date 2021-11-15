@@ -43,6 +43,11 @@ public class OxElevenCryptoProvider extends AbstractCryptoProvider {
 
     @Override
     public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use) throws Exception {
+        return generateKey(algorithm, expirationTime, use, 2048);
+    }
+
+    @Override
+    public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception {
         GenerateKeyRequest request = new GenerateKeyRequest();
         request.setSignatureAlgorithm(algorithm.toString());
         request.setExpirationTime(expirationTime);
