@@ -131,6 +131,7 @@ public class ConfigurationFactory {
 	private AtomicBoolean isActive;
 
 	private long baseConfigurationFileLastModifiedTime;
+	private boolean fipsMode = false;
 
 	private long loadedRevision = -1;
 	private boolean loadedFromLdap = true;
@@ -154,7 +155,7 @@ public class ConfigurationFactory {
 			}
 			this.webKeysFilePath = certsDir + File.separator + WEB_KEYS_FILE_NAME;
 			this.saltFilePath = confDir + SALT_FILE_NAME;
-
+			this.fipsMode = Boolean.valueOf(this.baseConfiguration.getString("fipsMode"));
 			loadCryptoConfigurationSalt();
 		} finally {
 			this.isActive.set(false);
@@ -540,6 +541,8 @@ public class ConfigurationFactory {
 
 		File baseConfiguration = new File(BASE_PROPERTIES_FILE);
 		this.baseConfigurationFileLastModifiedTime = baseConfiguration.lastModified();
+		
+				
 	}
 
 	public void loadCryptoConfigurationSalt() {

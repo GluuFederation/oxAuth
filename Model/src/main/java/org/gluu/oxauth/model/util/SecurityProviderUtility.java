@@ -6,40 +6,100 @@
 
 package org.gluu.oxauth.model.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.security.Provider;
 import java.security.Security;
+import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+/**
+ * @author madhumitas
+ *
+ */
 public class SecurityProviderUtility {
 
 	private static final Logger log = Logger.getLogger(JwtUtil.class);
 
-	private static BouncyCastleProvider bouncyCastleProvider;
+	private static boolean fipsMode = false;
 
-	public static void installBCProvider(boolean silent) {
-		bouncyCastleProvider = (BouncyCastleProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-		if (bouncyCastleProvider == null) {
-			if (!silent) {
-				log.info("Adding Bouncy Castle Provider");
-			}
+	private static final String BASE_DIR;
 
-			bouncyCastleProvider = new BouncyCastleProvider();
-			Security.addProvider(bouncyCastleProvider);
+	private static Provider bouncyCastleProvider;
+	static {
+		if (System.getProperty("gluu.base") != null) {
+			BASE_DIR = System.getProperty("gluu.base");
+		} else if ((System.getProperty("catalina.base") != null)
+				&& (System.getProperty("catalina.base.ignore") == null)) {
+			BASE_DIR = System.getProperty("catalina.base");
+		} else if (System.getProperty("catalina.home") != null) {
+			BASE_DIR = System.getProperty("catalina.home");
+		} else if (System.getProperty("jboss.home.dir") != null) {
+			BASE_DIR = System.getProperty("jboss.home.dir");
 		} else {
-			if (!silent) {
-				log.info("Bouncy Castle Provider was added already");
-			}
+			BASE_DIR = null;
 		}
 	}
+	private static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
+	private static final String BASE_PROPERTIES_FILE = DIR + "gluu.properties";
 
-	public static void installBCProvider() {
-		installBCProvider(false);
+	public static Provider getInstance(boolean silent) {
+		String className = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+		String providerName = "BC";
+		if (!fipsMode) {
+			String propertiesFile = BASE_PROPERTIES_FILE;
+			FileInputStream conf = null;
+			try {
+				conf = new FileInputStream(propertiesFile);
+				Properties prop;
+				prop = new Properties();
+				prop.load(conf);
+				if (Boolean.valueOf(prop.getProperty("fipsMode")) == true) {
+					fipsMode = true;
+				}
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+			} finally {
+				IOUtils.closeQuietly(conf);
+			}
+		}
+		log.info("fipsMode - " + fipsMode);
+
+		if (fipsMode) {
+
+			className = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
+			providerName = "BCFIPS";
+		}
+		Class<?> bouncyCastleProviderClass;
+		try {
+			bouncyCastleProviderClass = Class.forName(className);
+			if (bouncyCastleProvider == null) {
+				bouncyCastleProvider = (Provider) bouncyCastleProviderClass.newInstance();
+				Security.addProvider(bouncyCastleProvider);
+			}
+		} catch (ClassNotFoundException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		} catch (InstantiationException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		} catch (IllegalAccessException e) {
+			log.error(
+					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
+			log.error(e.getMessage(), e);
+		}
+		bouncyCastleProvider = Security.getProvider(providerName);
+
+		return bouncyCastleProvider;
+
 	}
-	
-	public static BouncyCastleProvider getInstance() {
-	    return bouncyCastleProvider;
-	    
+
+	public static boolean hasFipsMode() {
+		return fipsMode;
 	}
 
 }

@@ -105,7 +105,7 @@ public class JweDecrypterImpl extends AbstractJweDecrypter {
             }
 
             JWEDecrypter decrypter = DECRYPTER_FACTORY.createJWEDecrypter(encryptedJwt.getHeader(), encriptionKey);
-            decrypter.getJCAContext().setProvider(SecurityProviderUtility.getInstance());
+            decrypter.getJCAContext().setProvider(SecurityProviderUtility.getInstance(false));
             encryptedJwt.decrypt(decrypter);
 
             final SignedJWT signedJWT = encryptedJwt.getPayload().toSignedJWT();

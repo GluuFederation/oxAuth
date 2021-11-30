@@ -158,7 +158,7 @@ public class KeyGenerator {
                     String dnName = cmd.getOptionValue(DN_NAME);
 
                     try {
-                        SecurityProviderUtility.installBCProvider(true);
+                        SecurityProviderUtility.getInstance(true);
 
                         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keystore, keypasswd, dnName);
                         generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours, keyLength);

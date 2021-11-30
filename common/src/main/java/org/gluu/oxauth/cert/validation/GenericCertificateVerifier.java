@@ -31,7 +31,7 @@ public class GenericCertificateVerifier implements CertificateVerifier {
 	private static final Logger log = LoggerFactory.getLogger(GenericCertificateVerifier.class);
 
 	public GenericCertificateVerifier() {
-		SecurityProviderUtility.installBCProvider(true);
+		SecurityProviderUtility.getInstance(true);
 	}
 
 	@Override
