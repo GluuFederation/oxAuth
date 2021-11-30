@@ -6,14 +6,15 @@
 
 package org.gluu.oxauth.client;
 
-import org.apache.commons.lang.StringUtils;
-import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
-import org.gluu.oxauth.model.common.ResponseMode;
-import org.gluu.oxauth.model.common.TokenType;
-import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientResponse;
-import org.json.JSONException;
-import org.json.JSONObject;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.ACCESS_TOKEN;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.CODE;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.EXPIRES_IN;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.ID_TOKEN;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SCOPE;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.STATE;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.TOKEN_TYPE;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -21,7 +22,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.*;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
+import org.gluu.oxauth.model.common.ResponseMode;
+import org.gluu.oxauth.model.common.TokenType;
+import org.gluu.oxauth.model.util.Util;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Represents an authorization response received from the authorization server.
@@ -50,7 +59,7 @@ public class AuthorizationResponse extends BaseResponse {
     /**
      * Constructs an authorization response.
      */
-    public AuthorizationResponse(ClientResponse<String> clientResponse) {
+    public AuthorizationResponse(Response clientResponse) {
         super(clientResponse);
         customParams = new HashMap<String, String>();
 

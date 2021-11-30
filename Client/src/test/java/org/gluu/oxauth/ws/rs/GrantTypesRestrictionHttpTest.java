@@ -6,10 +6,33 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import com.google.common.collect.Lists;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.EndSessionClient;
+import org.gluu.oxauth.client.EndSessionRequest;
+import org.gluu.oxauth.client.EndSessionResponse;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.TokenResponse;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoResponse;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -26,13 +49,7 @@ import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
-import static org.testng.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Javier Rojas Blum

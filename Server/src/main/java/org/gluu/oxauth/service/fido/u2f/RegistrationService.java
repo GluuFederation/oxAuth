@@ -21,7 +21,7 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.*;
@@ -32,7 +32,7 @@ import java.util.*;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@Stateless
+@ApplicationScoped
 @Named("u2fRegistrationService")
 public class RegistrationService extends RequestService {
 

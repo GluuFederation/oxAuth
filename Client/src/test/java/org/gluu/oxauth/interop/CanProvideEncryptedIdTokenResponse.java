@@ -6,8 +6,22 @@
 
 package org.gluu.oxauth.interop;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
+
+import java.security.PrivateKey;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
@@ -20,13 +34,6 @@ import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.oxauth.model.util.Util;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.security.PrivateKey;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.testng.Assert.*;
 
 /**
  * OC5:FeatureTest-Can Provide Encrypted ID Token Response

@@ -137,6 +137,11 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
     @Override
     public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use) throws Exception {
+        return generateKey(algorithm, expirationTime, use, 2048);
+    }
+
+    @Override
+    public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception {
 
         KeyPairGenerator keyGen = null;
 
@@ -149,7 +154,8 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             throw new RuntimeException("The signature algorithm parameter cannot be null");
         } else if (AlgorithmFamily.RSA.equals(algorithm.getFamily())) {
             keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getInstance(false).getName());
-            keyGen.initialize(2048, new SecureRandom());
+            keyGen.initialize(keyLength, new SecureRandom());
+
         } else if (AlgorithmFamily.EC.equals(algorithm.getFamily())) {
             ECGenParameterSpec eccgen = new ECGenParameterSpec(signatureAlgorithm.getCurve().getAlias());
             keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getInstance(false).getName());

@@ -9,10 +9,8 @@ package org.gluu.oxauth.service;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
@@ -26,7 +24,6 @@ import org.gluu.persist.exception.operation.SearchException;
  * @version March 4, 2016
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
 public class ClientFilterService extends BaseAuthFilterService {
 
     @Inject

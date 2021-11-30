@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
@@ -55,8 +54,6 @@ import com.google.common.collect.Maps;
  * @version August 9, 2017
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class CleanerTimer {
 
     public final static int BATCH_SIZE = 1000;

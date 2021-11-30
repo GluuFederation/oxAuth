@@ -6,22 +6,31 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.discovery.WebFingerParam.HREF;
+import static org.gluu.oxauth.model.discovery.WebFingerParam.LINKS;
+import static org.gluu.oxauth.model.discovery.WebFingerParam.REL;
+import static org.gluu.oxauth.model.discovery.WebFingerParam.REL_VALUE;
+import static org.gluu.oxauth.model.discovery.WebFingerParam.RESOURCE;
+import static org.gluu.oxauth.model.discovery.WebFingerParam.SUBJECT;
+
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.gluu.oxauth.model.discovery.WebFingerLink;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.gluu.oxauth.model.discovery.WebFingerLink;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-
-import static org.gluu.oxauth.model.discovery.WebFingerParam.*;
-
-import java.net.URISyntaxException;
 
 /**
  * @author Javier Rojas Blum
@@ -52,8 +61,10 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
     }
 
     @Deprecated
-    public OpenIdConnectDiscoveryResponse exec(ClientExecutor executor) {
-        this.clientRequest = new ClientRequest(getUrl(), executor);
+    public OpenIdConnectDiscoveryResponse exec(ClientHttpEngine engine) {
+    	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+    	webTarget = resteasyClient.target(getUrl());
+
         return _exec();
     }
 
@@ -73,23 +84,26 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
 
     private OpenIdConnectDiscoveryResponse _exec2() {
         // Prepare request parameters
-        clientRequest.accept(MEDIA_TYPE);
-        clientRequest.setHttpMethod(getHttpMethod());
-
         if (StringUtils.isNotBlank(getRequest().getResource())) {
-            clientRequest.queryParameter(RESOURCE, getRequest().getResource());
+        	addReqParam(RESOURCE, getRequest().getResource());
         }
-        clientRequest.queryParameter(REL, REL_VALUE);
+        addReqParam(REL, REL_VALUE);
 
         // Call REST Service and handle response
-        ClientResponse<String> clientResponse1;
+        Response clientResponse1;
         try {
-            clientResponse1 = clientRequest.get(String.class);
+            Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
+
+            clientRequest.accept(MEDIA_TYPE);
+//          clientRequest.setHttpMethod(getHttpMethod());
+            clientResponse1 = clientRequest.buildGet().invoke();
+
             int status = clientResponse1.getStatus();
 
             setResponse(new OpenIdConnectDiscoveryResponse(status));
 
-            String entity = clientResponse1.getEntity(String.class);
+            String entity = clientResponse1.readEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse1.getMetadata());
             if (StringUtils.isNotBlank(entity)) {
@@ -112,4 +126,5 @@ public class OpenIdConnectDiscoveryClient extends BaseClient<OpenIdConnectDiscov
 
         return getResponse();
     }
+
 }

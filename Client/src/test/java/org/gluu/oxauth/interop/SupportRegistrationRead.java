@@ -6,6 +6,24 @@
 
 package org.gluu.oxauth.interop;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CONTACTS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.LOGO_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POLICY_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SECTOR_IDENTIFIER_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SUBJECT_TYPE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;
 import org.gluu.oxauth.client.RegisterRequest;
@@ -18,13 +36,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 /**
  * OC5:FeatureTest-Support Registration Read

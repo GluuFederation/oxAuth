@@ -6,7 +6,32 @@
 
 package org.gluu.oxauth;
 
-import com.google.common.collect.Maps;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.UUID;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
@@ -23,7 +48,25 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.BaseClient;
+import org.gluu.oxauth.client.BaseResponseWithErrors;
+import org.gluu.oxauth.client.ClientUtils;
+import org.gluu.oxauth.client.OpenIdConfigurationClient;
+import org.gluu.oxauth.client.OpenIdConfigurationResponse;
+import org.gluu.oxauth.client.OpenIdConnectDiscoveryClient;
+import org.gluu.oxauth.client.OpenIdConnectDiscoveryResponse;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RevokeSessionClient;
+import org.gluu.oxauth.client.RevokeSessionRequest;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoRequest;
+import org.gluu.oxauth.client.UserInfoResponse;
 import org.gluu.oxauth.dev.HostnameVerifierType;
 import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -34,14 +77,15 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
 import org.gluu.util.StringHelper;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.jetbrains.annotations.Nullable;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Cookie;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.*;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -52,23 +96,7 @@ import org.testng.Reporter;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeTest;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static org.testng.Assert.*;
+import com.google.common.collect.Maps;
 
 /**
  * @author Javier Rojas Blum
@@ -764,7 +792,7 @@ public abstract class BaseTest {
             showTitle("OpenID Connect Discovery");
 
             OpenIdConnectDiscoveryClient openIdConnectDiscoveryClient = new OpenIdConnectDiscoveryClient(resource);
-            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientExecutor(true));
+            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientEngine(true));
 
             showClient(openIdConnectDiscoveryClient);
             assertEquals(openIdConnectDiscoveryResponse.getStatus(), 200, "Unexpected response code");
@@ -777,7 +805,7 @@ public abstract class BaseTest {
             System.out.println("OpenID Connect Configuration");
 
             OpenIdConfigurationClient client = new OpenIdConfigurationClient(configurationEndpoint);
-            client.setExecutor(clientExecutor(true));
+            client.setExecutor(clientEngine(true));
             OpenIdConfigurationResponse response = client.execOpenIdConfiguration();
 
             showClient(client);
@@ -897,15 +925,15 @@ public abstract class BaseTest {
         		.build();
     }
 
-    public static ClientExecutor clientExecutor() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        return clientExecutor(false);
+    public static ClientHttpEngine engine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        return clientEngine(false);
     }
 
-    public static ClientExecutor clientExecutor(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    public static ClientHttpEngine engine(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         if (trustAll) {
-            return new ApacheHttpClient4Executor(createHttpClientTrustAll());
+            return new ApacheHttpClient43Engine(createHttpClientTrustAll());
         }
-        return ClientRequest.getDefaultExecutor();
+        return new ApacheHttpClient43Engine();
     }
 
     public static ClientHttpEngine clientEngine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -914,9 +942,9 @@ public abstract class BaseTest {
 
     public static ClientHttpEngine clientEngine(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         if (trustAll) {
-            return new ApacheHttpClient4Engine(createAcceptSelfSignedCertificateClient());
+            return new ApacheHttpClient43Engine(createAcceptSelfSignedCertificateClient());
         }
-        return new ApacheHttpClient4Engine(createClient());
+        return new ApacheHttpClient43Engine(createClient());
     }
 
     public static HttpClient createClient() {
@@ -987,8 +1015,8 @@ public abstract class BaseTest {
 		}
 	}
 
-	private ClientExecutor getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return clientExecutor(true);
+	private ClientHttpEngine getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return clientEngine(true);
     }
 
 	protected RegisterClient newRegisterClient(RegisterRequest request) {

@@ -1,8 +1,10 @@
 package org.gluu.oxauth.client;
 
-import org.apache.log4j.Logger;
-
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -33,24 +35,28 @@ public class RevokeSessionClient extends BaseClient<RevokeSessionRequest, Revoke
 
     public RevokeSessionResponse exec() {
         initClientRequest();
-        new ClientAuthnEnabler(clientRequest).exec(request);
+
+        Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
+
+        new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
 
         clientRequest.header("Content-Type", request.getContentType());
-        clientRequest.setHttpMethod(getHttpMethod());
+//        clientRequest.setHttpMethod(getHttpMethod());
 
         if (getRequest().getUserCriterionKey() != null) {
-            clientRequest.formParameter("user_criterion_key", getRequest().getUserCriterionKey());
+            requestForm.param("user_criterion_key", getRequest().getUserCriterionKey());
         }
         if (getRequest().getUserCriterionValue() != null) {
-            clientRequest.formParameter("user_criterion_value", getRequest().getUserCriterionValue());
+            requestForm.param("user_criterion_value", getRequest().getUserCriterionValue());
         }
 
         for (String key : getRequest().getCustomParameters().keySet()) {
-            clientRequest.formParameter(key, getRequest().getCustomParameters().get(key));
+            requestForm.param(key, getRequest().getCustomParameters().get(key));
         }
 
         try {
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
 
             final RevokeSessionResponse response = new RevokeSessionResponse(clientResponse);
             setResponse(response);

@@ -6,8 +6,20 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.TokenResponse;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -17,13 +29,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 /**
  * Functional tests for Token Web Services (HTTP)

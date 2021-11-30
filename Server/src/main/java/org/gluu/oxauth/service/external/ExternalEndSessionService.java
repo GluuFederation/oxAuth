@@ -7,16 +7,12 @@ import org.gluu.model.custom.script.type.logout.EndSessionType;
 import org.gluu.oxauth.service.external.context.EndSessionContext;
 import org.gluu.service.custom.script.ExternalScriptService;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalEndSessionService extends ExternalScriptService {
 
     public ExternalEndSessionService() {

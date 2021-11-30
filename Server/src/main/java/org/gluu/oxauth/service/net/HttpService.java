@@ -47,7 +47,6 @@ import org.gluu.net.SslDefaultHttpClient;
 import org.gluu.oxauth.model.net.HttpServiceResponse;
 import org.gluu.util.StringHelper;
 import org.gluu.util.Util;
-import org.jboss.resteasy.util.HttpResponseCodes;
 import org.slf4j.Logger;
 /**
  * Provides operations with http requests
@@ -191,7 +190,7 @@ public class HttpService implements Serializable {
 	}
 
 	public byte[] getResponseContent(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpResponseCodes.SC_OK)) {
+        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
         	return null;
         }
 
@@ -210,7 +209,7 @@ public class HttpService implements Serializable {
 	}
 
 	public void consume(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpResponseCodes.SC_OK)) {
+        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
         	return;
         }
 

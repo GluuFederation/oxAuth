@@ -8,18 +8,14 @@ import org.gluu.service.custom.script.ExternalScriptService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalUmaRptClaimsService extends ExternalScriptService {
 
     @Inject

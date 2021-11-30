@@ -28,7 +28,8 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
-import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.openssl.PEMParser;
@@ -39,9 +40,8 @@ import org.gluu.oxauth.model.crypto.signature.RSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.util.StringHelper;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -193,17 +193,20 @@ public class JwtUtil {
         JSONObject jsonKey = null;
         try {
             if (StringHelper.isEmpty(jwks)) {
-                ClientRequest clientRequest = new ClientRequest(jwksUri);
-                clientRequest.setHttpMethod(HttpMethod.GET);
-                ClientResponse<String> clientResponse = clientRequest.get(String.class);
+                javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+        		try {
+        			Response clientResponse = clientRequest.target(jwksUri).request().buildGet().invoke();
 
-                int status = clientResponse.getStatus();
-                log.debug(String.format("Status: %n%d", status));
-
-                if (status == 200) {
-                    jwks = clientResponse.getEntity(String.class);
-                    log.debug(String.format("JWK: %s", jwks));
-                }
+	                int status = clientResponse.getStatus();
+	                log.debug(String.format("Status: %n%d", status));
+	
+	                if (status == 200) {
+	                    jwks = clientResponse.readEntity(String.class);
+	                    log.debug(String.format("JWK: %s", jwks));
+	                }
+        		} finally {
+        			clientRequest.close();
+        		}
             }
             if (StringHelper.isNotEmpty(jwks)) {
                 JSONObject jsonObject = new JSONObject(jwks);
@@ -233,23 +236,31 @@ public class JwtUtil {
         return getJSONWebKeys(jwksUri, null);
     }
 
-    public static JSONObject getJSONWebKeys(String jwksUri, ClientExecutor executor) {
+    public static JSONObject getJSONWebKeys(String jwksUri, ClientHttpEngine engine) {
         log.debug("Retrieving jwks " + jwksUri + "...");
 
         JSONObject jwks = null;
         try {
             if (!StringHelper.isEmpty(jwksUri)) {
-                ClientRequest clientRequest = executor != null ? new ClientRequest(jwksUri, executor) : new ClientRequest(jwksUri);
-                clientRequest.setHttpMethod(HttpMethod.GET);
-                ClientResponse<String> clientResponse = clientRequest.get(String.class);
+            	ClientBuilder clientBuilder = ResteasyClientBuilder.newBuilder();
+            	if (engine != null) {
+            		((ResteasyClientBuilder) clientBuilder).httpEngine(engine);
+            	}
 
-                int status = clientResponse.getStatus();
-                log.debug(String.format("Status: %n%d", status));
+            	javax.ws.rs.client.Client clientRequest = clientBuilder.build();
+        		try {
+        			Response clientResponse = clientRequest.target(jwksUri).request().buildGet().invoke();
 
-                if (status == 200) {
-                    jwks = fromJson(clientResponse.getEntity(String.class));
-                    log.debug(String.format("JWK: %s", jwks));
-                }
+	                int status = clientResponse.getStatus();
+	                log.debug(String.format("Status: %n%d", status));
+	
+	                if (status == 200) {
+	                    jwks = fromJson(clientResponse.readEntity(String.class));
+	                    log.debug(String.format("JWK: %s", jwks));
+	                }
+        		} finally {
+        			clientRequest.close();
+        		}
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);

@@ -1,6 +1,11 @@
 package org.gluu.oxauth.page;
 
-import com.google.common.base.Preconditions;
+import static org.testng.Assert.fail;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Set;
+
 import org.gluu.oxauth.model.common.Holder;
 import org.gluu.oxauth.model.util.Util;
 import org.openqa.selenium.By;
@@ -9,11 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.Set;
-
-import static org.testng.Assert.fail;
+import com.google.common.base.Preconditions;
 
 /**
  * @author Yuriy Zabrovarnyy

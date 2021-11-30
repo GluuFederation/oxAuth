@@ -6,11 +6,12 @@
 
 package org.gluu.oxauth.client;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.error.IErrorType;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.gluu.oxauth.model.error.IErrorType;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -29,7 +30,7 @@ public abstract class BaseResponseWithErrors<T extends IErrorType> extends BaseR
         super();
     }
 
-    public BaseResponseWithErrors(ClientResponse<String> clientResponse) {
+    public BaseResponseWithErrors(Response clientResponse) {
         super(clientResponse);
         final String entity = getEntity();
         if (StringUtils.isNotBlank(entity)) {

@@ -19,9 +19,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
@@ -33,8 +32,7 @@ import java.util.Map.Entry;
  * 
  * @version October 7, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class RequestParameterService {
 
 	// use only "acr" instead of "acr_values" #334

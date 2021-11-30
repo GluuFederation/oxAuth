@@ -6,8 +6,33 @@
 
 package org.gluu.oxauth.ws.rs.deviceauthz;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.DeviceAuthzClient;
+import org.gluu.oxauth.client.DeviceAuthzRequest;
+import org.gluu.oxauth.client.DeviceAuthzResponse;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.TokenResponse;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoResponse;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
@@ -31,17 +56,6 @@ import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.testng.Assert.*;
 
 /**
  * Test cases for device authorization page.
@@ -375,7 +389,7 @@ public class DeviceAuthzFlowHttpTest extends BaseTest {
     private void processUserInfo(String accessToken) throws UnrecoverableKeyException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException {
         UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
-        userInfoClient.setExecutor(clientExecutor(true));
+        userInfoClient.setExecutor(clientEngine(true));
         UserInfoResponse userInfoResponse = userInfoClient.execUserInfo(accessToken);
 
         showClient(userInfoClient);
@@ -408,7 +422,7 @@ public class DeviceAuthzFlowHttpTest extends BaseTest {
                                                           String clientSecret) throws UnrecoverableKeyException,
             NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         TokenClient tokenClient2 = new TokenClient(tokenEndpoint);
-        tokenClient2.setExecutor(clientExecutor(true));
+        tokenClient2.setExecutor(clientEngine(true));
         TokenResponse tokenResponse2 = tokenClient2.execRefreshToken(scopes, refreshToken, clientId, clientSecret);
 
         showClient(tokenClient2);
@@ -436,7 +450,7 @@ public class DeviceAuthzFlowHttpTest extends BaseTest {
 
         RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
                 jwksUri,
-                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientExecutor(true));
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientEngine(true));
         RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.RS256, publicKey);
 
         assertTrue(rsaSigner.validate(jwt));

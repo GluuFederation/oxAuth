@@ -12,10 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
 import org.gluu.model.custom.script.CustomScriptType;
@@ -36,8 +34,6 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalUmaRptPolicyService extends ExternalScriptService {
 
 	private static final long serialVersionUID = -8609727759114795435L;

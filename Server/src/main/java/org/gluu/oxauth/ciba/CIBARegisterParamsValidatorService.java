@@ -13,16 +13,17 @@ import org.gluu.oxauth.model.common.SubjectType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
 import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
 import java.util.List;
 
 import static org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode.*;
@@ -32,8 +33,7 @@ import static org.gluu.oxauth.model.common.GrantType.CIBA;
  * @author Javier Rojas Blum
  * @version May 20, 2020
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBARegisterParamsValidatorService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBARegisterParamsValidatorService.class);
@@ -84,18 +84,22 @@ public class CIBARegisterParamsValidatorService {
                 }
 
                 if (Strings.isNotBlank(sectorIdentifierUri)) {
-                    ClientRequest clientRequest = new ClientRequest(sectorIdentifierUri);
-                    clientRequest.setHttpMethod(HttpMethod.GET);
-
-                    ClientResponse<String> clientResponse = clientRequest.get(String.class);
-                    int status = clientResponse.getStatus();
-
-                    if (status != 200) {
-                        return false;
+					javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+					String entity = null;
+					try {
+						Response clientResponse = clientRequest.target(sectorIdentifierUri).request().buildGet().invoke();
+	                    int status = clientResponse.getStatus();
+	
+	                    if (status != 200) {
+	                        return false;
+	                    }
+	
+	                    entity = clientResponse.readEntity(String.class);
+					} finally {
+						clientRequest.close();
                     }
 
-                    String entity = clientResponse.getEntity(String.class);
-                    JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
+					JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
 
                     if (backchannelTokenDeliveryMode == PING || backchannelTokenDeliveryMode == POLL) {
                         // If a sector_identifier_uri is explicitly provided, then the jwks_uri must be included in the list of

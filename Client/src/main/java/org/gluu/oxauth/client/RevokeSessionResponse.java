@@ -1,7 +1,8 @@
 package org.gluu.oxauth.client;
 
+import javax.ws.rs.core.Response;
+
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -11,7 +12,7 @@ public class RevokeSessionResponse extends BaseResponseWithErrors<EndSessionErro
     public RevokeSessionResponse() {
     }
 
-    public RevokeSessionResponse(ClientResponse<String> clientResponse) {
+    public RevokeSessionResponse(Response clientResponse) {
         super(clientResponse);
         injectDataFromJson();
     }

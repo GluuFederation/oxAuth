@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +34,6 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseT
  * @author Yuriy Zabrovarnyy
  */
 @Named
-@Stateless
 public class AuthorizeRestWebServiceValidator {
 
     @Inject

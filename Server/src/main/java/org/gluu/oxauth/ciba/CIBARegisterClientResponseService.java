@@ -13,8 +13,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.inject.Named;
+import javax.enterprise.context.ApplicationScoped;
 
 import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
 
@@ -22,8 +21,7 @@ import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
  * @author Javier Rojas Blum
  * @version August 20, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBARegisterClientResponseService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBARegisterClientResponseService.class);

@@ -26,9 +26,8 @@ import org.gluu.service.cache.CacheConfiguration;
 import org.gluu.service.cache.CacheProviderType;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.*;
 
 import static org.gluu.oxauth.util.ServerUtil.isTrue;
@@ -38,8 +37,7 @@ import static org.gluu.oxauth.util.ServerUtil.isTrue;
  * @author Javier Rojas Blum
  * @version November 28, 2018
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class GrantService {
 
     @Inject

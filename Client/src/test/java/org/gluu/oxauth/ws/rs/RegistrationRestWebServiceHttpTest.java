@@ -6,8 +6,59 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import com.google.common.collect.Lists;
-import org.json.JSONArray;
+import static org.gluu.oxauth.model.common.GrantType.AUTHORIZATION_CODE;
+import static org.gluu.oxauth.model.common.GrantType.CLIENT_CREDENTIALS;
+import static org.gluu.oxauth.model.common.GrantType.IMPLICIT;
+import static org.gluu.oxauth.model.common.GrantType.OXAUTH_UMA_TICKET;
+import static org.gluu.oxauth.model.common.GrantType.REFRESH_TOKEN;
+import static org.gluu.oxauth.model.common.GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS;
+import static org.gluu.oxauth.model.common.ResponseType.CODE;
+import static org.gluu.oxauth.model.common.ResponseType.ID_TOKEN;
+import static org.gluu.oxauth.model.common.ResponseType.TOKEN;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CONTACTS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.LOGO_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POLICY_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUIRE_AUTH_TIME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RPT_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SECTOR_IDENTIFIER_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_ID;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_VERSION;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SUBJECT_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_METHOD;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_SIGNED_RESPONSE_ALG;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import javax.ws.rs.HttpMethod;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;
 import org.gluu.oxauth.client.RegisterRequest;
@@ -22,20 +73,11 @@ import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.oxauth.model.util.Util;
+import org.json.JSONArray;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.HttpMethod;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import static org.gluu.oxauth.model.common.GrantType.*;
-import static org.gluu.oxauth.model.common.ResponseType.*;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.testng.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * Functional tests for Client Registration Web Services (HTTP)
@@ -166,7 +208,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -272,7 +314,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         final RegisterClient registerClient = new RegisterClient(registrationClientUri1);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -338,7 +380,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -391,7 +433,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         final RegisterClient registerClient = new RegisterClient(registrationClientUri2);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -449,7 +491,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         request.setResponseTypes(Lists.newArrayList(ResponseType.CODE));
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(request);
         RegisterResponse response = registerClient.exec();
 
@@ -486,7 +528,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -509,7 +551,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PUBLIC);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -535,7 +577,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSectorIdentifierUri(sectorIdentifierUri);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -560,7 +602,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PUBLIC);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -585,7 +627,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PUBLIC);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -610,7 +652,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PUBLIC);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -632,7 +674,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerRequest.setSubjectType(SubjectType.PUBLIC);
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
 
@@ -648,7 +690,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
 
         RegisterClient deleteClient = new RegisterClient(response.getRegistrationClientUri());
         deleteClient.setRequest(registerRequest);
-        deleteClient.setExecutor(clientExecutor(true));
+        deleteClient.setExecutor(clientEngine(true));
         RegisterResponse deleteResponse = deleteClient.exec();
 
         showClient(deleteClient);

@@ -6,15 +6,16 @@
 
 package org.gluu.oxauth.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.uma.UmaScopeType;
 import org.gluu.oxauth.model.util.QueryBuilder;
-
-import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Represents a token request to send to the authorization server.

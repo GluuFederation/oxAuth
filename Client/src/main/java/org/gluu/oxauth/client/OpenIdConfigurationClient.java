@@ -6,19 +6,76 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ACR_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.AUTHORIZATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_AUTHENTICATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_LOGOUT_SESSION_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_LOGOUT_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.BACKCHANNEL_USER_CODE_PAREMETER_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CHECK_SESSION_IFRAME;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CLAIMS_LOCALES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CLAIMS_PARAMETER_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CLAIMS_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CLAIM_TYPES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.CLIENT_INFO_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.DEVICE_AUTHZ_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.DISPLAY_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.END_SESSION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.FRONTCHANNEL_LOGOUT_SESSION_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.FRONTCHANNEL_LOGOUT_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.GRANT_TYPES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ID_GENERATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ID_TOKEN_ENCRYPTION_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ID_TOKEN_ENCRYPTION_ENC_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.INTROSPECTION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ISSUER;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.JWKS_URI;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.OP_POLICY_URI;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.OP_TOS_URI;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REGISTRATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUEST_OBJECT_ENCRYPTION_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUEST_OBJECT_ENCRYPTION_ENC_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUEST_OBJECT_SIGNING_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUEST_PARAMETER_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUEST_URI_PARAMETER_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REQUIRE_REQUEST_URI_REGISTRATION;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.RESPONSE_MODES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.RESPONSE_TYPES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.REVOCATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SCOPES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SCOPE_TO_CLAIMS_MAPPING;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SERVICE_DOCUMENTATION;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SESSION_REVOCATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SUBJECT_TYPES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.TLS_CLIENT_CERTIFICATE_BOUND_ACCESS_TOKENS;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.TOKEN_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.TOKEN_REVOCATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.UI_LOCALES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.USER_INFO_ENCRYPTION_ALG_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.USER_INFO_ENCRYPTION_ENC_VALUES_SUPPORTED;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.USER_INFO_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.USER_INFO_SIGNING_ALG_VALUES_SUPPORTED;
+
+import java.io.IOException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.ClientExecutor;
-import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-
-import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.*;
 
 /**
  * Encapsulates functionality to make OpenId Configuration request calls to an authorization server via REST Services.
@@ -53,8 +110,9 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     }
 
     @Deprecated
-    public OpenIdConfigurationResponse execOpenIdConfiguration(ClientExecutor executor) throws IOException {
-        this.clientRequest = new ClientRequest(getUrl(), executor);
+    public OpenIdConfigurationResponse execOpenIdConfiguration(ClientHttpEngine engine) throws IOException {
+    	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+    	webTarget = resteasyClient.target(getUrl());
 
         return _execOpenIdConfiguration();
     }
@@ -67,22 +125,21 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     private OpenIdConfigurationResponse _execOpenIdConfiguration() throws IOException {
         setRequest(new OpenIdConfigurationRequest());
 
-        // Prepare request parameters
-        clientRequest.accept(mediaTypes);
-        clientRequest.setHttpMethod(getHttpMethod());
-
-        // Support AWS LB
-        clientRequest.followRedirects(true);
-
         // Call REST Service and handle response
         String entity = null;
         try {
-            clientResponse = clientRequest.get(String.class);
+            requestClientResponse(webTarget);
+
             int status = clientResponse.getStatus();
+            // Support AWS LB which requires follow redirect
+            if (status == Response.Status.FOUND.getStatusCode()) {
+            	webTarget = resteasyClient.target(clientResponse.getLocation());
+                requestClientResponse(webTarget);
+            }
 
             setResponse(new OpenIdConfigurationResponse(status));
 
-            entity = clientResponse.getEntity(String.class);
+            entity = clientResponse.readEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
             parse(entity, getResponse());
@@ -91,9 +148,6 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
             if (entity != null) {
             	LOG.error("Invalid JSON: " + entity);
             }
-        } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             LOG.error(e.getMessage(), e); // Unexpected exception.
@@ -103,6 +157,18 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
 
         return getResponse();
     }
+
+	private void requestClientResponse(WebTarget webTarget) {
+        Builder clientRequest = webTarget.request();
+
+        applyCookies(clientRequest);
+
+		// Prepare request parameters
+		clientRequest.accept(mediaTypes);
+//            clientRequest.setHttpMethod(getHttpMethod());
+
+		clientResponse = clientRequest.buildGet().invoke();
+	}
 
     public static void parse(String json, OpenIdConfigurationResponse response) {
         if (StringUtils.isBlank(json)) {

@@ -6,14 +6,18 @@
 
 package org.gluu.oxauth.client.ciba.fcm;
 
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.BODY;
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.CLICK_ACTION;
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.NOTIFICATION;
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.TITLE;
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.TO;
+
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.BaseRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import javax.ws.rs.core.MediaType;
-
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.*;
 
 /**
  * @author Javier Rojas Blum

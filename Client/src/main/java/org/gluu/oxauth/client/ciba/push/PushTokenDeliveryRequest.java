@@ -6,14 +6,19 @@
 
 package org.gluu.oxauth.client.ciba.push;
 
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.ACCESS_TOKEN;
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.AUTHORIZATION_REQUEST_ID;
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.EXPIRES_IN;
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.ID_TOKEN;
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.REFRESH_TOKEN;
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.TOKEN_TYPE;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.gluu.oxauth.client.BaseRequest;
 import org.gluu.oxauth.model.common.TokenType;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.*;
 
 /**
  * @author Javier Rojas Blum

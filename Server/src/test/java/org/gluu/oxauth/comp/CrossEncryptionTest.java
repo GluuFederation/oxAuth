@@ -391,6 +391,11 @@ public class CrossEncryptionTest {
             }
 
             @Override
+            public JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception {
+                return null;
+            }
+
+            @Override
             public boolean containsKey(String keyId) {
                 return false;
             }

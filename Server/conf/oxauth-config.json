@@ -224,6 +224,7 @@
     "authenticationFiltersEnabled":true,
     "clientAuthenticationFiltersEnabled":true,
     "clientRegDefaultToCodeFlowWithRefresh":true,
+    "grantTypesAndResponseTypesAutofixEnabled": true,
     "authenticationFilters":[
         {
             "filter":"(&(mail=*{0}*)(inum={1}))",

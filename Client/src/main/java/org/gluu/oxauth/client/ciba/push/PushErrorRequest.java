@@ -6,14 +6,17 @@
 
 package org.gluu.oxauth.client.ciba.push;
 
+import static org.gluu.oxauth.model.ciba.PushErrorRequestParam.AUTHORIZATION_REQUEST_ID;
+import static org.gluu.oxauth.model.ciba.PushErrorRequestParam.ERROR;
+import static org.gluu.oxauth.model.ciba.PushErrorRequestParam.ERROR_DESCRIPTION;
+import static org.gluu.oxauth.model.ciba.PushErrorRequestParam.ERROR_URI;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.gluu.oxauth.client.BaseRequest;
 import org.gluu.oxauth.model.ciba.PushErrorResponseType;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.gluu.oxauth.model.ciba.PushErrorRequestParam.*;
 
 /**
  * @author Javier Rojas Blum

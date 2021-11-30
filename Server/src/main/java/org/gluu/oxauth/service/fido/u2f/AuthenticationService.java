@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -49,7 +48,7 @@ import org.gluu.oxauth.model.config.StaticConfiguration;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@Stateless
+@ApplicationScoped
 @Named("u2fAuthenticationService")
 public class AuthenticationService extends RequestService {
 

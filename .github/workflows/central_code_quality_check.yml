@@ -1,0 +1,99 @@
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+# Contact @moabu
+# Sonar cloud https://sonarcloud.io/organizations/janssenproject/projects
+name: Code quality check
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      JVM_PROJECTS: |
+        GluuFederation/oxAuth
+        GluuFederation/oxTrust
+        GluuFederation/scim
+        GluuFederation/oxShibboleth
+        GluuFederation/fido2
+        GluuFederation/oxd
+        GluuFederation/casa
+        GluuFederation/gluu-opendj4
+      NON_JVM_PROJECTS: |
+        GluuFederation/gluu-passport
+        GluuFederation/gluu-admin-ui
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of sonarqube analysis
+
+      - name: Set up JDK 11
+        if: contains(env.JVM_PROJECTS, github.repository)
+        uses: actions/setup-java@v2.3.1
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Cache SonarCloud packages for JVM based project
+        if: contains(env.JVM_PROJECTS, github.repository)
+        uses: actions/cache@v2.1.6
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build and analyze JVM based project
+        if: contains(env.JVM_PROJECTS, github.repository)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          case "$GITHUB_REPOSITORY" in
+            "GluuFederation/gluu-opendj4")
+                  echo "Build opendj-sdk first for gluu-opendj4"
+                  mvn -B -f opendj-sdk/pom.xml -DskipTests clean install
+                  ;&
+            "GluuFederation/oxAuth")
+                  ;&
+            "GluuFederation/oxTrust")
+                  ;&
+            "GluuFederation/scim")
+                  ;&
+            "GluuFederation/casa")
+                  ;&
+            "GluuFederation/oxd")
+                  echo "Run Sonar analysis without test execution"
+                  mvn -B -DskipTests=true install org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+                  ;;
+            *)
+                  echo "Run Sonar analysis with test execution"
+                  mvn -B install org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+                  ;;
+          esac
+
+
+      - name: Convert repo org name to lowercase for non JVM projects
+        if: contains(env.NON_JVM_PROJECTS, github.repository)
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          echo "REPO_ORG=${REPO_OWNER,,}" >>${GITHUB_ENV}
+
+      - name: SonarCloud Scan for non-JVM project
+        if: contains(env.NON_JVM_PROJECTS, github.repository)
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.organization=${{ env.REPO_ORG }}
+            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

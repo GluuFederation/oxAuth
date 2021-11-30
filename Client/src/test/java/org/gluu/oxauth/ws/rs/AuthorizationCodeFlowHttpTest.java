@@ -6,8 +6,34 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.Asserter;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.client.TokenClient;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.TokenResponse;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoResponse;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -22,13 +48,6 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.testng.Assert.*;
 
 /**
  * Test cases for the authorization code flow (HTTP)
@@ -95,14 +114,14 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
                 jwksUri,
-                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientExecutor(true));
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientEngine(true));
         RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.RS256, publicKey);
 
         assertTrue(rsaSigner.validate(jwt));
 
         // 5. Request new access token using the refresh token.
         TokenClient tokenClient2 = new TokenClient(tokenEndpoint);
-        tokenClient2.setExecutor(clientExecutor(true));
+        tokenClient2.setExecutor(clientEngine(true));
         TokenResponse tokenResponse2 = tokenClient2.execRefreshToken(scope, refreshToken, clientId, clientSecret);
 
         showClient(tokenClient2);
@@ -117,7 +136,7 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         // 6. Request user info
         UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
-        userInfoClient.setExecutor(clientExecutor(true));
+        userInfoClient.setExecutor(clientEngine(true));
         UserInfoResponse userInfoResponse = userInfoClient.execUserInfo(accessToken);
 
         showClient(userInfoClient);
@@ -856,7 +875,7 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         // 5. Request new access token using the refresh token.
         TokenClient tokenClient2 = new TokenClient(tokenEndpoint);
-        tokenClient2.setExecutor(clientExecutor(true));
+        tokenClient2.setExecutor(clientEngine(true));
         TokenResponse tokenResponse2 = tokenClient2.execRefreshToken(scope, refreshToken, clientId, clientSecret);
 
         showClient(tokenClient2);

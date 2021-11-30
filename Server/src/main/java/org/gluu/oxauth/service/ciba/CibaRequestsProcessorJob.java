@@ -22,12 +22,10 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,8 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version May 20, 2020
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class CibaRequestsProcessorJob {
 
     public static final int CHUNK_SIZE = 500; // Default value whether there isn't backchannelRequestsProcessorJobChunkSize json property value

@@ -35,7 +35,7 @@ The custom script has the following properties:
 
     - For `name` use a meaningful identifier, like `stytch`
     
-    - In the `script` field use the contents of this [file](https://github.com/GluuFederation/oxAuth/raw/version_4.3.0/Server/integrations/stytch/stytchExternalAuthenticator.py)
+    - In the `script` field use the contents of this [file](https://github.com/GluuFederation/oxAuth/raw/version_4.4.0/Server/integrations/stytch/stytchExternalAuthenticator.py)
     
     - Tick the `enabled` checkbox
     

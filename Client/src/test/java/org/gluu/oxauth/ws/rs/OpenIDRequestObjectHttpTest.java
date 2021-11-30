@@ -6,8 +6,31 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.AuthorizeClient;
+import org.gluu.oxauth.client.JwkClient;
+import org.gluu.oxauth.client.JwkResponse;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
+import org.gluu.oxauth.client.UserInfoClient;
+import org.gluu.oxauth.client.UserInfoResponse;
 import org.gluu.oxauth.client.model.authorize.Claim;
 import org.gluu.oxauth.client.model.authorize.ClaimValue;
 import org.gluu.oxauth.client.model.authorize.JwtAuthorizationRequest;
@@ -29,18 +52,6 @@ import org.json.JSONObject;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.testng.Assert.*;
 
 /**
  * Functional tests for OpenID Request Object (HTTP)
@@ -820,7 +831,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -861,7 +872,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
         authorizeClient.setRequest(request);
-        authorizeClient.setExecutor(clientExecutor(true));
+        authorizeClient.setExecutor(clientEngine(true));
         AuthorizationResponse response1 = authorizeClient.exec();
 
         showClient(authorizeClient);
@@ -876,7 +887,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         // 3. Request user info
         UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
-        userInfoClient.setExecutor(clientExecutor(true));
+        userInfoClient.setExecutor(clientEngine(true));
         UserInfoResponse response3 = userInfoClient.execUserInfo(accessToken);
 
         showClient(userInfoClient);

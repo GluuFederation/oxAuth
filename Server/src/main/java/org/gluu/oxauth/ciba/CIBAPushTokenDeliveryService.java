@@ -13,15 +13,13 @@ import org.gluu.oxauth.model.common.TokenType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.inject.Named;
+import javax.enterprise.context.ApplicationScoped;
 
 /**
  * @author Javier Rojas Blum
  * @version September 4, 2019
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class CIBAPushTokenDeliveryService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBAPushTokenDeliveryService.class);

@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
@@ -22,8 +20,6 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan Date: 10/30/2017
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalConsentGatheringService extends ExternalScriptService {
 
 	private static final long serialVersionUID = 1741073794567832914L;

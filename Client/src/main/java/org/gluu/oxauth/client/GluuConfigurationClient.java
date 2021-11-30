@@ -1,16 +1,24 @@
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.AUTH_LEVEL_MAPPING;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.ID_GENERATION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.INTROSPECTION_ENDPOINT;
+import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.SCOPE_TO_CLAIMS_MAPPING;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-
-import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.*;
-
-import java.util.*;
 
 /**
  * Created by eugeniuparvan on 8/12/16.
@@ -35,17 +43,20 @@ public class GluuConfigurationClient extends BaseClient<GluuConfigurationRequest
 
         setRequest(new GluuConfigurationRequest());
 
+        Builder clientRequest = webTarget.request();
+        applyCookies(clientRequest);
+
         // Prepare request parameters
         clientRequest.header("Content-Type", MediaType.APPLICATION_JSON);
-        clientRequest.setHttpMethod(getHttpMethod());
+//        clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {
-            clientResponse = clientRequest.get(String.class);
+            clientResponse = clientRequest.buildGet().invoke();
 
             setResponse(new GluuConfigurationResponse());
 
-            String entity = clientResponse.getEntity(String.class);
+            String entity = clientResponse.readEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
             getResponse().setStatus(clientResponse.getStatus());

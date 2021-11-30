@@ -6,6 +6,23 @@
 
 package org.gluu.oxauth.client.model;
 
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.ADDITIONAL_CLAIMS;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.AS;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.AT_HASH;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.AUD;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.C_HASH;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.EXP;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.IAT;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.ISS;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.JTI;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.KID;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.RFP;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.TARGET_LINK_URI;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.PublicKey;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -23,12 +40,6 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ClientUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.PublicKey;
-
-import static org.gluu.oxauth.model.jwt.JwtStateClaimName.*;
 
 /**
  * @author Javier Rojas Blum

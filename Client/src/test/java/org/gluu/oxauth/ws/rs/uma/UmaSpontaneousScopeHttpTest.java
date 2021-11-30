@@ -1,6 +1,18 @@
 package org.gluu.oxauth.ws.rs.uma;
 
-import com.google.common.collect.Lists;
+import static org.gluu.oxauth.model.uma.UmaTestUtil.assert_;
+import static org.gluu.oxauth.ws.rs.uma.AccessProtectedResourceFlowHttpTest.encodeCredentials;
+import static org.junit.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;
 import org.gluu.oxauth.client.RegisterRequest;
@@ -20,18 +32,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.gluu.oxauth.model.uma.UmaTestUtil.assert_;
-import static org.gluu.oxauth.ws.rs.uma.AccessProtectedResourceFlowHttpTest.encodeCredentials;
-import static org.junit.Assert.assertTrue;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -65,7 +66,7 @@ public class UmaSpontaneousScopeHttpTest extends BaseTest {
         registerRequest.setAllowSpontaneousScopes(true); // allow spontaneous scopes (which are off by default)
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(clientExecutor(true));
+        registerClient.setExecutor(clientEngine(true));
         registerClient.setRequest(registerRequest);
         clientResponse = registerClient.exec();
 
@@ -86,7 +87,7 @@ public class UmaSpontaneousScopeHttpTest extends BaseTest {
 
         registerClient();
 
-        pat = UmaClient.requestPat(tokenEndpoint, clientResponse.getClientId(), clientResponse.getClientSecret(), clientExecutor(true));
+        pat = UmaClient.requestPat(tokenEndpoint, clientResponse.getClientId(), clientResponse.getClientSecret(), clientEngine(true));
         assert_(pat);
 
         this.registerResourceTest = new RegisterResourceFlowHttpTest(this.metadata);

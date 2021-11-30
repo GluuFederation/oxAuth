@@ -6,9 +6,8 @@
 
 package org.gluu.oxauth.client;
 
-import org.jboss.resteasy.client.ClientResponse;
-
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Javier Rojas Blum
@@ -30,13 +29,13 @@ public abstract class BaseResponse {
         this.status = status;
     }
 
-    public BaseResponse(ClientResponse<String> clientResponse) {
+    public BaseResponse(Response clientResponse) {
         if (clientResponse != null) {
             status = clientResponse.getStatus();
-            if (clientResponse.getLocationLink() != null) {
-                location = clientResponse.getLocationLink().getHref();
+            if (clientResponse.getLocation() != null) {
+                location = clientResponse.getLocation().toString();
             }
-            entity = clientResponse.getEntity(String.class);
+            entity = clientResponse.readEntity(String.class);
             headers = clientResponse.getMetadata();
         }
     }

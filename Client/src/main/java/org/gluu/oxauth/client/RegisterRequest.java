@@ -6,12 +6,83 @@
 
 package org.gluu.oxauth.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_LIFETIME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ACCESS_TOKEN_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ALLOW_SPONTANEOUS_SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.AUTHORIZED_ORIGINS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_AUTHENTICATION_REQUEST_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_CLIENT_NOTIFICATION_ENDPOINT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_TOKEN_DELIVERY_MODE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.BACKCHANNEL_USER_CODE_PARAMETER;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLAIMS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLAIMS_REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.CONTACTS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.DEFAULT_ACR_VALUES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.DEFAULT_MAX_AGE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_SESSION_REQUIRED;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.FRONT_CHANNEL_LOGOUT_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.GRANT_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_TOKEN_BINDING_CNF;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.INITIATE_LOGIN_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.JWKS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.KEEP_CLIENT_AUTHORIZATION_AFTER_EXPIRATION;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.LOGO_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POLICY_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.POST_LOGOUT_REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_ENCRYPTION_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_OBJECT_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUEST_URIS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.REQUIRE_AUTH_TIME;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RPT_AS_JWT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.RUN_INTROSPECTION_SCRIPT_BEFORE_ACCESS_TOKEN_CREATION_AS_JWT_AND_INCLUDE_CLAIMS;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SECTOR_IDENTIFIER_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_ID;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_STATEMENT;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SOFTWARE_VERSION;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SPONTANEOUS_SCOPES;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.SUBJECT_TYPE;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TLS_CLIENT_AUTH_SUBJECT_DN;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_METHOD;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_SIGNING_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.TOS_URI;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_ENCRYPTED_RESPONSE_ENC;
+import static org.gluu.oxauth.model.register.RegisterRequestParam.USERINFO_SIGNED_RESPONSE_ALG;
+import static org.gluu.oxauth.model.util.StringUtils.implode;
+import static org.gluu.oxauth.model.util.StringUtils.toJSONArray;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.gluu.oxauth.model.common.*;
+import org.gluu.oxauth.model.common.AuthenticationMethod;
+import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
+import org.gluu.oxauth.model.common.GrantType;
+import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.common.SubjectType;
 import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
@@ -24,12 +95,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.ws.rs.core.MediaType;
-import java.util.*;
-
-import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
-import static org.gluu.oxauth.model.util.StringUtils.implode;
-import static org.gluu.oxauth.model.util.StringUtils.toJSONArray;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Represents a register request to send to the authorization server.

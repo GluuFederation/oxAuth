@@ -6,7 +6,26 @@
 
 package org.gluu.oxauth.util;
 
-import org.apache.commons.cli.*;
+import static org.gluu.oxauth.model.jwk.JWKParameter.CERTIFICATE_CHAIN;
+import static org.gluu.oxauth.model.jwk.JWKParameter.EXPIRATION_TIME;
+import static org.gluu.oxauth.model.jwk.JWKParameter.EXPONENT;
+import static org.gluu.oxauth.model.jwk.JWKParameter.KEY_ID;
+import static org.gluu.oxauth.model.jwk.JWKParameter.MODULUS;
+import static org.gluu.oxauth.model.jwk.JWKParameter.X;
+import static org.gluu.oxauth.model.jwk.JWKParameter.Y;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
@@ -15,20 +34,16 @@ import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxElevenCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.jwk.*;
+import org.gluu.oxauth.model.jwk.Algorithm;
+import org.gluu.oxauth.model.jwk.JSONWebKey;
+import org.gluu.oxauth.model.jwk.JSONWebKeySet;
+import org.gluu.oxauth.model.jwk.KeyType;
+import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.util.StringHelper;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import static org.gluu.oxauth.model.jwk.JWKParameter.*;
 
 /**
  * Command example:
@@ -53,6 +68,7 @@ public class KeyGenerator {
     private static final String OXELEVEN_GENERATE_KEY_ENDPOINT = "ox11";
     private static final String EXPIRATION = "expiration";
     private static final String EXPIRATION_HOURS = "expiration_hours";
+    private static final String KEY_LENGTH = "key_length";
     private static final String HELP = "h";
     private static final Logger log;
 
@@ -89,6 +105,7 @@ public class KeyGenerator {
             options.addOption(OXELEVEN_GENERATE_KEY_ENDPOINT, true, "oxEleven Generate Key Endpoint.");
             options.addOption(EXPIRATION, true, "Expiration in days.");
             options.addOption(EXPIRATION_HOURS, true, "Expiration in hours.");
+            options.addOption(KEY_LENGTH, true, "Key length");
             options.addOption(HELP, false, "Show help.");
         }
 
@@ -116,6 +133,7 @@ public class KeyGenerator {
                     help();
                 }
 
+                int keyLength = StringHelper.toInt(cmd.getOptionValue(KEY_LENGTH), 2048);
                 int expiration = StringHelper.toInt(cmd.getOptionValue(EXPIRATION), 0);
                 int expiration_hours = StringHelper.toInt(cmd.getOptionValue(EXPIRATION_HOURS), 0);
 
@@ -127,7 +145,7 @@ public class KeyGenerator {
                         OxElevenCryptoProvider cryptoProvider = new OxElevenCryptoProvider(generateKeyEndpoint,
                                 null, null, null, accessToken);
 
-                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours);
+                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours, keyLength);
                     } catch (Exception e) {
                         log.error("Failed to generate keys", e);
                         help();
@@ -143,7 +161,7 @@ public class KeyGenerator {
                         SecurityProviderUtility.getInstance(true);
 
                         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keystore, keypasswd, dnName);
-                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours);
+                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours, keyLength);
                     } catch (Exception e) {
                         e.printStackTrace();
                         log.error("Failed to generate keys", e);
@@ -159,7 +177,7 @@ public class KeyGenerator {
         }
 
 		private void generateKeys(AbstractCryptoProvider cryptoProvider, List<Algorithm> signatureAlgorithms,
-				List<Algorithm> encryptionAlgorithms, int expiration, int expiration_hours) throws Exception, JSONException {
+				List<Algorithm> encryptionAlgorithms, int expiration, int expiration_hours, int keyLength) throws Exception {
 			JSONWebKeySet jwks = new JSONWebKeySet();
 
 			Calendar calendar = new GregorianCalendar();
@@ -168,7 +186,7 @@ public class KeyGenerator {
 
 			for (Algorithm algorithm : signatureAlgorithms) {
 				SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.fromString(algorithm.name());
-				JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.SIGNATURE);
+				JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.SIGNATURE, keyLength);
 
 				JSONWebKey key = new JSONWebKey();
 				key.setKid(result.getString(KEY_ID));
@@ -190,8 +208,7 @@ public class KeyGenerator {
 
 			for (Algorithm algorithm : encryptionAlgorithms) {
 			    KeyEncryptionAlgorithm encryptionAlgorithm = KeyEncryptionAlgorithm.fromName(algorithm.getParamName());
-			    JSONObject result = cryptoProvider.generateKey(algorithm,
-			            calendar.getTimeInMillis(), Use.ENCRYPTION);
+			    JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.ENCRYPTION, keyLength);
 
 			    JSONWebKey key = new JSONWebKey();
 			    key.setKid(result.getString(KEY_ID));

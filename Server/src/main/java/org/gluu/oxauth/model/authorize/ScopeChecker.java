@@ -7,6 +7,9 @@
 package org.gluu.oxauth.model.authorize;
 
 import com.google.common.collect.Sets;
+
+import javax.enterprise.context.ApplicationScoped;
+
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.ScopeService;
@@ -15,9 +18,7 @@ import org.gluu.oxauth.service.external.ExternalSpontaneousScopeService;
 import org.gluu.oxauth.service.external.context.SpontaneousScopeExternalContext;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -31,8 +32,7 @@ import java.util.Set;
  * @author Javier Rojas Blum
  * @version January 30, 2018
  */
-@Stateless
-@Named("scopeChecker")
+@ApplicationScoped
 public class ScopeChecker {
 
     @Inject

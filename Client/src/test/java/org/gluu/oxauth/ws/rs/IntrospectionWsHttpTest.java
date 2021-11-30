@@ -6,6 +6,10 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.BaseRequest;
 import org.gluu.oxauth.client.service.ClientFactory;
@@ -14,11 +18,9 @@ import org.gluu.oxauth.client.uma.wrapper.UmaClient;
 import org.gluu.oxauth.model.common.IntrospectionResponse;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.uma.wrapper.Token;
-import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -41,11 +43,11 @@ public class IntrospectionWsHttpTest extends BaseTest {
     @Test
     @Parameters({"umaPatClientId", "umaPatClientSecret"})
     public void bearerWithResponseAsJwt(final String umaPatClientId, final String umaPatClientSecret) throws Exception {
-        final ClientExecutor clientExecutor = clientExecutor(true);
-        final Token authorization = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientExecutor);
-        final Token tokenToIntrospect = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientExecutor);
+        final ClientHttpEngine engine = clientEngine(true);
+        final Token authorization = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, engine);
+        final Token tokenToIntrospect = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, engine);
 
-        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, clientExecutor);
+        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, engine);
         final String jwtAsString = introspectionService.introspectTokenWithResponseAsJwt("Bearer " + authorization.getAccessToken(), tokenToIntrospect.getAccessToken(), true);
         final Jwt jwt = Jwt.parse(jwtAsString);
         assertTrue(Boolean.parseBoolean(jwt.getClaims().getClaimAsString("active")));
@@ -54,9 +56,9 @@ public class IntrospectionWsHttpTest extends BaseTest {
     @Test
     @Parameters({"umaPatClientId", "umaPatClientSecret"})
     public void basicAuthentication(final String umaPatClientId, final String umaPatClientSecret) throws Exception {
-        final Token tokenToIntrospect = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientExecutor(true));
+        final Token tokenToIntrospect = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientEngine(true));
 
-        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, clientExecutor(true));
+        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, clientEngine(true));
         final IntrospectionResponse introspectionResponse = introspectionService.introspectToken("Basic " + BaseRequest.getEncodedCredentials(umaPatClientId, umaPatClientSecret), tokenToIntrospect.getAccessToken());
         assertTrue(introspectionResponse != null && introspectionResponse.isActive());
     }
@@ -64,9 +66,9 @@ public class IntrospectionWsHttpTest extends BaseTest {
     @Test
     @Parameters({"umaPatClientId", "umaPatClientSecret"})
     public void introspectWithValidAuthorizationButInvalidTokenShouldReturnActiveFalse(final String umaPatClientId, final String umaPatClientSecret) throws Exception {
-        final Token authorization = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientExecutor(true));
+        final Token authorization = UmaClient.requestPat(tokenEndpoint, umaPatClientId, umaPatClientSecret, clientEngine(true));
 
-        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, clientExecutor(true));
+        final IntrospectionService introspectionService = ClientFactory.instance().createIntrospectionService(introspectionEndpoint, clientEngine(true));
         final IntrospectionResponse introspectionResponse = introspectionService.introspectToken("Bearer " + authorization.getAccessToken(), "invalid_token");
         assertNotNull(introspectionResponse);
         assertFalse(introspectionResponse.isActive());

@@ -6,13 +6,14 @@
 
 package org.gluu.oxauth.client.ciba.push;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.client.BaseClient;
 import org.json.JSONObject;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 
 /**
  * @author Javier Rojas Blum
@@ -39,7 +40,9 @@ public class PushTokenDeliveryClient extends BaseClient<PushTokenDeliveryRequest
     private PushTokenDeliveryResponse _exec() {
         try {
             // Prepare request parameters
-            clientRequest.setHttpMethod(getHttpMethod());
+    //        clientRequest.setHttpMethod(getHttpMethod());
+            Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
 
             clientRequest.header("Content-Type", getRequest().getContentType());
 
@@ -48,10 +51,9 @@ public class PushTokenDeliveryClient extends BaseClient<PushTokenDeliveryRequest
             }
 
             JSONObject requestBody = getRequest().getJSONParameters();
-            clientRequest.body(MediaType.APPLICATION_JSON, requestBody.toString(4));
 
             // Call REST Service and handle response
-            clientResponse = clientRequest.post(String.class);
+            clientResponse = clientRequest.buildPost(Entity.json(requestBody.toString(4))).invoke();
             setResponse(new PushTokenDeliveryResponse(clientResponse));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

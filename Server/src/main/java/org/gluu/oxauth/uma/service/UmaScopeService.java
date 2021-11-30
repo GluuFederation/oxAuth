@@ -20,9 +20,8 @@ import org.gluu.search.filter.Filter;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,8 +33,7 @@ import java.util.Set;
  * @author Yuriy Movchan
  * @version 0.9, 22/04/2013
  */
-@Stateless
-@Named("umaScopeService")
+@ApplicationScoped
 public class UmaScopeService {
 
     @Inject

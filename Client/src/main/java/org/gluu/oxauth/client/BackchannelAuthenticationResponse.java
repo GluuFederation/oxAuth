@@ -6,14 +6,17 @@
 
 package org.gluu.oxauth.client;
 
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.AUTH_REQ_ID;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.EXPIRES_IN;
+import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.INTERVAL;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.jboss.resteasy.client.ClientResponse;
 import org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.*;
 
 /**
  * Represents a CIBA backchannel authorization response.
@@ -38,7 +41,7 @@ public class BackchannelAuthenticationResponse extends BaseResponseWithErrors<Ba
     /**
      * Constructs a backchannel authentication response.
      */
-    public BackchannelAuthenticationResponse(ClientResponse<String> clientResponse) {
+    public BackchannelAuthenticationResponse(Response clientResponse) {
         super(clientResponse);
     }
 

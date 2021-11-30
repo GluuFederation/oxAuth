@@ -1,5 +1,11 @@
 package org.gluu.oxauth.client;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
@@ -9,8 +15,6 @@ import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtType;
 import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.util.QueryBuilder;
-
-import java.util.*;
 
 /**
  * @author Yuriy Zabrovarnyy

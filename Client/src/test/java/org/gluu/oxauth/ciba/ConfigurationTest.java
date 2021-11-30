@@ -6,6 +6,10 @@
 
 package org.gluu.oxauth.ciba;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.OpenIdConfigurationClient;
 import org.gluu.oxauth.client.OpenIdConfigurationResponse;
@@ -13,11 +17,9 @@ import org.gluu.oxauth.client.OpenIdConnectDiscoveryClient;
 import org.gluu.oxauth.client.OpenIdConnectDiscoveryResponse;
 import org.gluu.oxauth.dev.HostnameVerifierType;
 import org.gluu.oxauth.model.common.GrantType;
-import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
@@ -32,7 +34,7 @@ public class ConfigurationTest extends BaseTest {
 
         OpenIdConnectDiscoveryClient openIdConnectDiscoveryClient = new OpenIdConnectDiscoveryClient(resource);
         OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(
-                new ApacheHttpClient4Executor(createHttpClient(HostnameVerifierType.ALLOW_ALL)));
+                new ApacheHttpClient43Engine(createHttpClient(HostnameVerifierType.ALLOW_ALL)));
 
         showClient(openIdConnectDiscoveryClient);
         assertEquals(openIdConnectDiscoveryResponse.getStatus(), 200, "Unexpected response code");

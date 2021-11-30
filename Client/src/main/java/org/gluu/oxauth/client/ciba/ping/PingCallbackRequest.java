@@ -6,13 +6,13 @@
 
 package org.gluu.oxauth.client.ciba.ping;
 
+import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.AUTHORIZATION_REQUEST_ID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.gluu.oxauth.client.BaseRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.gluu.oxauth.model.ciba.PushTokenDeliveryRequestParam.AUTHORIZATION_REQUEST_ID;
 
 /**
  * @author Javier Rojas Blum

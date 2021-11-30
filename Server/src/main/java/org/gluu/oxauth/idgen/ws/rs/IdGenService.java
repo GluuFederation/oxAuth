@@ -6,10 +6,7 @@
 
 package org.gluu.oxauth.idgen.ws.rs;
 
-
-import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.gluu.oxauth.model.common.IdType;
 import org.gluu.oxauth.service.common.api.IdGenerator;
@@ -17,12 +14,13 @@ import org.gluu.oxauth.service.external.ExternalIdGeneratorService;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 24/06/2013
  */
-@Stateless
-@Named("idGenService")
+@ApplicationScoped
 public class IdGenService implements IdGenerator {
 
     @Inject

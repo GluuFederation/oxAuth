@@ -6,17 +6,19 @@
 
 package org.gluu.oxauth.client;
 
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
 import org.gluu.oxauth.model.session.EndSessionRequestParam;
 import org.gluu.oxauth.model.session.EndSessionResponseParam;
 import org.gluu.oxauth.model.util.Util;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Encapsulates functionality to make end session request calls to an
@@ -66,33 +68,37 @@ public class EndSessionClient extends BaseClient<EndSessionRequest, EndSessionRe
     public EndSessionResponse exec() {
         // Prepare request parameters
         initClientRequest();
-        clientRequest.accept(mediaType);
-        clientRequest.setHttpMethod(getHttpMethod());
 
         if (StringUtils.isNotBlank(getRequest().getIdTokenHint())) {
-            clientRequest.queryParameter(EndSessionRequestParam.ID_TOKEN_HINT, getRequest().getIdTokenHint());
+        	addReqParam(EndSessionRequestParam.ID_TOKEN_HINT, getRequest().getIdTokenHint());
         }
         if (StringUtils.isNotBlank(getRequest().getPostLogoutRedirectUri())) {
-            clientRequest.queryParameter(EndSessionRequestParam.POST_LOGOUT_REDIRECT_URI, getRequest().getPostLogoutRedirectUri());
+        	addReqParam(EndSessionRequestParam.POST_LOGOUT_REDIRECT_URI, getRequest().getPostLogoutRedirectUri());
         }
         if (StringUtils.isNotBlank(getRequest().getState())) {
-            clientRequest.queryParameter(EndSessionRequestParam.STATE, getRequest().getState());
+        	addReqParam(EndSessionRequestParam.STATE, getRequest().getState());
         }
         if (StringUtils.isNotBlank(getRequest().getSid())) {
-            clientRequest.queryParameter(EndSessionRequestParam.SID, getRequest().getSid());
+        	addReqParam(EndSessionRequestParam.SID, getRequest().getSid());
         }
 
         // Call REST Service and handle response
         try {
-            clientResponse = clientRequest.get(String.class);
+            Builder clientRequest = webTarget.request();
+            applyCookies(clientRequest);
+
+            clientRequest.accept(mediaType);
+//          clientRequest.setHttpMethod(getHttpMethod());
+
+            clientResponse = clientRequest.buildGet().invoke();
             int status = clientResponse.getStatus();
 
             setResponse(new EndSessionResponse(status));
-            String entity = clientResponse.getEntity(String.class);
+            String entity = clientResponse.readEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
-            if (clientResponse.getLocationLink() != null) {
-                String location = clientResponse.getLocationLink().getHref();
+            if (clientResponse.getLocation() != null) {
+                String location = clientResponse.getLocation().toString();
                 getResponse().setLocation(location);
 
                 int queryStringIndex = location.indexOf("?");

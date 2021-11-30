@@ -11,18 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
-@DependsOn("appInitializer")
-@Named
 public class ExternalIntrospectionService extends ExternalScriptService {
 
     private static final long serialVersionUID = -8609727759114795446L;

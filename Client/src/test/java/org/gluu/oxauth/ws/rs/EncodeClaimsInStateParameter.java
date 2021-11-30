@@ -6,8 +6,25 @@
 
 package org.gluu.oxauth.ws.rs;
 
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.ADDITIONAL_CLAIMS;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.JTI;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.KID;
+import static org.gluu.oxauth.model.jwt.JwtStateClaimName.RFP;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.security.PrivateKey;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.client.AuthorizationRequest;
+import org.gluu.oxauth.client.AuthorizationResponse;
+import org.gluu.oxauth.client.RegisterClient;
+import org.gluu.oxauth.client.RegisterRequest;
+import org.gluu.oxauth.client.RegisterResponse;
 import org.gluu.oxauth.client.model.JwtState;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -23,14 +40,6 @@ import org.gluu.oxauth.model.util.StringUtils;
 import org.json.JSONObject;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
-
-import java.security.PrivateKey;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.gluu.oxauth.model.jwt.JwtStateClaimName.*;
-import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
