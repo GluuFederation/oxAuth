@@ -4,9 +4,7 @@
 # Author: Yuriy Movchan
 #
 
-from javax.ws.rs.core import Response
-from org.jboss.resteasy.client import ClientResponseFailure
-from org.jboss.resteasy.client.exception import ResteasyClientException
+from javax.ws.rs import ClientErrorException
 from javax.ws.rs.core import Response
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.fido2.client import Fido2ClientFactory
@@ -178,7 +176,7 @@ class PersonAuthentication(PersonAuthenticationType):
                         identity.setWorkingParameter("platformAuthenticatorAvailable", "true")
                     else:
                         identity.setWorkingParameter("platformAuthenticatorAvailable", "false")
-                except ClientResponseFailure, ex:
+                except ClientErrorException, ex:
                     print "Fido2. Prepare for step 2. Failed to start assertion flow. Exception:", sys.exc_info()[1]
                     return False
             else:
@@ -273,13 +271,6 @@ class PersonAuthentication(PersonAuthenticationType):
                 except ClientResponseFailure, ex:
                     # Detect if last try or we still get Service Unavailable HTTP error
                     if (attempt == max_attempts) or (ex.getResponse().getResponseStatus() != Response.Status.SERVICE_UNAVAILABLE):
-                        raise ex
-    
-                    java.lang.Thread.sleep(3000)
-                    print "Attempting to load metadata: %d" % attempt
-                except ResteasyClientException, ex:
-                    # Detect if last try or we still get Service Unavailable HTTP error
-                    if attempt == max_attempts:
                         raise ex
     
                     java.lang.Thread.sleep(3000)
