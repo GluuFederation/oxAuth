@@ -2698,7 +2698,7 @@ public class AuthorizeRestWebServiceHttpTest extends BaseTest {
      * If a client has only openid scope and pairwise id, person should not have to authorize.
      */
     @Parameters({"userId", "userSecret", "redirectUris", "redirectUri", "sectorIdentifierUri"})
-    //@Test // Before run this test, set skipAuthorizationForOpenIdScopeAndPairwiseId = true
+    @Test // Before run this test, set skipAuthorizationForOpenIdScopeAndPairwiseId = true
     public void requestAuthorizationForOpenIdScopeAndPairwiseId(
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
             final String sectorIdentifierUri) throws Exception {
