@@ -200,7 +200,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     #, separators=(',', ':'))
 
                     attestationResponse = attestationService.register(attestationRequest).readEntity(java.lang.String)
-                except ClientResponseFailure, ex:
+                except ClientErrorException, ex:
                     print "Fido2. Prepare for step 2. Failed to start attestation flow. Exception:", sys.exc_info()[1]
                     return False
 
@@ -268,7 +268,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 try:
                     self.metaDataConfiguration = metaDataConfigurationService.getMetadataConfiguration().readEntity(java.lang.String)
                     return self.metaDataConfiguration
-                except ClientResponseFailure, ex:
+                except ClientErrorException, ex:
                     # Detect if last try or we still get Service Unavailable HTTP error
                     if (attempt == max_attempts) or (ex.getResponse().getResponseStatus() != Response.Status.SERVICE_UNAVAILABLE):
                         raise ex
