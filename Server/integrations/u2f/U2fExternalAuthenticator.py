@@ -8,7 +8,7 @@ import java
 import sys
 from javax.ws.rs.core import Response
 from javax.ws.rs import WebApplicationException
-from org.jboss.resteasy.client.exception import ResteasyClientException
+from javax.ws.rs import ClientErrorException
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.oxauth.client.fido.u2f import FidoU2fClientFactory
 from org.gluu.oxauth.model.config import Constants
@@ -171,7 +171,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 try:
                     authenticationRequestService = FidoU2fClientFactory.instance().createAuthenticationRequestService(self.metaDataConfiguration)
                     authenticationRequest = authenticationRequestService.startAuthentication(user.getUserId(), None, u2f_application_id, session.getId())
-                except ClientResponseFailure, ex:
+                except ClientErrorException, ex:
                     if (ex.getResponse().getResponseStatus() != Response.Status.NOT_FOUND):
                         print "U2F. Prepare for step 2. Failed to start authentication workflow. Exception:", sys.exc_info()[1]
                         return False
