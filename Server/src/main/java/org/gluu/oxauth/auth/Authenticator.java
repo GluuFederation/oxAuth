@@ -692,10 +692,10 @@ public class Authenticator {
 		}
 	}
 
-	public boolean authenticateBySessionId(String p_sessionId) {
-		if (StringUtils.isNotBlank(p_sessionId) && appConfiguration.getSessionIdEnabled()) {
+	public boolean authenticateBySessionId(String sessionIdString) {
+		if (StringUtils.isNotBlank(sessionIdString)) {
 			try {
-				SessionId sessionId = sessionIdService.getSessionId(p_sessionId);
+				SessionId sessionId = sessionIdService.getSessionId(sessionIdString);
 				return authenticateBySessionId(sessionId);
 			} catch (Exception e) {
 				logger.trace(e.getMessage(), e);

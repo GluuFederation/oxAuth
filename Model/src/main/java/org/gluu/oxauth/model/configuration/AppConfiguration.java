@@ -149,7 +149,6 @@ public class AppConfiguration implements Configuration {
 
     private int sessionIdUnusedLifetime;
     private int sessionIdUnauthenticatedUnusedLifetime = 120; // 120 seconds
-    private Boolean sessionIdEnabled;
     private Boolean sessionIdPersistOnPromptNone;
     private Boolean sessionIdRequestParameterEnabled = false; // #1195
     private Boolean changeSessionIdOnAuthentication = true;
@@ -1428,14 +1427,6 @@ public class AppConfiguration implements Configuration {
 
     public void setSessionIdRequestParameterEnabled(Boolean sessionIdRequestParameterEnabled) {
         this.sessionIdRequestParameterEnabled = sessionIdRequestParameterEnabled;
-    }
-
-    public Boolean getSessionIdEnabled() {
-        return sessionIdEnabled;
-    }
-
-    public void setSessionIdEnabled(Boolean p_sessionIdEnabled) {
-        sessionIdEnabled = p_sessionIdEnabled;
     }
 
     public int getConfigurationUpdateInterval() {
