@@ -120,9 +120,9 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                                        String rptCode, String authReqId, String deviceCode,
                                        HttpServletRequest request, HttpServletResponse response, SecurityContext sec) {
         log.debug(
-                "Attempting to request access token: grantType = {}, code = {}, redirectUri = {}, username = {}, refreshToken = {}, " +
+                "Attempting to request access token: grantType = {}, code = {}, redirectUri = {}, username = {}, " +
                         "clientId = {}, ExtraParams = {}, isSecure = {}, codeVerifier = {}, ticket = {}",
-                grantType, code, redirectUri, username, refreshToken, clientId, request.getParameterMap(),
+                grantType, code, redirectUri, username, clientId, request.getParameterMap(),
                 sec.isSecure(), codeVerifier, ticket);
 
         boolean isUma = StringUtils.isNotBlank(ticket);
@@ -211,7 +211,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 }
 
                 AccessToken accToken = authorizationCodeGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response)); // create token after scopes are checked
-                log.debug("Issuing access token: {}", accToken.getCode());
+                log.debug("Issuing access token, grantId: {}", authorizationCodeGrant.getGrantId());
 
                 IdToken idToken = null;
                 if (authorizationCodeGrant.getScopes().contains("openid")) {
@@ -433,10 +433,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             cibaGrant.getClient().getBackchannelTokenDeliveryMode() == BackchannelTokenDeliveryMode.POLL) {
                         if (!cibaGrant.isTokensDelivered()) {
                             RefreshToken refToken = cibaGrant.createRefreshToken();
-                            log.debug("Issuing refresh token: {}", refToken.getCode());
+                            log.debug("Issuing refresh token, grandId: {}", cibaGrant.getGrantId());
 
                             AccessToken accessToken = cibaGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
-                            log.debug("Issuing access token: {}", accessToken.getCode());
+                            log.debug("Issuing access token, grandId: {}", cibaGrant.getGrantId());
 
                             IdToken idToken = cibaGrant.createIdToken(
                                     null, null, accessToken, refToken,
@@ -548,10 +548,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 throw new WebApplicationException(response(error(400, TokenErrorResponseType.INVALID_GRANT, "The client is not authorized."), oAuth2AuditLog));
             }
             RefreshToken refToken = deviceCodeGrant.createRefreshToken();
-            log.debug("Issuing refresh token: {}", refToken.getCode());
+            log.debug("Issuing refresh token, grandId: {}", deviceCodeGrant.getGrantId());
 
             AccessToken accessToken = deviceCodeGrant.createAccessToken(request.getHeader("X-ClientCert"), new ExecutionContext(request, response));
-            log.debug("Issuing access token: {}", accessToken.getCode());
+            log.debug("Issuing access token, grandId {}", deviceCodeGrant.getGrantId());
 
             IdToken idToken = deviceCodeGrant.createIdToken(
                     null, null, accessToken, refToken,

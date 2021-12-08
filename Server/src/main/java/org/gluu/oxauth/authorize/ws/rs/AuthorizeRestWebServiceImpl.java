@@ -648,10 +648,10 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         CIBAGrant cibaGrant = authorizationGrantList.createCIBAGrant(cibaRequest);
 
         RefreshToken refreshToken = cibaGrant.createRefreshToken();
-        log.debug("Issuing refresh token: {}", refreshToken.getCode());
+        log.debug("Issuing refresh token, grandId: {}", cibaGrant.getGrantId());
 
         AccessToken accessToken = cibaGrant.createAccessToken(httpRequest.getHeader("X-ClientCert"), new ExecutionContext(httpRequest, httpResponse));
-        log.debug("Issuing access token: {}", accessToken.getCode());
+        log.debug("Issuing access token, grandId: {}", cibaGrant.getGrantId());
 
         IdToken idToken = cibaGrant.createIdToken(
                 null, null, accessToken, refreshToken,
