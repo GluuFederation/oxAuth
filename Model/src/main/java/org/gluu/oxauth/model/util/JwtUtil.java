@@ -97,19 +97,19 @@ public class JwtUtil {
 
     public static byte[] getMessageDigestSHA256(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-256", SecurityProviderUtility.getInstance(false).getName());
+        MessageDigest mda = MessageDigest.getInstance("SHA-256", SecurityProviderUtility.getBCProvider(false).getName());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA384(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-384",SecurityProviderUtility.getInstance(false).getName());
+        MessageDigest mda = MessageDigest.getInstance("SHA-384",SecurityProviderUtility.getBCProvider(false).getName());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA512(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-512", SecurityProviderUtility.getInstance(false).getName());
+        MessageDigest mda = MessageDigest.getInstance("SHA-512", SecurityProviderUtility.getBCProvider(false).getName());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 

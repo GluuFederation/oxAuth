@@ -58,7 +58,7 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 		}
 
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA",
-				SecurityProviderUtility.getInstance(false).getName());
+				SecurityProviderUtility.getBCProvider(false).getName());
 		keyGen.initialize(2048, new SecureRandom());
 
 		KeyPair keyPair = keyGen.generateKeyPair();
@@ -119,7 +119,7 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 				certGen.setPublicKey(keyPair.getPublic());
 				certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-				X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getInstance(false).getName());
+				X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProvider(false).getName());
 				certificate = new Certificate(signatureAlgorithm, x509Certificate);
 			}
 		}

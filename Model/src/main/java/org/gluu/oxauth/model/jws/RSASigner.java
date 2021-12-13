@@ -59,10 +59,10 @@ public class RSASigner extends AbstractJwsSigner {
                     rsaPrivateKey.getModulus(),
                     rsaPrivateKey.getPrivateExponent());
 
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getInstance(false).getName());
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getBCProvider(false).getName());
             PrivateKey privateKey = keyFactory.generatePrivate(rsaPrivateKeySpec);
 
-            Signature signature = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
+            Signature signature = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
             signature.initSign(privateKey);
             signature.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -92,10 +92,10 @@ public class RSASigner extends AbstractJwsSigner {
                     rsaPublicKey.getModulus(),
                     rsaPublicKey.getPublicExponent());
 
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getInstance(false).getName());
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getBCProvider(false).getName());
             PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
 
-            Signature sign = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
+            Signature sign = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
             sign.initVerify(publicKey);
             sign.update(sigInBytes);
 

@@ -189,12 +189,10 @@
 		<dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bc-fips</artifactId>
-            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-fips</artifactId>
-            <version>1.0.3</version>
         </dependency>
 		<dependency>
 			<groupId>com.nimbusds</groupId>

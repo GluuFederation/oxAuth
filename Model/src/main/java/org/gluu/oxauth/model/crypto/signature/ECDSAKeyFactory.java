@@ -69,7 +69,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 		if(SecurityProviderUtility.hasFipsMode())
 		{
 			//X9ECParameters params = ECNamedCurveTable.getByName(signatureAlgorithm.getCurve().getName());
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", SecurityProviderUtility.getInstance(false).getName());
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", SecurityProviderUtility.getBCProvider(false).getName());
 			keyGen.initialize(new ECGenParameterSpec(signatureAlgorithm.getCurve().getName()));
 			this.keyPair = keyGen.generateKeyPair();
 			
@@ -99,7 +99,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 				JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder("SHA256WITHECDSA");
 				ContentSigner signer = csBuilder.build(keyPair.getPrivate());
 				X509CertificateHolder certHolder = certGen.build(signer);
-				X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getInstance(false).getName())
+				X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getBCProvider(false).getName())
 						.getCertificate(certHolder);
 
 				this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
@@ -109,7 +109,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 		{
 				ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(signatureAlgorithm.getCurve().getName());
 
-		        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", SecurityProviderUtility.getInstance(false).getName());
+		        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
 		        keyGen.initialize(ecSpec, new SecureRandom());
 
 		        this.keyPair = keyGen.generateKeyPair();
@@ -141,7 +141,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 		            certGen.setPublicKey(keyPair.getPublic());
 		            certGen.setSignatureAlgorithm("SHA256WITHECDSA");
 
-		            X509Certificate x509Certificate = certGen.generate(privateKeySpec, SecurityProviderUtility.getInstance(false).getName());
+		            X509Certificate x509Certificate = certGen.generate(privateKeySpec, SecurityProviderUtility.getBCProvider(false).getName());
 		            this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
 		        }
 		}
@@ -165,7 +165,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 			JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(signatureAlgorithm.getAlgorithm());
 			ContentSigner signer = csBuilder.build(keyPair.getPrivate());
 			X509CertificateHolder certHolder = certGen.build(signer);
-			X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getInstance(false).getName())
+			X509Certificate x509Certificate = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getBCProvider(false).getName())
 					.getCertificate(certHolder);
 
 			return new Certificate(signatureAlgorithm, x509Certificate);
@@ -183,7 +183,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 			certGen.setPublicKey(keyPair.getPublic());
 			certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-			X509Certificate x509Certificate = certGen.generate(keyPair.getPrivate(), SecurityProviderUtility.getInstance(false).getName());
+			X509Certificate x509Certificate = certGen.generate(keyPair.getPrivate(), SecurityProviderUtility.getBCProvider(false).getName());
 			return new Certificate(signatureAlgorithm, x509Certificate);
 		}
 	}

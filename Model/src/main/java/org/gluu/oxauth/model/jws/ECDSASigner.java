@@ -87,11 +87,11 @@ public class ECDSASigner extends AbstractJwsSigner {
 						.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
 				ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
 
-				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getInstance(false).getName());
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
 				privateKey = keyFactory.generatePrivate(privateKeySpec);
 			}
            
-            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getInstance(false).getName());
+            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -167,11 +167,11 @@ public class ECDSASigner extends AbstractJwsSigner {
 
 				ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
 
-				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getInstance(false).getName());
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
 				publicKey = keyFactory.generatePublic(publicKeySpec);
 
 			}
-            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getInstance(false).getName());
+            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider(false).getName());
             sig.initVerify(publicKey);
             sig.update(sigInBytes);
             return sig.verify(sigBytes);

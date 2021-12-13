@@ -54,7 +54,7 @@ public class PathCertificateVerifier implements CertificateVerifier {
 	private boolean verifySelfSignedCertificate;
 
 	public PathCertificateVerifier(boolean verifySelfSignedCert) {
-		SecurityProviderUtility.getInstance(true);
+		SecurityProviderUtility.getBCProvider(true);
 
 		this.verifySelfSignedCertificate = verifySelfSignedCert;
 	}
