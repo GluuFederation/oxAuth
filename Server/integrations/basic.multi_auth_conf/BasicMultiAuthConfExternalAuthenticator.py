@@ -237,11 +237,11 @@ class PersonAuthentication(PersonAuthenticationType):
                 else:
                     value_string = str(value)
 
-                ldapProperties.setProperty(persistenceType + "." + key, value_string)
+                ldapProperties.setProperty(persistenceType + "#" + key, value_string)
 
             if StringHelper.isNotEmptyString(ldapConfiguration.getBindPassword()):
-                ldapProperties.setProperty(persistenceType + ".bindPassword", ldapConfiguration.getBindPassword())
-                
+                ldapProperties.setProperty(persistenceType + "#bindPassword", ldapConfiguration.getBindPassword())
+            
             ldapEntryManager = ldapEntryManagerFactory.createEntryManager(ldapProperties)
 
             ldapExtendedEntryManagers.append({ "ldapConfiguration" : ldapConfiguration, "ldapProperties" : ldapProperties, "loginAttributes" : ldapExtendedConfiguration["loginAttributes"], "localLoginAttributes" : ldapExtendedConfiguration["localLoginAttributes"], "ldapEntryManager" : ldapEntryManager })
