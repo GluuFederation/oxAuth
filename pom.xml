@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>3.1.6.sp1</oxcore.version>
+		<oxcore.version>3.1.6.sp2</oxcore.version>
 		<oxeleven.version>3.1.6.sp1</oxeleven.version>
 		<oxnotify.version>3.1.6.Final</oxnotify.version>
 		<oxlicense.version>3.1.6.sp1</oxlicense.version>
@@ -737,8 +737,8 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>2.3.2</version>
 					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
+						<source>1.8</source>
+						<target>1.8</target>
 						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
