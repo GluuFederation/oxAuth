@@ -32,6 +32,8 @@ import java.util.Random;
 @Deprecated
 public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
+    public static final int DEF_KEYLENGTH = 2048;
+
     private RSAPrivateKey rsaPrivateKey;
     private RSAPublicKey rsaPublicKey;
     private Certificate certificate;
@@ -45,7 +47,7 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
         }
 
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
-        keyGen.initialize(2048, new SecureRandom());
+        keyGen.initialize(DEF_KEYLENGTH, new SecureRandom());
 
         KeyPair keyPair = keyGen.generateKeyPair();
 
