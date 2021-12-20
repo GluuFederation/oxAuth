@@ -524,15 +524,15 @@ public class SessionIdService {
     }
 
     private String getClientOrigin(String redirectUri) throws URISyntaxException {
-        try {
-            final String clientOrigin = getClientOrigin(redirectUri);
-            final String sessionState = JwtUtil.bytesToHex(JwtUtil.getMessageDigestSHA256(
-                    clientId + " " + clientOrigin + " " + opbs + " " + salt)) + "." + salt;
-            return sessionState;
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | UnsupportedEncodingException | URISyntaxException e) {
-            log.error("Failed generating session state! " + e.getMessage(), e);
-            throw new RuntimeException(e);
-	}
+        if (StringHelper.isNotEmpty(redirectUri)) {
+            final URI uri = new URI(redirectUri);
+            String result = uri.getScheme() + "://" + uri.getHost();
+            if (uri.getPort() > 0)
+                result += ":" + uri.getPort();
+            return result;
+        } else {
+            return appConfiguration.getIssuer();
+        }
     }
 
     private SessionId generateSessionId(String userDn, Date authenticationDate, SessionIdState state, Map<String, String> sessionIdAttributes, boolean persist) {
