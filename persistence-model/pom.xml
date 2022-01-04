@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>4.3.1-SNAPSHOT</version>
+		<version>4.3.1.Final</version>
 	</parent>
 	<artifactId>oxauth-persistence-model</artifactId>
 	<name>Persistence model</name>
-	<url>http://maven.apache.org</url>
+	<url>https://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

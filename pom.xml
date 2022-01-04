@@ -5,19 +5,19 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>4.3.1-SNAPSHOT</version>
+	<version>4.3.1.Final</version>
 	<name>oxAuth</name>
-	<url>http://www.gluu.org</url>
+	<url>https://www.gluu.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>4.3.1-SNAPSHOT</oxcore.version>
-		<oxeleven.version>4.3.1-SNAPSHOT</oxeleven.version>
-		<oxnotify.version>4.3.1-SNAPSHOT</oxnotify.version>
-		<oxlicense.version>4.3.1-SNAPSHOT</oxlicense.version>
-		<fido2.version>4.3.1-SNAPSHOT</fido2.version>
+		<oxcore.version>4.3.1.Final</oxcore.version>
+		<oxeleven.version>4.3.1.Final</oxeleven.version>
+		<oxnotify.version>4.3.1.Final</oxnotify.version>
+		<oxlicense.version>4.3.1.Final</oxlicense.version>
+		<fido2.version>4.3.1.Final</fido2.version>
 
 		<json.version>20180813</json.version>
 		<jackson.version>2.10.1</jackson.version>
@@ -28,7 +28,7 @@
 
 		<httpcore.version>4.4.6</httpcore.version>
 
-		<log4j.version>2.13.3</log4j.version>
+		<log4j.version>2.17.1</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
 
 		<jsf-api.version>2.2.16</jsf-api.version>
@@ -67,7 +67,7 @@
             </snapshots>
 			<id>gluu</id>
 			<name>Gluu repository</name>
-			<url>https://ox.gluu.org/maven</url>
+			<url>https://maven.gluu.org/maven</url>
 		</repository>
 		<repository>
 			<id>bouncycastle</id>
@@ -101,7 +101,7 @@
             <dependency>
                 <groupId>org.gluu</groupId>
                 <artifactId>gluu-core-bom</artifactId>
-                <version>4.3.1-SNAPSHOT</version>
+                <version>4.3.1.Final</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
