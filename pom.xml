@@ -28,7 +28,7 @@
 
 		<httpcore.version>4.4.6</httpcore.version>
 
-		<log4j.version>2.17.0</log4j.version>
+		<log4j.version>2.17.1</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
 
 		<jsf-api.version>2.2.16</jsf-api.version>
