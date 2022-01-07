@@ -60,7 +60,6 @@ public class OxAuthUnitTestsListener implements ITestListener {
             for(Object parameter : parameters) {
                 Reporter.log("parameter = " + parameter, true);
             }
-            Reporter.log("Test Parameters ------------- ", true);
         }
         Throwable throwable = result.getThrowable();
         if(throwable != null) {

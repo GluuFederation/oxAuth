@@ -60,8 +60,6 @@ public class EncryptionService {
 			}
 		}
 
-		System.out.println("EncryptionService.decrypt(): resultValue = " + resultValue);
-
 		return resultValue;
 	}
 
