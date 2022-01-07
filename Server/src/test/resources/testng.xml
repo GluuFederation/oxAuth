@@ -2,9 +2,11 @@
 
 <suite name="oxAuthServer" parallel="false">
 
+<!--
 	<listeners>
 		<listener class-name="org.gluu.oxauth.OxAuthUnitTestsListener" />
 	</listeners>
+-->
 
     <test name="Unit Tests" enabled="true">
         <classes>
