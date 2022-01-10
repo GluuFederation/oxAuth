@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.gluu.oxauth.crypto.signature.SHA256withECDSASignatureVerification;
 import org.gluu.oxauth.model.exception.SignatureException;
@@ -59,6 +60,8 @@ public class RawAuthenticationService {
 
 		byte[] signedBytes = packBytesToSign(signatureVerification.hash(appId), rawAuthenticateResponse.getUserPresence(),
 				rawAuthenticateResponse.getCounter(), signatureVerification.hash(rawClientData));
+
+		log.debug("Packed bytes to sign in HEX '{}'", Hex.encodeHexString(signedBytes));
 		try {
 			boolean isValid = signatureVerification.checkSignature(signatureVerification.decodePublicKey(publicKey), signedBytes, rawAuthenticateResponse.getSignature());
 			if (!isValid) {
