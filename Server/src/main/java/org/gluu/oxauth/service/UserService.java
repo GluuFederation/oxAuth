@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
+import org.gluu.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistration;
@@ -69,7 +70,7 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
         Filter registeredFilter = Filter.createEqualityFilter("oxStatus", "registered");
         Filter filter = Filter.createANDFilter(userInumFilter, registeredFilter);
 
-        long countEntries = persistenceEntryManager.countEntries(baseDn, CustomEntry.class, filter);
+        long countEntries = persistenceEntryManager.countEntries(baseDn, Fido2RegistrationEntry.class, filter);
 
         return countEntries;
     }

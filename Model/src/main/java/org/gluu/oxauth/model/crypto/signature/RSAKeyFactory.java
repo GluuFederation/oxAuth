@@ -45,25 +45,26 @@ import java.util.Random;
 @Deprecated
 public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
-	private RSAPrivateKey rsaPrivateKey;
-	private RSAPublicKey rsaPublicKey;
-	private Certificate certificate;
+    public static final int DEF_KEYLENGTH = 2048;
 
-	@Deprecated
-	public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
-			throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
-			InvalidKeyException, OperatorCreationException, CertificateException {
-		if (signatureAlgorithm == null) {
-			throw new InvalidParameterException("The signature algorithm cannot be null");
-		}
+    private RSAPrivateKey rsaPrivateKey;
+    private RSAPublicKey rsaPublicKey;
+    private Certificate certificate;
 
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA",
-				SecurityProviderUtility.getBCProvider(false).getName());
-		keyGen.initialize(2048, new SecureRandom());
+    @Deprecated
+    public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
+            throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
+            InvalidKeyException, CertificateEncodingException, CertificateException {
+        if (signatureAlgorithm == null) {
+            throw new InvalidParameterException("The signature algorithm cannot be null");
+        }
 
-		KeyPair keyPair = keyGen.generateKeyPair();
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", SecurityProviderUtility.getBCProvider(false).getName());
+        keyGen.initialize(DEF_KEYLENGTH, new SecureRandom());
 
-		if (SecurityProviderUtility.hasFipsMode()) {
+        KeyPair keyPair = keyGen.generateKeyPair();
+
+    if (SecurityProviderUtility.hasFipsMode()) {
 			AsymmetricRSAPrivateKey jcersaPrivateCrtKey = new AsymmetricRSAPrivateKey(FipsRSA.ALGORITHM,
 					keyPair.getPrivate().getEncoded());
 			AsymmetricRSAPublicKey jcersaPublicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM,
@@ -94,65 +95,71 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
 
 			}
 		} else {
-			BCRSAPrivateCrtKey jcersaPrivateCrtKey = (BCRSAPrivateCrtKey) keyPair.getPrivate();
-			BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) keyPair.getPublic();
+        BCRSAPrivateCrtKey jcersaPrivateCrtKey = (BCRSAPrivateCrtKey) keyPair.getPrivate();
+        BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) keyPair.getPublic();
 
-			rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
-					jcersaPrivateCrtKey.getPrivateExponent());
+        rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
+                jcersaPrivateCrtKey.getPrivateExponent());
 
-			rsaPublicKey = new RSAPublicKey(jcersaPublicKey.getModulus(), jcersaPublicKey.getPublicExponent());
+        rsaPublicKey = new RSAPublicKey(jcersaPublicKey.getModulus(),
+                jcersaPublicKey.getPublicExponent());
 
-			if (StringUtils.isNotBlank(dnName)) {
-				// Create certificate
-				GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
-				GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
-				expiryDate.add(Calendar.YEAR, 1);
-				BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
-				X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
-				X500Principal principal = new X500Principal(dnName);
+        if (StringUtils.isNotBlank(dnName)) {
+            // Create certificate
+            GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
+            GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
+            expiryDate.add(Calendar.YEAR, 1);
+            BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
 
-				certGen.setSerialNumber(serialNumber);
-				certGen.setIssuerDN(principal);
-				certGen.setNotBefore(startDate.getTime());
-				certGen.setNotAfter(expiryDate.getTime());
-				certGen.setSubjectDN(principal); // note: same as issuer
-				certGen.setPublicKey(keyPair.getPublic());
-				certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
+            X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+            X500Principal principal = new X500Principal(dnName);
 
-				X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProvider(false).getName());
-				certificate = new Certificate(signatureAlgorithm, x509Certificate);
-			}
-		}
+            certGen.setSerialNumber(serialNumber);
+            certGen.setIssuerDN(principal);
+            certGen.setNotBefore(startDate.getTime());
+            certGen.setNotAfter(expiryDate.getTime());
+            certGen.setSubjectDN(principal); // note: same as issuer
+            certGen.setPublicKey(keyPair.getPublic());
+            certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-	}
+            X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProvider(false).getName());
+            certificate = new Certificate(signatureAlgorithm, x509Certificate);
+        }
+    }
+    }
 
-	@Deprecated
-	public RSAKeyFactory(JSONWebKey p_key) {
-		if (p_key == null) {
-			throw new IllegalArgumentException("Key value must not be null.");
-		}
+    @Deprecated
+    public RSAKeyFactory(JSONWebKey p_key) {
+        if (p_key == null) {
+            throw new IllegalArgumentException("Key value must not be null.");
+        }
 
-		rsaPrivateKey = new RSAPrivateKey(p_key.getN(), p_key.getE());
-		rsaPublicKey = new RSAPublicKey(p_key.getN(), p_key.getE());
-		certificate = null;
-	}
+        rsaPrivateKey = new RSAPrivateKey(
+                p_key.getN(),
+                p_key.getE());
+        rsaPublicKey = new RSAPublicKey(
+                p_key.getN(),
+                p_key.getE());
+        certificate = null;
+    }
 
-	public static RSAKeyFactory valueOf(JSONWebKey p_key) {
-		return new RSAKeyFactory(p_key);
-	}
+    public static RSAKeyFactory valueOf(JSONWebKey p_key) {
+        return new RSAKeyFactory(p_key);
+    }
 
-	@Override
-	public RSAPrivateKey getPrivateKey() {
-		return rsaPrivateKey;
-	}
+    @Override
+    public RSAPrivateKey getPrivateKey() {
+        return rsaPrivateKey;
+    }
 
-	@Override
-	public RSAPublicKey getPublicKey() {
-		return rsaPublicKey;
-	}
+    @Override
+    public RSAPublicKey getPublicKey() {
+        return rsaPublicKey;
+    }
 
-	@Override
-	public Certificate getCertificate() {
-		return certificate;
-	}
+    @Override
+    public Certificate getCertificate() {
+        return certificate;
+    }
+
 }

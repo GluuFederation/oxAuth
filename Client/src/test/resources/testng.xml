@@ -850,4 +850,5 @@
             <class name="org.gluu.oxauth.ws.rs.deviceauthz.DeviceAuthzFlowHttpTest"></class>
         </classes>
     </test>
+
 </suite>
