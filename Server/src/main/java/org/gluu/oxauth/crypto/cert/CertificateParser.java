@@ -19,8 +19,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.openssl.PEMParser;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 public class CertificateParser {
 
@@ -33,7 +34,7 @@ public class CertificateParser {
 				return null;
 			}
 
-			X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certificateHolder);
+			X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleFipsProvider.PROVIDER_NAME).getCertificate(certificateHolder);
 
 			return cert;
 		} catch (IOException ex) {
@@ -52,10 +53,6 @@ public class CertificateParser {
     }
 
     public static X509Certificate parseDer(InputStream is) throws CertificateException {
-        try {
-            return (X509Certificate) CertificateFactory.getInstance("X.509", "BC").generateCertificate(is);
-        } catch (NoSuchProviderException ex) {
-            throw new CertificateException(ex);
-        }
+            return (X509Certificate) CertificateFactory.getInstance("X.509", SecurityProviderUtility.getBCProvider(false)).generateCertificate(is);
     }
 }

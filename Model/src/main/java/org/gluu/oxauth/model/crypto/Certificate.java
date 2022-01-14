@@ -6,11 +6,16 @@
 
 package org.gluu.oxauth.model.crypto;
 
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.AsymmetricPublicKey;
+import org.bouncycastle.crypto.asymmetric.AsymmetricECPublicKey;
+import org.bouncycastle.crypto.asymmetric.AsymmetricRSAPublicKey;
+import org.bouncycastle.crypto.fips.FipsEC;
+import org.bouncycastle.crypto.fips.FipsRSA;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.RSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
@@ -19,6 +24,7 @@ import org.gluu.oxauth.model.util.StringUtils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 
 /**
@@ -37,16 +43,19 @@ public class Certificate {
 
     public PublicKey getPublicKey() {
         PublicKey publicKey = null;
-
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCRSAPublicKey) {
-            BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) x509Certificate.getPublicKey();
-
+        SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(x509Certificate.getPublicKey().getEncoded());
+        //TODO:check this instanceOf
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof RSAPublicKey) {
+        	
+        	AsymmetricRSAPublicKey jcersaPublicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM,subPubKeyInfo);
             publicKey = new RSAPublicKey(jcersaPublicKey.getModulus(), jcersaPublicKey.getPublicExponent());
-        } else if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCECPublicKey) {
-            BCECPublicKey jceecPublicKey = (BCECPublicKey) x509Certificate.getPublicKey();
+        } else if (x509Certificate != null && x509Certificate.getPublicKey() instanceof ECPublicKey) {
+        	
+        	
+        	AsymmetricECPublicKey jceecPublicKey = new AsymmetricECPublicKey(FipsEC.ALGORITHM, subPubKeyInfo);
 
-            publicKey = new ECDSAPublicKey(signatureAlgorithm, jceecPublicKey.getQ().getXCoord().toBigInteger(),
-                    jceecPublicKey.getQ().getYCoord().toBigInteger());
+            publicKey = new ECDSAPublicKey(signatureAlgorithm, jceecPublicKey.getW().getXCoord().toBigInteger(),
+                    jceecPublicKey.getW().getYCoord().toBigInteger());
         }
 
         return publicKey;
@@ -54,10 +63,11 @@ public class Certificate {
 
     public RSAPublicKey getRsaPublicKey() {
         RSAPublicKey rsaPublicKey = null;
-
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCRSAPublicKey) {
-            BCRSAPublicKey publicKey = (BCRSAPublicKey) x509Certificate.getPublicKey();
-
+        SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(x509Certificate.getPublicKey().getEncoded());
+        //TODO:check the lines below
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof RSAPublicKey) {
+        	
+        	AsymmetricRSAPublicKey publicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM,subPubKeyInfo);
             rsaPublicKey = new RSAPublicKey(publicKey.getModulus(), publicKey.getPublicExponent());
         }
 
@@ -66,12 +76,12 @@ public class Certificate {
 
     public ECDSAPublicKey getEcdsaPublicKey() {
         ECDSAPublicKey ecdsaPublicKey = null;
-
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCECPublicKey) {
-            BCECPublicKey publicKey = (BCECPublicKey) x509Certificate.getPublicKey();
-
-            ecdsaPublicKey = new ECDSAPublicKey(signatureAlgorithm, publicKey.getQ().getXCoord().toBigInteger(),
-                    publicKey.getQ().getYCoord().toBigInteger());
+        SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(x509Certificate.getPublicKey().getEncoded());
+        //TODO:check these lines below
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof ECPublicKey) {
+        	AsymmetricECPublicKey publicKey = new AsymmetricECPublicKey(FipsEC.ALGORITHM, subPubKeyInfo);
+            ecdsaPublicKey = new ECDSAPublicKey(signatureAlgorithm, publicKey.getW().getXCoord().toBigInteger(),
+                    publicKey.getW().getYCoord().toBigInteger());
         }
 
         return ecdsaPublicKey;

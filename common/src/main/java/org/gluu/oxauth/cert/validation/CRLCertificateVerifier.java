@@ -70,7 +70,7 @@ public class CRLCertificateVerifier implements CertificateVerifier {
 	private LoadingCache<String, X509CRL> crlCache;
 
 	public CRLCertificateVerifier(final int maxCrlSize) {
-		SecurityProviderUtility.installBCProvider(true);
+		SecurityProviderUtility.getBCProvider(true);
 
 		this.maxCrlSize = maxCrlSize;
 		

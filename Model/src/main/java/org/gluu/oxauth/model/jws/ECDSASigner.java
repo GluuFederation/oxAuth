@@ -6,8 +6,19 @@
 
 package org.gluu.oxauth.model.jws;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.impl.ECDSA;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.spec.ECGenParameterSpec;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
@@ -19,11 +30,11 @@ import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
 
-import java.io.UnsupportedEncodingException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.impl.ECDSA;
 
 /**
  * @author Javier Rojas Blum
@@ -62,13 +73,25 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         try {
-            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
-            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
+        	PrivateKey privateKey= null;
+        	// TODO: check this part
+			if (SecurityProviderUtility.hasFipsMode()) {
+				
+				ECGenParameterSpec ecSpec = new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName());
+				KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA");
+				g.initialize(ecSpec, new SecureRandom());
+				KeyPair keypair = g.generateKeyPair();
+				privateKey = keypair.getPrivate();
+			} else {
+				ECParameterSpec ecSpec = ECNamedCurveTable
+						.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
+				ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
-            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
-
-            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), "BC");
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
+				privateKey = keyFactory.generatePrivate(privateKeySpec);
+			}
+           
+            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -79,8 +102,6 @@ public class ECDSASigner extends AbstractJwsSigner {
             }
 
             return Base64Util.base64urlencode(signature);
-        } catch (InvalidKeySpecException e) {
-            throw new SignatureException(e);
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -132,20 +153,28 @@ public class ECDSASigner extends AbstractJwsSigner {
             }
             byte[] sigInBytes = signingInput.getBytes(Util.UTF8_STRING_ENCODING);
 
-            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curve);
-            ECPoint pointQ = ecSpec.getCurve().createPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
+			// TODO: how is this done?
+			PublicKey publicKey = null;
+			if (SecurityProviderUtility.hasFipsMode()) {
+				ECGenParameterSpec ecSpec = new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName());
+				KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA");
+				g.initialize(ecSpec, new SecureRandom());
+				KeyPair keypair = g.generateKeyPair();
+				publicKey = keypair.getPublic();
+			} else {
+				ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curve);
+				ECPoint pointQ = ecSpec.getCurve().createPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
 
-            ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
+				ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
-            PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
+				publicKey = keyFactory.generatePublic(publicKeySpec);
 
-            Signature sig = Signature.getInstance(algorithm, "BC");
+			}
+            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider(false).getName());
             sig.initVerify(publicKey);
             sig.update(sigInBytes);
             return sig.verify(sigBytes);
-        } catch (InvalidKeySpecException e) {
-            throw new SignatureException(e);
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
