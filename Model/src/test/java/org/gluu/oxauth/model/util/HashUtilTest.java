@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 public class HashUtilTest {
 
     static {
-        SecurityProviderUtility.installBCProvider(true);
+        SecurityProviderUtility.installBCProvider();
     }
 
     private static final String INPUT = "a308bb8f-25b0-4b1f-85a6-778698a35a43";

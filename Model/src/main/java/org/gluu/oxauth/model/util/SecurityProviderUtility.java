@@ -33,6 +33,8 @@ public class SecurityProviderUtility {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
 
+	public static boolean USE_FIPS_CHECK_COMMAND = false;
+
 	private static boolean isFipsMode = false;
 
 	private static Provider bouncyCastleProvider;
@@ -63,6 +65,10 @@ public class SecurityProviderUtility {
 					"Security provider '{}' doesn't exists in class path. Please deploy correct war for this environment!");
 			LOG.error(e.getMessage(), e);
 		}
+	}
+
+	public static void installBCProvider() {
+		installBCProvider(false);
 	}
 
 	public static void installBCProvider(String providerName, String providerClassName, boolean silent) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
@@ -97,19 +103,28 @@ public class SecurityProviderUtility {
 			return false;
 		}
 
-		try {
-			// Check if FIPS is enabled 
-			Process process = Runtime.getRuntime().exec("fips-mode-setup --check");
-			List<String> result = IOUtils.readLines(process.getInputStream(), StandardCharsets.UTF_8);
-			if ((result.size() > 0) && StringHelper.equalsIgnoreCase(result.get(0), "FIPS mode is enabled.")) {
-				return true;
+		if (USE_FIPS_CHECK_COMMAND) {
+			String osName = System.getProperty("os.name");
+			if (StringHelper.isNotEmpty(osName) && osName.toLowerCase().startsWith("windows")) {
+				return false;
 			}
-		} catch (IOException e) {
-			LOG.error("Failed to check if FIPS mode was enabled", e);
+
+			try {
+				// Check if FIPS is enabled 
+				Process process = Runtime.getRuntime().exec("fips-mode-setup --check");
+				List<String> result = IOUtils.readLines(process.getInputStream(), StandardCharsets.UTF_8);
+				if ((result.size() > 0) && StringHelper.equalsIgnoreCase(result.get(0), "FIPS mode is enabled.")) {
+					return true;
+				}
+			} catch (IOException e) {
+				LOG.error("Failed to check if FIPS mode was enabled", e);
+				return false;
+			}
+	
 			return false;
 		}
 
-		return false;
+		return true;
 	}
 
     /**

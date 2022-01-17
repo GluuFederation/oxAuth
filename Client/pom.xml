@@ -174,14 +174,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
             <scope>test</scope>
@@ -226,6 +218,52 @@
 	</dependencies>
 
 	<profiles>
+		<profile>
+			<id>generic-provider-libs</id>
+			<activation>
+                <activeByDefault>true</activeByDefault>
+				<property>
+					<name>!fips.enable</name>
+				</property>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>fips-provider-libs</id>
+			<activation>
+				<property>
+					<name>fips.enable</name>
+				</property>
+			</activation>
+
+			<dependencies>
+				<!-- Fips -->
+                <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bc-fips</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcpkix-fips</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcmail-fips</artifactId>
+                </dependency>
+			</dependencies>
+		</profile>
+
 		<profile>
 			<id>test-dependencies</id>
 			<activation>

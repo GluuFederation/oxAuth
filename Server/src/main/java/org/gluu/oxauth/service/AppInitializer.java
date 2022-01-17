@@ -187,7 +187,7 @@ public class AppInitializer {
 
 	@PostConstruct
 	public void createApplicationComponents() {
-		SecurityProviderUtility.installBCProvider(false);
+		SecurityProviderUtility.installBCProvider();
 	}
 
 	public void applicationInitialized(@Observes @Initialized(ApplicationScoped.class) Object init) {

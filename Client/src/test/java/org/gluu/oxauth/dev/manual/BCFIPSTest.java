@@ -13,7 +13,7 @@ public class BCFIPSTest {
 	public static void main(String a[]) throws NoSuchAlgorithmException
 	{
 		System.out.println("main");
-		SecurityProviderUtility.installBCProvider(false);
+		SecurityProviderUtility.installBCProvider();
 		
 		 // Security.setProperty("crypto.policy", "limited"); // uncomment to switch to limited crypto policies
         System.out.println("Check for unlimited crypto policies");
