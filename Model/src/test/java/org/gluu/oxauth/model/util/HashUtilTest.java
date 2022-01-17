@@ -1,12 +1,9 @@
 package org.gluu.oxauth.model.util;
 
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import static org.testng.Assert.assertEquals;
+
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.testng.annotations.Test;
-
-import java.security.Security;
-
-import static org.testng.Assert.assertEquals;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -14,7 +11,7 @@ import static org.testng.Assert.assertEquals;
 public class HashUtilTest {
 
     static {
-        Security.addProvider(new BouncyCastleFipsProvider());
+        SecurityProviderUtility.installBCProvider(true);
     }
 
     private static final String INPUT = "a308bb8f-25b0-4b1f-85a6-778698a35a43";

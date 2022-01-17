@@ -94,7 +94,12 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             this.keyStoreSecret = keyStoreSecret;
             this.dnName = dnName;
 
-            keyStore = KeyStore.getInstance("JKS");
+            if (SecurityProviderUtility.isFipsMode()) {
+    			keyStore = KeyStore.getInstance("BCFKS", "BCFIPS");
+            } else {
+                keyStore = KeyStore.getInstance("JKS");
+            }
+
             try {
                 File f = new File(keyStoreFile);
                 if (!f.exists()) {
