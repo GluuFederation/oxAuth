@@ -139,7 +139,7 @@ public abstract class BaseTest {
 
     @BeforeSuite
     public void initTestSuite(ITestContext context) throws IOException {
-        SecurityProviderUtility.getBCProvider(false);
+        SecurityProviderUtility.installBCProvider(false);
 
         Reporter.log("Invoked init test suite method \n", true);
 

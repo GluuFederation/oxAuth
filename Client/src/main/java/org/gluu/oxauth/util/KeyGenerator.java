@@ -168,9 +168,9 @@ public class KeyGenerator {
 					String dnName = cmd.getOptionValue(DN_NAME);
 
 					try {
-						SecurityProviderUtility.getBCProvider(true);
+						SecurityProviderUtility.installBCProvider(true);
 						AbstractCryptoProvider cryptoProvider;
-						if (SecurityProviderUtility.hasFipsMode()) {
+						if (SecurityProviderUtility.isFipsMode()) {
 							cryptoProvider = new OxAuthFIPSCryptoProvider(keystore, keypasswd, keypasswd, dnName);
 						} else {
 							cryptoProvider = new OxAuthCryptoProvider(keystore, keypasswd, dnName);

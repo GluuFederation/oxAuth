@@ -53,6 +53,6 @@ public class CertificateParser {
     }
 
     public static X509Certificate parseDer(InputStream is) throws CertificateException {
-            return (X509Certificate) CertificateFactory.getInstance("X.509", SecurityProviderUtility.getBCProvider(false)).generateCertificate(is);
+            return (X509Certificate) CertificateFactory.getInstance("X.509", SecurityProviderUtility.getBCProvider()).generateCertificate(is);
     }
 }

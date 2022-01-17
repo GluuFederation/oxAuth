@@ -6,177 +6,111 @@
 
 package org.gluu.oxauth.model.util;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
+import java.util.List;
 
 import javax.crypto.Cipher;
 
-import org.apache.log4j.Logger;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.status.StatusLogger;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.gluu.util.StringHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @author madhumitas
+ * Provider installation utility
  *
+ * @author Yuriy Movchan
+ * @author madhumitas
  */
 public class SecurityProviderUtility {
 
-	private static final Logger log ;
+	private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
 
-	private static boolean fipsMode = false;
+	private static boolean isFipsMode = false;
 
-	private static final String BASE_DIR;
-
-	static {
-		StatusLogger.getLogger().setLevel(Level.ALL);
-		log = Logger.getLogger(SecurityProviderUtility.class);
-	}
-	
 	private static Provider bouncyCastleProvider;
-	static {
-		if (System.getProperty("gluu.base") != null) {
-			BASE_DIR = System.getProperty("gluu.base");
-		} else if ((System.getProperty("catalina.base") != null)
-				&& (System.getProperty("catalina.base.ignore") == null)) {
-			BASE_DIR = System.getProperty("catalina.base");
-		} else if (System.getProperty("catalina.home") != null) {
-			BASE_DIR = System.getProperty("catalina.home");
-		} else if (System.getProperty("jboss.home.dir") != null) {
-			BASE_DIR = System.getProperty("jboss.home.dir");
-		} else {
-			BASE_DIR = null;
-		}
-	}
-	private static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
-	private static final String BASE_PROPERTIES_FILE = DIR + "gluu.properties";
 
-	public static Provider getBCProvider(boolean silent) {
-		String className = "org.bouncycastle.jce.provider.BouncyCastleProvider";
-		String providerName = "BC";
-		
-		fipsMode = checkFipsMode();
-		log.info("fipsMode - " + fipsMode);
-		System.out.println("fipsMode - " + fipsMode);
-		if (fipsMode) {
+	private static final String BC_GENERIC_PROVIDER_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+	private static final String BC_FIPS_PROVIDER_CLASS_NAME    = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
 
-			className = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
-			providerName = "BCFIPS";
+	public static void installBCProvider(boolean silent) {
+		String providerName = BouncyCastleProvider.PROVIDER_NAME;
+		String className = BC_GENERIC_PROVIDER_CLASS_NAME;
+
+		isFipsMode = checkFipsMode();
+		if (isFipsMode) {
+			LOG.info("Fips mode is enabled");
+
+			providerName = BouncyCastleFipsProvider.PROVIDER_NAME;
+			className = BC_FIPS_PROVIDER_CLASS_NAME;
 		}
-		Class<?> bouncyCastleProviderClass;
+
+//		// Remove current providers in case on web container restart 
+//		Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+//		Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
 		
 		try {
-			bouncyCastleProvider = (Provider) Class.forName(className).getConstructor().newInstance();
-			
-			
-			 Security.addProvider(bouncyCastleProvider);
-			/*
-			 * bouncyCastleProviderClass = Class.forName(className); if
-			 * (bouncyCastleProvider == null) { bouncyCastleProvider = (Provider)
-			 * Class.forName(className).getConstructor(Provider.class).newInstance();
-			 * //bouncyCastleProvider = bouncyCastleProvider = (Provider)
-			 * bouncyCastleProviderClass.newInstance();
-			 * Security.addProvider(bouncyCastleProvider); }
-			 */
-		} catch (IllegalArgumentException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		}   catch (SecurityException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			log.error(
-					"CLass loader doesnt contain correct jars. Please fix it by deploying the war with correct parameters");
-			log.error(e.getMessage(), e);
-			e.printStackTrace();
+			installBCProvider(providerName, className, silent);
+		} catch (Exception e) {
+			LOG.error(
+					"Security provider '{}' doesn't exists in class path. Please deploy correct war for this environment!");
+			LOG.error(e.getMessage(), e);
 		}
+	}
+
+	public static void installBCProvider(String providerName, String providerClassName, boolean silent) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
 		bouncyCastleProvider = Security.getProvider(providerName);
+		if (bouncyCastleProvider == null) {
+			if (!silent) {
+				LOG.info("Adding Bouncy Castle Provider");
+			}
 
-		return bouncyCastleProvider;
-
-	}
-
-	public static String getBCProviderName() {
-		return bouncyCastleProvider.getName();
-	}
-
-	public static boolean hasFipsMode() {
-		return fipsMode;
+			bouncyCastleProvider = (Provider) Class.forName(providerClassName).getConstructor().newInstance();
+			Security.addProvider(bouncyCastleProvider);
+			LOG.info("Provider '{}' with version {} is added", bouncyCastleProvider.getName(), bouncyCastleProvider.getVersionStr());
+		} else {
+			if (!silent) {
+				LOG.info("Bouncy Castle Provider was added already");
+			}
+		}
 	}
 
 	/**
 	 * A check that the server is running in FIPS-approved-only mode. This is a part
 	 * of compliance to ensure that the server is really FIPS compliant
 	 * 
-	 * @return
+	 * @return boolean value
 	 */
 	private static boolean checkFipsMode() {
+		try {
+			// First check if there are FIPS provider libs
+			Class.forName(BC_FIPS_PROVIDER_CLASS_NAME);
+		} catch (ClassNotFoundException e) {
+			LOG.trace("BC Fips provider is not available", e);
+			return false;
+		}
 
 		try {
+			// Check if FIPS is enabled 
 			Process process = Runtime.getRuntime().exec("fips-mode-setup --check");
-
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				if (line.equalsIgnoreCase("FIPS mode is enabled.")) {
-					return true;
-				}
+			List<String> result = IOUtils.readLines(process.getInputStream(), StandardCharsets.UTF_8);
+			if ((result.size() > 0) && StringHelper.equalsIgnoreCase(result.get(0), "FIPS mode is enabled.")) {
+				return true;
 			}
-
 		} catch (IOException e) {
-			log.error(e.getMessage(), e);
+			LOG.error("Failed to check if FIPS mode was enabled", e);
 			return false;
 		}
 
 		return false;
 	}
-
-	public static void main(String a[]) throws NoSuchAlgorithmException
-	{
-		System.out.println("main");
-		SecurityProviderUtility.getBCProvider(false);
-		
-		 // Security.setProperty("crypto.policy", "limited"); // uncomment to switch to limited crypto policies
-        System.out.println("Check for unlimited crypto policies");
-        System.out.println("Java version: " + Runtime.version());
-        //Security.setProperty("crypto.policy", "limited"); // muss ganz am anfang gesetzt werden !
-        System.out.println("restricted cryptography: " + restrictedCryptography() + " Notice: 'false' means unlimited policies"); // false mean unlimited crypto
-        System.out.println("Security properties: " + Security.getProperty("crypto.policy"));
-        int maxKeyLen = Cipher.getMaxAllowedKeyLength("AES");
-        System.out.println("Max AES key length = " + maxKeyLen);
-    }
 
     /**
      * Determines if cryptography restrictions apply.
@@ -186,7 +120,7 @@ public class SecurityProviderUtility {
      * @return <code>true</code> if restrictions apply, <code>false</code> otherwise
      * https://stackoverflow.com/posts/33849265/edit, author Maarten Bodewes
      */
-    public static boolean restrictedCryptography() {
+    public static boolean checkRestrictedCryptography() {
         try {
             return Cipher.getMaxAllowedKeyLength("AES/CBC/PKCS5Padding") < Integer.MAX_VALUE;
         } catch (final NoSuchAlgorithmException e) {
@@ -194,5 +128,16 @@ public class SecurityProviderUtility {
         }
     }
 
-	
+	public static String getBCProviderName() {
+		return bouncyCastleProvider.getName();
+	}
+
+	public static Provider getBCProvider() {
+		return bouncyCastleProvider;
+	}
+
+	public static boolean isFipsMode() {
+		return isFipsMode;
+	}
+
 }

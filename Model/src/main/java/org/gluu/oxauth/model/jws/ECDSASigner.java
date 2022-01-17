@@ -75,7 +75,7 @@ public class ECDSASigner extends AbstractJwsSigner {
         try {
         	PrivateKey privateKey= null;
         	// TODO: check this part
-			if (SecurityProviderUtility.hasFipsMode()) {
+			if (SecurityProviderUtility.isFipsMode()) {
 				
 				ECGenParameterSpec ecSpec = new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName());
 				KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA");
@@ -87,11 +87,11 @@ public class ECDSASigner extends AbstractJwsSigner {
 						.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
 				ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
 
-				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
 				privateKey = keyFactory.generatePrivate(privateKeySpec);
 			}
            
-            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
+            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -105,8 +105,6 @@ public class ECDSASigner extends AbstractJwsSigner {
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
-            throw new SignatureException(e);
-        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);
@@ -155,7 +153,7 @@ public class ECDSASigner extends AbstractJwsSigner {
 
 			// TODO: how is this done?
 			PublicKey publicKey = null;
-			if (SecurityProviderUtility.hasFipsMode()) {
+			if (SecurityProviderUtility.isFipsMode()) {
 				ECGenParameterSpec ecSpec = new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName());
 				KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA");
 				g.initialize(ecSpec, new SecureRandom());
@@ -167,19 +165,17 @@ public class ECDSASigner extends AbstractJwsSigner {
 
 				ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
 
-				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider(false).getName());
+				KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
 				publicKey = keyFactory.generatePublic(publicKeySpec);
 
 			}
-            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider(false).getName());
+            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider());
             sig.initVerify(publicKey);
             sig.update(sigInBytes);
             return sig.verify(sigBytes);
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
-            throw new SignatureException(e);
-        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);

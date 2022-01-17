@@ -19,6 +19,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.gluu.oxauth.crypto.random.ChallengeGenerator;
 import org.gluu.oxauth.crypto.signature.SHA256withECDSASignatureVerification;
@@ -35,10 +36,14 @@ import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequestMessage;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateResponse;
 import org.gluu.oxauth.model.fido.u2f.protocol.ClientData;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.persist.reflect.property.Setter;
+import org.gluu.persist.reflect.util.ReflectHelper;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
+import org.gluu.util.io.ByteDataInputStream;
 import org.slf4j.Logger;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
@@ -167,7 +172,7 @@ public class AuthenticationService extends RequestService {
                 Base64Util.base64urldecode(usedDeviceRegistration.getDeviceRegistrationConfiguration().getPublicKey()));
         rawAuthenticateResponse.checkUserPresence();
 
-        log.debug("Counter in finish authentication request'{}', countr in database '{}'", rawAuthenticateResponse.getCounter(), usedDeviceRegistration.getCounter());
+        log.debug("Counter in finish authentication request'{}', counter in database '{}'", rawAuthenticateResponse.getCounter(), usedDeviceRegistration.getCounter());
         usedDeviceRegistration.checkAndUpdateCounter(rawAuthenticateResponse.getCounter());
 
         usedDeviceRegistration.setLastAccessTime(new Date());
@@ -267,5 +272,6 @@ public class AuthenticationService extends RequestService {
 
         return String.format("oxid=%s,ou=authentication_requests,%s", oxId, u2fBaseDn);
     }
+    
 
 }

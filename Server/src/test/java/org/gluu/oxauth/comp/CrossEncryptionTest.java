@@ -404,7 +404,7 @@ public class CrossEncryptionTest {
             public String sign(String signingInput, String keyId, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception {
                 RSAPrivateKey privateKey = ((RSAKey) JWK.parse(senderJwkJson)).toRSAPrivateKey();
 
-                Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getBCProvider(false).getName());
+                Signature signature = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getBCProvider());
                 signature.initSign(privateKey);
                 signature.update(signingInput.getBytes());
 

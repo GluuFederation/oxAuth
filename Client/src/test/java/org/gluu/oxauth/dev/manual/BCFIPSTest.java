@@ -1,4 +1,4 @@
-package org.gluu.oxauth.util;
+package org.gluu.oxauth.dev.manual;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
@@ -13,7 +13,7 @@ public class BCFIPSTest {
 	public static void main(String a[]) throws NoSuchAlgorithmException
 	{
 		System.out.println("main");
-		SecurityProviderUtility.getBCProvider(false);
+		SecurityProviderUtility.installBCProvider(false);
 		
 		 // Security.setProperty("crypto.policy", "limited"); // uncomment to switch to limited crypto policies
         System.out.println("Check for unlimited crypto policies");

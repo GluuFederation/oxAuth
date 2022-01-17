@@ -27,7 +27,7 @@ import org.python.icu.util.Calendar;
  */
 public class KeyGenerator {
     public static void main(String[] args) throws Exception {
-        SecurityProviderUtility.getBCProvider(true);
+        SecurityProviderUtility.installBCProvider(true);
 
         Calendar cal = Calendar.getInstance();
         Date startDate = cal.getTime();

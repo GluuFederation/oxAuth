@@ -89,7 +89,7 @@ public class KeyExporter {
 					String exportFile = cmd.getOptionValue(EXPORT_FILE);
 
 					try {
-						SecurityProviderUtility.getBCProvider(true);
+						SecurityProviderUtility.installBCProvider(true);
 
 						OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keyStore, keyStorePasswd,
 								"CN=oxAuth CA Certificates");

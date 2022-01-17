@@ -54,17 +54,17 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
     @Deprecated
     public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
             throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
-            InvalidKeyException, CertificateEncodingException, CertificateException {
+            InvalidKeyException, CertificateEncodingException, CertificateException, OperatorCreationException {
         if (signatureAlgorithm == null) {
             throw new InvalidParameterException("The signature algorithm cannot be null");
         }
 
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", SecurityProviderUtility.getBCProvider(false).getName());
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", SecurityProviderUtility.getBCProvider());
         keyGen.initialize(DEF_KEYLENGTH, new SecureRandom());
 
         KeyPair keyPair = keyGen.generateKeyPair();
 
-    if (SecurityProviderUtility.hasFipsMode()) {
+    if (SecurityProviderUtility.isFipsMode()) {
 			AsymmetricRSAPrivateKey jcersaPrivateCrtKey = new AsymmetricRSAPrivateKey(FipsRSA.ALGORITHM,
 					keyPair.getPrivate().getEncoded());
 			AsymmetricRSAPublicKey jcersaPublicKey = new AsymmetricRSAPublicKey(FipsRSA.ALGORITHM,
@@ -122,7 +122,7 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
             certGen.setPublicKey(keyPair.getPublic());
             certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-            X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProvider(false).getName());
+            X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProviderName());
             certificate = new Certificate(signatureAlgorithm, x509Certificate);
         }
     }
