@@ -134,6 +134,9 @@ public class CorsFilter extends AbstractCorsFilter {
                 if (authorizedOriginsArray != null && authorizedOriginsArray.length > 0) {
                     List<String> clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
                     setAllowedOrigins(clientAuthorizedOrigins);
+                    if (log.isTraceEnabled()) {
+                        log.trace("Set allowed origins from client {}", clientAuthorizedOrigins);
+                    }
                 }
             }
         } else {
@@ -158,6 +161,9 @@ public class CorsFilter extends AbstractCorsFilter {
                         if (authorizedOriginsArray != null && authorizedOriginsArray.length > 0) {
                             List<String> clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
                             setAllowedOrigins(clientAuthorizedOrigins);
+                            if (log.isTraceEnabled()) {
+                                log.trace("Set allowed origins from client {}", clientAuthorizedOrigins);
+                            }
                         }
                     }
                 }
