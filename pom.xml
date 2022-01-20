@@ -99,6 +99,7 @@
 		<module>oxAuthStatic</module>
 		<module>common</module>
 		<module>Server</module>
+		<module>server-fips</module>
   </modules>
 
 	<dependencyManagement>

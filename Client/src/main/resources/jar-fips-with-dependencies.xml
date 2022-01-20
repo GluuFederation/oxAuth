@@ -1,0 +1,43 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+
+	<id>jar-fips-with-dependencies</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<unpack>true</unpack>
+			<scope>compile</scope>
+			<excludes>
+			  <exclude>org.bouncycastle:bcpkix-jdk15on</exclude>
+			  <exclude>org.bouncycastle:bcprov-jdk15on</exclude>
+			  <exclude>org.bouncycastle:bcutil-jdk15on</exclude>
+			</excludes>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<unpack>true</unpack>
+			<scope>compile</scope>
+			<includes>
+			  <include>org.bouncycastle:bc-fips</include>
+			  <include>org.bouncycastle:bcpkix-fips</include>
+			  <include>org.bouncycastle:bcmail-fips</include>
+			</includes>
+	   </dependencySet>
+	</dependencySets>
+
+	<fileSets>
+	  <fileSet>
+		<outputDirectory>/</outputDirectory>
+		<directory>${project.build.outputDirectory}</directory>
+	  </fileSet>
+	</fileSets>
+</assembly>
