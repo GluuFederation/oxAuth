@@ -14,7 +14,7 @@
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>false</useProjectArtifact>
 			<unpack>true</unpack>
-			<scope>compile</scope>
+			<scope>runtime</scope>
 			<excludes>
 			  <exclude>org.bouncycastle:bcpkix-jdk15on</exclude>
 			  <exclude>org.bouncycastle:bcprov-jdk15on</exclude>
