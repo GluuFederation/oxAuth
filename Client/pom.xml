@@ -121,7 +121,7 @@
 						<configuration>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
-								<descriptor>src/main/resources/jar-fips-with-dependencies.xml</descriptor>
+								<descriptor>src/main/resources/jar-without-provider-dependencies.xml</descriptor>
 							</descriptors>
 							<archive>
 								<manifest>
@@ -136,7 +136,7 @@
 									<include>org.bouncycastle:bc-fips</include>
 								</includes>
 							</resource>
-							<finalName>${project.artifactId}-fips-jar-with-dependencies</finalName>
+							<finalName>${project.artifactId}-jar-without-provider-dependencies</finalName>
 						</configuration>
 					</execution>
 				</executions>

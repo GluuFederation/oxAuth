@@ -3,7 +3,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 
-	<id>jar-fips-with-dependencies</id>
+	<id>jar-without-provider-dependencies</id>
 	<formats>
 		<format>jar</format>
 	</formats>
@@ -21,6 +21,7 @@
 			  <exclude>org.bouncycastle:bcutil-jdk15on</exclude>
 			</excludes>
 		</dependencySet>
+<!-- Not work because BC FIPS check checksum
 		<dependencySet>
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>false</useProjectArtifact>
@@ -32,6 +33,7 @@
 			  <include>org.bouncycastle:bcmail-fips</include>
 			</includes>
 	   </dependencySet>
+-->
 	</dependencySets>
 
 	<fileSets>
