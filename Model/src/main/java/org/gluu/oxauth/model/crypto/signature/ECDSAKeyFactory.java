@@ -15,6 +15,7 @@ import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.KeyFactory;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;
@@ -52,7 +53,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
 
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(signatureAlgorithm.getCurve().getName());
 
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
         keyGen.initialize(ecSpec, new SecureRandom());
 
         this.keyPair = keyGen.generateKeyPair();
@@ -84,7 +85,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
             certGen.setPublicKey(keyPair.getPublic());
             certGen.setSignatureAlgorithm("SHA256WITHECDSA");
 
-            X509Certificate x509Certificate = certGen.generate(privateKeySpec, "BC");
+            X509Certificate x509Certificate = certGen.generate(privateKeySpec, SecurityProviderUtility.getBCProviderName());
             this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
         }
     }
@@ -104,7 +105,7 @@ public class ECDSAKeyFactory extends KeyFactory<ECDSAPrivateKey, ECDSAPublicKey>
         certGen.setPublicKey(keyPair.getPublic());
         certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
 
-        X509Certificate x509Certificate = certGen.generate(keyPair.getPrivate(), "BC");
+        X509Certificate x509Certificate = certGen.generate(keyPair.getPrivate(), SecurityProviderUtility.getBCProviderName());
         return new Certificate(signatureAlgorithm, x509Certificate);
     }
 

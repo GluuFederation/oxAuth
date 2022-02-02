@@ -19,6 +19,7 @@ import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
 
 import java.io.UnsupportedEncodingException;
@@ -65,10 +66,10 @@ public class ECDSASigner extends AbstractJwsSigner {
             ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
             ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 
-            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), "BC");
+            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -84,8 +85,6 @@ public class ECDSASigner extends AbstractJwsSigner {
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
-            throw new SignatureException(e);
-        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);
