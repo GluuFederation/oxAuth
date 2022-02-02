@@ -62,6 +62,7 @@ public class RawAuthenticationService {
 				rawAuthenticateResponse.getCounter(), signatureVerification.hash(rawClientData));
 
 		log.debug("Packed bytes to sign in HEX '{}'", Hex.encodeHexString(signedBytes));
+		log.debug("Signature from authentication response in HEX '{}'", Hex.encodeHexString(rawAuthenticateResponse.getSignature()));
 		try {
 			boolean isValid = signatureVerification.checkSignature(signatureVerification.decodePublicKey(publicKey), signedBytes, rawAuthenticateResponse.getSignature());
 			if (!isValid) {
