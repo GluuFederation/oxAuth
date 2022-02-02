@@ -262,11 +262,6 @@
 			<artifactId>bcpkix-fips</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
 
 		<!-- Logging -->
 		<dependency>
@@ -366,11 +361,7 @@
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>bcpkix-fips</artifactId>
                 </dependency>
-                <dependency>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcmail-fips</artifactId>
-                </dependency>
-			</dependencies>
+		</dependencies>
 		</profile>
 
 		<profile>

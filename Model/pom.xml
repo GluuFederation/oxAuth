@@ -148,11 +148,6 @@
 			<artifactId>bcpkix-fips</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>com.nimbusds</groupId>
