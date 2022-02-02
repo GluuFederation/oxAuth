@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.util.StringUtils;
-import org.gluu.oxauth.model.crypto.signature.RSAKeyFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,37 +18,33 @@ import java.util.List;
  * Identifies the cryptographic algorithm used with the key.
  *
  * @author Javier Rojas Blum
- * @author Sergey Manoylo
- * @version December 17, 2021
+ * @version February 12, 2019
  */
-@SuppressWarnings("java:S1874")
 public enum Algorithm {
 
     // Signature
-    RS256("RS256", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    RS384("RS384", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    RS512("RS512", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    ES256("ES256", Use.SIGNATURE, AlgorithmFamily.EC, 256),
-    ES384("ES384", Use.SIGNATURE, AlgorithmFamily.EC, 384),
-    ES512("ES512", Use.SIGNATURE, AlgorithmFamily.EC, 528),
-    PS256("PS256", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    PS384("PS384", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    PS512("PS512", Use.SIGNATURE, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
+    RS256("RS256", Use.SIGNATURE, AlgorithmFamily.RSA),
+    RS384("RS384", Use.SIGNATURE, AlgorithmFamily.RSA),
+    RS512("RS512", Use.SIGNATURE, AlgorithmFamily.RSA),
+    ES256("ES256", Use.SIGNATURE, AlgorithmFamily.EC),
+    ES384("ES384", Use.SIGNATURE, AlgorithmFamily.EC),
+    ES512("ES512", Use.SIGNATURE, AlgorithmFamily.EC),
+    PS256("PS256", Use.SIGNATURE, AlgorithmFamily.RSA),
+    PS384("PS384", Use.SIGNATURE, AlgorithmFamily.RSA),
+    PS512("PS512", Use.SIGNATURE, AlgorithmFamily.RSA),
 
     // Encryption
-    RSA1_5("RSA1_5", Use.ENCRYPTION, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH),
-    RSA_OAEP("RSA-OAEP", Use.ENCRYPTION, AlgorithmFamily.RSA, RSAKeyFactory.DEF_KEYLENGTH);
+    RSA1_5("RSA1_5", Use.ENCRYPTION, AlgorithmFamily.RSA),
+    RSA_OAEP("RSA-OAEP", Use.ENCRYPTION, AlgorithmFamily.RSA);
 
     private final String paramName;
     private final Use use;
     private final AlgorithmFamily family;
-    private final int keyLength;
 
-    Algorithm(String paramName, Use use, AlgorithmFamily family, int keyLength) {
+    Algorithm(String paramName, Use use, AlgorithmFamily family) {
         this.paramName = paramName;
         this.use = use;
         this.family = family;
-        this.keyLength = keyLength;	// bits
     }
 
     public String getParamName() {
@@ -62,10 +57,6 @@ public enum Algorithm {
 
     public AlgorithmFamily getFamily() {
         return family;
-    }
-
-    public int getKeyLength() {
-        return keyLength;
     }
 
     /**
