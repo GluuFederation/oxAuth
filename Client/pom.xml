@@ -53,6 +53,52 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>install-main-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}.jar</file>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>install-jar-with-dependencies-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}-jar-with-dependencies</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}-jar-with-dependencies.jar</file>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>install-jar-without-provider-dependencies-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}-jar-without-provider-dependencies</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}-jar-without-provider-dependencies.jar</file>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -90,7 +136,7 @@
 				<version>3.3.0</version>
 				<executions>
 					<execution>
-						<id>generic-standalone-jar</id>
+						<id>assembly-jar-with-dependencies-artifact</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -113,7 +159,7 @@
 					</execution>
 
 					<execution>
-						<id>fips-standalone-jar</id>
+						<id>assembly-jar-without-provider-dependencies-artifact</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -121,7 +167,7 @@
 						<configuration>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
-								<descriptor>src/main/resources/jar-without-provider-dependencies.xml</descriptor>
+								<descriptor>src/main/assembly/jar-without-provider-dependencies.xml</descriptor>
 							</descriptors>
 							<archive>
 								<manifest>
@@ -131,11 +177,6 @@
 									<Multi-Release>true</Multi-Release>
 								</manifestEntries>
 							</archive>
-							<resource>
-								<includes>
-									<include>org.bouncycastle:bc-fips</include>
-								</includes>
-							</resource>
 							<finalName>${project.artifactId}-jar-without-provider-dependencies</finalName>
 						</configuration>
 					</execution>
