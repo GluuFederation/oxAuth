@@ -24,7 +24,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility;
 
 /**
  * Export private key from JKS Command example: java -cp

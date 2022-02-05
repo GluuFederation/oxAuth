@@ -15,8 +15,8 @@ import org.gluu.oxauth.model.crypto.signature.RSAPrivateKey;
 import org.gluu.oxauth.model.crypto.signature.RSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
+import org.gluu.util.security.SecurityProviderUtility;
 
 /**
  * @author Javier Rojas Blum

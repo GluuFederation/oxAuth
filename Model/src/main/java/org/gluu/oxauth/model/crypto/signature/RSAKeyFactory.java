@@ -13,7 +13,7 @@ import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.KeyFactory;
 import org.gluu.oxauth.model.jwk.JSONWebKey;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility;
 
 import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;

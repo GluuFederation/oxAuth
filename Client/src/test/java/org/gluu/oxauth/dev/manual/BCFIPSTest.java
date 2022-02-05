@@ -5,7 +5,7 @@ import java.security.Security;
 
 import javax.crypto.Cipher;
 
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility;
 
 
 public class BCFIPSTest {

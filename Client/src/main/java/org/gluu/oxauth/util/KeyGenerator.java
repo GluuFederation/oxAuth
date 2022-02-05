@@ -39,9 +39,9 @@ import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.model.jwk.KeyType;
 import org.gluu.oxauth.model.jwk.Use;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.util.StringHelper;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

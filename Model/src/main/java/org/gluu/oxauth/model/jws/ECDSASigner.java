@@ -19,8 +19,8 @@ import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
+import org.gluu.util.security.SecurityProviderUtility;
 
 import java.io.UnsupportedEncodingException;
 import java.security.*;
