@@ -69,6 +69,7 @@ public class KeyGenerator {
     private static final String EXPIRATION = "expiration";
     private static final String EXPIRATION_HOURS = "expiration_hours";
     private static final String KEY_LENGTH = "key_length";
+    private static final String KEYS_READ = "keys_read";
     private static final String HELP = "h";
     private static final Logger log;
 
@@ -106,6 +107,7 @@ public class KeyGenerator {
             options.addOption(EXPIRATION, true, "Expiration in days.");
             options.addOption(EXPIRATION_HOURS, true, "Expiration in hours.");
             options.addOption(KEY_LENGTH, true, "Key length");
+            options.addOption(KEYS_READ, false, "Keys read");
             options.addOption(HELP, false, "Show help.");
         }
 
@@ -118,6 +120,30 @@ public class KeyGenerator {
 
                 if (cmd.hasOption(HELP)) {
                     help();
+                }
+
+                if(cmd.hasOption(KEYS_READ) && cmd.hasOption(KEY_STORE_FILE) && cmd.hasOption(KEY_STORE_PASSWORD) && cmd.hasOption(DN_NAME)) {
+
+                    String keystore = cmd.getOptionValue(KEY_STORE_FILE);
+                    String keypasswd = cmd.getOptionValue(KEY_STORE_PASSWORD);
+                    String dnName = cmd.getOptionValue(DN_NAME);
+
+                    try {
+                        SecurityProviderUtility.installBCProvider(true);
+                        OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keystore, keypasswd, dnName);
+                        System.out.println("Keys:");
+                        System.out.println("------------------------------------------------------ >>");
+                        List<String> keys = cryptoProvider.getKeys();
+                        for(String key: keys) {
+                            System.out.println("key = " + key);
+                        }
+                        System.out.println("------------------------------------------------------ <<");
+
+                    } catch (Exception e) {
+                        log.error("Failed to read keys", e);
+                    }
+
+                    System.exit(0);
                 }
 
                 if (!((cmd.hasOption(SIGNING_KEYS) || cmd.hasOption(ENCRYPTION_KEYS))

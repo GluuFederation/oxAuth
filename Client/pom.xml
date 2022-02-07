@@ -239,6 +239,33 @@
 			<artifactId>httpcore</artifactId>
 		</dependency>
 
+		<!-- Bouncycastle Fips -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bc-fips</artifactId>
+			<scope>provided</scope>
+		</dependency>
+<!--
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>bc-fips</artifactId>
+			<version>4.4.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+-->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-fips</artifactId>
+			<scope>provided</scope>
+		</dependency>
+<!--
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>bcpkix-fips</artifactId>
+			<version>4.4.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+-->
 		<!-- Bouncycastle -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
@@ -248,18 +275,6 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk15on</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Bouncycastle Fips -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bc-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-fips</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -325,7 +340,6 @@
 		<profile>
 			<id>generic-provider-libs</id>
 			<activation>
-                <activeByDefault>true</activeByDefault>
 				<property>
 					<name>!fips.enable</name>
 				</property>
@@ -346,6 +360,7 @@
 		<profile>
 			<id>fips-provider-libs</id>
 			<activation>
+                <activeByDefault>true</activeByDefault>
 				<property>
 					<name>fips.enable</name>
 				</property>
@@ -353,8 +368,14 @@
 
 			<dependencies>
 				<!-- Fips -->
+<!--
                 <dependency>
                     <groupId>org.bouncycastle</groupId>
+                    <artifactId>bc-fips</artifactId>
+                </dependency>
+-->
+                <dependency>
+                    <groupId>org.gluu</groupId>
                     <artifactId>bc-fips</artifactId>
                 </dependency>
                 <dependency>
