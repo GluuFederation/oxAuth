@@ -22,7 +22,7 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.gluu.oxauth.model.exception.SignatureException;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility;
 
 @Named
 public class SHA256withECDSASignatureVerification implements SignatureVerification {

@@ -3,6 +3,7 @@ package org.gluu.oxauth.model.util;
 import static org.testng.Assert.assertEquals;
 
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.testng.annotations.Test;
 
 /**
