@@ -116,7 +116,7 @@ class PersonAuthentication(PersonAuthenticationType):
             user_name = credentials.getUsername()
             user_password = credentials.getPassword()
 	    identity.setWorkingParameter("platformAuthenticatorAvailable",ServerUtil.getFirstValue(requestParameters, "loginForm:platformAuthenticator"))
-  
+
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
 
                 foundUser = userService.getUserByAttribute(self.uid_attr, user_name)
@@ -302,7 +302,9 @@ class PersonAuthentication(PersonAuthenticationType):
         config = GluuConfiguration()
         config = entryManager.find(config.getClass(), "ou=configuration,o=gluu")
         #Pick (one) attribute where user id is stored (e.g. uid/mail)
-        uid_attr = config.getOxIDPAuthentication().get(0).getConfig().getPrimaryKey()
+        # primary_key is the primary attribute of backend AD / LDAP ( i.e. for all Active directories, primary_key is samAccountName ).
+        # local_primary_key is Gluu’s OpenDJ primary key ( which is UID )
+        uid_attr = config.getOxIDPAuthentication().get(0).getConfig().getLocalPrimaryKey()
         print "Casa. init. uid attribute is '%s'" % uid_attr
         return uid_attr
 
@@ -374,26 +376,26 @@ class PersonAuthentication(PersonAuthenticationType):
 
 
     def prepareUIParams(self, identity):
-        
+
         print "Casa. prepareUIParams. Reading UI branding params"
         cacheService = CdiUtil.bean(CacheService)
         casaAssets = cacheService.get("casa_assets")
-            
+
         if casaAssets == None:
-            #This may happen when cache type is IN_MEMORY, where actual cache is merely a local variable 
+            #This may happen when cache type is IN_MEMORY, where actual cache is merely a local variable
             #(a expiring map) living inside Casa webapp, not oxAuth webapp
-            
+
             sets = self.getSettings()
-            
+
             custPrefix = "/custom"
             logoUrl = "/images/logo.png"
             faviconUrl = "/images/favicon.ico"
             if ("extra_css" in sets and sets["extra_css"] != None) or sets["use_branding"]:
                 logoUrl = custPrefix + logoUrl
                 faviconUrl = custPrefix + faviconUrl
-            
+
             prefix = custPrefix if sets["use_branding"] else ""
-            
+
             casaAssets = {
                 "contextPath": "/casa",
                 "prefix" : prefix,
@@ -401,7 +403,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 "extraCss": sets["extra_css"] if "extra_css" in sets else None,
                 "logoUrl": logoUrl
             }
-        
+
         #Setting a single variable with the whole map does not work...
         identity.setWorkingParameter("casa_contextPath", casaAssets['contextPath'])
         identity.setWorkingParameter("casa_prefix", casaAssets['prefix'])
@@ -665,7 +667,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return None
 
-        
+
     def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
         print "Get external logout URL call"
         return None
