@@ -6,13 +6,23 @@
 
 package org.gluu.oxauth.model.jws;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.impl.ECDSA;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
+import java.io.UnsupportedEncodingException;
+import java.security.AlgorithmParameters;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPrivateKeySpec;
+import java.security.spec.ECPublicKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
@@ -22,9 +32,8 @@ import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.util.security.SecurityProviderUtility;
 
-import java.io.UnsupportedEncodingException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.impl.ECDSA;
 
 /**
  * @author Javier Rojas Blum
@@ -63,8 +72,11 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         try {
-            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
-            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
+            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+
+            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecParameters);
 
             KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
@@ -130,16 +142,18 @@ public class ECDSASigner extends AbstractJwsSigner {
                 sigBytes = ECDSA.transcodeSignatureToDER(sigBytes);
             }
             byte[] sigInBytes = signingInput.getBytes(Util.UTF8_STRING_ENCODING);
+            
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
+            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
 
-            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curve);
-            ECPoint pointQ = ecSpec.getCurve().createPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
+            ECPoint pubPoint = new ECPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
+            KeySpec publicKeySpec = new ECPublicKeySpec(pubPoint, ecParameters);
 
-            ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
-
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
             PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
 
-            Signature sig = Signature.getInstance(algorithm, "BC");
+            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider());
             sig.initVerify(publicKey);
             sig.update(sigInBytes);
             return sig.verify(sigBytes);
@@ -148,8 +162,6 @@ public class ECDSASigner extends AbstractJwsSigner {
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
-            throw new SignatureException(e);
-        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);
