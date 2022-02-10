@@ -1,0 +1,10 @@
+SecurityProviderUtility.isFipsMode() = true
+Keys:
+------------------------------------------------------ >>
+key = 89b9f51e-7c3f-41d9-b822-171b7607ed0c_sig_rs384
+key = 4e2534da-52a9-46f6-916a-5cbf8feffca8_sig_rs512
+key = 9d01573b-f36c-4cbc-aac5-d9f7ba7e4b50_sig_es512
+key = 24ee8d97-3457-4a1f-bf87-ac9151ef1ddc_sig_es256
+key = a7ee42b9-133f-4230-96fb-c56089cdca8b_sig_es384
+key = 07a301dd-5cd4-46ac-920e-694fb425677d_sig_rs256
+------------------------------------------------------ <<
