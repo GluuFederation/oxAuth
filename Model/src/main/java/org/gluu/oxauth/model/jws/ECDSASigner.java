@@ -72,13 +72,13 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         try {
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", SecurityProviderUtility.getBCProvider());
             parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
             ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
 
             ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecParameters);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("EC", SecurityProviderUtility.getBCProvider());
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 
             Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
@@ -143,14 +143,14 @@ public class ECDSASigner extends AbstractJwsSigner {
             }
             byte[] sigInBytes = signingInput.getBytes(Util.UTF8_STRING_ENCODING);
             
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", SecurityProviderUtility.getBCProvider());
             parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
             ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
 
             ECPoint pubPoint = new ECPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
             KeySpec publicKeySpec = new ECPublicKeySpec(pubPoint, ecParameters);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("EC", SecurityProviderUtility.getBCProvider());
             PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
 
             Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider());
