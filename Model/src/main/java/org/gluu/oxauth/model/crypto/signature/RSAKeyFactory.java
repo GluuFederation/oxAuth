@@ -7,22 +7,39 @@
 package org.gluu.oxauth.model.crypto.signature;
 
 import org.apache.commons.lang.StringUtils;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
-import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.KeyFactory;
 import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.util.security.SecurityProviderUtility;
 
-import javax.security.auth.x500.X500Principal;
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.CertificateEncodingException;
+import sun.security.x509.AlgorithmId;
+import sun.security.x509.CertificateAlgorithmId;
+import sun.security.x509.CertificateSerialNumber;
+import sun.security.x509.CertificateValidity;
+import sun.security.x509.CertificateVersion;
+import sun.security.x509.CertificateX509Key;
+import sun.security.x509.X500Name;
+import sun.security.x509.X509CertImpl;
+import sun.security.x509.X509CertInfo;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Random;
 
 /**
  * Factory to create asymmetric Public and Private Keys for the RSA algorithm
@@ -30,8 +47,14 @@ import java.util.Random;
  * @author Javier Rojas Blum
  * @version June 15, 2016
  */
+@SuppressWarnings("restriction")
 @Deprecated
 public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
+
+    public static final int DEF_KEYLENGTH = 2048;
+
+    private SignatureAlgorithm signatureAlgorithm;
+    private KeyPair keyPair;
 
     private RSAPrivateKey rsaPrivateKey;
     private RSAPublicKey rsaPublicKey;
@@ -40,18 +63,20 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
     @Deprecated
     public RSAKeyFactory(SignatureAlgorithm signatureAlgorithm, String dnName)
             throws InvalidParameterException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException,
-            InvalidKeyException, CertificateEncodingException {
+            InvalidKeyException, CertificateException, InvalidAlgorithmParameterException, IOException {
         if (signatureAlgorithm == null) {
             throw new InvalidParameterException("The signature algorithm cannot be null");
         }
 
+        this.signatureAlgorithm = signatureAlgorithm;
+
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", SecurityProviderUtility.getBCProvider());
         keyGen.initialize(2048, new SecureRandom());
 
-        KeyPair keyPair = keyGen.generateKeyPair();
+        keyPair = keyGen.generateKeyPair();
 
-        BCRSAPrivateCrtKey jcersaPrivateCrtKey = (BCRSAPrivateCrtKey) keyPair.getPrivate();
-        BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) keyPair.getPublic();
+        java.security.interfaces.RSAPrivateKey jcersaPrivateCrtKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
+        java.security.interfaces.RSAPublicKey jcersaPublicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
 
         rsaPrivateKey = new RSAPrivateKey(jcersaPrivateCrtKey.getModulus(),
                 jcersaPrivateCrtKey.getPrivateExponent());
@@ -60,26 +85,14 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
                 jcersaPublicKey.getPublicExponent());
 
         if (StringUtils.isNotBlank(dnName)) {
-            // Create certificate
-            GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
-            GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
-            expiryDate.add(Calendar.YEAR, 1);
-            BigInteger serialNumber = new BigInteger(1024, new Random()); // serial number for certificate
-
-            X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
-            X500Principal principal = new X500Principal(dnName);
-
-            certGen.setSerialNumber(serialNumber);
-            certGen.setIssuerDN(principal);
-            certGen.setNotBefore(startDate.getTime());
-            certGen.setNotAfter(expiryDate.getTime());
-            certGen.setSubjectDN(principal); // note: same as issuer
-            certGen.setPublicKey(keyPair.getPublic());
-            certGen.setSignatureAlgorithm(signatureAlgorithm.getAlgorithm());
-
-            X509Certificate x509Certificate = certGen.generate(jcersaPrivateCrtKey, SecurityProviderUtility.getBCProviderName());
-            certificate = new Certificate(signatureAlgorithm, x509Certificate);
+            final X509Certificate x509Certificate = genCertificate(dnName, CertificateVersion.V1);
+            this.certificate = new Certificate(signatureAlgorithm, x509Certificate);
         }
+    }
+
+    public Certificate generateV3Certificate(Date startDate, Date expirationDate, String dnName) throws InvalidKeyException, IllegalStateException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, CertificateException, InvalidAlgorithmParameterException, IOException {
+        final X509Certificate x509Certificate = genCertificate(dnName, CertificateVersion.V3);
+        return new Certificate(signatureAlgorithm, x509Certificate);
     }
 
     @Deprecated
@@ -115,4 +128,38 @@ public class RSAKeyFactory extends KeyFactory<RSAPrivateKey, RSAPublicKey> {
     public Certificate getCertificate() {
         return certificate;
     }
+
+    private X509Certificate genCertificate(String dnName, int certVersion) throws NoSuchAlgorithmException, NoSuchProviderException, IOException, CertificateException, InvalidKeyException, InvalidAlgorithmParameterException, SignatureException {
+
+         X500Name x500Name = new X500Name(dnName);
+
+         // Create certificate
+         GregorianCalendar startDate = new GregorianCalendar(); // time from which certificate is valid
+         GregorianCalendar expiryDate = new GregorianCalendar(); // time after which certificate is not valid
+         expiryDate.add(Calendar.YEAR, 1);
+
+         PrivateKey privateKey = keyPair.getPrivate();
+         PublicKey publicKey = keyPair.getPublic();
+
+         CertificateValidity interval = new CertificateValidity(startDate.getTime(), expiryDate.getTime());
+
+         X509CertInfo info = new X509CertInfo();
+
+         AlgorithmParameterSpec params = AlgorithmId.getDefaultAlgorithmParameterSpec(signatureAlgorithm.getAlgorithm(), privateKey);
+
+         // Add all mandatory attributes
+         info.set(X509CertInfo.VERSION, new CertificateVersion(certVersion));
+         info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(new java.util.Random().nextInt() & 0x7fffffff));
+         AlgorithmId algID = AlgorithmId.getWithParameterSpec(signatureAlgorithm.getAlgorithm(), params);
+         info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algID));
+         info.set(X509CertInfo.SUBJECT, x500Name);
+         info.set(X509CertInfo.KEY, new CertificateX509Key(publicKey));
+         info.set(X509CertInfo.VALIDITY, interval);
+         info.set(X509CertInfo.ISSUER, x500Name);
+
+         X509CertImpl cert = new X509CertImpl(info);
+         cert.sign(privateKey, params, signatureAlgorithm.getAlgorithm(), null);
+
+         return (X509Certificate)cert;
+     }
 }

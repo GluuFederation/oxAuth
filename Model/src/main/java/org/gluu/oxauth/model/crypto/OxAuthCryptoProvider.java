@@ -95,7 +95,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             this.dnName = dnName;
 
             if (SecurityProviderUtility.isFipsMode()) {
-    			keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
             } else {
                 keyStore = KeyStore.getInstance("JKS");
             }
@@ -119,7 +119,11 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     public void load(String keyStoreSecret) {
         this.keyStoreSecret = keyStoreSecret;
         try(InputStream is = new FileInputStream(keyStoreFile)) {
-            keyStore = KeyStore.getInstance("JKS");
+            if (SecurityProviderUtility.isFipsMode()) {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+            } else {
+                keyStore = KeyStore.getInstance("JKS");
+            }
             keyStore.load(is, keyStoreSecret.toCharArray());
             LOG.debug("Loaded keys from JKS.");
             LOG.trace("Loaded keys:"+ getKeys());
