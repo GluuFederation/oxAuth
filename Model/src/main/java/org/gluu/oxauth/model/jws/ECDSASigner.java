@@ -118,19 +118,15 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         String algorithm;
-        String curve;
         switch (getSignatureAlgorithm()) {
             case ES256:
                 algorithm = "SHA256WITHECDSA";
-                curve = "P-256";
                 break;
             case ES384:
                 algorithm = "SHA384WITHECDSA";
-                curve = "P-384";
                 break;
             case ES512:
                 algorithm = "SHA512WITHECDSA";
-                curve = "P-521";
                 break;
             default:
                 throw new SignatureException("Unsupported signature algorithm");
