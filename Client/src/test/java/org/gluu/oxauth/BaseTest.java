@@ -402,38 +402,63 @@ public abstract class BaseTest {
         System.out.println("authenticateResourceOwnerAndGrantAccess: authorizationRequestUrl:" + authorizationRequestUrl);
 
         navigateToAuhorizationUrl(currentDriver, authorizationRequestUrl);
-
         if (userSecret != null) {
             final String previousUrl = currentDriver.getCurrentUrl();
+
+            WebElement loginButton = waitForRequredElementLoad(currentDriver, loginFormLoginButton);
+
             if (userId != null) {
-                try {
-                    WebElement usernameElement = currentDriver.findElement(By.id(loginFormUsername));
-                    usernameElement.sendKeys(userId);
-                } catch (NoSuchElementException e) {
-                    System.out.println(currentDriver.getCurrentUrl());
-                    System.out.println(currentDriver.getPageSource());
-                }
+                setWebElementValue(currentDriver, loginFormUsername, userId);
             }
 
-            try {
-            WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
-            passwordElement.sendKeys(userSecret);
-            } catch (NoSuchElementException e) {
-                e.printStackTrace();
-                System.out.println(currentDriver.getCurrentUrl());
-                System.out.println(currentDriver.getPageSource());
-            }
-
-            WebElement loginButton = currentDriver.findElement(By.id(loginFormLoginButton));
+            setWebElementValue(currentDriver, loginFormPassword, userSecret);
 
             loginButton.click();
 
             if (ENABLE_REDIRECT_TO_LOGIN_PAGE) {
                 waitForPageSwitch(currentDriver, previousUrl);
             }
+
+            if (currentDriver.getPageSource().contains("Failed to authenticate.")) {
+                fail("Failed to authenticate user");
+            }
         }
 
         return authorizeClient;
+    }
+
+    private WebElement waitForRequredElementLoad(WebDriver currentDriver, String id) {
+        Wait<WebDriver> wait = new FluentWait<>(currentDriver)
+                .withTimeout(Duration.ofSeconds(PageConfig.WAIT_OPERATION_TIMEOUT))
+                .pollingEvery(Duration.ofMillis(1000))
+                .ignoring(NoSuchElementException.class);
+
+        WebElement loginButton = wait.until(d -> {
+            return d.findElement(By.id(id));
+        });
+        return loginButton;
+    }
+
+    private void setWebElementValue(WebDriver currentDriver, String elemnetId, String value) {
+        WebElement webElement = currentDriver.findElement(By.id(elemnetId));
+        webElement.sendKeys(value);
+
+        int remainAttempts = 10;
+        do {
+            if (value.equals(webElement.getAttribute("value"))) {
+                break;
+            }
+
+            ((JavascriptExecutor) currentDriver).executeScript("arguments[0].value='" + value + "';", webElement);
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            remainAttempts--;
+        } while (remainAttempts >= 1);
     }
 
 	protected String acceptAuthorization(WebDriver currentDriver, String redirectUri) {
