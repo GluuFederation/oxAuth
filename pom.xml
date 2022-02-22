@@ -93,9 +93,6 @@
 	</scm>
 
 	<modules>
-		<module>bc-fips</module>
-		<module>bcpkix-fips</module>
-		<module>bcmail-fips</module>
 		<module>Model</module>
 		<module>persistence-model</module>
 		<module>Client</module>

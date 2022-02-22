@@ -193,6 +193,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
         FileOutputStream stream = new FileOutputStream(keyStoreFile);
         keyStore.store(stream, keyStoreSecret.toCharArray());
+        stream.close();
 
         PublicKey publicKey = keyPair.getPublic();
 
@@ -347,6 +348,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         keyStore.deleteEntry(alias);
         FileOutputStream stream = new FileOutputStream(keyStoreFile);
         keyStore.store(stream, keyStoreSecret.toCharArray());
+        stream.close();
         return true;
     }
 

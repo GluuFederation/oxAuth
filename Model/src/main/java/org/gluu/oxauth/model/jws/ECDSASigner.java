@@ -138,7 +138,7 @@ public class ECDSASigner extends AbstractJwsSigner {
                 sigBytes = ECDSA.transcodeSignatureToDER(sigBytes);
             }
             byte[] sigInBytes = signingInput.getBytes(Util.UTF8_STRING_ENCODING);
-            
+
             AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", SecurityProviderUtility.getBCProvider());
             parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
             ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
