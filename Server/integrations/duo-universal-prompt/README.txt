@@ -1,12 +1,12 @@
 # Duo Security using Universal Prompt
 ## Overview
-[Duo Security](https://duosecurity.com) is a SaaS authentication provider. This document will explain how to use Gluu's [Duo interception script](https://github.com/GluuFederation/oxAuth/blob/master/Server/integrations/duo/DuoExternalAuthenticator.py) to configure the Gluu Server for a two-step authentication process with username and password as the first step, and Duo as the second step. The script invokes the Universal Prompt which is a redesign of Duo’s traditional authentication prompt. 
+[Duo Security](https://duosecurity.com) is a SaaS authentication provider. This document will explain how to use Gluu's [Duo interception script](https://github.com/GluuFederation/oxAuth/blob/master/Server/integrations/duo-universal-prompt/DuoUniversalPromptExternalAuthenticator.py) to configure the Gluu Server for a two-step authentication process with username and password as the first step, and Duo as the second step. The script invokes the Universal Prompt which is a redesign of Duo’s traditional authentication prompt. 
 
 In order to use this authentication mechanism your organization will need a Duo account and users will need to download the Duo mobile app. 
 
 ## Prerequisites
 - A Gluu Server ([installation instructions](../installation-guide/index.md));
-- [Duo interception script](https://github.com/GluuFederation/oxAuth/blob/master/Server/integrations/duo/DuoExternalAuthenticator.py) (included in the default Gluu Server distribution);
+- [Duo interception script](https://github.com/GluuFederation/oxAuth/blob/master/Server/integrations/duo-universal-prompt/DuoUniversalPromptExternalAuthenticator.py) (included in the default Gluu Server distribution);
 - An account with [Duo Security](https://duo.com/).   
 
 
