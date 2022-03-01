@@ -25,14 +25,15 @@ For additional info for the steps refer to Duo's Web SDK 4, check [this article]
 Note: The dependencies have to be added seperately as mentioned in the steps below. Using a fat jar (duo-universal-sdk-1.0.3-with-dependencies.jar leads to conflicts.)
 	1. Copy these jar files to the following oxAuth folder inside the Gluu Server chroot: /opt/gluu/jetty/oxauth/custom/libs
        Dependency jars : 
-		[duo-universal-sdk-1.0.3.jar](https://search.maven.org/search?q=duo-universal-sdk-1.0.3.jar) ,
-		[converter-jackson-2.1.0.jar](https://search.maven.org/search?q=converter-jackson-2.1.0.jar) ,java-jwt-3.3.0.jar,
-		[logging-interceptor-3.3.1.jar](https://search.maven.org/search?q=logging-interceptor-3.3.1.jar),
-		[lombok-1.18.16.jar](https://search.maven.org/search?q=lombok-1.18.16.jar),
-		[retrofit-2.5.0.jar](https://search.maven.org/search?q=retrofit-2.5.0.jar),
-		[okio-2.9.0.jar](https://search.maven.org/search?q=okio-2.9.0.jar),
-		[okhttp-3.12.0.jar](https://search.maven.org/search?q=okhttp-3.12.0.jar),
-		[kotlin-stdlib-1.4.21.jar](https://search.maven.org/search?q=kotlin-stdlib-1.4.21.jar)	   
+		[duo-universal-sdk-1.0.3.jar](https://repo1.maven.org/maven2/com/duosecurity/duo-universal-sdk/1.0.3/duo-universal-sdk-1.0.3.jar) ,
+		[converter-jackson-2.1.0.jar](https://repo1.maven.org/maven2/com/squareup/retrofit2/converter-jackson/2.1.0/converter-jackson-2.1.0.jar) ,
+                [java-jwt-3.3.0.jar] (https://repo1.maven.org/maven2/com/auth0/java-jwt/3.3.0/java-jwt-3.3.0.jar),
+		[logging-interceptor-3.3.1.jar](https://repo1.maven.org/maven2/com/squareup/okhttp3/logging-interceptor/3.3.1/logging-interceptor-3.3.1.jar),
+		[lombok-1.18.16.jar](https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.16/lombok-1.18.16.jar),
+		[retrofit-2.5.0.jar](https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.5.0/retrofit-2.5.0.jar),
+		[okio-2.9.0.jar](https://repo1.maven.org/maven2/com/squareup/okio/okio/2.9.0/okio-2.9.0.jar),
+		[okhttp-3.12.0.jar](https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.12.0/okhttp-3.12.0.jar),
+		[kotlin-stdlib-1.4.21.jar](https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.4.21/kotlin-stdlib-1.4.21.jar)	   
 
 	1. Edit /opt/gluu/jetty/oxauth/webapps/oxauth.xml and add the following line:
 <Set name="extraClasspath">./custom/libs/duo-universal-sdk-1.0.3.jar,./custom/libs/converter-jackson-2.1.0.jar,./custom/libs/java-jwt-3.3.0.jar,./custom/libs/logging-interceptor-3.3.1.jar,./custom/libs/lombok-1.18.16.jar,./custom/libs/retrofit-2.5.0.jar,./custom/libs/okio-2.9.0.jar,./custom/libs/okhttp-3.12.0.jar,./custom/libs/kotlin-stdlib-1.4.21.jar</Set>
