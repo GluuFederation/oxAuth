@@ -26,8 +26,7 @@ public class UmaRPT extends AbstractToken {
 
     @DN
     private String dn;
-    
-    @AttributeName(name = "tknCde", consistency = true)
+
     private String notHashedCode;
 
     @AttributeName(name = "usrId")
