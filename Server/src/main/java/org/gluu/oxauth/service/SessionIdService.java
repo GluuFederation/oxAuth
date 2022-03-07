@@ -828,7 +828,7 @@ public class SessionIdService {
             }
         } catch (Exception ex) {
             if (!silently) {
-                log.trace(ex.getMessage(), ex);
+                log.trace(ex.getMessage());
             }
         }
 
