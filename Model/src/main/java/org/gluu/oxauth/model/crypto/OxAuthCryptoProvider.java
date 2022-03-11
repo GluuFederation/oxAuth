@@ -7,6 +7,7 @@
 package org.gluu.oxauth.model.crypto;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.impl.ECDSA;
 import org.apache.commons.codec.binary.Base64;
@@ -94,12 +95,29 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             this.keyStoreSecret = keyStoreSecret;
             this.dnName = dnName;
 
-            if (SecurityProviderUtility.isFipsMode()) {
-                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
-            } else {
-                keyStore = KeyStore.getInstance("JKS");
+            SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+
+            String keyStoreFileExt =  Files.getFileExtension(keyStoreFile);
+            boolean checkRes = SecurityProviderUtility.SecurityModeType.checkExtension(keyStoreFileExt, securityMode);
+            if (!checkRes) {
+                // LOG.error("Wrong type of extension: '" + keyStoreFileExt + "', but should be: " + securityMode.toString());
+                // System.out.println("Wrong type of extension: '" + keyStoreFileExt + "', but should be: " + securityMode.toString());                
             }
 
+            switch(securityMode) {
+            case JKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("JKS");
+                break;
+            }
+            case PKCS12_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            case BCFKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            }
             try {
                 File f = new File(keyStoreFile);
                 if (!f.exists()) {
@@ -119,13 +137,33 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     public void load(String keyStoreSecret) {
         this.keyStoreSecret = keyStoreSecret;
         try(InputStream is = new FileInputStream(keyStoreFile)) {
-            if (SecurityProviderUtility.isFipsMode()) {
-                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
-            } else {
+
+            SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+
+            String keyStoreFileExt =  Files.getFileExtension(keyStoreFile);
+            boolean checkRes = SecurityProviderUtility.SecurityModeType.checkExtension(keyStoreFileExt, securityMode);
+            if (!checkRes) {
+                // LOG.error("Wrong type of extension: '" + keyStoreFileExt + "', but should be: " + securityMode.toString());
+                // System.out.println("Wrong type of extension: '" + keyStoreFileExt + "', but should be: " + securityMode.toString());                
+            }
+
+            switch(securityMode) {
+            case JKS_SECURITY_MODE: {
                 keyStore = KeyStore.getInstance("JKS");
+                break;
+            }
+            case PKCS12_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            case BCFKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                break;
+            }
             }
             keyStore.load(is, keyStoreSecret.toCharArray());
-            LOG.debug("Loaded keys from JKS.");
+            LOG.debug("Loaded keys from keystore.");
+            LOG.debug("keystore type: " + SecurityProviderUtility.getSecurityMode().toString());
             LOG.trace("Loaded keys:"+ getKeys());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -244,7 +282,6 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             if (StringUtils.isBlank(keyId)){
                 return false;
             }
-
             return keyStore.getKey(keyId, keyStoreSecret.toCharArray()) != null;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

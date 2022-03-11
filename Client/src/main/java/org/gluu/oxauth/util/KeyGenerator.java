@@ -69,6 +69,7 @@ public class KeyGenerator {
     private static final String EXPIRATION = "expiration";
     private static final String EXPIRATION_HOURS = "expiration_hours";
     private static final String KEY_LENGTH = "key_length";
+    private static final String KEY_STORE_FILE_TYPE = "keystore_type";
     private static final String HELP = "h";
     private static final Logger log;
 
@@ -106,8 +107,9 @@ public class KeyGenerator {
             options.addOption(EXPIRATION, true, "Expiration in days.");
             options.addOption(EXPIRATION_HOURS, true, "Expiration in hours.");
             options.addOption(KEY_LENGTH, true, "Key length");
+            options.addOption(KEY_STORE_FILE_TYPE, true, "Key Store type");
             options.addOption(HELP, false, "Show help.");
-        }
+       }
 
         public void parse() {
             CommandLineParser parser = new BasicParser();
@@ -136,6 +138,12 @@ public class KeyGenerator {
                 int keyLength = StringHelper.toInt(cmd.getOptionValue(KEY_LENGTH), 2048);
                 int expiration = StringHelper.toInt(cmd.getOptionValue(EXPIRATION), 0);
                 int expiration_hours = StringHelper.toInt(cmd.getOptionValue(EXPIRATION_HOURS), 0);
+
+                if(cmd.hasOption(KEY_STORE_FILE_TYPE)) {
+                    String keyStoreFileType = cmd.getOptionValue(KEY_STORE_FILE_TYPE);
+                    SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.SecurityModeType.fromString(keyStoreFileType);
+                    SecurityProviderUtility.setSecurityMode(securityMode);
+                }
 
                 if (cmd.hasOption(OXELEVEN_ACCESS_TOKEN) && cmd.hasOption(OXELEVEN_GENERATE_KEY_ENDPOINT)) {
                     String accessToken = cmd.getOptionValue(OXELEVEN_ACCESS_TOKEN);
@@ -234,7 +242,7 @@ public class KeyGenerator {
             HelpFormatter formatter = new HelpFormatter();
 
             formatter.printHelp(
-                    "KeyGenerator -sig_keys alg ... -enc_keys alg ... -expiration n_days [-expiration_hours n_hours] [-ox11 url] [-keystore path -keypasswd secret -dnname dn_name]",
+                    "KeyGenerator -sig_keys alg ... -enc_keys alg ... -expiration n_days [-expiration_hours n_hours] [-ox11 url] [-keystore path -keystore_type ks_type -keypasswd secret -dnname dn_name]",
                     options);
             System.exit(0);
         }
