@@ -30,10 +30,7 @@ import java.util.List;
 @ObjectClass(value = "oxAuthClient")
 public class Client extends DeletableEntity implements Serializable {
 
-    private static final long serialVersionUID = -6832496019942067970L;
-
-    @DN
-    private String dn;
+    private static final long serialVersionUID = -6832496019942067971L;
 
     @AttributeName(name = "inum")
     private String clientId;
@@ -289,14 +286,6 @@ public class Client extends DeletableEntity implements Serializable {
         return AuthenticationMethod.fromString(tokenEndpointAuthMethod);
     }
 
-    public String getDn() {
-        return dn;
-    }
-
-    public void setDn(String dn) {
-        this.dn = dn;
-    }
-
     /**
      * Gets logout session required.
      *
@@ -368,7 +357,7 @@ public class Client extends DeletableEntity implements Serializable {
      * @param clientSecret The client secret.
      */
     public void setClientSecret(String clientSecret) {
-    	this.clientSecret = clientSecret;
+        this.clientSecret = clientSecret;
     }
 
     /**

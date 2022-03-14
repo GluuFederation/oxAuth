@@ -23,8 +23,6 @@ public class Scope extends DeletableEntity implements Serializable {
 
     private static final long serialVersionUID = 4308826784917052508L;
 
-    @DN
-    private String dn;
     @AttributeName(ignoreDuringUpdate = true)
     private String inum;
 
@@ -71,14 +69,6 @@ public class Scope extends DeletableEntity implements Serializable {
 
     public void setAttributes(ScopeAttributes attributes) {
         this.attributes = attributes;
-    }
-
-    public String getDn() {
-        return dn;
-    }
-
-    public void setDn(String dn) {
-        this.dn = dn;
     }
 
     public String getInum() {
@@ -184,7 +174,7 @@ public class Scope extends DeletableEntity implements Serializable {
     @Override
     public String toString() {
         return "Scope{" +
-                "dn='" + dn + '\'' +
+                "dn='" + getDn() + '\'' +
                 ", inum='" + inum + '\'' +
                 ", displayName='" + displayName + '\'' +
                 ", id='" + id + '\'' +
