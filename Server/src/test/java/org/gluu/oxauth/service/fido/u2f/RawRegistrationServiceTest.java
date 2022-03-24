@@ -2,13 +2,13 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import javax.inject.Inject;
 
 import org.gluu.oxauth.BaseComponentTest;
 import org.gluu.oxauth.model.fido.u2f.message.RawRegisterResponse;
 import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxauth.service.fido.u2f.RawRegistrationService;
 import org.python.bouncycastle.util.encoders.Hex;
 import org.testng.annotations.Test;
 
@@ -39,9 +39,13 @@ public class RawRegistrationServiceTest extends BaseComponentTest {
 		// Check attestation certificate
 		assertNotNull(rawRegisterResponse.getAttestationCertificate());
 		assertEquals(rawRegisterResponse.getAttestationCertificate().getSigAlgName(), "SHA256WITHECDSA");
-		assertEquals(rawRegisterResponse.getAttestationCertificate().getSubjectDN().getName(), "O=VASCO Data Security,CN=VASCO DIGIPASS SecureClick Attestation Key");
 
-		assertEquals(rawRegisterResponse.getSignature().length, 70);
+        String subjectDN = rawRegisterResponse.getAttestationCertificate().getSubjectDN().getName();
+        boolean cmpRes = "O=VASCO Data Security,CN=VASCO DIGIPASS SecureClick Attestation Key".equals(subjectDN) ||
+                            "CN=VASCO DIGIPASS SecureClick Attestation Key,O=VASCO Data Security".equals(subjectDN);
+        assertTrue(cmpRes);
+
+        assertEquals(rawRegisterResponse.getSignature().length, 70);
 	}
 
 }

@@ -154,7 +154,6 @@ public class ConfigurationFactory {
 			}
 			this.webKeysFilePath = certsDir + File.separator + WEB_KEYS_FILE_NAME;
 			this.saltFilePath = confDir + SALT_FILE_NAME;
-
 			loadCryptoConfigurationSalt();
 		} finally {
 			this.isActive.set(false);

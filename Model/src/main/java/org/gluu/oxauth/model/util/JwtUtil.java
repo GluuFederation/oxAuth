@@ -32,7 +32,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
-import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.openssl.PEMParser;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.PublicKey;
@@ -41,6 +40,7 @@ import org.gluu.oxauth.model.crypto.signature.RSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.util.StringHelper;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.json.JSONArray;
@@ -98,19 +98,19 @@ public class JwtUtil {
 
     public static byte[] getMessageDigestSHA256(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-256", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-256", SecurityProviderUtility.getBCProvider());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA384(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-384", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-384",SecurityProviderUtility.getBCProvider());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
     public static byte[] getMessageDigestSHA512(String data)
             throws NoSuchProviderException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest mda = MessageDigest.getInstance("SHA-512", "BC");
+        MessageDigest mda = MessageDigest.getInstance("SHA-512", SecurityProviderUtility.getBCProvider());
         return mda.digest(data.getBytes(Util.UTF8_STRING_ENCODING));
     }
 
@@ -173,7 +173,7 @@ public class JwtUtil {
                 String certificateString = BEGIN + "\n" + certChain.getString(0) + "\n" + END;
                 StringReader sr = new StringReader(certificateString);
                 PEMParser pemReader = new PEMParser(sr);
-                X509Certificate cert = (X509CertificateObject) pemReader.readObject();
+                X509Certificate cert = (X509Certificate) pemReader.readObject();
                 Certificate certificate = new Certificate(signatureAlgorithm, cert);
                 publicKey.setCertificate(certificate);
             }

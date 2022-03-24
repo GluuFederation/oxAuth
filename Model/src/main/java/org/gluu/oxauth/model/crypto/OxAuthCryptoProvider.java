@@ -30,6 +30,8 @@ import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwk.*;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
+import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility.SecurityModeType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,8 +94,24 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             this.keyStoreFile = keyStoreFile;
             this.keyStoreSecret = keyStoreSecret;
             this.dnName = dnName;
-
-            keyStore = KeyStore.getInstance("JKS");
+            SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+            if (securityMode == null) {
+                throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
+            }
+            switch(securityMode) {
+            case JKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("JKS");
+                break;
+            }
+            case PKCS12_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            case BCFKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            }
             try {
                 File f = new File(keyStoreFile);
                 if (!f.exists()) {
@@ -106,19 +124,39 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 keyStore.load(is, keyStoreSecret.toCharArray());
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
+                LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");
             }
         }
     }
 
     public void load(String keyStoreSecret) {
         this.keyStoreSecret = keyStoreSecret;
+        SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+        if (securityMode == null) {
+            throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
+        }
         try(InputStream is = new FileInputStream(keyStoreFile)) {
-            keyStore = KeyStore.getInstance("JKS");
+            switch(securityMode) {
+            case JKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("JKS");
+                break;
+            }
+            case PKCS12_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            case BCFKS_SECURITY_MODE: {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            }
             keyStore.load(is, keyStoreSecret.toCharArray());
-            LOG.debug("Loaded keys from JKS.");
+            LOG.debug("Loaded keys from keystore.");
+            LOG.debug("keystore type: " + SecurityProviderUtility.getSecurityMode().toString());
             LOG.trace("Loaded keys:"+ getKeys());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+            LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");            
         }
     }
 
@@ -152,11 +190,12 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         if (algorithm == null) {
             throw new RuntimeException("The signature algorithm parameter cannot be null");
         } else if (AlgorithmFamily.RSA.equals(algorithm.getFamily())) {
-            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BC");
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getBCProvider());
             keyGen.initialize(keyLength, new SecureRandom());
+
         } else if (AlgorithmFamily.EC.equals(algorithm.getFamily())) {
             ECGenParameterSpec eccgen = new ECGenParameterSpec(signatureAlgorithm.getCurve().getAlias());
-            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), "BC");
+            keyGen = KeyPairGenerator.getInstance(algorithm.getFamily().toString(), SecurityProviderUtility.getBCProvider());
             keyGen.initialize(eccgen, new SecureRandom());
         } else {
             throw new RuntimeException("The provided signature algorithm parameter is not supported");
@@ -182,6 +221,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
         FileOutputStream stream = new FileOutputStream(keyStoreFile);
         keyStore.store(stream, keyStoreSecret.toCharArray());
+        stream.close();
 
         PublicKey publicKey = keyPair.getPublic();
 
@@ -232,7 +272,6 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             if (StringUtils.isBlank(keyId)){
                 return false;
             }
-
             return keyStore.getKey(keyId, keyStoreSecret.toCharArray()) != null;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -260,7 +299,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 throw new RuntimeException(error);
             }
 
-            Signature signer = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BC");
+            Signature signer = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getBCProvider());
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes());
 
@@ -305,7 +344,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 	signatureDer = ECDSA.transcodeSignatureToDER(signatureDer);
                 }
 
-                Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm(), "BC");
+                Signature verifier = Signature.getInstance(signatureAlgorithm.getAlgorithm(), SecurityProviderUtility.getBCProvider());
                 verifier.initVerify(publicKey);
                 verifier.update(signingInput.getBytes());
                 try {
@@ -336,6 +375,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         keyStore.deleteEntry(alias);
         FileOutputStream stream = new FileOutputStream(keyStoreFile);
         keyStore.store(stream, keyStoreSecret.toCharArray());
+        stream.close();
         return true;
     }
 
@@ -449,9 +489,9 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         ASN1ObjectIdentifier extendedKeyUsage = new ASN1ObjectIdentifier("2.5.29.37").intern();
         builder.addExtension(extendedKeyUsage, false, new DERSequence(purposes));
 
-        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).setProvider("BC").build(privateKey);
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).setProvider(SecurityProviderUtility.getBCProvider()).build(privateKey);
         X509CertificateHolder holder = builder.build(signer);
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
+        X509Certificate cert = new JcaX509CertificateConverter().setProvider(SecurityProviderUtility.getBCProvider()).getCertificate(holder);
 
         return cert;
     }
@@ -497,5 +537,19 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     public KeyStore getKeyStore() {
         return keyStore;
     }
-
+    
+    /**
+     * Checks, if SecurityModeType value correspondent to the keystorage extension value       
+     * 
+     * @param extension extension value
+     * @param securityMode SecurityModeType value
+     * @return boolean result
+     */
+    public static boolean checkExtension(final String extension, final SecurityModeType securityMode) {
+        boolean res = false;
+        if (securityMode != null) {
+            res = securityMode.toString().equals(extension);
+        }
+        return res;
+    }    
 }

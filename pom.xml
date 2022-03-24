@@ -99,6 +99,7 @@
 		<module>oxAuthStatic</module>
 		<module>common</module>
 		<module>Server</module>
+		<module>server-fips</module>
   </modules>
 
 	<dependencyManagement>
@@ -597,7 +598,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
-					<version>2.3.1</version>
+					<version>2.5.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>

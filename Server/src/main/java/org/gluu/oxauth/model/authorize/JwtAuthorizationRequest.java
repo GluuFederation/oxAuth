@@ -433,21 +433,21 @@ public class JwtAuthorizationRequest {
             javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
             String request = null;
             try {
-	            Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
-	            int status = clientResponse.getStatus();
-	
-	            if (status == 200) {
-	                request = clientResponse.readEntity(String.class);
-	
-	                if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
-	                    validRequestUri = true;
-	                } else {
-	                    String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
-	                    validRequestUri = StringUtils.equals(reqUriHash, hash);
-	                }
-	            }
+                Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
+                int status = clientResponse.getStatus();
+
+                if (status == 200) {
+                    request = clientResponse.readEntity(String.class);
+
+                    if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
+                        validRequestUri = true;
+                    } else {
+                        String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
+                        validRequestUri = StringUtils.equals(reqUriHash, hash);
+                    }
+                }
             } finally {
-            	clientRequest.close();
+                clientRequest.close();
             }
 
             if (!validRequestUri && redirectUriResponse != null) {

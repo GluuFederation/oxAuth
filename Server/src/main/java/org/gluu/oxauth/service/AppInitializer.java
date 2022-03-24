@@ -16,7 +16,6 @@ import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.oxauth.model.auth.AuthenticationMode;
 import org.gluu.oxauth.model.config.ConfigurationFactory;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.service.cdi.event.AuthConfigurationEvent;
 import org.gluu.oxauth.service.cdi.event.ReloadAuthScript;
 import org.gluu.oxauth.service.ciba.CibaRequestsProcessorJob;
@@ -50,6 +49,7 @@ import org.gluu.service.timer.schedule.TimerSchedule;
 import org.gluu.util.OxConstants;
 import org.gluu.util.StringHelper;
 import org.gluu.orm.util.properties.FileConfiguration;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.jboss.weld.util.reflection.ParameterizedTypeImpl;
@@ -187,11 +187,7 @@ public class AppInitializer {
 
 	@PostConstruct
 	public void createApplicationComponents() {
-		try {
-			SecurityProviderUtility.installBCProvider();
-		} catch (ClassCastException ex) {
-			log.error("Failed to install BC provider properly");
-		}
+		SecurityProviderUtility.installBCProvider();
 	}
 
 	public void applicationInitialized(@Observes @Initialized(ApplicationScoped.class) Object init) {

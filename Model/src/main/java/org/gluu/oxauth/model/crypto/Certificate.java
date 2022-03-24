@@ -19,6 +19,7 @@ import org.gluu.oxauth.model.util.StringUtils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 
 /**
@@ -38,15 +39,14 @@ public class Certificate {
     public PublicKey getPublicKey() {
         PublicKey publicKey = null;
 
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCRSAPublicKey) {
-            BCRSAPublicKey jcersaPublicKey = (BCRSAPublicKey) x509Certificate.getPublicKey();
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof java.security.interfaces.RSAPublicKey) {
+            java.security.interfaces.RSAPublicKey jcersaPublicKey = (java.security.interfaces.RSAPublicKey) x509Certificate.getPublicKey();
 
             publicKey = new RSAPublicKey(jcersaPublicKey.getModulus(), jcersaPublicKey.getPublicExponent());
-        } else if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCECPublicKey) {
-            BCECPublicKey jceecPublicKey = (BCECPublicKey) x509Certificate.getPublicKey();
+        } else if (x509Certificate != null && x509Certificate.getPublicKey() instanceof ECPublicKey) {
+            ECPublicKey jceecPublicKey = (ECPublicKey) x509Certificate.getPublicKey();
 
-            publicKey = new ECDSAPublicKey(signatureAlgorithm, jceecPublicKey.getQ().getXCoord().toBigInteger(),
-                    jceecPublicKey.getQ().getYCoord().toBigInteger());
+            publicKey = new ECDSAPublicKey(signatureAlgorithm, jceecPublicKey.getW().getAffineX(), jceecPublicKey.getW().getAffineY());
         }
 
         return publicKey;
@@ -55,9 +55,8 @@ public class Certificate {
     public RSAPublicKey getRsaPublicKey() {
         RSAPublicKey rsaPublicKey = null;
 
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCRSAPublicKey) {
-            BCRSAPublicKey publicKey = (BCRSAPublicKey) x509Certificate.getPublicKey();
-
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof java.security.interfaces.RSAPublicKey) {
+            java.security.interfaces.RSAPublicKey publicKey = (java.security.interfaces.RSAPublicKey) x509Certificate.getPublicKey();
             rsaPublicKey = new RSAPublicKey(publicKey.getModulus(), publicKey.getPublicExponent());
         }
 
@@ -67,11 +66,9 @@ public class Certificate {
     public ECDSAPublicKey getEcdsaPublicKey() {
         ECDSAPublicKey ecdsaPublicKey = null;
 
-        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof BCECPublicKey) {
-            BCECPublicKey publicKey = (BCECPublicKey) x509Certificate.getPublicKey();
-
-            ecdsaPublicKey = new ECDSAPublicKey(signatureAlgorithm, publicKey.getQ().getXCoord().toBigInteger(),
-                    publicKey.getQ().getYCoord().toBigInteger());
+        if (x509Certificate != null && x509Certificate.getPublicKey() instanceof ECPublicKey) {
+            ECPublicKey publicKey = (ECPublicKey) x509Certificate.getPublicKey();
+            ecdsaPublicKey = new ECDSAPublicKey(signatureAlgorithm, publicKey.getW().getAffineX(), publicKey.getW().getAffineY());
         }
 
         return ecdsaPublicKey;

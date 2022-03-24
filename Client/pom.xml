@@ -23,6 +23,13 @@
 			<filter>profiles/${cfg}/config-oxauth-test-data.properties</filter>
 		</filters>
 
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -46,6 +53,52 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>install-main-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}.jar</file>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>install-jar-with-dependencies-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}-jar-with-dependencies</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}-jar-with-dependencies.jar</file>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>install-jar-without-provider-dependencies-artifact</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}-jar-without-provider-dependencies</artifactId>
+							<version>${project.version}</version>
+							<packaging>jar</packaging>
+							<file>${project.build.directory}/${project.artifactId}-jar-without-provider-dependencies.jar</file>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -80,27 +133,54 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.3.0</version>
 				<executions>
 					<execution>
+						<id>assembly-jar-with-dependencies-artifact</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>org.gluu.oxauth.util.KeyGenerator</mainClass>
+								</manifest>
+								<manifestEntries>
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
+							</archive>
+							<finalName>${project.artifactId}-jar-with-dependencies</finalName>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>assembly-jar-without-provider-dependencies-artifact</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>src/main/assembly/jar-without-provider-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>org.gluu.oxauth.util.KeyGenerator</mainClass>
+								</manifest>
+								<manifestEntries>
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
+							</archive>
+							<finalName>${project.artifactId}-jar-without-provider-dependencies</finalName>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>org.gluu.oxauth.util.KeyGenerator</mainClass>
-						</manifest>
-                        <manifestEntries>
-                            <Multi-Release>true</Multi-Release>
-                        </manifestEntries>
-					</archive>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -159,6 +239,30 @@
 			<artifactId>httpcore</artifactId>
 		</dependency>
 
+		<!-- Bouncycastle -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Bouncycastle Fips -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bc-fips</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-fips</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Logging -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -173,14 +277,6 @@
 			<artifactId>log4j-core</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
@@ -226,6 +322,48 @@
 	</dependencies>
 
 	<profiles>
+		<profile>
+			<id>generic-provider-libs</id>
+			<activation>
+                <activeByDefault>true</activeByDefault>
+				<property>
+					<name>!fips.enable</name>
+				</property>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>fips-provider-libs</id>
+			<activation>
+				<property>
+					<name>fips.enable</name>
+				</property>
+			</activation>
+
+			<dependencies>
+				<!-- Fips -->
+                <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bc-fips</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcpkix-fips</artifactId>
+                </dependency>
+		</dependencies>
+		</profile>
+
 		<profile>
 			<id>test-dependencies</id>
 			<activation>

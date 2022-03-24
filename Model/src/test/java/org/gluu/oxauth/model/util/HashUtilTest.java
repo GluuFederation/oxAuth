@@ -1,12 +1,10 @@
 package org.gluu.oxauth.model.util;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.testng.annotations.Test;
-
-import java.security.Security;
-
 import static org.testng.Assert.assertEquals;
+
+import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.gluu.util.security.SecurityProviderUtility;
+import org.testng.annotations.Test;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -14,7 +12,7 @@ import static org.testng.Assert.assertEquals;
 public class HashUtilTest {
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
+        SecurityProviderUtility.installBCProvider();
     }
 
     private static final String INPUT = "a308bb8f-25b0-4b1f-85a6-778698a35a43";

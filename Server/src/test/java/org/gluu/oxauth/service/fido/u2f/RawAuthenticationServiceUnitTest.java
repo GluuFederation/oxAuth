@@ -9,7 +9,7 @@ import org.gluu.oxauth.crypto.signature.SignatureVerification;
 import org.gluu.oxauth.model.exception.SignatureException;
 import org.gluu.oxauth.model.fido.u2f.message.RawAuthenticateResponse;
 import org.gluu.oxauth.model.fido.u2f.protocol.ClientData;
-import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.testng.annotations.Test;
 
 import com.google.common.io.ByteArrayDataOutput;
