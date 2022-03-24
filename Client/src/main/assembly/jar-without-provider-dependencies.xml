@@ -21,19 +21,6 @@
 			  <exclude>org.bouncycastle:bcutil-jdk15on</exclude>
 			</excludes>
 		</dependencySet>
-<!-- Not work because BC FIPS check checksum
-		<dependencySet>
-			<outputDirectory>/</outputDirectory>
-			<useProjectArtifact>false</useProjectArtifact>
-			<unpack>true</unpack>
-			<scope>compile</scope>
-			<includes>
-			  <include>org.bouncycastle:bc-fips</include>
-			  <include>org.bouncycastle:bcpkix-fips</include>
-			  <include>org.bouncycastle:bcmail-fips</include>
-			</includes>
-	   </dependencySet>
--->
 	</dependencySets>
 
 	<fileSets>
