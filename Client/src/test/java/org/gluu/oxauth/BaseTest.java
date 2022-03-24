@@ -72,11 +72,11 @@ import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.error.IErrorType;
-import org.gluu.util.security.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
 import org.gluu.util.StringHelper;
+import org.gluu.util.security.SecurityProviderUtility;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.jetbrains.annotations.Nullable;
@@ -368,7 +368,7 @@ public abstract class BaseTest {
 
     protected WebDriver initWebDriver(boolean useNewDriver, boolean cleanupCookies) {
         // Allow to run test in multi thread mode
-        HtmlUnitDriver currentDriver;
+    	HtmlUnitDriver currentDriver;
         if (useNewDriver) {
             currentDriver = new HtmlUnitDriver(true);
         } else {
@@ -402,60 +402,85 @@ public abstract class BaseTest {
         System.out.println("authenticateResourceOwnerAndGrantAccess: authorizationRequestUrl:" + authorizationRequestUrl);
 
         navigateToAuhorizationUrl(currentDriver, authorizationRequestUrl);
-
         if (userSecret != null) {
             final String previousUrl = currentDriver.getCurrentUrl();
+
+            WebElement loginButton = waitForRequredElementLoad(currentDriver, loginFormLoginButton);
+
             if (userId != null) {
-                try {
-                    WebElement usernameElement = currentDriver.findElement(By.id(loginFormUsername));
-                    usernameElement.sendKeys(userId);
-                } catch (NoSuchElementException e) {
-                    System.out.println(currentDriver.getCurrentUrl());
-                    System.out.println(currentDriver.getPageSource());
-                }
+                setWebElementValue(currentDriver, loginFormUsername, userId);
             }
 
-            try {
-            WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
-            passwordElement.sendKeys(userSecret);
-            } catch (NoSuchElementException e) {
-                e.printStackTrace();
-                System.out.println(currentDriver.getCurrentUrl());
-                System.out.println(currentDriver.getPageSource());
-            }
-
-            WebElement loginButton = currentDriver.findElement(By.id(loginFormLoginButton));
+            setWebElementValue(currentDriver, loginFormPassword, userSecret);
 
             loginButton.click();
 
             if (ENABLE_REDIRECT_TO_LOGIN_PAGE) {
                 waitForPageSwitch(currentDriver, previousUrl);
             }
+
+            if (currentDriver.getPageSource().contains("Failed to authenticate.")) {
+                fail("Failed to authenticate user");
+            }
         }
 
         return authorizeClient;
     }
 
-    protected String acceptAuthorization(WebDriver currentDriver, String redirectUri) {
-        String authorizationResponseStr = currentDriver.getCurrentUrl();
+    private WebElement waitForRequredElementLoad(WebDriver currentDriver, String id) {
+        Wait<WebDriver> wait = new FluentWait<>(currentDriver)
+                .withTimeout(Duration.ofSeconds(PageConfig.WAIT_OPERATION_TIMEOUT))
+                .pollingEvery(Duration.ofMillis(1000))
+                .ignoring(NoSuchElementException.class);
 
-        // Check for authorization form if client has no persistent authorization
-        if (!authorizationResponseStr.contains("#")) {
-            Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+        WebElement loginButton = wait.until(d -> {
+            return d.findElement(By.id(id));
+        });
+        return loginButton;
+    }
+
+    private void setWebElementValue(WebDriver currentDriver, String elemnetId, String value) {
+        WebElement webElement = currentDriver.findElement(By.id(elemnetId));
+        webElement.sendKeys(value);
+
+        int remainAttempts = 10;
+        do {
+            if (value.equals(webElement.getAttribute("value"))) {
+                break;
+            }
+
+            ((JavascriptExecutor) currentDriver).executeScript("arguments[0].value='" + value + "';", webElement);
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            remainAttempts--;
+        } while (remainAttempts >= 1);
+    }
+
+	protected String acceptAuthorization(WebDriver currentDriver, String redirectUri) {
+		String authorizationResponseStr = currentDriver.getCurrentUrl();
+
+		// Check for authorization form if client has no persistent authorization
+		if (!authorizationResponseStr.contains("#")) {
+			Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
                     .withTimeout(Duration.ofSeconds(PageConfig.WAIT_OPERATION_TIMEOUT))
-                    .pollingEvery(Duration.ofMillis(500))
+					.pollingEvery(Duration.ofMillis(500))
                     .ignoring(NoSuchElementException.class);
 
             WebElement allowButton = wait.until(d -> currentDriver.findElement(By.id(authorizeFormAllowButton)));
 
-            // We have to use JavaScript because target is link with onclick
-            JavascriptExecutor jse = (JavascriptExecutor) currentDriver;
-            jse.executeScript("scroll(0, 1000)");
+			// We have to use JavaScript because target is link with onclick
+			JavascriptExecutor jse = (JavascriptExecutor) currentDriver;
+			jse.executeScript("scroll(0, 1000)");
 
             String previousURL = currentDriver.getCurrentUrl();
 
-            Actions actions = new Actions(currentDriver);
-            actions.click(allowButton).perform();
+			Actions actions = new Actions(currentDriver);
+			actions.click(allowButton).perform();
 
             waitForPageSwitch(currentDriver, previousURL);
 
@@ -470,14 +495,14 @@ public abstract class BaseTest {
                 navigateToAuhorizationUrl(currentDriver, authorizationResponseStr);
                 authorizationResponseStr = waitForPageSwitch(authorizationResponseStr);
             }
-        } else {
-            fail("The authorization form was expected to be shown.");
-        }
+		} else {
+			fail("The authorization form was expected to be shown.");
+		}
 
-        return authorizationResponseStr;
-    }
+		return authorizationResponseStr;
+	}
 
-    public String waitForPageSwitch(String previousUrl) {
+	public String waitForPageSwitch(String previousUrl) {
         return waitForPageSwitch(driver, previousUrl);
     }
 
@@ -909,20 +934,20 @@ public abstract class BaseTest {
         return createHttpClient(HostnameVerifierType.DEFAULT);
     }
 
-    public static CloseableHttpClient createHttpClient(HostnameVerifierType p_verifierType) {
+	public static CloseableHttpClient createHttpClient(HostnameVerifierType p_verifierType) {
         if (p_verifierType != null && p_verifierType != HostnameVerifierType.DEFAULT) {
             switch (p_verifierType) {
                 case ALLOW_ALL:
-                    return HttpClients.custom()
-                            .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-                            .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
+					return HttpClients.custom()
+							.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+							.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
 
             }
         }
 
         return HttpClients.custom()
-                .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-                .build();
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+        		.build();
     }
 
     public static ClientHttpEngine engine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -948,35 +973,35 @@ public abstract class BaseTest {
     }
 
     public static HttpClient createClient() {
-        return createClient(null);
-    }
+	    return createClient(null);
+	}
 
     public static HttpClient createAcceptSelfSignedCertificateClient()
             throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
         SSLConnectionSocketFactory connectionFactory = createAcceptSelfSignedSocketFactory();
 
-        return createClient(connectionFactory);
+	    return createClient(connectionFactory);
     }
 
-    private static HttpClient createClient(SSLConnectionSocketFactory connectionFactory) {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        HttpClientBuilder httClientBuilder = HttpClients.custom();
-        if (connectionFactory != null) {
-            httClientBuilder = httClientBuilder.setSSLSocketFactory(connectionFactory);
-        }
+	private static HttpClient createClient(SSLConnectionSocketFactory connectionFactory) {
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+		HttpClientBuilder httClientBuilder = HttpClients.custom();
+		if (connectionFactory != null) {
+			httClientBuilder = httClientBuilder.setSSLSocketFactory(connectionFactory);
+		}
 
-        HttpClient httpClient = httClientBuilder
-                .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-                .setConnectionManager(cm).build();
-        cm.setMaxTotal(200); // Increase max total connection to 200
-        cm.setDefaultMaxPerRoute(20); // Increase default max connection per route to 20
+		HttpClient httpClient = httClientBuilder
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+	    		.setConnectionManager(cm).build();
+	    cm.setMaxTotal(200); // Increase max total connection to 200
+	    cm.setDefaultMaxPerRoute(20); // Increase default max connection per route to 20
 
-        return httpClient;
-    }
+	    return httpClient;
+	}
 
-    private static SSLConnectionSocketFactory createAcceptSelfSignedSocketFactory()
-            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
-        // Use the TrustSelfSignedStrategy to allow Self Signed Certificates
+	private static SSLConnectionSocketFactory createAcceptSelfSignedSocketFactory()
+			throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+		// Use the TrustSelfSignedStrategy to allow Self Signed Certificates
         SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(new TrustSelfSignedStrategy()).build();
 
         // We can optionally disable hostname verification.
@@ -988,38 +1013,38 @@ public abstract class BaseTest {
         SSLConnectionSocketFactory connectionFactory = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
 
         return connectionFactory;
-    }
+	}
 
-    public static CloseableHttpClient createHttpClientTrustAll()
-            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new TrustStrategy() {
-            @Override
-            public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                return true;
-            }
-        }).build();
-        SSLConnectionSocketFactory sslContextFactory = new SSLConnectionSocketFactory(sslContext);
-        CloseableHttpClient httpclient = HttpClients.custom()
-                .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-                .setSSLSocketFactory(sslContextFactory)
-                .setRedirectStrategy(new LaxRedirectStrategy()).build();
+	public static CloseableHttpClient createHttpClientTrustAll()
+			throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+		SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new TrustStrategy() {
+			@Override
+			public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				return true;
+			}
+		}).build();
+		SSLConnectionSocketFactory sslContextFactory = new SSLConnectionSocketFactory(sslContext);
+		CloseableHttpClient httpclient = HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setSSLSocketFactory(sslContextFactory)
+				.setRedirectStrategy(new LaxRedirectStrategy()).build();
 
-        return httpclient;
-    }
+		return httpclient;
+	}
 
-    protected void navigateToAuhorizationUrl(WebDriver driver, String authorizationRequestUrl) {
-        try {
-            driver.navigate().to(URLDecoder.decode(authorizationRequestUrl, Util.UTF8_STRING_ENCODING));
-        } catch (UnsupportedEncodingException ex) {
+	protected void navigateToAuhorizationUrl(WebDriver driver, String authorizationRequestUrl) {
+		try {
+			driver.navigate().to(URLDecoder.decode(authorizationRequestUrl, Util.UTF8_STRING_ENCODING));
+		} catch (UnsupportedEncodingException ex) {
             fail("Failed to decode the authorization URL.");
-        }
-    }
+		}
+	}
 
-    private ClientHttpEngine getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+	private ClientHttpEngine getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return clientEngine(true);
     }
 
-    protected RegisterClient newRegisterClient(RegisterRequest request) {
+	protected RegisterClient newRegisterClient(RegisterRequest request) {
         try {
             final RegisterClient client = new RegisterClient(registrationEndpoint);
             client.setRequest(request);
