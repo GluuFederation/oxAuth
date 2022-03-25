@@ -428,23 +428,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Bouncycastle Fips -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bc-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-fips</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
 			<!-- OmniFaces -->
 		<dependency>
 			<groupId>org.omnifaces</groupId>
