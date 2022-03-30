@@ -7,6 +7,7 @@
 package org.gluu.oxauth.authorize.ws.rs;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.FacesService;
@@ -716,7 +717,7 @@ public class AuthorizeAction {
     }
 
     public void setLoginHint(String loginHint) {
-        this.loginHint = loginHint;
+        this.loginHint = StringEscapeUtils.escapeEcmaScript(loginHint);
     }
 
     public String getAcrValues() {
