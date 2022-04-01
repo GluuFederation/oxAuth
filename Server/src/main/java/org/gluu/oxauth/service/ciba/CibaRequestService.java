@@ -137,7 +137,7 @@ public class CibaRequestService {
     public void removeCibaRequest(String authReqId) {
         try {
             String requestDn = String.format("authReqId=%s,%s", authReqId, this.cibaBaseDn());
-            entryManager.remove(requestDn);
+            entryManager.remove(requestDn, CIBARequest.class);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

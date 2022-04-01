@@ -162,7 +162,7 @@ public class ExpirationNotificatorTimer implements ExpirationListener<ExpId, Obj
 
     public boolean remove(SessionId sessionId) {
         try {
-            persistenceEntryManager.remove(sessionId.getDn());
+            persistenceEntryManager.remove(sessionId.getDn(), SessionId.class);
             externalApplicationSessionService.externalEvent(new SessionEvent(SessionEventType.GONE, sessionId));
             return true;
         } catch (Exception e) {
