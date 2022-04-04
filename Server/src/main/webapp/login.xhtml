@@ -7,7 +7,6 @@
 	template="/WEB-INF/incl/layout/login-template.xhtml">
 	<f:metadata>
 		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" />
-		<f:viewParam name="login_hint" value="#{authorizeAction.loginHint}" />
 	</f:metadata>
 	<ui:define name="head">
 		<meta name="description" content="Gluu, Inc." />
@@ -132,7 +131,7 @@
 				var passwordField = document.getElementById("loginForm:password");
 
 				passwordField.value = "";
-				var userName = '#{!empty authorizeAction.loginHint ? authorizeAction.loginHint : ""}';
+				var userName = '#{authorizeAction2.loginHint}';
 				if (userName) {
 					userNameField.value = userName;
 					passwordField.focus();
