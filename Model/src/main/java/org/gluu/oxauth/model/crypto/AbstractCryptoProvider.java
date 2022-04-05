@@ -172,6 +172,17 @@ public abstract class AbstractCryptoProvider {
                 }
             }
         }
+        
+        if (publicKey == null) {
+        	if (LOG.isTraceEnabled()) {
+        		List<String> jwksKeys = new ArrayList<String>();
+                for (int i = 0; i < webKeys.length(); i++) {
+                    JSONObject key = webKeys.getJSONObject(i);
+                    jwksKeys.add(key.getString(KEY_ID));
+                }
+                LOG.trace("Failed to find key:" + alias + " in jwks keys:" + jwksKeys);
+        	}
+        }
 
         return publicKey;
     }
