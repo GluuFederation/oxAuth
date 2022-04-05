@@ -180,7 +180,7 @@ public abstract class AbstractCryptoProvider {
                     JSONObject key = webKeys.getJSONObject(i);
                     jwksKeys.add(key.getString(KEY_ID));
                 }
-                LOG.trace("Failed to find key:" + alias + " in jwks keys:" + jwksKeys);
+                LOG.trace("Failed to find key: " + alias + " in jwks keys:" + jwksKeys);
         	}
         }
 
