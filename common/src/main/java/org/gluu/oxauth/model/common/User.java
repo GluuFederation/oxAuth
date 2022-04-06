@@ -78,4 +78,7 @@ public class User extends SimpleUser {
 		}
 	}
 
+    public String getStatus() {
+        return getAttribute("gluuStatus");
+    }
 }

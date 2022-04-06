@@ -261,6 +261,8 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
+                checkUser(authorizationGrant, oAuth2AuditLog);
+
                 // The authorization server MAY issue a new refresh token, in which case
                 // the client MUST discard the old refresh token and replace it with the new refresh token.
                 RefreshToken reToken = null;
@@ -532,6 +534,18 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         }
 
         return response(builder, oAuth2AuditLog);
+    }
+
+    private void checkUser(AuthorizationGrant authorizationGrant, OAuth2AuditLog oAuth2AuditLog) {
+        if (!appConfiguration.getCheckUserPresenceOnRefreshToken()) {
+            return;
+        }
+
+        final User user = authorizationGrant.getUser();
+        if (user == null || "inactive".equalsIgnoreCase(user.getStatus())) {
+            log.trace("The user associated with this grant is not found or otherwise with status=inactive.");
+            throw new WebApplicationException(response(error(400, TokenErrorResponseType.INVALID_GRANT, "The user associated with this grant is not found or otherwise with status=inactive."), oAuth2AuditLog));
+        }
     }
 
     /**
