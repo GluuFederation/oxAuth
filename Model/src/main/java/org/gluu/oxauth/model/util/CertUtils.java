@@ -8,6 +8,7 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.util.encoders.Base64;
+import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.security.AlgorithmParameters;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -24,9 +26,56 @@ import java.security.cert.X509Certificate;
  */
 public class CertUtils {
 
-    private final static Logger log = LoggerFactory.getLogger(CertUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(CertUtils.class);
 
     private CertUtils() {
+    }
+
+    public static SignatureAlgorithm getSignatureAlgorithm(X509Certificate cert) {
+        String signAlgName = cert.getSigAlgName();
+
+        for (SignatureAlgorithm sa : SignatureAlgorithm.values()) {
+            if (signAlgName.equalsIgnoreCase(sa.getAlgorithm())) {
+                return sa;
+            }
+        }
+
+        /*
+        Ensures that SignatureAlgorithms `PS256`, `PS384`, and `PS512` work properly on JDK 11 and later without the need
+        for BouncyCastle.  Previous releases referenced a BouncyCastle-specific
+        algorithm name instead of the Java Security Standard Algorithm Name of
+        [`RSASSA-PSS`](https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html#signature-algorithms).
+        This release ensures the standard name is used moving forward.
+         */
+        if ("RSASSA-PSS".equals(signAlgName)) {
+            AlgorithmParameters algorithmParameters = CertUtils.getAlgorithmParameters(cert);
+            if (algorithmParameters == null) {
+                return null;
+            }
+
+            String algParamString = algorithmParameters.toString();
+            if (algParamString.contains("SHA-256")) {
+                return SignatureAlgorithm.PS256;
+            }
+            if (algParamString.contains("SHA-384")) {
+                return SignatureAlgorithm.PS384;
+            }
+            if (algParamString.contains("SHA-512")) {
+                return SignatureAlgorithm.PS512;
+            }
+        }
+        return null;
+    }
+
+    public static AlgorithmParameters getAlgorithmParameters(X509Certificate cert) {
+        try {
+            AlgorithmParameters result = AlgorithmParameters.getInstance(cert.getSigAlgName());
+            result.init(cert.getSigAlgParams());
+            return result;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     public static X509Certificate x509CertificateFromBytes(byte[] cert) {
