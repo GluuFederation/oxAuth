@@ -27,8 +27,13 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.jwk.*;
+import org.gluu.oxauth.model.jwk.Algorithm;
+import org.gluu.oxauth.model.jwk.JSONWebKey;
+import org.gluu.oxauth.model.jwk.JSONWebKeySet;
+import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
+import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.CertUtils;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.gluu.util.security.SecurityProviderUtility.SecurityModeType;
@@ -156,7 +161,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             LOG.trace("Loaded keys:"+ getKeys());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-            LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");            
+            LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");
         }
     }
 
@@ -512,16 +517,7 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
         }
 
         X509Certificate cert = (X509Certificate) chain[0];
-
-        String sighAlgName = cert.getSigAlgName();
-
-        for (SignatureAlgorithm sa : SignatureAlgorithm.values()) {
-            if (sighAlgName.equalsIgnoreCase(sa.getAlgorithm())) {
-                return sa;
-            }
-        }
-
-        return null;
+        return CertUtils.getSignatureAlgorithm(cert);
     }
 
 
@@ -537,10 +533,10 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
     public KeyStore getKeyStore() {
         return keyStore;
     }
-    
+
     /**
-     * Checks, if SecurityModeType value correspondent to the keystorage extension value       
-     * 
+     * Checks, if SecurityModeType value correspondent to the keystorage extension value
+     *
      * @param extension extension value
      * @param securityMode SecurityModeType value
      * @return boolean result
@@ -551,5 +547,5 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             res = securityMode.toString().equals(extension);
         }
         return res;
-    }    
+    }
 }
