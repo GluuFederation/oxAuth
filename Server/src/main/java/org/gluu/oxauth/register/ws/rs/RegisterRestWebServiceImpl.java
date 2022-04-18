@@ -1041,6 +1041,9 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
     @Override
     public Response delete(String clientId, String authorization, HttpServletRequest httpRequest, SecurityContext securityContext) {
+        OAuth2AuditLog auditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_DELETE);
+        auditLog.setClientId(clientId);
+
         try {
             String accessToken = tokenService.getToken(authorization);
 
@@ -1062,6 +1065,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
 
             clientService.remove(client);
+            auditLog.setSuccess(true);
 
             return Response
                     .status(Response.Status.NO_CONTENT)
@@ -1075,6 +1079,8 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw errorResponseFactory.createWebApplicationException(Response.Status.INTERNAL_SERVER_ERROR, RegisterErrorResponseType.INVALID_CLIENT_METADATA, "Failed to process request.");
+        } finally {
+            applicationAuditLogger.sendMessage(auditLog);
         }
     }
 
