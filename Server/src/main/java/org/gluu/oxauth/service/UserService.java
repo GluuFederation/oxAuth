@@ -90,7 +90,11 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
 		
         Filter resultFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
 
-		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, resultFilter);
+    	Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
+        Filter activeFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
+        Filter filter = Filter.createANDFilter(userInumFilter, activeFilter);
+
+		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, filter);
 		if (StringUtils.isEmpty(domain)) {
 			return fidoRegistrations.size();
 		}
