@@ -81,18 +81,18 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
             return 0;
         }
 
-        Filter resultFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
         String baseDn = getBaseDnForFidoDevices(userInum);
         if (persistenceEntryManager.hasBranchesSupport(baseDn)) {
         	if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
                 return 0;
         	}
-        } else {
-        	Filter userFilter = Filter.createEqualityFilter("personInum", userInum);
-        	resultFilter = Filter.createANDFilter(resultFilter, userFilter);
         }
 
-		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, resultFilter);
+    	Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
+        Filter activeFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
+        Filter filter = Filter.createANDFilter(userInumFilter, activeFilter);
+
+		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, filter);
 		if (StringUtils.isEmpty(domain)) {
 			return fidoRegistrations.size();
 		}
