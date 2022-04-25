@@ -622,7 +622,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         session_attributes = identity.getSessionId().getSessionAttributes()
         if session_attributes.containsKey("remote_ip"):
-            remote_ip = session_attributes.get("remote_ip")
+            remote_ip = session_attributes.get("remote_ip").split(",", 2)[0].strip()
             if StringHelper.isNotEmpty(remote_ip):
 
                 httpService = CdiUtil.bean(HttpService)
