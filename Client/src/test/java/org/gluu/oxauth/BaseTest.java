@@ -73,6 +73,7 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.error.IErrorType;
 import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.util.security.SecurityProviderUtility.SecurityModeType;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
@@ -139,6 +140,7 @@ public abstract class BaseTest {
 
     @BeforeSuite
     public void initTestSuite(ITestContext context) throws IOException {
+        SecurityProviderUtility.setSecurityMode(SecurityModeType.PKCS12_SECURITY_MODE);
         SecurityProviderUtility.installBCProvider();
 
         Reporter.log("Invoked init test suite method \n", true);
@@ -391,7 +393,9 @@ public abstract class BaseTest {
             stopSelenium();
         }
     }
-
+    
+    
+/*
     protected AuthorizeClient processAuthentication(WebDriver currentDriver, String authorizeUrl,
                                                   AuthorizationRequest authorizationRequest, String userId, String userSecret) {
         String authorizationRequestUrl = authorizeUrl + "?" + authorizationRequest.getQueryString();
@@ -416,8 +420,8 @@ public abstract class BaseTest {
             }
 
             try {
-            WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
-            passwordElement.sendKeys(userSecret);
+                WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
+                passwordElement.sendKeys(userSecret);
             } catch (NoSuchElementException e) {
                 e.printStackTrace();
                 System.out.println(currentDriver.getCurrentUrl());
@@ -434,6 +438,40 @@ public abstract class BaseTest {
         }
 
         return authorizeClient;
+    }
+*/
+    protected AuthorizeClient processAuthentication(WebDriver currentDriver, String authorizeUrl,
+            AuthorizationRequest authorizationRequest, String userId, String userSecret) {
+            String authorizationRequestUrl = authorizeUrl + "?" + authorizationRequest.getQueryString();
+
+            AuthorizeClient authorizeClient = new AuthorizeClient(authorizeUrl);
+            authorizeClient.setRequest(authorizationRequest);
+
+            System.out.println("authenticateResourceOwnerAndGrantAccess: authorizationRequestUrl:" + authorizationRequestUrl);
+
+            navigateToAuhorizationUrl(currentDriver, authorizationRequestUrl);
+            if (userSecret != null) {
+                final String previousUrl = currentDriver.getCurrentUrl();
+
+                WebElement loginButton = waitForRequredElementLoad(currentDriver, loginFormLoginButton);
+                if (userId != null) {
+                    setWebElementValue(currentDriver, loginFormUsername, userId);
+                }
+
+                setWebElementValue(currentDriver, loginFormPassword, userSecret);
+
+                loginButton.click();
+
+                if (ENABLE_REDIRECT_TO_LOGIN_PAGE) {
+                    waitForPageSwitch(currentDriver, previousUrl);
+                }
+
+                if (currentDriver.getPageSource().contains("Failed to authenticate.")) {
+                    fail("Failed to authenticate user");
+                }
+            }
+
+            return authorizeClient;
     }
 
     protected String acceptAuthorization(WebDriver currentDriver, String redirectUri) {
@@ -1102,5 +1140,39 @@ public abstract class BaseTest {
 
     public static AbstractCryptoProvider createCryptoProviderWithAllowedNone() throws Exception {
         return new OxAuthCryptoProvider(null, null, null, false);
+    }
+    
+    private WebElement waitForRequredElementLoad(WebDriver currentDriver, String id) {
+        Wait<WebDriver> wait = new FluentWait<>(currentDriver)
+                .withTimeout(Duration.ofSeconds(PageConfig.WAIT_OPERATION_TIMEOUT))
+                .pollingEvery(Duration.ofMillis(1000))
+                .ignoring(NoSuchElementException.class);
+
+        WebElement loginButton = wait.until(d -> {
+            return d.findElement(By.id(id));
+        });
+        return loginButton;
+    }
+    
+    private void setWebElementValue(WebDriver currentDriver, String elemnetId, String value) {
+        WebElement webElement = currentDriver.findElement(By.id(elemnetId));
+        webElement.sendKeys(value);
+
+        int remainAttempts = 10;
+        do {
+            if (value.equals(webElement.getAttribute("value"))) {
+                break;
+            }
+
+            ((JavascriptExecutor) currentDriver).executeScript("arguments[0].value='" + value + "';", webElement);
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            remainAttempts--;
+        } while (remainAttempts >= 1);
     }
 }

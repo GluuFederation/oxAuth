@@ -48,6 +48,8 @@ public class AppConfiguration implements Configuration {
     private String idGenerationEndpoint;
     private String introspectionEndpoint;
     private String deviceAuthzEndpoint;
+    
+    private Boolean allowIdTokenWithoutImplicitGrantType;    
 
     private int discoveryCacheLifetimeInMinutes = 60;
     private int sectorIdentifierCacheLifetimeInMinutes = 1440;
@@ -2085,5 +2087,14 @@ public class AppConfiguration implements Configuration {
 
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
+    }
+    
+    public Boolean getAllowIdTokenWithoutImplicitGrantType() {
+        if (allowIdTokenWithoutImplicitGrantType == null) allowIdTokenWithoutImplicitGrantType = false;
+        return allowIdTokenWithoutImplicitGrantType;
+    }
+
+    public void setAllowIdTokenWithoutImplicitGrantType(Boolean allowIdTokenWithoutImplicitGrantType) {
+        this.allowIdTokenWithoutImplicitGrantType = allowIdTokenWithoutImplicitGrantType;
     }
 }

@@ -686,6 +686,12 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
             final String userId, final String userSecret, final String redirectUris, final String redirectUri,
             final String sectorIdentifierUri) throws Exception {
         showTitle("authorizationCodeFlowLoginHint");
+        
+        System.out.println("userId = " + userId);
+        System.out.println("userSecret = " + userSecret);        
+        System.out.println("redirectUris = " + redirectUris);        
+        System.out.println("redirectUri = " + redirectUri);        
+        System.out.println("sectorIdentifierUri = " + sectorIdentifierUri);        
 
         List<ResponseType> responseTypes = Arrays.asList(
                 ResponseType.CODE,
@@ -697,6 +703,9 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         String clientId = registerResponse.getClientId();
         String clientSecret = registerResponse.getClientSecret();
+        
+        System.out.println("clientId = " + clientId);
+        System.out.println("clientSecret = " + clientSecret);  
 
         // 2. Request authorization and receive the authorization code.
         String nonce = UUID.randomUUID().toString();
@@ -705,6 +714,10 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         AuthorizationRequest authorizationRequest = new AuthorizationRequest(responseTypes, clientId, scopes, redirectUri, nonce);
         authorizationRequest.setLoginHint(userId);
         authorizationRequest.setState(state);
+        
+        System.out.println("nonce = " + nonce);
+        System.out.println("state = " + state);  
+        System.out.println("authorizationEndpoint = " + authorizationEndpoint);
 
         AuthorizationResponse authorizationResponse = authenticateResourceOwnerAndGrantAccess(
                 authorizationEndpoint, authorizationRequest, userId, userSecret); // put userId explicitly, window.onload function result is not same as in browser (tested with chrome and FF)
@@ -717,6 +730,12 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         String scope = authorizationResponse.getScope();
         String authorizationCode = authorizationResponse.getCode();
         String idToken = authorizationResponse.getIdToken();
+        
+
+/*        
+        private AuthorizationResponse requestAuthorization(final String userId, final String userSecret, final String redirectUri,
+                List<ResponseType> responseTypes, List<String> scopes, String clientId, String nonce) 
+*/        
 
         // 3. Request access token using the authorization code.
         TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);

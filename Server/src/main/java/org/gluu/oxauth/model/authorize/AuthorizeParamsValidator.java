@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.registration.Client;
 
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class AuthorizeParamsValidator {
         return clientSupportedResponseTypes.containsAll(responseTypes);
     }
 
-    public static boolean validateGrantType(List<ResponseType> responseTypes, GrantType[] clientGrantTypesArray, Set<GrantType> grantTypesSupported) {
+    public static boolean validateGrantType(List<ResponseType> responseTypes, GrantType[] clientGrantTypesArray, Set<GrantType> grantTypesSupported, AppConfiguration appConfiguration) {
         List<GrantType> clientGrantTypes = Arrays.asList(clientGrantTypesArray);
 
         if (responseTypes == null || grantTypesSupported == null) {
@@ -71,7 +72,7 @@ public class AuthorizeParamsValidator {
                 return false;
             }
         }
-        if (responseTypes.contains(ResponseType.TOKEN) || responseTypes.contains(ResponseType.ID_TOKEN)) {
+        if (responseTypes.contains(ResponseType.TOKEN) || (responseTypes.contains(ResponseType.ID_TOKEN) && !appConfiguration.getAllowIdTokenWithoutImplicitGrantType())) {        
             GrantType requestedGrantType = GrantType.IMPLICIT;
             if (!clientGrantTypes.contains(requestedGrantType) || !grantTypesSupported.contains(requestedGrantType)) {
                 return false;
