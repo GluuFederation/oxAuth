@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.impl.ECDSA;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -67,7 +68,8 @@ import static org.gluu.oxauth.model.jwk.JWKParameter.*;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
- * @version February 12, 2019
+ * @author Sergey Manoylo
+ * @version April 25, 2022
  */
 public class OxAuthCryptoProvider extends AbstractCryptoProvider {
 
@@ -99,20 +101,17 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             this.keyStoreFile = keyStoreFile;
             this.keyStoreSecret = keyStoreSecret;
             this.dnName = dnName;
-            SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
-            if (securityMode == null) {
-                throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
-            }
-            switch(securityMode) {
-            case JKS_SECURITY_MODE: {
+            SecurityProviderUtility.KeyStorageType keyStorageType = solveKeyStorageType();
+            switch (keyStorageType) {
+            case JKS_KS: {
                 keyStore = KeyStore.getInstance("JKS");
                 break;
             }
-            case PKCS12_SECURITY_MODE: {
+            case PKCS12_KS: {
                 keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
                 break;
             }
-            case BCFKS_SECURITY_MODE: {
+            case BCFKS_KS: {
                 keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
                 break;
             }
@@ -127,41 +126,43 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
                 }
                 final InputStream is = new FileInputStream(keyStoreFile);
                 keyStore.load(is, keyStoreSecret.toCharArray());
+                LOG.debug("Loaded keys from keystore.");
+                LOG.debug("Security Mode: " + SecurityProviderUtility.getSecurityMode().toString());
+                LOG.debug("Keystore Type: " + keyStorageType.toString());
+                LOG.trace("Loaded keys:"+ getKeys());
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
-                LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");
+                LOG.error("Check type of keystorage. Expected keystorage type: '" + keyStorageType.toString() + "'");
             }
         }
     }
 
     public void load(String keyStoreSecret) {
         this.keyStoreSecret = keyStoreSecret;
-        SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
-        if (securityMode == null) {
-            throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
-        }
+        SecurityProviderUtility.KeyStorageType keyStorageType = solveKeyStorageType();
         try(InputStream is = new FileInputStream(keyStoreFile)) {
-            switch(securityMode) {
-            case JKS_SECURITY_MODE: {
+            switch (keyStorageType) {
+            case JKS_KS: {
                 keyStore = KeyStore.getInstance("JKS");
                 break;
             }
-            case PKCS12_SECURITY_MODE: {
+            case PKCS12_KS: {
                 keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
                 break;
             }
-            case BCFKS_SECURITY_MODE: {
+            case BCFKS_KS: {
                 keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
                 break;
             }
             }
             keyStore.load(is, keyStoreSecret.toCharArray());
             LOG.debug("Loaded keys from keystore.");
-            LOG.debug("keystore type: " + SecurityProviderUtility.getSecurityMode().toString());
+            LOG.debug("Security Mode: " + SecurityProviderUtility.getSecurityMode().toString());
+            LOG.debug("Keystore Type: " + keyStorageType.toString());
             LOG.trace("Loaded keys:"+ getKeys());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-            LOG.error("Check type of keystorage. Expected type: '" + securityMode.toString() + "'");
+            LOG.error("Check type of keystorage. Expected keystorage type: '" + keyStorageType.toString() + "'");
         }
     }
 
@@ -547,5 +548,38 @@ public class OxAuthCryptoProvider extends AbstractCryptoProvider {
             res = securityMode.toString().equals(extension);
         }
         return res;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    private SecurityProviderUtility.KeyStorageType solveKeyStorageType() {
+        SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+        if (securityMode == null) {
+            throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
+        }
+        String keyStoreExt = FilenameUtils.getExtension(keyStoreFile);
+        SecurityProviderUtility.KeyStorageType keyStorageType = SecurityProviderUtility.KeyStorageType.fromExtension(keyStoreExt);
+        boolean ksTypeFound = false;
+        for (SecurityProviderUtility.KeyStorageType ksType : securityMode.getKeystorageTypes()) {
+            if (keyStorageType == ksType) {
+                ksTypeFound = true;
+                break;
+            }
+        }
+        if (!ksTypeFound) {
+            switch (securityMode) {
+            case BCFIPS_SECURITY_MODE: {
+                keyStorageType =  SecurityProviderUtility.KeyStorageType.BCFKS_KS;
+                break;
+            }
+            case BCPROV_SECURITY_MODE: {
+                keyStorageType = SecurityProviderUtility.KeyStorageType.PKCS12_KS;
+                break;
+            }
+            }
+        }
+        return keyStorageType;
     }
 }
