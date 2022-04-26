@@ -73,7 +73,6 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.error.IErrorType;
 import org.gluu.util.security.SecurityProviderUtility;
-import org.gluu.util.security.SecurityProviderUtility.SecurityModeType;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
@@ -140,7 +139,6 @@ public abstract class BaseTest {
 
     @BeforeSuite
     public void initTestSuite(ITestContext context) throws IOException {
-        SecurityProviderUtility.setSecurityMode(SecurityModeType.PKCS12_SECURITY_MODE);
         SecurityProviderUtility.installBCProvider();
 
         Reporter.log("Invoked init test suite method \n", true);
