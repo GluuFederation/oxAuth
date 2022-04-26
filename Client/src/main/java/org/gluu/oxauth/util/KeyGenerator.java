@@ -141,7 +141,11 @@ public class KeyGenerator {
 
                 if(cmd.hasOption(KEY_STORE_FILE_TYPE)) {
                     String keyStoreFileType = cmd.getOptionValue(KEY_STORE_FILE_TYPE);
-                    SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.SecurityModeType.fromString(keyStoreFileType);
+                    SecurityProviderUtility.KeyStorageType keyStorageType = SecurityProviderUtility.KeyStorageType.fromString(keyStoreFileType);
+                    if (keyStorageType == null) {
+                        throw new ParseException(String.format("Wrong option =  %s value = %s", KEY_STORE_FILE_TYPE, keyStoreFileType));
+                    }
+                    SecurityProviderUtility.SecurityModeType securityMode = keyStorageType.getSecurityMode();
                     SecurityProviderUtility.setSecurityMode(securityMode);
                 }
 
