@@ -14,8 +14,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;
+import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.common.ApplicationFactory;
 import org.gluu.oxauth.uma.service.UmaScopeService;
 import org.gluu.persist.PersistenceEntryManager;
@@ -52,6 +55,12 @@ public class ServerUtil {
     private final static Logger log = LoggerFactory.getLogger(ServerUtil.class);
 
     private ServerUtil() {
+    }
+
+    public static JSONObject getJwks(Client client) {
+        return Strings.isNullOrEmpty(client.getJwks())
+                ? JwtUtil.getJSONWebKeys(client.getJwksUri())
+                : new JSONObject(client.getJwks());
     }
 
     public static GregorianCalendar now() {

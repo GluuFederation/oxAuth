@@ -38,6 +38,7 @@ import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.RedirectUriResponse;
+import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.service.cdi.util.CdiUtil;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -295,9 +296,7 @@ public class JwtAuthorizationRequest {
     private boolean validateSignature(AbstractCryptoProvider cryptoProvider, SignatureAlgorithm signatureAlgorithm, Client client, String signingInput, String signature) throws Exception {
         ClientService clientService = CdiUtil.bean(ClientService.class);
         String sharedSecret = clientService.decryptSecret(client.getClientSecret());
-        JSONObject jwks = Strings.isNullOrEmpty(client.getJwks()) ?
-                JwtUtil.getJSONWebKeys(client.getJwksUri()) :
-                new JSONObject(client.getJwks());
+        JSONObject jwks = ServerUtil.getJwks(client);
         return cryptoProvider.verifySignature(signingInput, signature, keyId, jwks, sharedSecret, signatureAlgorithm);
     }
 
