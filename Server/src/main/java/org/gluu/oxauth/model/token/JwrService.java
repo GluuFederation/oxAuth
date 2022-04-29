@@ -21,10 +21,10 @@ import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtType;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.SectorIdentifierService;
 import org.gluu.oxauth.service.ServerCryptoProvider;
+import org.gluu.oxauth.util.ServerUtil;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -95,7 +95,7 @@ public class JwrService {
         final BlockEncryptionAlgorithm encryptionMethod = jwe.getHeader().getEncryptionMethod();
 
         if (keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA_OAEP || keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA1_5) {
-            JSONObject jsonWebKeys = JwtUtil.getJSONWebKeys(client.getJwksUri());
+            JSONObject jsonWebKeys = ServerUtil.getJwks(client);
             String keyId = new ServerCryptoProvider(cryptoProvider).getKeyId(JSONWebKeySet.fromJSONObject(jsonWebKeys),
                     Algorithm.fromString(keyEncryptionAlgorithm.getName()),
                     Use.ENCRYPTION);
