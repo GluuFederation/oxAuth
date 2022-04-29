@@ -6,8 +6,8 @@
 
 package org.gluu.oxauth.model.token;
 
-import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.util.ServerUtil;
 import org.json.JSONObject;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
@@ -106,9 +106,7 @@ public class ClientAssertion {
 
                                         // Validate the crypto segment
                                         String keyId = jwt.getHeader().getKeyId();
-                                        JSONObject jwks = Strings.isNullOrEmpty(client.getJwks()) ?
-                                                JwtUtil.getJSONWebKeys(client.getJwksUri()) :
-                                                new JSONObject(client.getJwks());
+                                        JSONObject jwks = ServerUtil.getJwks(client);
                                         String sharedSecret = clientService.decryptSecret(client.getClientSecret());
                                         boolean validSignature = cryptoProvider.verifySignature(jwt.getSigningInput(), jwt.getEncodedSignature(),
                                                 keyId, jwks, sharedSecret, signatureAlgorithm);
