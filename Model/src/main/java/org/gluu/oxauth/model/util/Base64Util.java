@@ -6,11 +6,10 @@
 
 package org.gluu.oxauth.model.util;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
-
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * @author Javier Rojas Blum
@@ -18,8 +17,6 @@ import java.math.BigInteger;
  * @version December 17, 2021 
  */
 public class Base64Util {
-
-    private static final Logger log = Logger.getLogger(Base64Util.class);
 
     public static String base64urlencode(byte[] arg) {
         String s = Base64.encodeBase64String(arg); // Standard base64 encoder
