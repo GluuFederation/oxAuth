@@ -415,6 +415,10 @@
             <version>1.5.0</version>
             <scope>compile</scope>
         </dependency>
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+		</dependency>
 
 		<!-- Bouncycastle -->
 		<dependency>
