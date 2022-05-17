@@ -8,10 +8,10 @@ package org.gluu.oxauth.model.uma.persistence;
 
 import com.google.common.collect.Maps;
 import org.gluu.oxauth.model.util.Pair;
-import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.annotation.*;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -77,10 +77,8 @@ public class UmaPermission implements Serializable {
     }
 
     public void resetTtlFromExpirationDate() {
-        final Integer ttl = Util.getNumberOfSecondFromNow(getExpirationDate());
-        if (ttl != null) {
-            setTtl(ttl);
-        }
+        final long ttl = Duration.between(new Date().toInstant(), getExpirationDate().toInstant()).getSeconds();
+        setTtl((int) ttl);
     }
 
     public String getDn() {
