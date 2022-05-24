@@ -1,4 +1,4 @@
-# This script allows you to create a shade of actual attribute and share that reflection to Service Provider / SAML application.  
+# This script allows you to transform attributes presented to a Service Provider / SAML application.
 
 ## Example
 
