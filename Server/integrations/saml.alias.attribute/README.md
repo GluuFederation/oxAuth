@@ -10,7 +10,7 @@ We are using a Gluu 4.4.x server and created a mirror attribute named "espejo" w
    - Log into oxTrust
    - "Other Custom Scripts"
    - "Idp Extension"
-      - Name: `attribute_rewirte`
+      - Name: `attribute_rewrite`
       - Description: `Attribute rewrite script`
       - Programming Language: default ( Jython )
       - Level: default ( 0 )
