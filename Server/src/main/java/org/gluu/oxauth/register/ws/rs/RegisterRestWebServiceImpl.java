@@ -762,14 +762,14 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                                 applicationAuditLogger.sendMessage(oAuth2AuditLog);
                                 return Response.status(Response.Status.OK).entity(clientAsEntity(client)).build();
                             } else {
-                                log.trace("The Access Token is not valid for the Client ID, returns invalid_token error.");
+                                log.trace("updateClient false: The Access Token is not valid for the Client ID, returns invalid_token error.");
                                 applicationAuditLogger.sendMessage(oAuth2AuditLog);
                                 return Response.status(Response.Status.BAD_REQUEST).
                                         type(MediaType.APPLICATION_JSON_TYPE).
                                         entity(errorResponseFactory.errorAsJson(RegisterErrorResponseType.INVALID_TOKEN, "External registration script returned false.")).build();
                             }
                         } else {
-                            log.trace("The Access Token is not valid for the Client ID, returns invalid_token error.");
+                            log.trace("Client null: The Access Token is not valid for the Client ID, returns invalid_token error.");
                             applicationAuditLogger.sendMessage(oAuth2AuditLog);
                             return Response.status(Response.Status.BAD_REQUEST).
                                     type(MediaType.APPLICATION_JSON_TYPE).
