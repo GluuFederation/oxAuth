@@ -158,6 +158,8 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
                 + registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1)).request();
         request.header("Authorization", "Bearer " + registrationAccessToken1);
 
+        System.out.println("[TEST]::: registrationAccessToken1: " + registrationAccessToken1);
+
         Response response = request.get();
         String entity = response.readEntity(String.class);
 
