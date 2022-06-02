@@ -90,8 +90,8 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         }
     }
 
-    @Parameters({"registerPath", "redirectUris", "sectorIdentifierUri", "contactEmail1", "contactEmail2"})
-    @Test
+//    @Parameters({"registerPath", "redirectUris", "sectorIdentifierUri", "contactEmail1", "contactEmail2"})
+//    @Test
     public void requestClientAssociate2(final String registerPath, final String redirectUris,
                                         final String sectorIdentifierUri, final String contactEmail1, final String contactEmail2) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
@@ -151,14 +151,12 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         }
     }
 
-    @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "requestClientAssociate1")
+//    @Parameters({"registerPath"})
+//    @Test(dependsOnMethods = "requestClientAssociate1")
     public void requestClientRead(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1)).request();
         request.header("Authorization", "Bearer " + registrationAccessToken1);
-
-        System.out.println("[TEST]::: registrationAccessToken1: " + registrationAccessToken1);
 
         Response response = request.get();
         String entity = response.readEntity(String.class);
@@ -198,6 +196,15 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         final String logoUriNewValue = "http://www.gluu.org/test/yuriy/logo.png";
         final String clientUriNewValue = "http://www.gluu.org/company/yuriy";
 
+        System.out.println("[TEST]::: redirectUris: " + redirectUris);
+        System.out.println("[TEST]::: registerPath: " + registerPath);
+        System.out.println("[TEST]::: contactEmail1: " + contactEmail1);
+        System.out.println("[TEST]::: contactEmail2: " + contactEmail2);
+
+        System.out.println("[TEST]::: targetEndpoint: " + url.toString() + registerPath + "?" + registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1));
+
+        System.out.println("[TEST]::: registrationAccessToken1: " + registrationAccessToken1);
+
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1)).request();
 
@@ -212,6 +219,9 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
 
             request.header("Authorization", "Bearer " + registrationAccessToken1);
             registerRequestContent = ServerUtil.toPrettyJson(registerRequest.getJSONParameters());
+
+            System.out.println("[TEST]::: registerRequestContent: " + registerRequestContent);
+
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -236,8 +246,8 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         }
     }
 
-    @Parameters({"registerPath"})
-    @Test
+//    @Parameters({"registerPath"})
+//    @Test
     public void failRegistration_whenRedirectUriIsNotSetForResponseTypeCode(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
 
@@ -261,8 +271,8 @@ public class RegistrationRestWebServiceEmbeddedTest extends BaseTest {
         TestUtil.assertErrorResponse(entity);
     }
 
-    @Parameters({"registerPath"})
-    @Test
+//    @Parameters({"registerPath"})
+//    @Test
     public void requestClientRegistrationFail3(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
 
