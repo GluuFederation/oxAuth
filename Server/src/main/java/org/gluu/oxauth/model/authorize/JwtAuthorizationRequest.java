@@ -6,19 +6,9 @@
 
 package org.gluu.oxauth.model.authorize;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -27,6 +17,7 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
+import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.jwe.Jwe;
 import org.gluu.oxauth.model.jwe.JweDecrypterImpl;
@@ -35,9 +26,11 @@ import org.gluu.oxauth.model.jwt.JwtHeaderName;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.JwtUtil;
+import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.RedirectUriResponse;
+import org.gluu.oxauth.service.RedirectionUriService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.service.cdi.util.CdiUtil;
 import org.jetbrains.annotations.Nullable;
@@ -47,8 +40,16 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Javier Rojas Blum
@@ -462,6 +463,7 @@ public class JwtAuthorizationRequest {
     }
 
     public static JwtAuthorizationRequest createJwtRequest(String request, String requestUri, Client client, RedirectUriResponse redirectUriResponse, AbstractCryptoProvider cryptoProvider, AppConfiguration appConfiguration) {
+        validateRequestUri(requestUri, client, appConfiguration, redirectUriResponse.getState());
         final String requestFromClient = queryRequest(requestUri, redirectUriResponse, appConfiguration);
         if (StringUtils.isNotBlank(requestFromClient)) {
             request = requestFromClient;
@@ -481,4 +483,35 @@ public class JwtAuthorizationRequest {
         return null;
     }
 
+    public static void validateRequestUri(String requestUri, Client client, AppConfiguration appConfiguration, String state) {
+        validateRequestUri(requestUri, client, appConfiguration, state, CdiUtil.bean(ErrorResponseFactory.class));
+    }
+
+    public static void validateRequestUri(String requestUri, Client client, AppConfiguration appConfiguration, String state, ErrorResponseFactory errorResponseFactory) {
+        if (StringUtils.isBlank(requestUri)) {
+            return; // nothing to validate
+        }
+
+        // client.requestUris() - validation
+        if (ArrayUtils.isNotEmpty(client.getRequestUris()) && !RedirectionUriService.isUriEqual(requestUri, client.getRequestUris())) {
+            log.debug("request_uri is forbidden by client request uris.");
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_URI, state, ""))
+                    .build());
+        }
+
+        // check black list
+        final List<String> blackList = appConfiguration.getRequestUriBlackList();
+        if (!blackList.isEmpty()) {
+            URLPatternList urlPatternList = new URLPatternList(blackList);
+            if (urlPatternList.isUrlListed(requestUri)) {
+                log.debug("request_uri is forbidden by requestUriBlackList configuration.");
+                throw new WebApplicationException(Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_URI, state, ""))
+                        .build());
+            }
+        }
+    }
 }

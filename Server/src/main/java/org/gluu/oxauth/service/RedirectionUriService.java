@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Javier Rojas Blum
@@ -39,8 +40,7 @@ import com.google.common.collect.Sets;
 @ApplicationScoped
 public class RedirectionUriService {
 
-    @Inject
-    private Logger log;
+    private static final Logger log = LoggerFactory.getLogger(RedirectionUriService.class);
 
     @Inject
     private ClientService clientService;
@@ -125,7 +125,7 @@ public class RedirectionUriService {
         return null;
     }
 
-    public boolean isUriEqual(String redirectionUri, String[] redirectUris) {
+    public static boolean isUriEqual(String redirectionUri, String[] redirectUris) {
         final String redirectUriWithoutParams = uriWithoutParams(redirectionUri);
 
         for (String uri : redirectUris) {
