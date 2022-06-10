@@ -101,7 +101,7 @@ public class AppConfiguration implements Configuration {
     private Boolean requestUriParameterSupported;
     private Boolean requestUriHashVerificationEnabled;
     private Boolean requireRequestUriRegistration;
-    private List<String> requestUriBlackList;
+    private List<String> requestUriBlockList;
     private String opPolicyUri;
     private String opTosUri;
     private int authorizationCodeLifetime;
@@ -2090,13 +2090,13 @@ public class AppConfiguration implements Configuration {
         this.cibaEnabled = cibaEnabled;
     }
 
-    public List<String> getRequestUriBlackList() {
-        if (requestUriBlackList == null) requestUriBlackList = Lists.newArrayList();
-        return requestUriBlackList;
+    public List<String> getRequestUriBlockList() {
+        if (requestUriBlockList == null) requestUriBlockList = Lists.newArrayList();
+        return requestUriBlockList;
     }
 
-    public void setRequestUriBlackList(List<String> requestUriBlackList) {
-        this.requestUriBlackList = requestUriBlackList;
+    public void setRequestUriBlockList(List<String> requestUriBlockList) {
+        this.requestUriBlockList = requestUriBlockList;
     }
 
     public Boolean getRequestUriHashVerificationEnabled() {

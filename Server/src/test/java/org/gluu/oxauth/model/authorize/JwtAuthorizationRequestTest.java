@@ -44,7 +44,7 @@ public class JwtAuthorizationRequestTest {
         String requestUri = "https://myrp.com/request_uri";
 
         final AppConfiguration appConfiguration = new AppConfiguration();
-        appConfiguration.setRequestUriBlackList(Arrays.asList("myrp.com", "evil.com"));
+        appConfiguration.setRequestUriBlockList(Arrays.asList("myrp.com", "evil.com"));
         JwtAuthorizationRequest.validateRequestUri(requestUri, new Client(), appConfiguration, "", new ErrorResponseFactory());
     }
 
@@ -53,7 +53,7 @@ public class JwtAuthorizationRequestTest {
         String requestUri = "https://localhost/request_uri";
 
         final AppConfiguration appConfiguration = new AppConfiguration();
-        appConfiguration.setRequestUriBlackList(Collections.singletonList("localhost"));
+        appConfiguration.setRequestUriBlockList(Collections.singletonList("localhost"));
         JwtAuthorizationRequest.validateRequestUri(requestUri, new Client(), appConfiguration, "", new ErrorResponseFactory());
     }
 
@@ -62,7 +62,7 @@ public class JwtAuthorizationRequestTest {
         String requestUri = "https://127.0.0.1/request_uri";
 
         final AppConfiguration appConfiguration = new AppConfiguration();
-        appConfiguration.setRequestUriBlackList(Collections.singletonList("127.0.0.1"));
+        appConfiguration.setRequestUriBlockList(Collections.singletonList("127.0.0.1"));
         JwtAuthorizationRequest.validateRequestUri(requestUri, new Client(), appConfiguration, "", new ErrorResponseFactory());
     }
 
@@ -71,7 +71,7 @@ public class JwtAuthorizationRequestTest {
         String requestUri = "https://myrp.com/request_uri";
 
         final AppConfiguration appConfiguration = new AppConfiguration();
-        appConfiguration.setRequestUriBlackList(Arrays.asList("evil.com", "second.com"));
+        appConfiguration.setRequestUriBlockList(Arrays.asList("evil.com", "second.com"));
         JwtAuthorizationRequest.validateRequestUri(requestUri, new Client(), appConfiguration, "", new ErrorResponseFactory());
     }
 }
