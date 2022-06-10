@@ -502,7 +502,7 @@ public class JwtAuthorizationRequest {
         }
 
         // check black list
-        final List<String> blackList = appConfiguration.getRequestUriBlackList();
+        final List<String> blackList = appConfiguration.getRequestUriBlockList();
         if (!blackList.isEmpty()) {
             URLPatternList urlPatternList = new URLPatternList(blackList);
             if (urlPatternList.isUrlListed(requestUri)) {
