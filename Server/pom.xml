@@ -427,6 +427,11 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcmail-jdk15on</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 			<!-- OmniFaces -->
 		<dependency>
@@ -1010,6 +1015,10 @@
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
 					<artifactId>bcpkix-jdk15on</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk15on</artifactId>
 				</dependency>
 			</dependencies>
 		</profile>

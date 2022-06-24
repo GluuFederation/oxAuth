@@ -36,7 +36,6 @@
 			</h:form>
 		</section>
 		<ui:include src="/casa/casa.xhtml" />
-		
 		<script>
 			var numbs = "${identity.getWorkingParameter('emailIds')}"
 			numbs = numbs.split(",")
@@ -58,10 +57,7 @@
 			function changeOption(index) {
 				document.getElementById("OtpEmailLoginForm:indexOfEmail").value = index;
 			}
-			
-			
 		</script>
-
 	</ui:define>
 
 </ui:composition>
