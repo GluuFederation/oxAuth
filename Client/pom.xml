@@ -103,13 +103,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Multi-Release>true</Multi-Release>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -142,7 +135,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
+							<appendAssemblyId>true</appendAssemblyId>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
@@ -154,7 +147,6 @@
 									<Multi-Release>true</Multi-Release>
 								</manifestEntries>
 							</archive>
-							<finalName>${project.artifactId}-jar-with-dependencies</finalName>
 						</configuration>
 					</execution>
 
@@ -165,7 +157,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
+							<appendAssemblyId>true</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/main/assembly/jar-without-provider-dependencies.xml</descriptor>
 							</descriptors>
@@ -177,7 +169,6 @@
 									<Multi-Release>true</Multi-Release>
 								</manifestEntries>
 							</archive>
-							<finalName>${project.artifactId}-jar-without-provider-dependencies</finalName>
 						</configuration>
 					</execution>
 				</executions>
