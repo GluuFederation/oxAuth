@@ -88,7 +88,8 @@
 					<packagingExcludes>
 						WEB-INF/lib/bcpkix-jdk15on-*.jar,
 						WEB-INF/lib/bcprov-jdk15on-*.jar,
-						WEB-INF/lib/bcutil-jdk15on-*.jar
+						WEB-INF/lib/bcutil-jdk15on-*.jar,
+						WEB-INF/lib/bcmail-jdk15on-*.jar
 					</packagingExcludes>
 				</configuration>
 			</plugin>
@@ -154,7 +155,6 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcmail-fips</artifactId>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
