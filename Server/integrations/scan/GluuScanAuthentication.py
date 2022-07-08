@@ -74,6 +74,7 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
         self.AS_CLIENT_ID = configurationAttributes.get("AS_CLIENT_ID").getValue2()
         
+        
         if not configurationAttributes.containsKey("AS_CLIENT_SECRET"):
             print "Scan. Initialization. Property AS_CLIENT_SECRET is mandatory"
             return False
@@ -148,8 +149,9 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
         
         self.cryptoProvider = OxAuthCryptoProvider(self.SCAN_KEY_A_KEYSTORE, self.SCAN_KEY_A_PASSWORD, None);
-        
-        
+        # upon client creation, this value is populated, after that this call will not go through in subsequent script restart
+        if StringHelper.isEmptyString(self.AS_CLIENT_ID):
+            self.createClientPy(customScript)
         print "GluuScan. init. Initialized successfully"
         return True
 
@@ -768,51 +770,46 @@ class PersonAuthentication(PersonAuthenticationType):
         # return true irrespective of the result
         return True
     
-   
-    
-    
-    def createClient(self ):
-        
-        httpService = CdiUtil.bean(HttpService)
-        http_client = httpService.getHttpsClient()
-        http_client_params = http_client.getParams()
-        random_client_name = "test" + UUID.randomUUID().toString()
-        url = self.AS_ENDPOINT +"/jans-auth/restv1/register"
-        client_data = urllib.urlencode({"redirect_uris": [ self.AS_REDIRECT_URI], "software_statement": self.AS_SSA,"application_type": "web","client_name": random_client_name,"subject_type": "pairwise","grant_types": [ "client_credentials"],"response_types": ["token"],"scopes": ["email", "openid", "profile"]})
-        print url
-        print client_data
-        encodedString = base64.b64encode((self.AS_CLIENT_ID+":"+self.AS_CLIENT_SECRET).encode('utf-8'))
-        headers = {"Content-type" : "application/x-www-form-urlencoded", "Accept" : "application/json","Authorization": "Basic "+encodedString}
-        
-        try:
-            http_service_response = httpService.executePost(http_client, url, None, headers , client_data)
-            print http_service_response   
-            http_response = http_service_response.getHttpResponse()
-        except:
-            print "Jans Auth Server -  register new client.", sys.exc_info()[1]
-            return None
-
-        try:
-            if not httpService.isResponseStastusCodeOk(http_response):
-                print "Scan. Jans-Auth register new client. Get invalid response from server: ", str(http_response.getStatusLine().getStatusCode())
-                httpService.consume(http_response)
-                return None
-
-            response_bytes = httpService.getResponseContent(http_response)
-            response_string = httpService.convertEntityToString(response_bytes)
-            httpService.consume(http_response)
-        finally:
-           http_service_response.closeConnection()
-
-        if response_string == None:
-            print "Scan.  register new client. Got empty response from validation server"
-            return None
-        
-        response = json.loads(response_string)
-        response_data = json.loads(response)
-        client_id = response_data['client_id']
-        client_secret = response_data['client_secret']
-
-        print(client_id)
-        print(client_secret)
+    def createClientPy(self, customScript ):
+        try: 
+            
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            
+            data_org = {   }
+            redirect_str = "[\""+self.AS_REDIRECT_URI+"\"]"
+            data_org["redirect_uris"] = json.loads(redirect_str)
+            data_org["software_statement"] = self.AS_SSA
+            data_org["jwks_uri"] = self.PORTAL_JWKS
+            body = json.dumps(data_org)
+            print body
+            url = self.AS_ENDPOINT +"/jans-auth/restv1/register"
+            req = urllib2.Request(url,body,{'Content-Type': 'application/json', 'Content-Length': len(body)})
+            f = urllib2.urlopen(req, context=ctx)
+            response = f.read()
+            f.close()
+            
+            response_data = json.loads(response)
+            print response_data
+            client_id = response_data["client_id"]
+            client_secret = response_data["client_secret"]
+            
+            custScriptService = CdiUtil.bean(CustomScriptService)
+            customScript = custScriptService.getScriptByDisplayName(customScript.getName())
+            for conf in customScript.getConfigurationProperties():
+                if (StringHelper.equalsIgnoreCase(conf.getValue1(), "AS_CLIENT_ID")):
+                    conf.setValue2(client_id)
+                elif (StringHelper.equalsIgnoreCase(conf.getValue1(), "AS_CLIENT_SECRET")):
+                    conf.setValue2(client_secret)
+            custScriptService.update(customScript)    
+            
+            print client_id
+            print client_secret
+        except: 
+            print "Failed to execute /register.", sys.exc_info()[1]
+            return False
         return True
+    
+    
+    
