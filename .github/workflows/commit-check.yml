@@ -20,6 +20,7 @@ jobs:
   check-commit-message:
     name: Check Commit Message
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Project
         uses: actions/checkout@v2
@@ -27,9 +28,10 @@ jobs:
           # We need to fetch with a depth of 2 for pull_request so we can do HEAD^2
           fetch-depth: 2
 
-      - uses: actions/setup-node@v3.1.1
+      - uses: actions/setup-node@v3.4.0
         with:
           node-version: 14
+
       - run: |
           npm install --save-dev @commitlint/{config-conventional,cli}
           echo "module.exports = {extends: ['@commitlint/config-conventional']};" > commitlint.config.js
@@ -72,7 +74,6 @@ jobs:
 #        with:
 #          pattern: '^.+(Resolves|Fixes): \#[0-9]+$'
 #          error: 'You need at least one "Resolves|Fixes: #<issue number>" line.'
-
 
       - name: "[Push] Report Commit Standard Status"
         if: steps.push_get_commit_message.outcome != 'success' && github.event_name == 'push'
