@@ -108,5 +108,17 @@ public class ConfigurationService {
 		}
 	}
 
+	public void decryptKeyStorePassword(SmtpConfiguration smtpConfiguration) {
+		if (smtpConfiguration == null) {
+			return;
+		}
+		String keyStorePassword = smtpConfiguration.getKeyStorePassword();
+		if (StringHelper.isNotEmpty(keyStorePassword)) {
+			try {
+				smtpConfiguration.setKeyStorePasswordDecrypted(encryptionService.decrypt(keyStorePassword));
+			} catch (EncryptionException ex) {
+				log.error("Failed to decrypt KeyStore password", ex);
+			}
+		}
+	}	
 }
-
