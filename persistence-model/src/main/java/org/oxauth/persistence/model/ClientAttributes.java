@@ -20,6 +20,9 @@ public class ClientAttributes implements Serializable {
 
     @JsonProperty("tlsClientAuthSubjectDn")
     private String tlsClientAuthSubjectDn;
+    
+    @JsonProperty("redirectRegex")
+    private String redirectRegex;
 
     @JsonProperty("runIntrospectionScriptBeforeAccessTokenAsJwtCreationAndIncludeClaims")
     private Boolean runIntrospectionScriptBeforeAccessTokenAsJwtCreationAndIncludeClaims = false;
@@ -56,6 +59,19 @@ public class ClientAttributes implements Serializable {
 
     @JsonProperty("rptClaimsScripts")
     private List<String> rptClaimsScripts;
+    
+    @JsonProperty("umaRPTClaimsScripts")
+    private List<String> umaRPTModificationScripts;
+    
+    @JsonProperty("updateTokenScripts")
+    private List<String> updateTokenScripts;
+    
+    @JsonProperty("idTokenSubjectType")
+    private String idTokenSubjectType;
+    
+
+    @JsonProperty("defaultPromptLogin")
+    private String defaultPromptLogin;
 
     public List<String> getRptClaimsScripts() {
         if (rptClaimsScripts == null) rptClaimsScripts = Lists.newArrayList();
@@ -195,4 +211,46 @@ public class ClientAttributes implements Serializable {
                 ", rptClaimsScripts=" + rptClaimsScripts +
                 '}';
     }
+
+	public String getRedirectRegex() {
+		return redirectRegex;
+	}
+
+	public void setRedirectRegex(String redirectRegex) {
+		this.redirectRegex = redirectRegex;
+	}
+
+	public String getIdTokenSubjectType() {
+		return idTokenSubjectType;
+	}
+
+	public void setIdTokenSubjectType(String idTokenSubjectType) {
+		this.idTokenSubjectType = idTokenSubjectType;
+	}
+
+	public String getDefaultPromptLogin() {
+		return defaultPromptLogin;
+	}
+
+	public void setDefaultPromptLogin(String defaultPromptLogin) {
+		this.defaultPromptLogin = defaultPromptLogin;
+	}
+
+	public List<String> getUpdateTokenScripts() {
+		if (updateTokenScripts == null) updateTokenScripts = Lists.newArrayList();
+		return updateTokenScripts;
+	}
+
+	public void setUpdateTokenScripts(List<String> updateTokenScripts) {
+		this.updateTokenScripts = updateTokenScripts;
+	}
+
+	public List<String> getUmaRPTModificationScripts() {
+		if (umaRPTModificationScripts == null) umaRPTModificationScripts = Lists.newArrayList();
+		return umaRPTModificationScripts;
+	}
+
+	public void setUmaRPTModificationScripts(List<String> umaRPTModificationScripts) {
+		this.umaRPTModificationScripts = umaRPTModificationScripts;
+	}
 }
