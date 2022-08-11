@@ -453,9 +453,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, cibaGrant, client, appConfiguration, attributeService);
                             Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
+                            boolean includeIdTokenClaims = Boolean.TRUE.equals(appConfiguration.getLegacyIdTokenClaims());
                             IdToken idToken = cibaGrant.createIdToken(
                                     null, null, accessToken, refToken,
-                                    null, cibaGrant, false, null, postProcessor);
+                                    null, cibaGrant, includeIdTokenClaims, null, postProcessor);
 
                             cibaGrant.setTokensDelivered(true);
                             cibaGrant.save();
@@ -580,9 +581,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
             ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(request, deviceCodeGrant, client, appConfiguration, attributeService);
             Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
+            boolean includeIdTokenClaims = Boolean.TRUE.equals(appConfiguration.getLegacyIdTokenClaims());
             IdToken idToken = deviceCodeGrant.createIdToken(
                     null, null, accessToken, refToken,
-                    null, deviceCodeGrant, false, null, postProcessor);
+                    null, deviceCodeGrant, includeIdTokenClaims, null, postProcessor);
 
             RefreshToken reToken = null;
             if (isRefreshTokenAllowed(client, scope, deviceCodeGrant)) {
