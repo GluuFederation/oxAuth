@@ -55,7 +55,20 @@ public class ClientAttributes implements Serializable {
     private List<String> introspectionScripts;
 
     @JsonProperty("rptClaimsScripts")
-    private List<String> rptClaimsScripts;
+    private List<String> rptClaimsScripts;    
+
+    @JsonProperty("redirectRegex")
+    private String redirectRegex;
+    
+	@JsonProperty("umaRPTClaimsScripts")
+	private List<String> umaRPTModificationScripts;
+	
+	@JsonProperty("updateTokenScripts")
+	private List<String> updateTokenScripts;
+	
+	@JsonProperty("defaultPromptLogin")
+	private String defaultPromptLogin;
+    
 
     public List<String> getRptClaimsScripts() {
         if (rptClaimsScripts == null) rptClaimsScripts = Lists.newArrayList();
@@ -175,7 +188,43 @@ public class ClientAttributes implements Serializable {
 
     public void setBackchannelLogoutSessionRequired(Boolean backchannelLogoutSessionRequired) {
         this.backchannelLogoutSessionRequired = backchannelLogoutSessionRequired;
-    }
+    }    
+	
+	public String getRedirectRegex() {
+		return redirectRegex;
+	}
+
+	public void setRedirectRegex(String redirectRegex) {
+		this.redirectRegex = redirectRegex;
+	}
+
+	public String getDefaultPromptLogin() {
+		return defaultPromptLogin;
+	}
+
+	public void setDefaultPromptLogin(String defaultPromptLogin) {
+		this.defaultPromptLogin = defaultPromptLogin;
+	}
+
+	public List<String> getUpdateTokenScripts() {
+		if (updateTokenScripts == null)
+			updateTokenScripts = Lists.newArrayList();
+		return updateTokenScripts;
+	}
+
+	public void setUpdateTokenScripts(List<String> updateTokenScripts) {
+		this.updateTokenScripts = updateTokenScripts;
+	}
+
+	public List<String> getUmaRPTModificationScripts() {
+		if (umaRPTModificationScripts == null)
+			umaRPTModificationScripts = Lists.newArrayList();
+		return umaRPTModificationScripts;
+	}
+
+	public void setUmaRPTModificationScripts(List<String> umaRPTModificationScripts) {
+		this.umaRPTModificationScripts = umaRPTModificationScripts;
+	}
 
     @Override
     public String toString() {
