@@ -32,6 +32,7 @@ public class DynamicScopeExternalContext extends ExternalScriptContext {
     	this.dynamicScopes = dynamicScopes;
     	this.jsonWebResponse = jsonWebResponse;
     	this.authorizationGrant = authorizationGrant;
+        authorizationGrant.getClientId()
     }
 
 	/**
