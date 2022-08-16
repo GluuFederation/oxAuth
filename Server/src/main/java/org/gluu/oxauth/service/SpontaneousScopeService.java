@@ -15,6 +15,8 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static org.apache.commons.lang3.BooleanUtils.isFalse;
+
 @ApplicationScoped
 public class SpontaneousScopeService {
 
@@ -72,7 +74,11 @@ public class SpontaneousScopeService {
     }
 
     public boolean isAllowedBySpontaneousScopes(Client client, String scopeRequested) {
-        if (!client.getAttributes().getAllowSpontaneousScopes()) {
+        if (isFalse(appConfiguration.getAllowSpontaneousScopes())) {
+            return false;
+        }
+
+        if (isFalse(client.getAttributes().getAllowSpontaneousScopes())) {
             return false;
         }
 

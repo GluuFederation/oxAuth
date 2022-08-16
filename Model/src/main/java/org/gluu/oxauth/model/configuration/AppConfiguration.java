@@ -70,6 +70,7 @@ public class AppConfiguration implements Configuration {
     private int statTimerIntervalInSeconds;
     private int statWebServiceIntervalLimitInSeconds;
 
+    private Boolean allowSpontaneousScopes;
     private int spontaneousScopeLifetime;
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;
@@ -1190,6 +1191,15 @@ public class AppConfiguration implements Configuration {
 
     public void setUmaPctLifetime(int umaPctLifetime) {
         this.umaPctLifetime = umaPctLifetime;
+    }
+
+    public Boolean getAllowSpontaneousScopes() {
+        if (allowSpontaneousScopes == null) allowSpontaneousScopes = false;
+        return allowSpontaneousScopes;
+    }
+
+    public void setAllowSpontaneousScopes(Boolean allowSpontaneousScopes) {
+        this.allowSpontaneousScopes = allowSpontaneousScopes;
     }
 
     public int getSpontaneousScopeLifetime() {
