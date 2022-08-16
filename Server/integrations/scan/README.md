@@ -46,25 +46,7 @@ In short the flow works as follows:
    - Tick the `enabled` checkbox
    - For the rest of fields, you can accept the defaults
 3. Click on `Add new property`. On the left type `snd_step_methods`, on the right use `fido2,super_gluu` or whatever suits your needs best. See [Authentication mechanisms for second factor](#authentication-mechanisms-for-second-factor) for more
-4. If `super_gluu` was listed in the previous step, click on `Add new property`. On the left type `supergluu_app_id`, on the right use `https://<your-gluu-host-name>/casa`. This is the URL (aka application ID) that Super Gluu enrollments are already (or will be) associated to.
-5. Scroll down and click on the `Update` button at the bottom of the page
-
-
-### Transfer script assets to your server
-
-Extract [this file](https://github.com/GluuFederation/oxAuth/raw/version_4.4.0/Server/integrations/scan/bundle.zip) to the root (ie. `/`) of your Gluu server. In a standard CE installation this means extraction should take place under `/opt/gluu-server`.
-
-The zip file contains UI pages (forms), associated javascript and CSS files, as well as miscellaneous python code required for the flow to run properly. When extracting use the `root` user. 
-
-## Login Hint
-
-When the authentication request that triggers the authentication contains the `login_hint` parameter (see http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest), this value is used to automatically populate the username input field in the initial form. 
-
-In order to configure this feature follow the steps below:
-
-1. Log into oxTrust with admin credentials
-2. Visit `Configuration` > `Person Authentication Scripts` and select the recently created entry for the scan script
-3. Scroll down and click on `Add new property`
+4. Configure the following properties
 
 |Name|Description|Sample value|
 |-|-|-|
@@ -79,10 +61,15 @@ In order to configure this feature follow the steps below:
 |`AS_SSA`|SSA for client creation on Jans server. JWT signed using the JWKS URI|`eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdsdXUtc2Nhbi1hcGkifQ.eyJpc3MiOiJodHRwczovL3BvcnRhbC5nbHV1Lm9yZyIsImlhdCI6IjE2NTUzMTkyNjgiLCJqdGkiOiJmN2I1OTkxYy00YzE4LTRjODEtYTY2NC1lNmY4NjcwZjVkNTEiLCJzb2Z0d2FyZV9pZCI6ImdsdXUtc2Nhbi1hcGkiLCJvcmdfaWQiOjEsInNvZnR3YXJlX3JvbGVzIjpbInBhc3N3dXJkIl0sImp3a3NfdXJpIjoiaHR0cHM6Ly9jbG91ZC1kZXYuZ2x1dS5jbG91ZC9wb3J0YWwvandrcyIsIm9yZ19zdGF0dXMiOiJhY3RpdmUiLCJhcHBsaWNhdGlvbl90eXBlIjoid2ViIiwiZ3JhbnRfdHlwZXMiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJyZXNwb25zZV90eXBlcyI6InRva2VuIn0.CfFL4uI-K6jHkN7DB7YofjDgjH_9a5nWTVrC9eILBH72JTuLmbX_JfNYDXkTJlzCGdJGtRilCJuCPa1WCmTNSKu16d8UlpMoRfgFlND01pPOrFDtXitSktDUTMV7jNdhIt7lmRtMF0XjPFi13pf2ur1ZgDVodkokvmV4kebRfjv6RXQ3wCbP57L8eFL9C95WtGUJLefpi0i-88RFxv36XALMYhyq7OYLtCjv62Fh9j8jpcEmWCmQV8FKVNhvqrVyf3GGqoBCyRkQDJOGRCbL-5BAAylzlglvXkAZCM8lP5GovnmCPc_WQY2TK8AsWTMYIs_wWJJ9LAoXPk2CwtC6JKo9gxWsyDJCXnc4a_IkC_rOiWutVqQ_LmaAbjqHdL1KX6eVfmVDLXrIoS6ic4f3PbqlPPk7CIM2c9ydEV4lVi5rFGxlO_yBwS3ptJzMFW0i6rpxZMpHVe9I2F7leZqZhzf0D6ayLJBwpifQwgHps8CX5fFawWVESZgU2kgEq4MR_24ghqk24VC1scolWZdegYZClvZtFOkqcX9T_-9lpKswrGfr6lMEtzuNwfhteccZG6tihC6M-7fXnqMDjpA_ct43FjKFqV79OelLrEtjiZfx8-etfak7K2u-ebm8S_aO3g17dO2BUaQsulV_4uxeH1t3COGaJsyMKNagKkiJg6g`|
 |`SCAN_API_URL`|This is used to query keystroke endpoint|`https://cloud-dev.gluu.cloud/scan`|
 
+5. If `super_gluu` was listed in the previous step, click on `Add new property`. On the left type `supergluu_app_id`, on the right use `https://<your-gluu-host-name>/casa`. This is the URL (aka application ID) that Super Gluu enrollments are already (or will be) associated to.
+6. Scroll down and click on the `Update` button at the bottom of the page
 
 
+### Transfer script assets to your server
 
-6. Scroll down and click on the `Update` button
+Extract [this file](https://github.com/GluuFederation/oxAuth/raw/version_4.4.0/Server/integrations/scan/bundle.zip) to the root (ie. `/`) of your Gluu server. In a standard CE installation this means extraction should take place under `/opt/gluu-server`.
+
+The zip file contains UI pages (forms), associated javascript and CSS files, as well as miscellaneous python code required for the flow to run properly. When extracting use the `root` user. 
 
 
 ## Authentication mechanisms for second factor
