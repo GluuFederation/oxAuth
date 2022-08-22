@@ -29,7 +29,6 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def init(self, customScript, configurationAttributes):
         print "Registration. Initialization"
-        print "Registration. Initialized successfully"
         if (configurationAttributes.containsKey("generic_register_attributes_list") and
                 configurationAttributes.containsKey("generic_local_attributes_list")):
 
@@ -47,6 +46,8 @@ class PersonAuthentication(PersonAuthenticationType):
             if (self.attributesMapping == None):
                 print "Registration: Initialization. The attributes mapping isn't valid"
                 return False
+
+        print "Registration. Initialized successfully"
 
         return True
         

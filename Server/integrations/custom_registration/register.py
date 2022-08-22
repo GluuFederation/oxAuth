@@ -133,11 +133,9 @@ class PersonAuthentication(PersonAuthenticationType):
                 else:
                     body = body
                     
-                body = body + "<p>Email : <span style='color: #337ab7;'>"+str(umail)+"</span>,</p><p>Password : <span style='color: #337ab7;'>"+str(upass)+"</span>,</p><p>Use <span style='color: #337ab7;'>%s</span> OTP to finish Registration.</p></div>"
-
-                
-                mailService.sendMail(umail, None, subject, body, body)
-            
+                body = body + "<p>Email : <span style='color: #337ab7;'>"+str(umail)+"</span>,</p><p>Password : <span style='color: #337ab7;'>"+str(upass)+"</span>,</p><p>Use <span style='color: #337ab7;'>"+str(code)+"</span> OTP to finish Registration.</p></div>"
+		
+                mailService.sendMailSigned(umail, None, subject, body, body)
                 
                 return True
             except Exception, ex: 
