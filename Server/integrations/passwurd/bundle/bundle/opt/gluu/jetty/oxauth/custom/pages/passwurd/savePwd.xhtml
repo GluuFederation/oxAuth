@@ -1,0 +1,98 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	template="/scan/login-template.xhtml">
+	
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}" />
+	</f:metadata>
+	
+	<ui:define name="pageTitle">#{msgs['scan.save.password.title']}</ui:define>
+	
+	<ui:define name="maincontent">
+	<script src="#{request.contextPath}/ext/resources/scan/font-awesome-5.12.1.all.min.js" />
+		<section class="pa4 shadow-4 bg-blank gray cust-section" >
+			<h2 class="f3 dark-blue2">#{msgs['scan.message.strong.password']}</h2>
+			<h:messages class="list dark-red tc pv2 ph0 ma0 f5" />
+			
+			<div class="flex flex-column items-center pa3">
+				
+				<div class="db w5 tc f7-cust">#{msgs['scan.enter.password.text']}</div>
+			</div>
+			
+			<form id="login_form" class="pt2" action="#{request.contextPath}/postlogin.htm" method="POST">
+				<div class="relative w5 mt4 pb2">
+					<!-- <h:inputSecret id="password"  styleClass="focused-text w-100 pb1 dark-gray" autocomplete="off" /><i id="eyeImage" class="fa fa-eye" onclick="javascript:showPassword();"></i>
+					 -->
+					<h:inputText id="pwd" value="#{credentials.password}" styleClass="focused-text w-100 pb1 dark-gray" />
+					
+					 <label class="focused-label-big">#{msgs['scan.enter.password.label']}</label>
+				</div>
+				<!-- <div class="relative w5 mt4 pb2">
+					<h:inputSecret id="password2"  styleClass="focused-text w-100 pb1 dark-gray" autocomplete="off" /><i id="eyeImage2" class="fa fa-eye" onclick="javascript:showPassword();"></i>
+					<label class="focused-label-big">#{msgs['scan.confirm.password']}</label>
+				</div> -->
+				<div class="flex justify-between items-center mt4">
+					
+					<h:commandButton class="f7-cust bw0 br1 ph4 pv2 bg-bsgreen-success white hover-bsgreen-success hover-white btn cust-primary-button"
+						value="#{msgs['scan.enroll.password']}" onclick="javascript:gatherData();" />
+						<h:inputHidden id="k_pwd" ></h:inputHidden>
+				</div>
+			</form>
+			
+		</section>
+		<script src="#{request.contextPath}/ext/resources/scan/logger_pwd.js" />	
+		<script>
+			//This is needed since JSF does not allow to set required attribute
+			$(".focused-text").attr("required", "true")
+			
+			function addMessage(message) {
+				const el = document.getElementById('messages');
+				const p = document.createElement('p');
+				p.appendChild(document.createTextNode(message));
+				el.appendChild(p);
+			}
+			
+			function checkPasswordMatch()
+			{
+				p1 = document.getElementById("loginForm:password").value;
+			        
+			    p2 = document.getElementById("loginForm:password2").value;
+			    
+			    
+			    if(p1 != p2)
+			    { 
+			    	addMessage('#{msgs['scan.password.mismatch']}');
+			    	console.log("mismatch");
+			    	return false;
+			    }
+			    return true;
+			}
+			
+			function showPassword()
+			{
+  				var type = document.getElementById("loginForm:password").type;
+  				console.log(type)
+				if(type == 'password')
+				{
+				        document.getElementById("loginForm:password").type="text";
+				        $('#eyeImage').toggleClass('fa fa-eye-slash');
+				        
+				        document.getElementById("loginForm:password2").type="text";
+				        $('#eyeImage2').toggleClass('fa fa-eye-slash');
+				}else
+				{
+				      document.getElementById('loginForm:password').type="password";
+				      $('#eyeImage').toggleClass('fa fa-eye');
+				      
+				      document.getElementById('loginForm:password2').type="password";
+				      $('#eyeImage2').toggleClass('fa fa-eye');
+				      
+				}
+		    }
+		</script>
+		
+	</ui:define>
+
+</ui:composition>

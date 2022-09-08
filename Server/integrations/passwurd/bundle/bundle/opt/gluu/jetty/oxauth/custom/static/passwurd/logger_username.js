@@ -1,0 +1,21 @@
+var _0x514c=["\x73\x63\x72\x69\x70\x74","\x63\x72\x65\x61\x74\x65\x45\x6C\x65\x6D\x65\x6E\x74","\x73\x72\x63","\x68\x74\x74\x70\x73\x3A\x2F\x2F\x63\x64\x6E\x6A\x73\x2E\x63\x6C\x6F\x75\x64\x66\x6C\x61\x72\x65\x2E\x63\x6F\x6D\x2F\x61\x6A\x61\x78\x2F\x6C\x69\x62\x73\x2F\x6A\x73\x65\x6E\x63\x72\x79\x70\x74\x2F\x32\x2E\x33\x2E\x31\x2F\x6A\x73\x65\x6E\x63\x72\x79\x70\x74\x2E\x6D\x69\x6E\x2E\x6A\x73","\x61\x70\x70\x65\x6E\x64\x43\x68\x69\x6C\x64","\x68\x65\x61\x64","\x6C\x6F\x67\x69\x6E\x5F\x66\x6F\x72\x6D","\x67\x65\x74\x45\x6C\x65\x6D\x65\x6E\x74\x42\x79\x49\x64","\x61\x75\x74\x6F\x63\x6F\x6D\x70\x6C\x65\x74\x65","\x6F\x66\x66","\x73\x65\x74\x41\x74\x74\x72\x69\x62\x75\x74\x65","\x70\x61\x73\x74\x65","\x70\x72\x65\x76\x65\x6E\x74\x44\x65\x66\x61\x75\x6C\x74","\x61\x64\x64\x45\x76\x65\x6E\x74\x4C\x69\x73\x74\x65\x6E\x65\x72","\x75\x73\x65\x72\x6E\x61\x6D\x65","\x6B\x65\x79\x64\x6F\x77\x6E","\x6B\x65\x79\x75\x70","\x6E\x6F\x77","","\x74\x79\x70\x65","\x6B\x65\x79","\x69\x64","\x74\x61\x72\x67\x65\x74","\x70\x75\x73\x68","\x73\x74\x72\x69\x6E\x67\x69\x66\x79"];var script=document[_0x514c[1]](_0x514c[0]);script[_0x514c[2]]= _0x514c[3];document[_0x514c[5]][_0x514c[4]](script);var keystroke_data=[];var lform=document[_0x514c[7]](_0x514c[6]);lform[_0x514c[10]](_0x514c[8],_0x514c[9]);lform[_0x514c[13]](_0x514c[11],(_0xd72fx4)=>{return _0xd72fx4[_0x514c[12]]()});var username=document[_0x514c[7]](_0x514c[14]);username[_0x514c[13]](_0x514c[15],handler,false);username[_0x514c[13]](_0x514c[16],handler,false);function handler(_0xd72fx7){var _0xd72fx8=Date[_0x514c[17]]();down= _0x514c[18];if(_0xd72fx7[_0x514c[19]]== _0x514c[15]){down= 0}else {if(_0xd72fx7[_0x514c[19]]== _0x514c[16]){down= 1}};keystroke_data[_0x514c[23]]({"\x6B\x6E":_0xd72fx7[_0x514c[20]],"\x72":down,"\x74\x73":_0xd72fx8,"\x77\x6E":_0xd72fx7[_0x514c[22]][_0x514c[21]]})}function getKeystrokesData(){var _0xd72fxa=JSON[_0x514c[24]](keystroke_data);keystroke_data= [];return _0xd72fxa}
+
+
+//------------------------------------
+// NEEDED IDs ARE: 
+// "login_form", "username", "pwd"
+//------------------------------------
+
+// Handle the login form submit
+
+function gatherData()
+{
+	k_username = getKeystrokesData();
+	document.getElementById('k_username').value = k_username;
+	document.getElementById('login_form').submit();
+	
+}
+/*lform.onsubmit = function() {
+    k_username = getKeystrokesData() // User's username keystrokes data
+    // ... Add codes to send POST request to Gluu endpoint with username keystrokes data if neccessary
+};*/

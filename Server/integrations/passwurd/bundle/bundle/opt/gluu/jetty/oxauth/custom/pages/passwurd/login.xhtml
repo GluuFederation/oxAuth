@@ -1,0 +1,133 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	template="/scan/login-template.xhtml">
+	
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}" />
+	</f:metadata>
+	
+	<ui:define name="pageTitle">#{msgs['pwdless.pageTitle']}</ui:define>
+	<ui:define name="maincontent">
+	
+		<section class="pa4 shadow-4 bg-blank gray mw-20r cust-section">
+			<h2 class="f3 dark-blue2">#{msgs['casa.login.panel_title']}</h2>
+			<h:messages class="list dark-red tc pv2 ph0 ma0 f6" />
+			
+			<div id="panel_list" class="pt4 w5 dn">			
+			    <span class="dark-blue2">#{msgs['pwdless.choose']}</span>
+			    <ul id="list" class="list-group f7-cust pv3 pointer">
+			    </ul>
+			    
+			    <div align="center" class="pb3">
+			        <a href="javascript:hidelist()" class="f7-cust green hover-green">#{msgs['pwdless.other']}</a>
+			    </div>
+			</div>
+			
+			<form id="login_form" class="pt3 w5 dn" action="#{request.contextPath}/postlogin.htm" method="POST" >
+			    
+				<div class="relative mt4 pb2">
+					<h:inputText id="username" value="#{credentials.username}" styleClass="focused-text w-100 pb1 dark-gray" />
+					<label class="focused-label-big">#{msgs['pwdless.username']}</label>
+				</div>
+				<div class="mt5 flex justify-end">
+					<h:inputHidden id="k_username"></h:inputHidden>
+					<h:commandButton class="f7-cust bw0 br1 ph4 pv2 bg-bsgreen-success white hover-bsgreen-success hover-white btn cust-primary-button"
+						id="loginButton" value="#{msgs['login.login']}" onclick="javascript:gatherData();" />						
+				</div>
+				
+			</form>
+			<script src="#{request.contextPath}/ext/resources/scan/logger_username.js" />
+		</section>
+		<script>
+		//<![CDATA[
+		    let duration = 500
+    		
+		    
+		    
+		    function showlist() {
+	   		    $("#login_form").slideUp(duration, function() {
+		   		    $("#panel_list").slideDown(duration, function() {
+		   	   	    })
+	   		    })
+   		    }
+		
+            function hidelist() {            
+			    $("#panel_list").slideUp(duration, function() {
+				    $("#login_form").slideDown(duration, function() {
+				    })
+			    })
+			
+		    }
+		    
+		    function choose(uid) {		    
+				var form = document.forms.loginForm
+				form["login_form:username"].value = uid
+				form["login_form:loginButton"].click()
+		    }
+
+            function storedCredsWorkaround() {
+                //Needed when browser pre-fills usr/pwd due to JSF issue with required attribute (see above)
+                let user = document.getElementById("login_form:username")
+                if ($(user).val()) {
+                    $(user).focus()
+                    $(user).blur()
+                }
+            }
+            
+			//This is needed since JSF does not allow to set required attribute
+			$(".focused-text").attr("required", "true")
+			
+			let loginHint = '${identity.getWorkingParameter('loginHint')}'			
+			if (loginHint.length > 0) {
+			    //Populate input text
+			    $("#login_form\\:username").val(loginHint)
+			}
+			
+			let users = '${identity.getWorkingParameter('users')}'			
+			users = (users.length > 0) ? JSON.parse(users) : [ ]
+			
+			if (users.length > 0) {
+			    //Populate list
+			    
+			    let li = ''
+			    for (let user of users) {
+			    
+			       div = '<div class="flex justify-between">'
+			       div = div + '<span class="dark-gray">' + user.uid  + '</span>'
+			       
+			       if (user.displayName.length > 0) {
+			           div = div + '<span>(' + user.displayName  + ')</span>'
+			       }
+			       div = div + '</div>'
+			       
+			       li = li + '<li class="list-group-item hover-bg-light-gray gray hover-dark-gray pt2" onClick="javascript:choose(\''
+			       li = li + user.uid + '\')">'
+			       li = li + div
+			       li = li + '</li>'
+			    }
+			    
+			    $("#list").append(li)
+			    $("#cancel").removeClass("dn")
+			    $("#panel_list").removeClass("dn")
+			    
+			} else {
+			    $("#login_form").removeClass("dn")
+			    if (loginHint.length == 0) {
+			        storedCredsWorkaround()
+			    }
+			}
+					//    	]]>
+		</script>
+		<!-- Sample markup for list:
+		<li class="list-group-item hover-bg-light-gray gray hover-dark-gray pt2" onClick="javascript:choose('0')">
+			<div class="flex justify-between">
+				<span>Item 1</span>
+				<span>Your Item 1</span>
+			</div>
+		</li>
+		-->
+	</ui:define>
+
+</ui:composition>
