@@ -406,8 +406,8 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 }
             }
 
-            boolean validAuthenticationMaxAge = authorizeRestWebServiceValidator.validateAuthnMaxAge(maxAge, sessionUser, client);
-            if (!validAuthenticationMaxAge) {
+            boolean authnMaxAgeValid = authorizeRestWebServiceValidator.isAuthnMaxAgeValid(maxAge, sessionUser, client);
+            if (!authnMaxAgeValid) {
                 unauthenticateSession(sessionId, httpRequest);
                 sessionId = null;
 

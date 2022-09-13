@@ -1,5 +1,6 @@
 package org.gluu.oxauth.authorize.ws.rs;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.authorize.AuthorizeParamsValidator;
@@ -90,20 +91,29 @@ public class AuthorizeRestWebServiceValidator {
         }
     }
 
-    public boolean validateAuthnMaxAge(Integer maxAge, SessionId sessionUser, Client client) {
+    public boolean isAuthnMaxAgeValid(Integer maxAge, SessionId sessionUser, Client client) {
         if (maxAge == null) {
             maxAge = client.getDefaultMaxAge();
         }
+        if (maxAge == null) { // if not set, it's still valid
+            return true;
+        }
+
+        if (maxAge == 0) { // issue #2361: allow authentication for max_age=0
+            if (BooleanUtils.isTrue(appConfiguration.getDisableAuthnForMaxAgeZero())) {
+                return false;
+            }
+            return true;
+        }
+
 
         GregorianCalendar userAuthnTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         if (sessionUser.getAuthenticationTime() != null) {
             userAuthnTime.setTime(sessionUser.getAuthenticationTime());
         }
-        if (maxAge != null) {
-            userAuthnTime.add(Calendar.SECOND, maxAge);
-            return userAuthnTime.after(ServerUtil.now());
-        }
-        return true;
+
+        userAuthnTime.add(Calendar.SECOND, maxAge);
+        return userAuthnTime.after(ServerUtil.now());
     }
 
     public void validateRequestJwt(String request, String requestUri, RedirectUriResponse redirectUriResponse) {

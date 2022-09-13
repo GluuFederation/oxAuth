@@ -10,6 +10,7 @@
         <classes>
             <class name="org.gluu.oxauth.service.ScopeServiceTest" />
             <class name="org.gluu.oxauth.model.CIBAGrantTest" />
+            <class name="org.gluu.oxauth.authorize.ws.rs.AuthorizeRestWebServiceValidatorTest" />
         </classes>
     </test>
 
