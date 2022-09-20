@@ -309,9 +309,8 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 if (tokenHintGrant != null) { // id_token is in db
                     return jwt;
                 }
-                if (verifyIdTokenSignature(sidSession, jwt, postLogoutRedirectUri)) {
-                    return jwt;
-                }
+                validateIdTokenSignature(sidSession, jwt, postLogoutRedirectUri);
+                return jwt;
             } catch (InvalidJwtException e) {
                 log.error("Unable to parse id_token_hint as JWT.", e);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT."));
@@ -325,22 +324,23 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         return null;
     }
 
-    private boolean verifyIdTokenSignature(SessionId sidSession, Jwt jwt, String postLogoutRedirectUri) throws Exception {
+    private void validateIdTokenSignature(SessionId sidSession, Jwt jwt, String postLogoutRedirectUri) throws Exception {
         // verify jwt signature if we can't find it in db
-        if (cryptoProvider.verifySignature(jwt.getSigningInput(), jwt.getEncodedSignature(), jwt.getHeader().getKeyId(),
-                    null, null, jwt.getHeader().getSignatureAlgorithm())) {
-            if (BooleanUtils.isTrue(appConfiguration.getAllowEndSessionWithUnmatchedSid())) {
-                return true;
-            }
-            final String sidClaim = jwt.getClaims().getClaimAsString("sid");
-            if (sidSession != null && StringUtils.equals(sidSession.getOutsideSid(), sidClaim)) {
-                return true;
-            }
-
-            log.error("sid claim from id_token does not match to any valid session on AS.");
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "sid claim from id_token does not match to any valid session on AS."));
+        if (!cryptoProvider.verifySignature(jwt.getSigningInput(), jwt.getEncodedSignature(), jwt.getHeader().getKeyId(),
+                null, null, jwt.getHeader().getSignatureAlgorithm())) {
+            log.error("id_token signature verification failed.");
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "id_token signature verification failed."));
         }
-        return false;
+
+        if (BooleanUtils.isTrue(appConfiguration.getAllowEndSessionWithUnmatchedSid())) {
+            return;
+        }
+        final String sidClaim = jwt.getClaims().getClaimAsString("sid");
+        if (sidSession != null && StringUtils.equals(sidSession.getOutsideSid(), sidClaim)) {
+            return;
+        }
+        log.error("sid claim from id_token does not match to any valid session on AS.");
+        throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "sid claim from id_token does not match to any valid session on AS."));
     }
 
     protected AuthorizationGrant getTokenHintGrant(String idTokenHint) {
