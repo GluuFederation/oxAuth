@@ -8,6 +8,7 @@ package org.gluu.oxauth.session.ws.rs;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.security.Identity;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
@@ -20,6 +21,7 @@ import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
+import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
@@ -105,6 +107,9 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     @Inject
     private LogoutTokenFactory logoutTokenFactory;
 
+    @Inject
+    private AbstractCryptoProvider cryptoProvider;
+
     @Override
     public Response requestEndSession(String idTokenHint, String postLogoutRedirectUri, String state, String sessionId, String sid,
                                       HttpServletRequest httpRequest, HttpServletResponse httpResponse, SecurityContext sec) {
@@ -115,8 +120,8 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             if (StringUtils.isBlank(sid) && StringUtils.isNotBlank(sessionId))
                 sid = sessionId; // backward compatibility. WIll be removed in next major release.
 
-            Jwt idToken = validateIdTokenHint(idTokenHint, postLogoutRedirectUri);
-            validateSidRequestParameter(sid, postLogoutRedirectUri);
+            final SessionId sidSession = validateSidRequestParameter(sid, postLogoutRedirectUri);
+            Jwt idToken = validateIdTokenHint(idTokenHint, sidSession, postLogoutRedirectUri);
 
             final Pair<SessionId, AuthorizationGrant> pair = getPair(idTokenHint, sid, httpRequest);
             if (pair.getFirst() == null) {
@@ -259,7 +264,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(postLogoutRedirectUri);
     }
 
-    private void validateSidRequestParameter(String sid, String postLogoutRedirectUri) {
+    private SessionId validateSidRequestParameter(String sid, String postLogoutRedirectUri) {
         // sid is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(sid)) {
             SessionId sessionIdObject = sessionIdService.getSessionBySid(sid);
@@ -268,40 +273,77 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 log.error(reason);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
+            return sessionIdObject;
         }
+        return null;
     }
 
-    private Jwt validateIdTokenHint(String idTokenHint, String postLogoutRedirectUri) {
-        if (appConfiguration.getForceIdTokenHintPrecense() && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
+    public Jwt validateIdTokenHint(String idTokenHint, SessionId sidSession, String postLogoutRedirectUri) {
+        final boolean isIdTokenHintRequired = BooleanUtils.isTrue(appConfiguration.getForceIdTokenHintPrecense());
+
+        if (isIdTokenHintRequired && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
             log.trace(reason);
             throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason));
         }
 
-        final AuthorizationGrant tokenHintGrant = getTokenHintGrant(idTokenHint);
-        if (appConfiguration.getForceIdTokenHintPrecense() && tokenHintGrant == null) { // must be present for logout tests #1279
-            final String reason = "id_token_hint is not set";
-            log.trace(reason);
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason));
+        if (StringUtils.isBlank(idTokenHint) && !isIdTokenHintRequired) {
+            return null;
         }
 
         // id_token_hint is not required but if it is present then we must validate it #831
-        if (StringUtils.isNotBlank(idTokenHint)) {
-            if (tokenHintGrant == null) {
+        if (StringUtils.isNotBlank(idTokenHint) || isIdTokenHintRequired) {
+            final boolean isRejectEndSessionIfIdTokenExpired = appConfiguration.getRejectEndSessionIfIdTokenExpired();
+            final AuthorizationGrant tokenHintGrant = getTokenHintGrant(idTokenHint);
+
+            if (tokenHintGrant == null && isRejectEndSessionIfIdTokenExpired) {
                 final String reason = "id_token_hint is not valid. Logout is rejected. id_token_hint can be skipped or otherwise valid value must be provided.";
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
             try {
-                return Jwt.parse(idTokenHint);
+                final Jwt jwt = Jwt.parse(idTokenHint);
+                if (jwt == null) {
+                    log.error("Unable to parse id_token_hint as JWT: {}", idTokenHint);
+                    throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT."));
+                }
+                if (tokenHintGrant != null) { // id_token is in db
+                    return jwt;
+                }
+                validateIdTokenSignature(sidSession, jwt, postLogoutRedirectUri);
+                return jwt;
             } catch (InvalidJwtException e) {
                 log.error("Unable to parse id_token_hint as JWT.", e);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT."));
+            } catch (WebApplicationException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("Unable to validate id_token_hint as JWT.", e);
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to validate id_token_hint as JWT."));
             }
         }
         return null;
     }
 
-    private AuthorizationGrant getTokenHintGrant(String idTokenHint) {
+    private void validateIdTokenSignature(SessionId sidSession, Jwt jwt, String postLogoutRedirectUri) throws Exception {
+        // verify jwt signature if we can't find it in db
+        if (!cryptoProvider.verifySignature(jwt.getSigningInput(), jwt.getEncodedSignature(), jwt.getHeader().getKeyId(),
+                null, null, jwt.getHeader().getSignatureAlgorithm())) {
+            log.error("id_token signature verification failed.");
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "id_token signature verification failed."));
+        }
+
+        if (BooleanUtils.isTrue(appConfiguration.getAllowEndSessionWithUnmatchedSid())) {
+            return;
+        }
+        final String sidClaim = jwt.getClaims().getClaimAsString("sid");
+        if (sidSession != null && StringUtils.equals(sidSession.getOutsideSid(), sidClaim)) {
+            return;
+        }
+        log.error("sid claim from id_token does not match to any valid session on AS.");
+        throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "sid claim from id_token does not match to any valid session on AS."));
+    }
+
+    protected AuthorizationGrant getTokenHintGrant(String idTokenHint) {
         if (StringUtils.isBlank(idTokenHint)) {
             return null;
         }

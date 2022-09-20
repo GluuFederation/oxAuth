@@ -222,6 +222,8 @@ public class AppConfiguration implements Configuration {
     private Boolean useLocalCache = false;
     private Boolean fapiCompatibility = false;
     private Boolean forceIdTokenHintPrecense = false;
+    private Boolean rejectEndSessionIfIdTokenExpired = false;
+    private Boolean allowEndSessionWithUnmatchedSid = false;
     private Boolean forceOfflineAccessScopeToEnableRefreshToken = true;
     private Boolean errorReasonEnabled  = false;
     private Boolean removeRefreshTokensForClientOnLogout  = true;
@@ -491,6 +493,24 @@ public class AppConfiguration implements Configuration {
 
     public void setForceIdTokenHintPrecense(Boolean forceIdTokenHintPrecense) {
         this.forceIdTokenHintPrecense = forceIdTokenHintPrecense;
+    }
+
+    public Boolean getRejectEndSessionIfIdTokenExpired() {
+        if (rejectEndSessionIfIdTokenExpired == null) rejectEndSessionIfIdTokenExpired = false;
+        return rejectEndSessionIfIdTokenExpired;
+    }
+
+    public void setRejectEndSessionIfIdTokenExpired(Boolean rejectEndSessionIfIdTokenExpired) {
+        this.rejectEndSessionIfIdTokenExpired = rejectEndSessionIfIdTokenExpired;
+    }
+
+    public Boolean getAllowEndSessionWithUnmatchedSid() {
+        if (allowEndSessionWithUnmatchedSid == null) allowEndSessionWithUnmatchedSid = false;
+        return allowEndSessionWithUnmatchedSid;
+    }
+
+    public void setAllowEndSessionWithUnmatchedSid(Boolean allowEndSessionWithUnmatchedSid) {
+        this.allowEndSessionWithUnmatchedSid = allowEndSessionWithUnmatchedSid;
     }
 
     public Boolean getRemoveRefreshTokensForClientOnLogout() {
