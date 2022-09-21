@@ -70,7 +70,7 @@ public class AppConfiguration implements Configuration {
     private int statTimerIntervalInSeconds;
     private int statWebServiceIntervalLimitInSeconds;
 
-    private Boolean allowSpontaneousScopes;
+    private Boolean allowSpontaneousScopes = true;
     private int spontaneousScopeLifetime;
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;
@@ -1215,7 +1215,7 @@ public class AppConfiguration implements Configuration {
     }
 
     public Boolean getAllowSpontaneousScopes() {
-        if (allowSpontaneousScopes == null) allowSpontaneousScopes = false;
+        if (allowSpontaneousScopes == null) allowSpontaneousScopes = true;
         return allowSpontaneousScopes;
     }
 
