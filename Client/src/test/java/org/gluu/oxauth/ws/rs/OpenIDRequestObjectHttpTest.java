@@ -6,31 +6,8 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.AuthorizationRequest;
-import org.gluu.oxauth.client.AuthorizationResponse;
-import org.gluu.oxauth.client.AuthorizeClient;
-import org.gluu.oxauth.client.JwkClient;
-import org.gluu.oxauth.client.JwkResponse;
-import org.gluu.oxauth.client.RegisterClient;
-import org.gluu.oxauth.client.RegisterRequest;
-import org.gluu.oxauth.client.RegisterResponse;
-import org.gluu.oxauth.client.UserInfoClient;
-import org.gluu.oxauth.client.UserInfoResponse;
+import org.gluu.oxauth.client.*;
 import org.gluu.oxauth.client.model.authorize.Claim;
 import org.gluu.oxauth.client.model.authorize.ClaimValue;
 import org.gluu.oxauth.client.model.authorize.JwtAuthorizationRequest;
@@ -52,6 +29,18 @@ import org.json.JSONObject;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.testng.Assert.*;
 
 /**
  * Functional tests for OpenID Request Object (HTTP)
@@ -2244,8 +2233,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
             AuthorizationResponse response = authorizeClient.exec();
 
             showClient(authorizeClient);
-            assertEquals(response.getStatus(), 302, "Unexpected response code: " + response.getStatus());
-            assertNotNull(response.getLocation(), "The location is null");
+            assertEquals(response.getStatus(), 400, "Unexpected response code: " + response.getStatus());
             assertNotNull(response.getErrorType(), "The error type is null");
             assertNotNull(response.getErrorDescription(), "The error description is null");
             assertNotNull(response.getState(), "The state is null");
