@@ -55,7 +55,7 @@ public class UmaResource implements Serializable {
     private List<String> resources;
 
     @AttributeName(name = "oxRevision")
-    private String rev;
+    private long rev;
 
     @AttributeName(name = "owner")
     private String creator;
@@ -191,11 +191,11 @@ public class UmaResource implements Serializable {
         this.resources = resources;
     }
 
-    public String getRev() {
+    public long getRev() {
         return rev;
     }
 
-    public void setRev(String rev) {
+    public void setRev(long rev) {
         this.rev = rev;
     }
 
