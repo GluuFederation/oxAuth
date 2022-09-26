@@ -6,38 +6,6 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.TOKEN_ENDPOINT_AUTH_METHOD;
-import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_ID_ISSUED_AT;
-import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET;
-import static org.gluu.oxauth.model.register.RegisterResponseParam.CLIENT_SECRET_EXPIRES_AT;
-import static org.gluu.oxauth.model.register.RegisterResponseParam.REGISTRATION_CLIENT_URI;
-import org.gluu.oxauth.util.ServerUtil;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.AuthorizationRequest;
 import org.gluu.oxauth.client.QueryStringDecoder;
@@ -53,10 +21,29 @@ import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.register.RegisterResponseParam;
 import org.gluu.oxauth.model.util.StringUtils;
+import org.gluu.oxauth.util.ServerUtil;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
+import static org.gluu.oxauth.model.register.RegisterResponseParam.*;
+import static org.testng.Assert.*;
 
 /**
  * @author Javier Rojas Blum
@@ -328,10 +315,11 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
     /**
      * Call to Token Endpoint with Auth Method <code>client_secret_basic</code>.
      */
+    @SuppressWarnings("java:S2925")
     @Parameters({"tokenPath", "redirectUri"})
     @Test(dependsOnMethods = {"tokenEndpointAuthMethodClientSecretBasicStep3"})
-    public void tokenEndpointAuthMethodClientSecretBasicStep4(final String tokenPath, final String redirectUri)
-            throws Exception {
+    public void tokenEndpointAuthMethodClientSecretBasicStep4(final String tokenPath, final String redirectUri) throws InterruptedException {
+        Thread.sleep(1000L); // ugly but we try to make it work under spanner slow emulator. It works good under LDAP, CB.
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
         TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
