@@ -236,6 +236,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             redirectUriResponse.setFapiCompatible(appConfiguration.getFapiCompatibility());
 
             Set<String> scopes = scopeChecker.checkScopesPolicy(client, scope);
+            boolean isPromptFromJwt = false;
 
             JwtAuthorizationRequest jwtRequest = null;
             if (StringUtils.isNotBlank(request) || StringUtils.isNotBlank(requestUri)) {
@@ -285,6 +286,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     }
                     if (!jwtRequest.getPrompts().isEmpty()) {
                         prompts = Lists.newArrayList(jwtRequest.getPrompts());
+                        isPromptFromJwt = true;
                     }
 
                     final IdTokenMember idTokenMember = jwtRequest.getIdTokenMember();
@@ -394,7 +396,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     }
                 } else {
                     if (prompts.contains(Prompt.LOGIN)) {
-                        unauthenticateSession(sessionId, httpRequest);
+                        unauthenticateSession(sessionId, httpRequest, isPromptFromJwt);
                         sessionId = null;
                         prompts.remove(Prompt.LOGIN);
                     }
@@ -470,18 +472,21 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
 
             if (prompts.contains(Prompt.LOGIN)) {
+                boolean sessionUnauthenticated = false;
 
                 //  workaround for #1030 - remove only authenticated session, for set up acr we set it unauthenticated and then drop in AuthorizeAction
                 if (identity.getSessionId().getState() == SessionIdState.AUTHENTICATED) {
-                    unauthenticateSession(sessionId, httpRequest);
+                    sessionUnauthenticated = unauthenticateSession(sessionId, httpRequest, isPromptFromJwt);
                 }
                 sessionId = null;
                 prompts.remove(Prompt.LOGIN);
 
-                return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
-                        redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
-                        idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
-                        codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
+                if (sessionUnauthenticated) {
+                    return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
+                            redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
+                            idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
+                            codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
+                }
             }
 
             if (prompts.contains(Prompt.CONSENT) || !sessionUser.isPermissionGrantedForClient(clientId)) {
@@ -603,6 +608,8 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             clientService.updateAccessTime(client, false);
             oAuth2AuditLog.setSuccess(true);
 
+            updateSessionRpRedirect(sessionUser);
+
             log.trace("Preparing redirect to: {}", redirectUriResponse.getRedirectUri());
             builder = RedirectUtil.getRedirectResponseBuilder(redirectUriResponse.getRedirectUri(), httpRequest);
 
@@ -646,6 +653,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
         applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return builder.build();
+    }
+
+    private void updateSessionRpRedirect(SessionId sessionUser) {
+        int rpRedirectCount = Util.parseIntSilently(sessionUser.getSessionAttributes().get("successful_rp_redirect_count"), 0);
+        rpRedirectCount++;
+
+        sessionUser.getSessionAttributes().put("successful_rp_redirect_count", Integer.toString(rpRedirectCount));
+        sessionIdService.updateSessionId(sessionUser);
     }
 
     private String getAcrForGrant(String acrValuesStr, SessionId sessionUser) {
@@ -895,10 +910,17 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         return builder.build();
     }
 
-    private void unauthenticateSession(String sessionId, HttpServletRequest httpRequest) {
-        identity.logout();
+    private boolean unauthenticateSession(String sessionId, HttpServletRequest httpRequest) {
+        return unauthenticateSession(sessionId, httpRequest, false);
+    }
 
+    private boolean unauthenticateSession(String sessionId, HttpServletRequest httpRequest, boolean isPromptFromJwt) {
         SessionId sessionUser = identity.getSessionId();
+        if (isPromptFromJwt && !sessionUser.getSessionAttributes().containsKey("successful_rp_redirect_count")) {
+            return false; // skip unauthentication because there were no at least one successful rp redirect
+        }
+
+        identity.logout();
 
         if (sessionUser != null) {
             sessionUser.setUserDn(null);
@@ -913,7 +935,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         SessionId persistenceSessionId = sessionIdService.getSessionId(sessionId);
         if (persistenceSessionId == null) {
             log.error("Failed to load session from LDAP by session_id: '{}'", sessionId);
-            return;
+            return true;
         }
 
         persistenceSessionId.setState(SessionIdState.UNAUTHENTICATED);
@@ -925,6 +947,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         if (!result) {
             log.error("Failed to update session_id '{}'", sessionId);
         }
+        return result;
     }
 
     /**
