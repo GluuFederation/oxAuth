@@ -916,7 +916,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
     private boolean unauthenticateSession(String sessionId, HttpServletRequest httpRequest, boolean isPromptFromJwt) {
         SessionId sessionUser = identity.getSessionId();
-        if (isPromptFromJwt && !sessionUser.getSessionAttributes().containsKey("successful_rp_redirect_count")) {
+        if (isPromptFromJwt && sessionUser != null && !sessionUser.getSessionAttributes().containsKey("successful_rp_redirect_count")) {
             return false; // skip unauthentication because there were no at least one successful rp redirect
         }
 
