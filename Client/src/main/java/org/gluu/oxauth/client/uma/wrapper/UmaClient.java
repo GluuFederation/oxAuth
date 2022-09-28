@@ -209,7 +209,7 @@ public class UmaClient {
                 // Get first key
             	tmpKeyId = cryptoProvider.getKeys().stream().filter(k -> k.contains("_sig_")).findFirst().orElse(null);
                 
-                if (keyId == null) {
+                if (tmpKeyId == null) {
                     throw new UmaException("Unable to find a key in the keystore with use = sig");
                 }
             } else if (keyId.contains("_enc_")) {
