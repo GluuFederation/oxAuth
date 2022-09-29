@@ -22,6 +22,7 @@ import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.service.CacheService;
+import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.Dependent;
@@ -246,7 +247,11 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         if (tokenLdap != null) {
             final AuthorizationGrantType grantType = AuthorizationGrantType.fromString(tokenLdap.getGrantType());
             if (grantType != null) {
-                final User user = userService.getUser(tokenLdap.getUserId());
+            	String userId = tokenLdap.getUserId();
+            	User user = null;
+            	if (StringHelper.isNotEmpty(userId)) {
+                    user = userService.getUser(userId);
+            	}
                 final Client client = clientService.getClient(tokenLdap.getClientId());
                 final Date authenticationTime = tokenLdap.getAuthenticationTime();
                 final String nonce = tokenLdap.getNonce();
