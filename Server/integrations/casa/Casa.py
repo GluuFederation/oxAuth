@@ -458,7 +458,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if acr == None and onMobile:
             print "Casa. getSuitableAcr. No mobile-friendly authentication method available for user %s" % id
             # user_methods is not empty when this function is called, so just pick any
-            acr = user_methods.get(0)
+            acr = user_methods.stream().findFirst().get()
 
         print "Casa. getSuitableAcr. %s was selected for user %s" % (acr, id)
         return acr
