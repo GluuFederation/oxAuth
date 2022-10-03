@@ -174,7 +174,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_basic</code>.
      */
     @Parameters({"registerPath", "redirectUris"})
-    @Test
+    @Test(groups = "AuthMethodClientSecretBasic")
     public void tokenEndpointAuthMethodClientSecretBasicStep1(final String registerPath, final String redirectUris)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
@@ -217,7 +217,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_basic</code>.
      */
     @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep1")
+    @Test(groups = "AuthMethodClientSecretBasic", dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep1")
     public void tokenEndpointAuthMethodClientSecretBasicStep2(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri2.substring(registrationClientUri2.indexOf("?") + 1)).request();
@@ -258,7 +258,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Request authorization code.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
+    @Test(groups = "AuthMethodClientSecretBasic", dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
     public void tokenEndpointAuthMethodClientSecretBasicStep3(final String authorizePath, final String userId,
                                                               final String userSecret, final String redirectUri) throws Exception {
         List<ResponseType> responseTypes = new ArrayList<ResponseType>();
@@ -317,9 +317,8 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      */
     @SuppressWarnings("java:S2925")
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"tokenEndpointAuthMethodClientSecretBasicStep3"})
+    @Test(groups = "AuthMethodClientSecretBasic", dependsOnMethods = {"tokenEndpointAuthMethodClientSecretBasicStep3"})
     public void tokenEndpointAuthMethodClientSecretBasicStep4(final String tokenPath, final String redirectUri) throws InterruptedException {
-        Thread.sleep(1000L); // ugly but we try to make it work under spanner slow emulator. It works good under LDAP, CB.
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
 
         TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
@@ -404,7 +403,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "audience", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
+    @Test(groups = "AuthMethodClientSecretBasic", dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
     public void tokenEndpointAuthMethodClientSecretBasicFail2(final String tokenPath, final String audience,
                                                               final String userId, final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -443,7 +442,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>private_key_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
+    @Test(groups = "AuthMethodClientSecretBasic", dependsOnMethods = "tokenEndpointAuthMethodClientSecretBasicStep2")
     public void tokenEndpointAuthMethodClientSecretBasicFail3(final String tokenPath, final String userId,
                                                               final String userSecret, final String audience, final String keyId, final String keyStoreFile,
                                                               final String keyStoreSecret) throws Exception {
