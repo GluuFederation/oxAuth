@@ -86,7 +86,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Register a client without specify a Token Endpoint Auth Method.
      */
     @Parameters({"registerPath", "redirectUris"})
-    @Test
+    @Test(groups = "AuthMethodOmitted")
     public void omittedTokenEndpointAuthMethodStep1(final String registerPath, final String redirectUris)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
@@ -132,7 +132,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Method <code>client_secret_basic</code>.
      */
     @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "omittedTokenEndpointAuthMethodStep1")
+    @Test(groups = "AuthMethodOmitted", dependsOnMethods = "omittedTokenEndpointAuthMethodStep1")
     public void omittedTokenEndpointAuthMethodStep2(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri1.substring(registrationClientUri1.indexOf("?") + 1)).request();
@@ -487,7 +487,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_post</code>.
      */
     @Parameters({"registerPath", "redirectUris"})
-    @Test
+    @Test(groups = "AuthMethodClientSecretPost")
     public void tokenEndpointAuthMethodClientSecretPostStep1(final String registerPath, final String redirectUris)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
@@ -530,7 +530,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_post</code>.
      */
     @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep1")
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep1")
     public void tokenEndpointAuthMethodClientSecretPostStep2(final String registerPath) throws Exception {
 
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
@@ -572,7 +572,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Request authorization code.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
     public void tokenEndpointAuthMethodClientSecretPostStep3(final String authorizePath, final String userId,
                                                              final String userSecret, final String redirectUri) throws Exception {
         List<ResponseType> responseTypes = new ArrayList<ResponseType>();
@@ -630,7 +630,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Call to Token Endpoint with Auth Method <code>client_secret_post</code>.
      */
     @Parameters({"tokenPath", "redirectUri"})
-    @Test(dependsOnMethods = {"tokenEndpointAuthMethodClientSecretPostStep3"})
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = {"tokenEndpointAuthMethodClientSecretPostStep3"})
     public void tokenEndpointAuthMethodClientSecretPostStep4(final String tokenPath, final String redirectUri)
             throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -678,7 +678,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_basic</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
     public void tokenEndpointAuthMethodClientSecretPostFail1(final String tokenPath, final String userId,
                                                              final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -717,7 +717,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "audience", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
     public void tokenEndpointAuthMethodClientSecretPostFail2(final String tokenPath, final String audience,
                                                              final String userId, final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -756,7 +756,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>private_key_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
+    @Test(groups = "AuthMethodClientSecretPost", dependsOnMethods = "tokenEndpointAuthMethodClientSecretPostStep2")
     public void tokenEndpointAuthMethodClientSecretPostFail3(final String tokenPath, final String userId,
                                                              final String userSecret, final String audience, final String keyId, final String keyStoreFile,
                                                              final String keyStoreSecret) throws Exception {
@@ -801,7 +801,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_jwt</code>.
      */
     @Parameters({"registerPath", "redirectUris"})
-    @Test
+    @Test(groups = "AuthMethodClientSecretJwt")
     public void tokenEndpointAuthMethodClientSecretJwtStep1(final String registerPath, final String redirectUris)
             throws Exception {
 
@@ -845,7 +845,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_jwt</code>.
      */
     @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep1")
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep1")
     public void tokenEndpointAuthMethodClientSecretJwtStep2(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri4.substring(registrationClientUri4.indexOf("?") + 1)).request();
@@ -886,7 +886,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Request authorization code.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
     public void tokenEndpointAuthMethodClientSecretJwtStep3(final String authorizePath, final String userId,
                                                             final String userSecret, final String redirectUri) throws Exception {
         List<ResponseType> responseTypes = new ArrayList<ResponseType>();
@@ -945,7 +945,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Call to Token Endpoint with Auth Method <code>client_secret_Jwt</code>.
      */
     @Parameters({"tokenPath", "redirectUri", "audience", "RS256_keyId", "dnName", "keyStoreFile", "keyStoreSecret"})
-    @Test(dependsOnMethods = {"tokenEndpointAuthMethodClientSecretJwtStep3"})
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = {"tokenEndpointAuthMethodClientSecretJwtStep3"})
     public void tokenEndpointAuthMethodClientSecretJwtStep4(final String tokenPath, final String redirectUri,
                                                             final String audience, final String keyId, final String dnName, final String keyStoreFile,
                                                             final String keyStoreSecret) throws Exception {
@@ -993,7 +993,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_basic</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
     public void tokenEndpointAuthMethodClientSecretJwtFail1(final String tokenPath, final String userId,
                                                             final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -1032,7 +1032,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_post</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
     public void tokenEndpointAuthMethodClientSecretJwtFail2(final String tokenPath, final String userId,
                                                             final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -1070,7 +1070,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>private_key_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
+    @Test(groups = "AuthMethodClientSecretJwt", dependsOnMethods = "tokenEndpointAuthMethodClientSecretJwtStep2")
     public void tokenEndpointAuthMethodClientSecretJwtFail3(final String tokenPath, final String userId,
                                                             final String userSecret, final String audience, final String keyId, final String keyStoreFile,
                                                             final String keyStoreSecret) throws Exception {
@@ -1115,7 +1115,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>private_key_jwt</code>.
      */
     @Parameters({"registerPath", "redirectUris", "clientJwksUri"})
-    @Test
+    @Test(groups = "AuthMethodPrivateKeyJwt")
     public void tokenEndpointAuthMethodPrivateKeyJwtStep1(final String registerPath, final String redirectUris,
                                                           final String jwksUri) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath).request();
@@ -1159,7 +1159,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>private_key_jwt</code>.
      */
     @Parameters({"registerPath"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep1")
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep1")
     public void tokenEndpointAuthMethodPrivateKeyJwtStep2(final String registerPath) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + registerPath + "?"
                 + registrationClientUri5.substring(registrationClientUri5.indexOf("?") + 1)).request();
@@ -1200,7 +1200,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Request authorization code.
      */
     @Parameters({"authorizePath", "userId", "userSecret", "redirectUri"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
     public void tokenEndpointAuthMethodPrivateKeyJwtStep3(final String authorizePath, final String userId,
                                                           final String userSecret, final String redirectUri) throws Exception {
         List<ResponseType> responseTypes = new ArrayList<ResponseType>();
@@ -1258,7 +1258,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * Call to Token Endpoint with Auth Method <code>private_key_jwt</code>.
      */
     @Parameters({"tokenPath", "redirectUri", "audience", "RS256_keyId", "keyStoreFile", "keyStoreSecret"})
-    @Test(dependsOnMethods = {"tokenEndpointAuthMethodPrivateKeyJwtStep3"})
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = {"tokenEndpointAuthMethodPrivateKeyJwtStep3"})
     public void tokenEndpointAuthMethodPrivateKeyJwtStep4(final String tokenPath, final String redirectUri,
                                                           final String audience, final String keyId, final String keyStoreFile, final String keyStoreSecret)
             throws Exception {
@@ -1312,7 +1312,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_basic</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
     public void tokenEndpointAuthMethodPrivateKeyJwtFail1(final String tokenPath, final String userId,
                                                           final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -1351,7 +1351,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_post</code> should fail.
      */
     @Parameters({"tokenPath", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
     public void tokenEndpointAuthMethodPrivateKeyJwtFail2(final String tokenPath, final String userId,
                                                           final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
@@ -1390,7 +1390,7 @@ public class TokenEndpointAuthMethodRestrictionEmbeddedTest extends BaseTest {
      * <code>client_secret_jwt</code> should fail.
      */
     @Parameters({"tokenPath", "audience", "userId", "userSecret"})
-    @Test(dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
+    @Test(groups = "AuthMethodPrivateKeyJwt", dependsOnMethods = "tokenEndpointAuthMethodPrivateKeyJwtStep2")
     public void tokenEndpointAuthMethodPrivateKeyJwtFail3(final String tokenPath, final String audience,
                                                           final String userId, final String userSecret) throws Exception {
         Builder request = ResteasyClientBuilder.newClient().target(url.toString() + tokenPath).request();
