@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
 import org.apache.commons.codec.binary.Hex;
@@ -27,26 +28,26 @@ import org.slf4j.LoggerFactory;
  */
 public class FingerprintHelper {
 
-	private static final Logger log = LoggerFactory.getLogger(FingerprintHelper.class);
+	@SuppressWarnings("unused")
+    private static final Logger log = LoggerFactory.getLogger(FingerprintHelper.class);
 
 	/*
 	 * Return SSH RSA public key fingerprint
 	 */
 	public static String getPublicKeySshFingerprint(PublicKey publicKey) throws NoSuchAlgorithmException, IOException {
 		if (publicKey instanceof RSAPublicKey) {
-			return getPublicKeySshFingerprint((RSAPublicKey) publicKey);
+	        MessageDigest digest = MessageDigest.getInstance("MD5");
+	        byte[] derEncoded = getDerEncoding((RSAPublicKey)publicKey);
+	        byte[] fingerprint = digest.digest(derEncoded);
+	        return Hex.encodeHexString(fingerprint);
 		}
-
+		else if (publicKey instanceof ECPublicKey) {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            byte[] derEncoded = getDerEncoding((ECPublicKey)publicKey);
+            byte[] fingerprint = digest.digest(derEncoded);
+            return Hex.encodeHexString(fingerprint);
+        }
 		throw new NoSuchAlgorithmException("Unsopported PublicKey type");
-	}
-
-	public static String getPublicKeySshFingerprint(RSAPublicKey publicKey) throws NoSuchAlgorithmException, IOException {
-		MessageDigest digest = MessageDigest.getInstance("MD5");
-
-		byte[] derEncoded = getDerEncoding(publicKey);
-		byte[] fingerprint = digest.digest(derEncoded);
-
-		return Hex.encodeHexString(fingerprint);
 	}
 
 	private static byte[] getDerEncoding(RSAPublicKey key) throws IOException {
@@ -55,9 +56,16 @@ public class FingerprintHelper {
 		writeDataWithLength("ssh-rsa".getBytes(), dataOutput);
 		writeDataWithLength(key.getPublicExponent().toByteArray(), dataOutput);
 		writeDataWithLength(key.getModulus().toByteArray(), dataOutput);
-
 		return buffer.toByteArray();
 	}
+
+    private static byte[] getDerEncoding(ECPublicKey key) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        DataOutputStream dataOutput = new DataOutputStream(buffer);
+        writeDataWithLength("ssh-ecdsa".getBytes(), dataOutput);
+        writeDataWithLength(key.getEncoded(), dataOutput);
+        return buffer.toByteArray();
+    }
 
 	private static void writeDataWithLength(byte[] data, DataOutput byteBuffer) throws IOException {
 		byteBuffer.writeInt(data.length);
