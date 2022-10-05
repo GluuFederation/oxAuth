@@ -1,0 +1,345 @@
+.ui-button,
+.ui-widget,
+.ui-state-default,
+.ui-corner-all,
+.ui-button-text-only {
+  all: initial;
+  all: revert;
+  all: unset;
+}
+
+.recorder {
+  display: block;
+  width: 100%;
+  margin: 5% auto 5% auto;
+}
+
+
+.visualizer {
+  background-color: rgb(240, 252, 255);
+  background-position: center bottom;
+  height: clamp(30px, 60%, 60px);
+  width: 70%;
+  margin: 2% 15%;
+  height: 70px;
+
+}
+
+.displayWave {
+  height: 100%;
+  width: 100%;
+}
+
+
+.sleep,
+.stop {
+  background-color: transparent;
+}
+
+.record {
+  background: linear-gradient(#bf4e4e, #813939);
+}
+
+.play {
+  background: linear-gradient(#7fbb58, #577941);
+}
+
+.timer {
+  margin: 2% auto;
+  font-size: 0.7em;
+  text-align: center;
+  width: 15%;
+  padding-top: 0.5%;
+  color: #2d6833;
+  z-index: 20;
+  background-color: #f3f3f3;
+
+  box-shadow: inset 1px 1px 3px rgba(91, 158, 177, 0.3);
+}
+
+.asr-text-zone {
+  background-color: white;
+  font-size: 1.1em;
+  border: 1px solid #32a1ce;
+  border-radius: 17px;
+  width: 95%;
+  margin: 5% auto 5% auto;
+  padding: 5%;
+
+}
+
+
+
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+form {
+  padding: 1%;
+}
+
+.row ul {
+  margin: 0;
+  padding: 0;
+  background: none;
+  text-align: center;
+  border: none;
+  width: 100%;
+}
+
+.methodTab {
+  width: 95%;
+  margin: auto;
+}
+
+.methodTab {
+  margin: auto;
+  background: none;
+  border: 1px solid #93a9b1;
+  border-top: none;
+}
+
+.formFieldSelected {
+  outline: none;
+  border-color: #32a1ce;
+  box-shadow: 0 0 6px #1daee8, 0 0 2px #9ecaed;
+}
+
+.remote-recorder {
+  display: grid;
+  margin: 4% auto;
+  height: 100px;
+
+  grid-template-columns: 30% 15% 10% 15% 30%;
+  grid-template-rows: 100%;
+  justify-items: center;
+  align-items: center;
+
+  z-index: 100;
+}
+
+
+.button-recorder {
+  vertical-align: middle;
+  width: 80px;
+  height: 80px;
+
+  border-radius: 50%;
+  border: 2px solid #3CD2F9;
+
+  font-size: 0em;
+
+  cursor: pointer;
+
+  z-index: 1000;
+
+
+}
+
+.button-next {
+  background-color: #0EADF3;
+}
+
+.button-recorder-small {
+
+  width: 40px;
+  height: 40px;
+  align-self: end;
+
+}
+
+
+.button-left {
+  grid-column: 2 / span 1;
+
+}
+
+.button-middle {
+  grid-column: 3 / span 1;
+
+}
+
+.button-right {
+  grid-column: 4 / span 1;
+}
+
+
+
+
+@keyframes anim-glow-big {
+  0% {
+    box-shadow: 0 0 30px 10px rgba(60, 210, 249, 0.5);
+  }
+
+  10% {
+    box-shadow: 0 0 2px 2px rgba(60, 210, 249, 0.3);
+  }
+
+  20% {
+    box-shadow: 0 0 30px 5px rgba(60, 210, 249, 1);
+  }
+
+  30% {
+    box-shadow: 0 0 10px 20px rgba(60, 210, 249, 1);
+  }
+
+  25% {
+    box-shadow: 0 0 30px 30px rgba(60, 210, 249, 0.4);
+  }
+
+  40% {
+    box-shadow: 0px 0 20px 20px rgba(60, 210, 249, 0.8);
+  }
+
+  50% {
+    box-shadow: 0 0 30px 5px rgba(60, 210, 249, 1);
+  }
+
+  60% {
+    box-shadow: 0 0 10px 10px rgba(60, 210, 249, 0.9);
+  }
+
+  70% {
+    box-shadow: 0 0 20px 10px rgba(60, 210, 249, 1);
+  }
+
+  80% {
+    box-shadow: 0px 0 30px 10px rgba(60, 210, 249, 0.6);
+  }
+
+  90% {
+    box-shadow: 0 0 10px 2px rgba(60, 210, 249, 1);
+  }
+
+  100% {
+    box-shadow: 0 0 20px 5px rgba(60, 210, 249, 0.5);
+  }
+}
+
+@keyframes anim-glow {
+  0% {
+    box-shadow: 0 0 5px 2px rgba(60, 210, 249, 0.5);
+  }
+
+  10% {
+    box-shadow: 0 0 2px 1px rgba(60, 210, 249, 0.3);
+  }
+
+  20% {
+    box-shadow: 0 0 8px 3px rgba(60, 210, 249, 1);
+  }
+
+  30% {
+    box-shadow: 0 0 8px 2px rgba(60, 210, 249, 1);
+  }
+
+  40% {
+    box-shadow: 0px 0 10px 8px rgba(60, 210, 249, 0.8);
+  }
+
+  50% {
+    box-shadow: 0 0 8px 5px rgba(60, 210, 249, 1);
+  }
+
+  60% {
+    box-shadow: 0 0 6px 7px rgba(60, 210, 249, 0.9);
+  }
+
+  70% {
+    box-shadow: 0 0 15px 3px rgba(60, 210, 249, 1);
+  }
+
+  80% {
+    box-shadow: 0px 0 10px 2px rgba(60, 210, 249, 0.6);
+  }
+
+  90% {
+    box-shadow: 0 0 10px 2px rgba(60, 210, 249, 1);
+  }
+
+  100% {
+    box-shadow: 0 0 5px 5px rgba(60, 210, 249, 0.5);
+  }
+}
+
+
+.remote-recorder button .ui-button-text.ui-c {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  margin: 0%;
+  background-size: 50%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+  background-color: transparent;
+
+}
+
+
+.icon-button-mic .ui-button-text.ui-c {
+  background-image: url("/oxauth/ext/resources/img/IcoMic.svg");
+}
+
+.icon-button-next .ui-button-text.ui-c {
+  background-color: #0EADF3;
+  background-image: url("/oxauth/ext/resources/img/IcoArrow.svg");
+}
+
+.icon-button-back {
+  background-image: url("/oxauth/ext/resources/img/IcoArrowRed.svg");
+  transform: scale(-1, 1);
+
+  vertical-align: middle;
+  width: 80px;
+  height: 80px;
+
+  border-radius: 50%;
+  border: 2px solid #f93c3c;
+
+  font-size: 0em;
+
+  cursor: pointer;
+
+  z-index: 1000;
+
+}
+
+.icon-button-stop .ui-button-text.ui-c {
+  background-image: url("/oxauth/ext/resources/img/IcoStop.svg");
+}
+
+.icon-button-reset .ui-button-text.ui-c {
+  background-image: url("/oxauth/ext/resources/img/IcoRetry.svg");
+
+}
+
+.icon-button-play .ui-button-text.ui-c {
+  background-image: url("/oxauth/ext/resources/img/IcoPlay.svg");
+}
+
+.button-recorder:hover {
+  box-shadow: inset 0 0 2px 1px rgba(0, 0, 0, 0.2);
+}
+
+.glowing {
+  animation: anim-glow 3s cubic-bezier(0.1, -0.6, 0.2, 0) 100ms infinite alternate;
+}
+
+.button-reset {
+  border: 2px solid #F38181
+}
+
+
+.button-hidden {
+  display: none;
+}

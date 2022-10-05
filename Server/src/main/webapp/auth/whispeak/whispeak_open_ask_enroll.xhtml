@@ -1,0 +1,91 @@
+<!DOCTYPE composition
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/incl/layout/whispeak_open_template.xhtml">
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" />
+		<f:viewParam name="login_hint" value="#{loginAction.loginHint}" />
+	</f:metadata>
+	<ui:define name="head">
+		<meta name="description" content="Gluu, Inc." />
+	</ui:define>
+	<ui:define name="pageTitle">
+		<h:outputText value="#{msgs['login.pageTitle']}" />
+	</ui:define>
+
+	<ui:define name="body">
+
+		<h:panelGroup layout="block" styleClass="row">
+			<!-- <h:messages styleClass="messages text-center"
+				infoClass="info" errorClass="error" /> -->
+		</h:panelGroup>
+		<h:panelGroup layout="block" styleClass="container">
+
+
+
+			<h:panelGroup layout="block" styleClass="login-box box-1">
+				<h:panelGroup layout="block" styleClass="whispeak-logo">
+					<img id="WhispeakLogo" src="/oxauth/ext/resources/img/Logo_Whispeak_color.svg" />
+				</h:panelGroup>
+
+				<h:form id="loginForm" method="POST" enctype="multipart/form-data">
+
+					<h:panelGroup styleClass="form-group row">
+						<h:panelGroup layout="block" styleClass="col-center">
+							<h:panelGroup layout="block" styleClass="instructions">
+								<h:outputText value="#{msgs['whispeak.modo']}" />
+							</h:panelGroup>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup layout="block" styleClass="form-group text-to-read">
+						<h:panelGroup layout="block" styleClass="col-center">
+							<h:panelGroup layout="block" styleClass="row">
+								<h:outputText value="#{msgs['whispeak.welcome']}" />
+							</h:panelGroup>
+							<h:panelGroup layout="block" styleClass="row">
+								<h:outputText value="#{msgs['whispeak.use.voice.auth']}" />
+							</h:panelGroup>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup styleClass="form-group row">
+						<h:panelGroup styleClass="row-button">
+							<h:panelGroup layout="block" styleClass="col-center">
+								<h:commandButton id="acceptEnrollButton" value="#{msgs['form.yes'].toUpperCase()}"
+									styleClass="button button-small button-select" onclick="acceptEnrollResponse();"
+									action="#{authenticator.authenticate}" />
+								<h:commandButton id="rejectEnrollButton" value="#{msgs['form.no'].toUpperCase()}"
+									styleClass="button button-small button-unselect" onclick="rejectEnrollResponse();"
+									action="#{authenticator.authenticate}" />
+							</h:panelGroup>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:inputHidden id="enroll_challenge" />
+					<h:inputHidden id="origin-page" />
+				</h:form>
+
+			</h:panelGroup>
+		</h:panelGroup>
+		<script type="text/javascript">
+
+
+			function acceptEnrollResponse() {
+				document.getElementById("loginForm:enroll_challenge").value = "Accept";
+			}
+
+			function rejectEnrollResponse() {
+				document.getElementById("loginForm:enroll_challenge").value = "Reject";
+			}
+
+			jQuery(document).ready(
+				function () {
+					var form = document.forms.loginForm;
+					form["loginForm:origin-page"].value = "/whispeak_open_ask_enroll.xhtml";
+				}
+			);
+		</script>
+	</ui:define>
+</ui:composition>
