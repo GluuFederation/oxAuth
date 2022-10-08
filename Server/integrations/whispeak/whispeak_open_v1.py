@@ -15,7 +15,7 @@ import re
 from java.io import BufferedReader, InputStreamReader
 from java.lang import String
 from java.net import URI
-from java.util import ArrayList, Arrays, Collections
+from java.util import Arrays, Collections
 from javax.faces.application import FacesMessage
 from javax.faces.context import FacesContext
 from org.apache.commons.io import IOUtils
@@ -161,6 +161,14 @@ class PersonAuthentication(PersonAuthenticationType):
         else:
             self.cache.put("MAX_NUMBER_OF_ERRORS_FALLBACK", 0)
 
+        if configuration_attributes.containsKey("CHECK_ONLY_USERNAME"):
+            chek_domain = configuration_attributes.get(
+                "CHECK_ONLY_USERNAME").getValue2()
+            self.cache.put("CHECK_ONLY_USERNAME",
+                           chek_domain)
+        else:
+            self.cache.put("CHECK_ONLY_USERNAME", False)
+
         if configuration_attributes.containsKey("SECOND_FACTOR"):
             second_factor = configuration_attributes.get(
                 "SECOND_FACTOR").getValue2()
@@ -209,6 +217,7 @@ class PersonAuthentication(PersonAuthenticationType):
         self.cache.put("ASR_TEXT", "")
         self.cache.put("RETRY_ERROR", "")
         self.cache.put("MAX_NUMBER_OF_ERRORS_FALLBACK", "")
+        self.cache.put("CHECK_ONLY_USERNAME", "")
         self.cache.put("MAX_NUMBER_OF_ERRORS_VERIFY", "")
         self.cache.put("ERROR_NUMBER", 0)
         self.cache.put("ERROR_NUMBER_VERIFY", 0)
@@ -239,7 +248,8 @@ class PersonAuthentication(PersonAuthenticationType):
             "revocation_ui_link",
             "revocation_pwd",
             "show_password",
-            "user_password"
+            "user_password",
+            "user_profile_oidc"
         )
 
     def getCountAuthenticationSteps(self, configuration_attributes):
@@ -387,7 +397,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         if step == 7:
             page = self._return_page(
-                "/whispeak_revocation_data_show.xhtml", step)
+                "/whispeak_open_revocation_data_show.xhtml", step)
 
         self.logger.debug("Page %s for Step %s", page, step)
 
@@ -608,18 +618,18 @@ class PersonAuthentication(PersonAuthenticationType):
 
         user = self._get_user_flow(username)
 
+        # ONLY FOR DEMO PURPPOSES
+        # as we are already authenticating user here before voice to some extent, possibly insecure
         if self.cache.get("SECOND_FACTOR"):
             user_password = ServerUtil.getFirstValue(
                 request_parameters, "loginForm:password") or credentials.getPassword()
             if StringHelper.isNotEmptyString(username) and StringHelper.isNotEmptyString(user_password):
-
-                if not user or not user.getAttribute('password'):
+                if not user or not user.getAttribute('userPassword'):
                     self.identity.setWorkingParameter(
                         "user_password", user_password)
                     return True
                 authenticated = CdiUtil.bean(
                     AuthenticationService).authenticate(username, user_password)
-
                 if not authenticated:
                     self.logger.info(
                         "Password missmatch for user %s", username)
@@ -724,8 +734,7 @@ class PersonAuthentication(PersonAuthenticationType):
             return redirect_result
         else:
             jwt_param = ServerUtil.getFirstValue(request_parameters, "user")
-            logged_in = self._is_oidc_authenticated(jwt_param)
-            return logged_in
+            return self._is_oidc_authenticated(jwt_param)
 
     ################################################################################
     # Fourth step: passport return, TOKEN processing
@@ -733,20 +742,23 @@ class PersonAuthentication(PersonAuthenticationType):
     def __step4(self, request_parameters, step):
 
         jwt_param = ServerUtil.getFirstValue(request_parameters, "user")
-        logged_in = self._is_oidc_authenticated(jwt_param)
-        return logged_in
+        user_profile_oidc = self._is_oidc_authenticated(jwt_param)
+        self.identity.setWorkingParameter(
+            'user_profile_oidc', user_profile_oidc)
+        return self._is_oidc_authenticated(jwt_param)
 
     ################################################################################
     # Fifth step: enroll with passport fallback
 
     def __step5(self, request_parameters, step):
 
-        redirect_result = self._check_fallback_passport_and_redirect(
+        redirect_result = self._adjust_fallback_steps_passport_and_redirect(
             request_parameters)
         if redirect_result:
             self.logger.info("redirects")
             return redirect_result
-        self.logger.info("enroll auth")
+
+        self.logger.info("Processing voice enroll")
 
         whispeak_signature_id = self._whispeak_voice(
             "enroll", self._get_login_voice_and_set_text(request_parameters))
@@ -764,32 +776,34 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def __step6(self, request_parameters, step):
 
-        redirect_result = self._check_fallback_passport_and_redirect(
+        redirect_result = self._adjust_fallback_steps_passport_and_redirect(
             request_parameters)
         if redirect_result:
             self.logger.info("redirects")
             return redirect_result
-        self.logger.info("enroll auth")
+
+        self.logger.info("Processing voice enroll verification")
 
         whispeak_signature_id = self.identity.getWorkingParameter(
             "whispeak_signature_id")
-        whispeak_revocation_ui_link = self.identity.getWorkingParameter(
-            "revocation_ui_link")
-        whispeak_revocation_pwd = self.identity.getWorkingParameter(
-            "revocation_pwd")
-
         username = self.identity.getWorkingParameter("username")
         logged_in = self._whispeak_voice("auth", self._get_login_voice_and_set_text(
             request_parameters), whispeak_signature_id)
         if logged_in:
             user_service = CdiUtil.bean(UserService)
             user = user_service.getUserByAttribute('mail',  username)
+            user_profile_oidc = self.identity.getWorkingParameter(
+                'user_profile_oidc')
             if not user:
-                user = self._create_user(username, whispeak_signature_id)
+                user = self._create_user(
+                    username, user_service, whispeak_signature_id, user_profile_oidc)
+            else:
+                self._update_user(user, user_service, user_profile_oidc)
             user.setAttribute('whispeakSignatureId', whispeak_signature_id)
             user.setAttribute('whispeakRevocationUiLink',
-                              whispeak_revocation_ui_link)
-            user.setAttribute('whispeakRevocationPwd', whispeak_revocation_pwd)
+                              self.identity.getWorkingParameter("revocation_ui_link"))
+            user.setAttribute('whispeakRevocationPwd',
+                              self.identity.getWorkingParameter("revocation_pwd"))
             user_password = self.identity.getWorkingParameter("user_password")
             if user_password:
                 user.setAttribute('userPassword', user_password)
@@ -803,7 +817,8 @@ class PersonAuthentication(PersonAuthenticationType):
             self.logger.debug("Current nb of errors %s Verify at nb of errors %s",
                               current_error_number_verify, max_number_of_errors_verify)
             if current_error_number_verify >= max_number_of_errors_verify:
-                self.logger.debug("Proceding to delete signature")
+                self.log
+                ger.debug("Proceding to delete signature")
                 self._delete_signature(whispeak_signature_id)
                 self.cache.put("RETRY_ERROR", False)
                 self._new_messages()
@@ -822,7 +837,7 @@ class PersonAuthentication(PersonAuthenticationType):
     # Whispeak Functions
     ################################################################################
 
-    def _check_fallback_passport_and_redirect(self, request_parameters):
+    def _adjust_fallback_steps_passport_and_redirect(self, request_parameters):
         if self._check_and_activate_alternative_provider_selected(request_parameters):
             self.cache.put("COUNT_AUTHENTICATION_STEPS", 4)
             self.cache.put("NEXT_STEP", 4)
@@ -955,21 +970,15 @@ class PersonAuthentication(PersonAuthenticationType):
                 data = self._get_access_token_and_text(operation)
                 token = data["token"]
             http_service_request.setHeader("Authorization", "Bearer " + token)
-
             self.logger.debug("Bearer %s", token)
             multipart_builder = MultipartEntityBuilder.create()
             multipart_builder.addBinaryBody(
-                "file",
-                login_voice,
-                ContentType.APPLICATION_OCTET_STREAM,
-                "gluu" + ".wav")
-
+                "file", login_voice, ContentType.APPLICATION_OCTET_STREAM, "gluu" + ".wav")
             if operation == "auth":
                 self.logger.info("Whispeak Signature %s",
                                  whispeak_signature_id)
                 multipart_builder.addTextBody(
                     "id", whispeak_signature_id, ContentType.TEXT_PLAIN)
-
             multipart = multipart_builder.build()
             http_service_request.setEntity(multipart)
             time_sent = time.time()
@@ -981,7 +990,6 @@ class PersonAuthentication(PersonAuthenticationType):
             response_body = self._response_content_entity(
                 http_service_response)
             status_code = http_service_response.getStatusLine().getStatusCode()
-
             if status_code == HttpStatus.SC_OK:
                 self.logger.info("Operation  %s SUCCEED with code %s",
                                  operation, http_service_response.getStatusLine())
@@ -993,16 +1001,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     "revocation_pwd", response_body['revocation']['signature_secret_password'])
                 return response_body["id"]
             if status_code == 404:
-                user_service = CdiUtil.bean(UserService)
-                user = user_service.getUserByAttribute(
-                    'whispeakSignatureId', whispeak_signature_id)
-                user.setAttribute('whispeakSignatureId', '')
-                user_service.updateUser(user)
-                self.logger.info(
-                    "Removed non existent user signature from Gluu %s to force enrollment again (probably speaker secret was removed)", whispeak_signature_id)
-                self.cache.put("NEXT_STEP", "1")
-                self._set_message_error(
-                    FacesMessage.SEVERITY_ERROR, "whispeak.login.signatureDoesNotExist")
+                self._remove_signature(whispeak_signature_id)
                 return False
             self.cache.put("RETRY_ERROR", True)
             self._set_message_error(
@@ -1020,6 +1019,20 @@ class PersonAuthentication(PersonAuthenticationType):
             if http_service_response:
                 http_service_response.close()
             http_service_request.releaseConnection()
+
+    def _remove_signature(self, whispeak_signature_id):
+        user_service = CdiUtil.bean(UserService)
+        user = user_service.getUserByAttribute(
+            'whispeakSignatureId', whispeak_signature_id)
+        user.setAttribute('whispeakSignatureId', '')
+        user.setAttribute('whispeakRevocationUiLink', '')
+        user.setAttribute('whispeakRevocationPwd', '')
+        user_service.updateUser(user)
+        self.logger.info(
+            "Removed non existent user signature from Gluu %s to force enrollment again (probably speaker secret was removed)", whispeak_signature_id)
+        self.cache.put("NEXT_STEP", "1")
+        self._set_message_error(
+            FacesMessage.SEVERITY_ERROR, "whispeak.login.signatureDoesNotExist")
 
     def _whispeak_error_message(self, code):
         error_messages = {
@@ -1114,108 +1127,27 @@ class PersonAuthentication(PersonAuthenticationType):
         if user_profile is None:
             return False
 
-        session_attributes = self.identity.getSessionId().getSessionAttributes()
-        self.skip_profile_update = StringHelper.equalsIgnoreCase(
-            session_attributes.get("skipPassportProfileUpdate"), "true")
+        auth_step1_username = self.identity.getWorkingParameter("username")
 
-        authenticated_oidc = self._attempt_authentication(user_profile)
-        if not authenticated_oidc:
-            self._set_message_error(
-                FacesMessage.SEVERITY_ERROR, "login.authOidcFailed")
-        return authenticated_oidc
-
-    def _attempt_authentication(self, user_profile):
-        uid_key = "uid"
-        if not self._check_required_attributes(user_profile, [uid_key, self.provider_key]):
-            return False
-        provider = user_profile[self.provider_key]
-        uid = user_profile[uid_key][0]
-        external_uid = "passport-{provider}:{uid}"
-        user_service = CdiUtil.bean(UserService)
-        user_by_uid = user_service.getUserByAttribute(
-            "oxExternalUid", external_uid, True)
-
-        email = None
-        if "mail" in user_profile:
-            email = user_profile["mail"]
-            if len(email) == 0:
-                email = None
-            else:
-                email = email[0]
-                user_profile["mail"] = [email]
-
-        user_by_mail = None if email is None else user_service.getUserByAttribute(
-            "mail", email)
-
-        # Determine if we should add entry or update existing
-        do_update = False
-        do_add = False
-        if user_by_uid is not None:
-            self.logger.debug(
-                "User already exist with externalUid %s", external_uid)
-            if user_by_mail is None:
-                self.logger.debug(
-                    "Does not exist with email, will be added %s", external_uid)
-                do_update = True
-            else:
-                if user_by_mail.getUserId() == user_by_uid.getUserId():
-                    self.logger.debug(
-                        "Is the same userid so update %s", external_uid)
-                    do_update = True
-                else:
-                    self.logger.error(
-                        "Missmatch User Users with externalUid '%s' and mail '%s' are different. Access will be denied. Impersonation attempt?", external_uid, email)
-        else:
-            if user_by_mail is None:
-                self.logger.debug(
-                    "Does not exist so will be created %s", external_uid)
-                do_add = True
-            else:
-                tmp_list = user_by_mail.getAttributeValues("oxExternalUid")
-                tmp_list = ArrayList() if tmp_list is None else ArrayList(tmp_list)
-                tmp_list.add(external_uid)
-                user_by_mail.setAttribute("oxExternalUid", tmp_list, True)
-
-                user_by_uid = user_by_mail
-                self.logger.debug(
-                    "Linking Account External user supplying mail %s will be linked to existing account %s", email, user_by_mail.getUserId())
-                do_update = True
-
-        username = None
-        if do_update:
-            username = user_by_uid.getUserId()
-            self.logger.info("Updating user %s", username)
-            self._update_user(user_by_uid, user_profile, user_service)
-        elif do_add:
-            self.logger.info("Creating user %s", external_uid)
-            new_user = self._add_user_by_email(
-                external_uid, email, user_profile, user_service)
-            username = new_user.getUserId()
-        if not self._validate_username_oidc(username, user_profile):
+        if not self._validate_username_oidc(auth_step1_username, user_profile):
             self.logger.error(
                 "FAIL not possible to verify username returns false")
             self._set_message_error(
                 FacesMessage.SEVERITY_ERROR, "login.authOidcMissmatch")
             return False
-        logged_in = CdiUtil.bean(AuthenticationService).authenticate(username)
-        if logged_in is True:
-            self.identity.setWorkingParameter("enroll_challenge", "Accept")
-            self.identity.setWorkingParameter("flow", "enroll")
-            self.cache.put("flow", "enroll")
-        return logged_in
+        return user_profile
 
-    def _validate_username_oidc(self, username, user_profile):
+    def _validate_username_oidc(self, auth_step1_username, user_profile):
 
-        auth_step1_username = self.identity.getWorkingParameter("username")
-        auth_step1_username = auth_step1_username.split("@")[0]
+        oidc_username = user_profile["mail"][0]
+
+        if self.cache.get("CHECK_ONLY_USERNAME"):
+            auth_step1_username = auth_step1_username.split("@")[0]
+            oidc_username = oidc_username.split("@")[0]
 
         self.logger.debug("Validate username matches with thirdparty username")
 
-        if username is None:
-            self.logger.error(
-                "FAIL attemptAuthentication username is empty after splitting email returns false")
-            return False
-        elif user_profile["mail"][0].split("@")[0] != auth_step1_username:
+        if oidc_username != auth_step1_username:
             self.logger.warning(
                 "Usernames from OIDC does not match username from auth step 1")
             return False
@@ -1271,7 +1203,7 @@ class PersonAuthentication(PersonAuthenticationType):
     # Generic Auxiliary functions
     ################################################################################
 
-    def _create_user(self, user_email, signature_id=None, user_password=None):
+    def _create_user(self, user_email, user_service, signature_id=None, profile=None, user_password=None):
         new_user = User()
 
         username = user_email.split("@")[0]
@@ -1284,10 +1216,29 @@ class PersonAuthentication(PersonAuthenticationType):
         new_user.setAttribute("whispeakSignatureId", signature_id)
         new_user.setAttribute("password", user_password)
 
-        user_service = CdiUtil.bean(UserService)
+        if profile:
+            self._fill_user(new_user, profile)
+
         new_user = user_service.addUser(new_user, True)
 
         return new_user
+
+    def _update_user(self, user, user_service, profile):
+        self._fill_user(user, profile)
+        user_service.updateUser(user)
+
+    def _fill_user(self, user, profile):
+
+        for attr in profile:
+            if attr != self.provider_key:
+                values = profile[attr]
+                user.setAttribute(attr, values)
+                if attr == "mail":
+                    ox_trust_mails = []
+                    for mail in values:
+                        ox_trust_mails.append(
+                            '{"value":"{mail}","primary":false}')
+                    user.setAttribute("oxTrustEmail", ox_trust_mails)
 
     def _set_message_error(self, severity, msg):
         if not hasattr(self, 'facesMessages'):
@@ -1300,46 +1251,6 @@ class PersonAuthentication(PersonAuthenticationType):
         if hasattr(self, 'facesMessages'):
             self.facesMessages.clear()
         return CdiUtil.bean(FacesMessages)
-
-    def _check_required_attributes(self, profile, attrs):
-        for attr in attrs:
-            if (not attr in profile) or len(profile[attr]) == 0:
-                self.logger.error("Missing Attribute in profile %s", attr)
-                return False
-        return True
-
-    def _add_user_by_email(self, external_uid, mail, profile, user_service):
-        new_user = User()
-        # Fill user attrs
-        new_user.setAttribute("oxExternalUid", external_uid, True)
-        self._fill_user(new_user, profile)
-        new_user.setAttribute("uid", mail, True)
-        new_user.setAttribute("mail", mail, True)
-        self.logger.debug("Filled user Going to add user")
-        new_user = user_service.addUser(new_user, True)
-        self.logger.debug("Added user newUser")
-        return new_user
-
-    def _update_user(self, found_user, profile, user_service):
-        # when this is false, there might still some updates taking place
-        # (e.g. not related to profile attrs released by external provider)
-        if not self.skip_profile_update:
-            self._fill_user(found_user, profile)
-        user_service.updateUser(found_user)
-
-    def _fill_user(self, found_user, profile):
-
-        for attr in profile:
-            # "provider" is disregarded if part of mapping
-            if attr != self.provider_key:
-                values = profile[attr]
-                found_user.setAttribute(attr, values)
-                if attr == "mail":
-                    ox_trust_mails = []
-                    for mail in values:
-                        ox_trust_mails.append(
-                            '{"value":"{mail}","primary":false}')
-                    found_user.setAttribute("oxTrustEmail", ox_trust_mails)
 
     def _response_content_entity(self, http_service_response):
         input_stream = http_service_response.getEntity().getContent()
