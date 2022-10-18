@@ -16,7 +16,7 @@ import org.jboss.resteasy.annotations.providers.jaxb.IgnoreMediaTypes;
  * @author Yuriy Movchan Date: 05/13/2015
  */
 @IgnoreMediaTypes("application/*+json")
-@JsonPropertyOrder({ "version", "issuer", "registration_start", "authentication_start" })
+@JsonPropertyOrder({ "version", "issuer", "registration_endpoint", "authentication_endpoint" })
 public class U2fConfiguration {
 
 	@JsonProperty(value = "version")

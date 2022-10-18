@@ -16,6 +16,7 @@ import java.util.List;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.CertificateValidity;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.ValidatorSourceType;
+import org.gluu.oxauth.model.util.CertUtils;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,8 @@ public class GenericCertificateVerifier implements CertificateVerifier {
 
 	@Override
 	public ValidationStatus validate(X509Certificate certificate, List<X509Certificate> issuers, Date validationDate) {
-		X509Certificate issuer = issuers.get(0);
+
+        X509Certificate issuer = CertUtils.getIssuer(certificate, issuers);
 		ValidationStatus status = new ValidationStatus(certificate, issuer, validationDate, ValidatorSourceType.APP, CertificateValidity.UNKNOWN);
 
 		try {
