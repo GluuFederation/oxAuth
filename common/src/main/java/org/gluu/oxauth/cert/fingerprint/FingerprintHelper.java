@@ -34,6 +34,7 @@ public class FingerprintHelper {
     /*
      * Return SSH RSA public key fingerprint
      */
+    @SuppressWarnings("java:S4790")
     public static String getPublicKeySshFingerprint(PublicKey publicKey) throws NoSuchAlgorithmException, IOException {
     if (publicKey instanceof RSAPublicKey || publicKey instanceof ECPublicKey) {
             MessageDigest digest = MessageDigest.getInstance("MD5");
