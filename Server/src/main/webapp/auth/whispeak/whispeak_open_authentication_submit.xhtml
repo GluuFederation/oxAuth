@@ -1,0 +1,183 @@
+<!DOCTYPE composition
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/incl/layout/whispeak_open_template.xhtml">
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" />
+		<f:viewParam name="login_hint" value="#{loginAction.loginHint}" />
+	</f:metadata>
+	<ui:define name="head">
+		<meta name="description" content="Whispeak through Gluu" />
+	</ui:define>
+	<ui:define name="pageTitle">
+		<h:outputText value="#{msgs['login.pageTitle']}" />
+	</ui:define>
+	<ui:define name="body">
+		<h:panelGroup layout="block" styleClass="container">
+			<h:panelGroup layout="block" styleClass="login-box box-1">
+
+				<h:panelGroup layout="block" styleClass="whispeak-logo">
+					<img id="WhispeakLogo" src="/oxauth/ext/resources/img/Logo_Whispeak_color.svg" />
+				</h:panelGroup>
+
+				<c:if test="#{identity.getWorkingParameter('flow') == 'enroll'}">
+					<h:panelGroup layout="block" styleClass="col-center">
+						<h:panelGroup layout="block" styleClass="row">
+							<ul class="progressbar">
+								<li class="step-done">Inscription</li>
+								<li class="active">Vérification</li>
+							</ul>
+						</h:panelGroup>
+					</h:panelGroup>
+				</c:if>
+
+				<h:form id="loginForm" method="POST" enctype="multipart/form-data">
+
+					<h:panelGroup layout="block" styleClass="col-center ">
+						<h:panelGroup layout="block" styleClass="row instructions">
+							<h:outputText value="#{msgs['whispeak.auth.instructions.record']}" />
+							<br />
+							<h:outputText value="#{msgs['whispeak.auth.instructions.validate']}" />
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup layout="block" styleClass="col-center">
+						<h:outputText id="text-to-read" name="text-to-read" class="text-to-read"
+							value="#{identity.getWorkingParameter('asr_text')}"
+							rendered="#{not empty identity.getWorkingParameter('asr_text')}" />
+					</h:panelGroup>
+
+					<h:panelGroup layout="block" styleClass="row col-center recorder">
+						<h:panelGroup layout="block" styleClass="visualizer" id="visualizer">
+							<h:panelGroup layout="block" styleClass="timer" id="timer">
+								00:00
+							</h:panelGroup>
+							<canvas class="displayWave" id="displayWave"></canvas>
+						</h:panelGroup>
+
+						<h:panelGroup layout="block" styleClass="remote-recorder">
+							<p:remoteCommand name="authenticateCommand" action="#{authenticator.authenticate}"
+								oncomplete="recorder.hide_load_spinner()" update="@all" process="@all" timeout="15000"
+								onerror="recorder.hide_load_spinner();alert('Ce n \'est pas possible de vous authentifier veuillez tenter encore une fois.')" />
+							<p:commandButton value="stop" id="button_stop_play" styleClass="
+									button-recorder
+									button-recorder-small
+									button-left
+									button-stop
+									button-hidden
+									icon-button-recorder
+									icon-button-recorder-small
+									icon-button-stop" onclick="recorder.button_stop_click()" type="button">
+							</p:commandButton>
+
+							<p:commandButton id="button_record" value="record" styleClass="
+									button-recorder
+									button-middle
+									button-mic
+									icon-button-recorder
+									icon-button-mic" onclick="recorder.button_record_click()" type="button">
+							</p:commandButton>
+							<p:commandButton id="loginButton" type="button" styleClass="
+									button-recorder
+									button-next
+									button-middle
+									button-hidden
+									icon-button-recorder
+									icon-button-next" value="#{msgs['login.login']}" onclick="recorder.button_connexion_click()"
+								iconAwesome="fa-sign-in">
+							</p:commandButton>
+							<p:commandButton id="button_reset" value="reset" styleClass="
+									button-recorder
+									button-recorder-small
+									button-right
+									button-reset
+									button-hidden
+									icon-button-recorder
+									icon-button-recorder-small
+									icon-button-reset" onclick="recorder.button_reset_click()" type="button">
+							</p:commandButton>
+							<h:panelGroup id="spinner" layout="block" styleClass="spinner"></h:panelGroup>
+
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<audio id="audio"></audio>
+
+					<h:inputHidden id="voiceBase64" />
+					<h:inputHidden id="provider" />
+					<h:inputHidden id="asr-text-retry" />
+					<h:inputHidden id="origin-page" />
+					<h:inputHidden id="redirect-to-client" />
+					<h:panelGroup id="signinButton" layout="block" visible="false">
+						<p:commandButton id="loginPassportButton" value="#{msgs['login.login']}"
+							action="#{authenticator.authenticate}" class="button button-login" style="display: none" />
+					</h:panelGroup>
+				</h:form>
+			</h:panelGroup>
+
+			<h:panelGroup layout="block" styleClass="login-box box-2"
+				rendered="#{identity.getWorkingParameter('flow') == 'auth' and identity.getWorkingParameter('show_oidc_panel')}">
+				<h:panelGroup styleClass="row col-center text-center">
+					<h:outputText value="#{msgs['whispeak.auth.alternative.instruction']}" />
+				</h:panelGroup>
+				<h:panelGroup layout="block" styleClass="panel-body providers" id="listProviders">
+				</h:panelGroup>
+			</h:panelGroup>
+			<h:panelGroup styleClass="login-box box-2"
+				rendered="#{identity.getWorkingParameter('show_return_client_panel') == true}">
+				<h:panelGroup styleClass="row col-center text-center">
+					<h:outputText value="#{msgs['whispeak.auth.error.instruction']}" />
+				</h:panelGroup>
+				<h:panelGroup layout="block" styleClass="panel-body return-client-panel">
+					<p:commandButton id="redirectToClient" value="redirect to client" type="button" styleClass="
+											button-recorder
+											button-reset
+											icon-button-back" onclick="recorder.send_redirect()">
+					</p:commandButton>
+				</h:panelGroup>
+			</h:panelGroup>
+
+		</h:panelGroup>
+		<!-- FOR AUTORECORD -->
+		<!-- <script type="text/javascript">
+    $(document).ready(function () {
+	  recorder.button_record_click();
+		});
+		</script> -->
+
+		<script src="/oxauth/ext/resources/js/passport.js" />
+		<script src="/oxauth/ext/resources/js/recorder_3buttons.js" />
+		<script type="text/javascript">
+			jQuery(document).ready(
+				function () {
+					var form = document.forms.loginForm;
+					form["loginForm:asr-text-retry"].value = document.getElementById('loginForm:text-to-read').textContent;
+					form["loginForm:origin-page"].value = "/whispeak_open_authentication_submit.xhtml";
+					recorder.button_reset_click();
+					try {
+						if (`#{identity.getWorkingParameter('external_providers')}` !== "false") {
+							let jsonProviders = JSON.parse(`#{identity.getWorkingParameter('external_providers')}`
+								.replaceAll("u'", "\'")
+								.replaceAll("'", "\"")
+								.replaceAll("None", "null")
+								.replaceAll("False", "false")
+								.replaceAll("True", "true")
+							);
+
+							console.log('')
+							jsonProviders.forEach((provider) => {
+								passport.dynamic_link(
+									Object.keys(provider)[0],
+									provider[Object.keys(provider)[0]].logo_img,
+									provider[Object.keys(provider)[0]].displayName)
+							});
+						}
+					} catch (e) {
+						// If providers are not returned passport is not configured
+					}
+				});
+		</script>
+	</ui:define>
+</ui:composition>

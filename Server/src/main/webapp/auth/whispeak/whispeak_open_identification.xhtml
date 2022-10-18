@@ -1,0 +1,113 @@
+<!DOCTYPE composition
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+	xmlns:f="http://xmlns.jcp.org/jsf/core" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/incl/layout/whispeak_open_template.xhtml">
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" />
+		<f:viewParam name="login_hint" value="#{loginAction.loginHint}" />
+	</f:metadata>
+	<ui:define name="head">
+		<meta name="description" content="Whispeak through Gluu" />
+	</ui:define>
+	<ui:define name="pageTitle">
+		<h:outputText value="#{msgs['login.pageTitle']}" />
+	</ui:define>
+	<ui:define name="body">
+		<h:panelGroup layout="block" styleClass="container">
+
+			<h:panelGroup layout="block" styleClass="login-box box-1">
+				<h:panelGroup layout="block" styleClass="whispeak-logo">
+					<img id="WhispeakLogo" src="/oxauth/ext/resources/img/Logo_Whispeak_color.svg" />
+				</h:panelGroup>
+
+				<h:form id="loginForm" method="POST" enctype="multipart/form-data">
+
+
+					<h:panelGroup styleClass="form-group row"
+						rendered="#{identity.getWorkingParameter('show_password')  == true}">
+						<h:panelGroup layout="block" styleClass="col-center">
+							<h:panelGroup layout="block" styleClass="instructions">
+								<h:outputText value="#{msgs['whispeak.login.2fa.password']}" />
+							</h:panelGroup>
+						</h:panelGroup>
+					</h:panelGroup>
+
+
+					<h:panelGroup layout="block" styleClass="form-group row">
+						<h:panelGroup layout="block" styleClass="col-center">
+							<h:inputText pt:placeholder="#{msgs['login.email']}" id="username" name="username"
+								required="true" autocomplete="on" value="#{credentials.username}"
+								styleClass="form-control">
+							</h:inputText>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup class="row" layout="block"
+						rendered="#{identity.getWorkingParameter('show_password')  == true}">
+						<div class="col-center">
+							<h:inputSecret pt:placeholder="#{msgs['login.password']}" colMd="10" id="password"
+								name="password" labelColMd="2" value="#{credentials.password}" autocomplete="off"
+								styleClass="form-control">
+							</h:inputSecret>
+						</div>
+					</h:panelGroup>
+
+					<h:panelGroup layout="block" styleClass="form-group row">
+						<h:panelGroup layout="block" styleClass="col-center">
+							<h:panelGroup layout="block" styleClass="row-button">
+								<h:commandButton id="loginButton" styleClass="button" value="#{msgs['login.login']}"
+									iconAwesome="fa-sign-in" action="#{authenticator.authenticate}" />
+							</h:panelGroup>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:inputHidden id="platform" />
+					<h:inputHidden id="origin-page" />
+					<h:inputHidden id="client-url" />
+				</h:form>
+			</h:panelGroup>
+
+		</h:panelGroup>
+		<script type="text/javascript">
+
+
+			window.onload = function () {
+				var userNameField = document.getElementById("loginForm:username");
+				var passwordField = document.getElementById("loginForm:password");
+
+				var userName = '#{identity.getWorkingParameter("username")}';
+				if (userName) {
+					userNameField.value = userName;
+					passwordField.focus();
+				} else {
+					userNameField.focus();
+				}
+
+			};
+
+			jQuery(document).ready(
+
+				function () {
+					var form = document.forms.loginForm;
+					form["loginForm:origin-page"].value = "/whispeak_open_identification.xhtml";
+					form["loginForm:client-url"].value = document.referrer;
+				}
+			);
+
+			function fillPlatformField() {
+				try {
+					re = /^([^\.]+\.[^\.]+)\..+/;
+					result = re.exec(platform.version);
+					if (result != null) {
+						platform.version = result[1];
+					}
+					document.getElementById("loginForm:platform").value = JSON.stringify(platform);
+				} catch (e) {
+				}
+			}
+
+		</script>
+	</ui:define>
+</ui:composition>

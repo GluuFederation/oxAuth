@@ -1,0 +1,102 @@
+<!DOCTYPE composition
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:p="http://primefaces.org/ui" xmlns:b="http://bootsfaces.net/ui"
+	template="/WEB-INF/incl/layout/whispeak_open_template.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}" if="#{not identity.loggedIn}" />
+	</f:metadata>
+
+	<ui:define name="head">
+		<meta name="description" content="Gluu Inc." />
+	</ui:define>
+
+	<ui:define name="pageTitle">
+		<h:outputText value="#{msgs['passport.oxAuthPassportLogin']}" />
+	</ui:define>
+
+	<ui:define name="body">
+		<h:panelGroup layout="block" styleClass="container">
+			<h:panelGroup rendered="true">
+				<h:panelGroup layout="block" styleClass="row">
+					<noscript>
+						<b>#{msgs['passport.javascriptRequired']}</b>
+					</noscript>
+				</h:panelGroup>
+				<h:panelGroup layout="block" styleClass="login-box box-1">
+
+					<h:panelGroup layout="block" styleClass="whispeak-logo">
+						<img id="WhispeakLogo" src="/oxauth/ext/resources/img/Logo_Whispeak_color.svg" />
+					</h:panelGroup>
+
+					<div class="col-center">
+						<div class="col-center ">
+							<div class="row instructions">
+								<h:outputText value="#{msgs['whispeak.auth.instructions.passport.verif']}" />
+								<br />
+								<h:outputText value="#{msgs['whispeak.auth.instructions.passport.choose.provider']}" />
+							</div>
+						</div>
+						<b:panel styleClass="row col-center" title="External Providers" collapsible="false"
+							iconAwesome="fa-key">
+							<h:panelGroup layout="block" styleClass="panel-body providers" id="listProviders">
+								<h:form id="loginForm">
+									<h:inputHidden id="provider" />
+									<h:inputHidden id="providerPassport" />
+									<h:inputHidden id="origin-page" />
+									<div visibility="hidden" id="signinButton">
+										<p:commandButton id="loginPassportButton" value="#{msgs['login.login']}"
+											action="#{authenticator.authenticate}" class="button button-login"
+											style="display: none" />
+									</div>
+								</h:form>
+							</h:panelGroup>
+						</b:panel>
+					</div>
+				</h:panelGroup>
+			</h:panelGroup>
+		</h:panelGroup>
+		<script src="/oxauth/ext/resources/js/passport.js" />
+		<script src="/oxauth/ext/resources/js/recorder_3buttons.js" />
+		<script type="text/javascript">
+
+			jQuery(document).ready(
+				function () {
+					var form = document.forms.loginForm;
+					form["loginForm:origin-page"].value = "/whispeak_open_passport.xhtml";
+					let jsonProviders = JSON.parse(`#{identity.getWorkingParameter('external_providers')}`
+						.replaceAll("u'", "\'")
+						.replaceAll("'", "\"")
+						.replaceAll("None", "null")
+						.replaceAll("False", "false")
+						.replaceAll("True", "true")
+					);
+
+					try {
+						jsonProviders.forEach((provider) => {
+							passport.dynamic_link(
+								Object.keys(provider)[0],
+								provider[Object.keys(provider)[0]].logo_img,
+								provider[Object.keys(provider)[0]].displayName)
+						});
+					} catch (e) {
+					}
+
+					//error message display
+					let errormsg = "?failure="
+					let idxErrormsg = window.location.href.indexOf(errormsg)
+					if (idxErrormsg != -1) {
+						errormsg = window.location.href.substr(idxErrormsg + errormsg.length)
+
+						history.replaceState({}, 'oxAuth-Login', '/oxauth/auth/passport/passport-login')
+						jQuery('.errormsg').html(decodeURIComponent(errormsg))
+						jQuery('.errormsg').css('display', 'block')
+					}
+
+				});
+		</script>
+
+	</ui:define>
+</ui:composition>
