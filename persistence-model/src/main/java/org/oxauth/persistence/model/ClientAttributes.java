@@ -57,6 +57,17 @@ public class ClientAttributes implements Serializable {
     @JsonProperty("rptClaimsScripts")
     private List<String> rptClaimsScripts;
 
+    @JsonProperty("idTokenLifetime")
+    private Integer idTokenLifetime;
+
+    public Integer getIdTokenLifetime() {
+        return idTokenLifetime;
+    }
+
+    public void setIdTokenLifetime(Integer idTokenLifetime) {
+        this.idTokenLifetime = idTokenLifetime;
+    }
+
     public List<String> getRptClaimsScripts() {
         if (rptClaimsScripts == null) rptClaimsScripts = Lists.newArrayList();
         return rptClaimsScripts;
