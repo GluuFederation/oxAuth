@@ -50,7 +50,12 @@ public enum ResponseType implements HasParamName, AttributeEnum {
      * Include an ID Token in the authorization response.
      */
 	@JsonProperty("id_token")
-    ID_TOKEN("id_token", "ID Token");
+    ID_TOKEN("id_token", "ID Token"),
+    /**
+     * Don't use response at all
+     */
+    @JsonProperty("none")
+	NONE("none", "NONE");
 
     private final String value;
     private final String displayName;
@@ -138,7 +143,7 @@ public enum ResponseType implements HasParamName, AttributeEnum {
     }
 
     public static boolean isImplicitFlow(String responseTypes) {
-        return !responseTypes.contains("code") && (responseTypes.contains("id_token") || responseTypes.contains("token"));
+        return !responseTypes.contains("code") && !responseTypes.contains("none") && (responseTypes.contains("id_token") || responseTypes.contains("token"));
     }
 
     public static List<String> toStringList(List<ResponseType> responseTypes) {
