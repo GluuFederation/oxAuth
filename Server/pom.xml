@@ -427,6 +427,11 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcmail-jdk15on</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 			<!-- OmniFaces -->
 		<dependency>
@@ -661,6 +666,20 @@
 		    <groupId>org.reflections</groupId>
 		    <artifactId>reflections</artifactId>
 		    <version>0.9.10</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Test: External DB drivers-->
+		<!-- Couchbase -->
+		<dependency>
+			<groupId>com.couchbase.client</groupId>
+			<artifactId>java-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Cloud Spanner -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-spanner</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -1011,6 +1030,10 @@
 					<groupId>org.bouncycastle</groupId>
 					<artifactId>bcpkix-jdk15on</artifactId>
 				</dependency>
+				<dependency>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk15on</artifactId>
+				</dependency>                
 			</dependencies>
 		</profile>
 

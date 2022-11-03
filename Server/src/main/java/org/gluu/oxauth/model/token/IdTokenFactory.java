@@ -33,8 +33,6 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
@@ -107,10 +105,14 @@ public class IdTokenFactory {
                             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
                             String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
 
+        final Client client = authorizationGrant.getClient();
         jwr.getClaims().setIssuer(appConfiguration.getIssuer());
-        Audience.setAudience(jwr.getClaims(), authorizationGrant.getClient());
+        Audience.setAudience(jwr.getClaims(), client);
 
         int lifeTime = appConfiguration.getIdTokenLifetime();
+        if (client.getAttributes().getIdTokenLifetime() != null) {
+            lifeTime = client.getAttributes().getIdTokenLifetime();
+        }
         Calendar calendar = Calendar.getInstance();
         Date issuedAt = calendar.getTime();
         calendar.add(Calendar.SECOND, lifeTime);
@@ -157,7 +159,7 @@ public class IdTokenFactory {
 
         User user = authorizationGrant.getUser();
         List<Scope> dynamicScopes = new ArrayList<>();
-        if (includeIdTokenClaims && authorizationGrant.getClient().isIncludeClaimsInIdToken()) {
+        if (includeIdTokenClaims && client.isIncludeClaimsInIdToken()) {
             for (String scopeName : scopes) {
                 Scope scope = scopeService.getScopeById(scopeName);
                 if (scope == null) {

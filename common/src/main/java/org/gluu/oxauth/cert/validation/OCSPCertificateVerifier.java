@@ -46,6 +46,7 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.CertificateValidity;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.ValidatorSourceType;
+import org.gluu.oxauth.model.util.CertUtils;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,8 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 
 	@Override
 	public ValidationStatus validate(X509Certificate certificate, List<X509Certificate> issuers, Date validationDate) {
-		X509Certificate issuer = issuers.get(0);
+
+	    X509Certificate issuer = CertUtils.getIssuer(certificate, issuers);
 		ValidationStatus status = new ValidationStatus(certificate, issuer, validationDate, ValidatorSourceType.OCSP, CertificateValidity.UNKNOWN);
 
 		try {
@@ -81,7 +83,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 			log.debug("OCSP URL for '" + subjectX500Principal + "' is '" + ocspUrl + "'");
 
 			DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder().build().get(CertificateID.HASH_SHA1);
-			CertificateID certificateId = new CertificateID(digestCalculator, new JcaX509CertificateHolder(certificate), certificate.getSerialNumber());
+            CertificateID certificateId = new CertificateID(digestCalculator, new JcaX509CertificateHolder(issuer), certificate.getSerialNumber());			
 
 			// Generate OCSP request
 			OCSPReq ocspReq = generateOCSPRequest(certificateId);
@@ -169,7 +171,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 
 		AccessDescription[] accessDescriptions = authorityInformationAccess.getAccessDescriptions();
 		for (AccessDescription accessDescription : accessDescriptions) {
-			boolean correctAccessMethod = accessDescription.getAccessMethod().equals(X509ObjectIdentifiers.ocspAccessMethod);
+			boolean correctAccessMethod = accessDescription.getAccessMethod().equals((Object)X509ObjectIdentifiers.ocspAccessMethod);
 			if (!correctAccessMethod) {
 				continue;
 			}

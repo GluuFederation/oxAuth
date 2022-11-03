@@ -21,10 +21,10 @@ import com.twilio.rest.api.v2010.account.Message as Message
 import com.twilio.type.PhoneNumber as PhoneNumber
 import org.codehaus.jettison.json.JSONArray as JSONArray
 
-
 import java
 import random
 import jarray
+import sys
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
@@ -121,16 +121,19 @@ class PersonAuthentication(PersonAuthenticationType):
                 isVerified = foundUser.getAttribute("phoneNumberVerified")
                 if isVerified:
                     self.mobile_number = foundUser.getAttribute("employeeNumber")
-                if  self.mobile_number == None:
-                    self.mobile_number = foundUser.getAttribute("mobile")
-                if  self.mobile_number == None:
+                if  self.mobile_number is None:
+                    mobile_numbers_json = foundUser.getAttribute("mobile", True, True)
+                    if mobile_numbers_json is not None:
+                        if mobile_numbers_json is not None:
+                            self.mobile_number = mobile_numbers_json.get(0)
+                if  self.mobile_number is None:
                     self.mobile_number = foundUser.getAttribute("telephoneNumber")
-                if  self.mobile_number == None:
-                    print "TwilioSMS, Error finding mobile number for user '%s'" % user_name    
-                    
+                if  self.mobile_number is None:
+                    print "TwilioSMS, Error finding mobile number for user '%s'" % user_name
+
             except:
                 facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to determine mobile phone number")
-                print 'TwilioSMS, Error finding mobile number for "%s". Exception: %s` % (user_name, sys.exc_info()[1])`'
+                print "TwilioSMS, Error finding mobile number for '%s'. Exception: '%s'" % (user_name, sys.exc_info()[1])
                 return False
 
             # Generate Random six digit code and store it in array

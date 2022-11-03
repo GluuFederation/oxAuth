@@ -106,6 +106,7 @@ public class ApplicationFactory {
 		}
 
 		configurationService.decryptSmtpPassword(smtpConfiguration);
+		configurationService.decryptKeyStorePassword(smtpConfiguration);
 
 		return smtpConfiguration;
 	}
