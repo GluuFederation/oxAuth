@@ -95,8 +95,8 @@ class PersonAuthentication(PersonAuthenticationType):
             "Initialization ok, passport enabled status %s", success)
         self._set_configuration_attributes(configuration_attributes)
 
-        self.storage_working_parameters = False
-        self.variable_debugging = True
+        self.storage_working_parameters = True
+        self.variable_debugging = False
         return True
 
     def _put(self, key, variable):
@@ -247,6 +247,9 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getApiVersion(self):
         return 11
+
+    def getAuthenticationMethodClaims(self, requestParameters):
+        return None
 
     def getAlternativeAuthenticationMethod(self, usage_type, configuration_attributes):
         if configuration_attributes.containsKey("ALTERNATIVE_ACR_VALUE"):
