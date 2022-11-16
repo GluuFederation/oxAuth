@@ -353,7 +353,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     print "Super-Gluu. Prepare for step 2. Failed to determine session_id"
                     return False
 
-                issuer = CdiUtil.bean(ConfigurationFactory).getConfiguration().getIssuer()
+                issuer = CdiUtil.bean(ConfigurationFactory).getAppConfiguration().getIssuer()
                 super_gluu_request_dictionary = {'app': client_redirect_uri,
                                    'issuer': issuer,
                                    'state': session.getId(),
