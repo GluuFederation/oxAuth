@@ -123,6 +123,11 @@ class PersonAuthentication(PersonAuthenticationType):
         if (jansKeyParam == None):
             print "PA External Authn. GetPageForStep could not found jansKey in request param"
 
+            # Remove session id cookie
+            cookieService = CdiUtil.bean(CookieService)
+            cookieService.removeSessionIdCookie(externalContext.getResponse())
+            print "PA External Authn. GetPageForStep remove session id cookie"
+
             # Retrieve redirectUri from request param and validate it
             redirectUri = ServerUtil.getFirstValue(externalContext.getRequestParameterValuesMap(), "redirect_uri")
             if (redirectUri == None or StringHelper.isEmpty(redirectUri)):
@@ -137,7 +142,7 @@ class PersonAuthentication(PersonAuthenticationType):
             print "PA External Authn. GetPageForStep client_id '%s' found in request param" % clientId
 
             # Generate jansKey
-            jansKey = str(uuid.uuid4());
+            jansKey = str(uuid.uuid4())
             print "PA External Authn. GetPageForStep jansKey '%s' generated" % jansKey
 
             # Create JSON Values
