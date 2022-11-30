@@ -142,7 +142,10 @@ public class DeviceRegistrationService {
 
 		// Final registration entry should be without expiration
         deviceRegistration.clearExpiration();
-
+        
+        //fix: personInum should be populated
+        deviceRegistration.setUserInum(userInum);
+        
         addUserDeviceRegistration(userInum, deviceRegistration);
 
 		return true;

@@ -12,6 +12,7 @@ from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.oxauth.security import Identity
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.oxauth.model.config import ConfigurationFactory
+from org.gluu.oxauth.model.configuration import AppConfiguration
 from org.gluu.oxauth.service import AuthenticationService, SessionIdService
 from org.gluu.oxauth.service.fido.u2f import DeviceRegistrationService
 from org.gluu.oxauth.service.net import HttpService
@@ -229,7 +230,8 @@ class PersonAuthentication(PersonAuthenticationType):
                 if u2f_device == None:
                     print "Super-Gluu. Authenticate for step 1. Failed to load u2f_device '%s'" % u2f_device_id
                     return False
-
+                found = userService.getUserByInum(user_inum)
+                user_name = found.getUserId()
                 logged_in = authenticationService.authenticate(user_name)
                 if not logged_in:
                     print "Super-Gluu. Authenticate for step 1. Failed to authenticate user '%s'" % user_name
@@ -280,37 +282,47 @@ class PersonAuthentication(PersonAuthenticationType):
             return False
         elif step == 2:
             print "Super-Gluu. Authenticate for step 2"
-
-            user = authenticationService.getAuthenticatedUser()
-            if (user == None):
-                print "Super-Gluu. Authenticate for step 2. Failed to determine user name"
-                return False
-            user_name = user.getUserId()
-
             session_attributes = identity.getSessionId().getSessionAttributes()
 
-            session_device_status = self.getSessionDeviceStatus(session_attributes, user_name)
-            if session_device_status == None:
-                return False
-
-            u2f_device_id = session_device_status['device_id']
-
             # There are two steps only in enrollment mode
-            if self.oneStep and session_device_status['enroll']:
+            if self.oneStep :
                 authenticated_user = self.processBasicAuthentication(credentials)
                 if authenticated_user == None:
                     return False
-
                 user_inum = userService.getUserInum(authenticated_user)
-                
-                attach_result = deviceRegistrationService.attachUserDeviceRegistration(user_inum, u2f_device_id)
+                session_device_status = self.getSessionDeviceStatus(session_attributes, user_inum)
 
-                print "Super-Gluu. Authenticate for step 2. Result after attaching u2f_device '%s' to user '%s': '%s'" % (u2f_device_id, user_name, attach_result) 
+                if session_device_status['enroll']:
 
-                return attach_result
+                    if session_device_status == None:
+                        print "Super-Gluu. oneStep, authenticate for step2, session_device_status is false"
+                        return False
+
+                    u2f_device_id = session_device_status['device_id']
+
+                    attach_result = deviceRegistrationService.attachUserDeviceRegistration(user_inum, u2f_device_id)
+
+                    print "Super-Gluu. Authenticate for step 2. Result after attaching u2f_device '%s' to user '%s': '%s'" % (u2f_device_id, user_inum, attach_result)
+
+                    return attach_result
+                else:
+                    print "Super-Gluu. one_step but  session_device_status['enroll'] = false"
+                    return False
             elif self.twoStep:
-                if user_name == None:
+                user = authenticationService.getAuthenticatedUser()
+                if (user == None):
                     print "Super-Gluu. Authenticate for step 2. Failed to determine user name"
+                    return False
+                user_name = user.getUserId()
+                session_device_status = self.getSessionDeviceStatus(session_attributes, user_name)
+                if session_device_status == None:
+                    print "Super-Gluu. twoStep, authenticate for step2, session_device_status is false"
+                    return False
+
+                u2f_device_id = session_device_status['device_id']
+
+                if user_name == None:
+                    print "Super-Gluu. Authenticate for step 2. Failed to determine user id"
                     return False
 
                 validation_result = self.validateSessionDeviceStatus(client_redirect_uri, session_device_status, user_name)
@@ -352,8 +364,9 @@ class PersonAuthentication(PersonAuthenticationType):
                 if session == None:
                     print "Super-Gluu. Prepare for step 2. Failed to determine session_id"
                     return False
+                issuer = CdiUtil.bean(AppConfiguration).getIssuer()
 
-                issuer = CdiUtil.bean(ConfigurationFactory).getAppConfiguration().getIssuer()
+                
                 super_gluu_request_dictionary = {'app': client_redirect_uri,
                                    'issuer': issuer,
                                    'state': session.getId(),
@@ -398,8 +411,8 @@ class PersonAuthentication(PersonAuthenticationType):
                 return False
 
             print "Super-Gluu. Prepare for step 2. auth_method: '%s'" % auth_method
-            
-            issuer = CdiUtil.bean(ConfigurationFactory).getAppConfiguration().getIssuer()
+
+            issuer = CdiUtil.bean(AppConfiguration).getIssuer()
             super_gluu_request_dictionary = {'username': user.getUserId(),
                                'app': client_redirect_uri,
                                'issuer': issuer,
