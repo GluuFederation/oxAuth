@@ -627,7 +627,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
         } catch (WebApplicationException e) {
             applicationAuditLogger.sendMessage(oAuth2AuditLog);
-            log.error(e.getMessage(), e);
+            log.debug(e.getMessage(), e);
             throw e;
         } catch (AcrChangedException e) { // Acr changed
             log.error("ACR is changed, please provide a supported and enabled acr value");

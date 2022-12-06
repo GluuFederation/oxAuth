@@ -6,35 +6,6 @@
 
 package org.gluu.oxauth.authorize.ws.rs;
 
-import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -81,9 +52,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -276,7 +248,7 @@ public class AuthorizeAction {
         try {
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, session != null ? session.getSessionAttributes().get(SESSION_USER_CODE) : null, (HttpServletRequest) externalContext.getRequest());
         } catch (WebApplicationException e) {
-            log.error(e.getMessage(), e);
+            log.debug(e.getMessage(), e);
             permissionDenied();
             return;
         }
