@@ -37,6 +37,7 @@ import org.gluu.oxauth.service.external.ExternalApplicationSessionService;
 import org.gluu.oxauth.service.external.ExternalEndSessionService;
 import org.gluu.oxauth.service.external.context.EndSessionContext;
 import org.gluu.oxauth.util.ServerUtil;
+import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.util.Pair;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
@@ -121,16 +122,16 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 sid = sessionId; // backward compatibility. WIll be removed in next major release.
 
             final SessionId sidSession = validateSidRequestParameter(sid, postLogoutRedirectUri);
-            Jwt idToken = validateIdTokenHint(idTokenHint, sidSession, postLogoutRedirectUri);
+            Jwt validatedIdToken = validateIdTokenHint(idTokenHint, sidSession, postLogoutRedirectUri);
 
-            final Pair<SessionId, AuthorizationGrant> pair = getPair(idTokenHint, sid, httpRequest);
+            final Pair<SessionId, AuthorizationGrant> pair = getPair(idTokenHint, validatedIdToken, sid, httpRequest);
             if (pair.getFirst() == null) {
                 final String reason = "Failed to identify session by session_id query parameter or by session_id cookie.";
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
 
             postLogoutRedirectUri = validatePostLogoutRedirectUri(postLogoutRedirectUri, pair);
-            validateSid(postLogoutRedirectUri, idToken, pair.getFirst());
+            validateSid(postLogoutRedirectUri, validatedIdToken, pair.getFirst());
 
             endSession(pair, httpRequest, httpResponse);
             auditLogging(httpRequest, pair);
@@ -298,6 +299,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
 
             if (tokenHintGrant == null && isRejectEndSessionIfIdTokenExpired) {
                 final String reason = "id_token_hint is not valid. Logout is rejected. id_token_hint can be skipped or otherwise valid value must be provided.";
+                log.trace(reason);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
             }
             try {
@@ -307,9 +309,11 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                     throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT."));
                 }
                 if (tokenHintGrant != null) { // id_token is in db
+                    log.debug("Found id_token in db.");
                     return jwt;
                 }
                 validateIdTokenSignature(sidSession, jwt, postLogoutRedirectUri);
+                log.debug("id_token is validated successfully.");
                 return jwt;
             } catch (InvalidJwtException e) {
                 log.error("Unable to parse id_token_hint as JWT.", e);
@@ -348,7 +352,12 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             return null;
         }
 
-        AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(idTokenHint);
+        AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(TokenHashUtil.hash(idTokenHint));
+        if (authorizationGrant != null) {
+            return authorizationGrant;
+        }
+
+        authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(idTokenHint);
         if (authorizationGrant != null) {
             return authorizationGrant;
         }
@@ -424,7 +433,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 build();
     }
 
-    private Pair<SessionId, AuthorizationGrant> getPair(String idTokenHint, String sid, HttpServletRequest httpRequest) {
+    private Pair<SessionId, AuthorizationGrant> getPair(String idTokenHint, Jwt validatedIdToken, String sid, HttpServletRequest httpRequest) {
         AuthorizationGrant authorizationGrant = authorizationGrantList.getAuthorizationGrantByIdToken(idTokenHint);
         if (authorizationGrant == null) {
             Boolean endSessionWithAccessToken = appConfiguration.getEndSessionWithAccessToken();
@@ -433,20 +442,36 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             }
         }
 
-        SessionId ldapSessionId = null;
+        SessionId sessionId = null;
 
         try {
-            String id = cookieService.getSessionIdFromCookie(httpRequest);
-            if (StringHelper.isNotEmpty(id)) {
-                ldapSessionId = sessionIdService.getSessionId(id);
+            String cookieSessionId = cookieService.getSessionIdFromCookie(httpRequest);
+            if (StringHelper.isNotEmpty(cookieSessionId)) {
+                sessionId = sessionIdService.getSessionId(cookieSessionId);
             }
-            if (StringUtils.isNotBlank(sid) && ldapSessionId == null) {
-                ldapSessionId = sessionIdService.getSessionBySid(sid);
+
+            if (sessionId == null && StringUtils.isNotBlank(sid)) {
+                sessionId = sessionIdService.getSessionBySid(sid);
             }
+
+            if (sessionId == null && validatedIdToken != null) {
+                final String sidClaim = validatedIdToken.getClaims().getClaimAsString("sid");
+                log.trace("id_token sid value: {}", sidClaim);
+
+                if (StringUtils.isNotBlank(sidClaim)) {
+                    sessionId = sessionIdService.getSessionBySid(sidClaim);
+                }
+            }
+            if (sessionId == null) {
+                log.trace("Unable to find session for ending.");
+            } else {
+                log.trace("Found session for ending successfully.");
+            }
+
         } catch (Exception e) {
-            log.error("Failed to current session id.", e);
+            log.error("Failed to find current session id.", e);
         }
-        return new Pair<>(ldapSessionId, authorizationGrant);
+        return new Pair<>(sessionId, authorizationGrant);
     }
 
     private void endSession(Pair<SessionId, AuthorizationGrant> pair, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
