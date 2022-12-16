@@ -6,9 +6,6 @@
 
 package org.gluu.oxauth.service.external.context;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.net.util.SubnetUtils;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
@@ -17,6 +14,12 @@ import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.model.base.CustomEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Holds object required in custom scripts
@@ -29,6 +32,8 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
     private static final Logger log = LoggerFactory.getLogger(ExternalScriptContext.class);
 
     private final PersistenceEntryManager ldapEntryManager;
+
+    private WebApplicationException webApplicationException;
 
     public ExternalScriptContext(HttpServletRequest httpRequest) {
         this(httpRequest, null);
@@ -70,5 +75,27 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
         }
 
         return "";
+    }
+
+    public WebApplicationException getWebApplicationException() {
+        return webApplicationException;
+    }
+
+    public void setWebApplicationException(WebApplicationException webApplicationException) {
+        this.webApplicationException = webApplicationException;
+    }
+
+    public WebApplicationException createWebApplicationException(int status, String entity) {
+        this.webApplicationException = new WebApplicationException(Response
+                .status(status)
+                .entity(entity)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .build());
+        return this.webApplicationException;
+    }
+
+    public void throwWebApplicationExceptionIfSet() {
+        if (webApplicationException != null)
+            throw webApplicationException;
     }
 }
