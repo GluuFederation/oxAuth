@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import java.util.List;
 
 /**
@@ -86,7 +87,11 @@ public class ExternalIntrospectionService extends ExternalScriptService {
             final boolean result = script.modifyResponse(responseAsJsonObject, context);
             log.trace("Finished external 'executeExternalModifyResponse' method, script name: {}, responseAsJsonObject: {} , context: {}, result: {}",
                     scriptConf.getName(), responseAsJsonObject, context, result);
+
+            context.throwWebApplicationExceptionIfSet();
             return result;
+        } catch (WebApplicationException e) {
+            throw e;
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             saveScriptError(scriptConf.getCustomScript(), ex);

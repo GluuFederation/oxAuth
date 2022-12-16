@@ -6,9 +6,7 @@
 
 package org.gluu.oxauth.service.external;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
+import com.google.common.base.Function;
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.model.custom.script.type.token.UpdateTokenType;
@@ -17,7 +15,9 @@ import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author Yuriy Movchan
@@ -43,7 +43,10 @@ public class ExternalUpdateTokenService extends ExternalScriptService {
             final boolean result = updateTokenType.modifyIdToken(jsonWebResponse, context);
             log.trace("Finished 'updateToken' method, script name: {}, jsonWebResponse: {}, context: {}, result: {}", script.getName(), jsonWebResponse, context, result);
 
+            context.throwWebApplicationExceptionIfSet();
             return result;
+        } catch (WebApplicationException e) {
+            throw e;
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             saveScriptError(script.getCustomScript(), ex);
