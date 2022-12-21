@@ -10,13 +10,12 @@ import com.google.common.collect.Lists;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.json.JsonApplier;
 import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxauth.model.util.Util;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -27,16 +26,16 @@ public abstract class JwtClaimSet {
 
     private Map<String, Object> claims;
 
-    public JwtClaimSet() {
-        claims = new LinkedHashMap<String, Object>();
+    protected JwtClaimSet() {
+        claims = new LinkedHashMap<>();
     }
 
-    public JwtClaimSet(JSONObject jsonObject) {
+    protected JwtClaimSet(JSONObject jsonObject) {
         this();
         load(jsonObject);
     }
 
-    public JwtClaimSet(String base64JsonObject) throws InvalidJwtException {
+    protected JwtClaimSet(String base64JsonObject) throws InvalidJwtException {
         this();
         load(base64JsonObject);
     }
@@ -80,12 +79,12 @@ public abstract class JwtClaimSet {
     }
 
     public List<String> getClaimAsStringList(String key) {
-        List<String> list = new ArrayList<String>();
-        Object claims = getClaim(key);
+        List<String> list = new ArrayList<>();
+        Object value = getClaim(key);
 
         try {
-            if (claims != null && claims instanceof JSONArray) {
-                JSONArray jsonArray = (JSONArray) claims;
+            if (value instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) value;
                 for (int i = 0; i < jsonArray.length(); i++) {
                     list.add(jsonArray.getString(i));
                 }
@@ -96,6 +95,7 @@ public abstract class JwtClaimSet {
                 }
             }
         } catch (JSONException e) {
+            // ignore
         }
 
         return list;
@@ -115,7 +115,7 @@ public abstract class JwtClaimSet {
                 return new Date((Long) claim * 1000);
             } else if (claim instanceof Double) {
                 final double c = (Double) claim;
-                final BigDecimal bigDecimal = new BigDecimal(c);
+                final BigDecimal bigDecimal = BigDecimal.valueOf(c);
 
                 long claimLong = bigDecimal.longValue();
                 claimLong = claimLong * 1000;
@@ -171,6 +171,7 @@ public abstract class JwtClaimSet {
         }
     }
 
+    @SuppressWarnings("java:S3776")
     public void setClaimObject(String key, Object value, boolean overrideValue) {
         if (value == null) {
             setNullClaim(key);
@@ -179,10 +180,19 @@ public abstract class JwtClaimSet {
                 setClaim(key, (String) value);
             } else {
                 Object currentValue = getClaim(key);
-                if (currentValue != null) {
-                    setClaim(key, Lists.newArrayList(currentValue.toString(), (String) value));
-                } else {
-                    setClaim(key, (String) value);
+                String valueAsString = (String) value;
+
+                if (currentValue instanceof String) {
+                    if (!currentValue.equals(value)) {
+                        setClaim(key, Lists.newArrayList(currentValue.toString(), valueAsString));
+                    } else {
+                        setClaim(key, (String) value);
+                    }
+                } else if (currentValue instanceof List) {
+                    List<String> currentValueAsList = (List) currentValue;
+                    if (!currentValueAsList.contains(valueAsString)) {
+                        currentValueAsList.add(valueAsString);
+                    }
                 }
             }
         } else if (value instanceof Date) {
@@ -236,6 +246,7 @@ public abstract class JwtClaimSet {
         claims.put(key, value);
     }
 
+    @SuppressWarnings("java:S3740")
     public void setClaim(String key, List values) {
         claims.put(key, values);
     }
@@ -269,6 +280,7 @@ public abstract class JwtClaimSet {
         claims.remove(key);
     }
 
+    @SuppressWarnings("java:S3740")
     public JSONObject toJsonObject() throws InvalidJwtException {
         JSONObject jsonObject = new JSONObject();
 
@@ -291,8 +303,6 @@ public abstract class JwtClaimSet {
                     jsonObject.put(claim.getKey(), claim.getValue());
                 }
             }
-        } catch (JSONException e) {
-            throw new InvalidJwtException(e);
         } catch (Exception e) {
             throw new InvalidJwtException(e);
         }
@@ -301,13 +311,9 @@ public abstract class JwtClaimSet {
     }
 
     public String toBase64JsonObject() throws InvalidJwtException {
-        try {
-            String jsonObjectString = toJsonString();
-            byte[] jsonObjectBytes = jsonObjectString.getBytes(Util.UTF8_STRING_ENCODING);
-            return Base64Util.base64urlencode(jsonObjectBytes);
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
+        String jsonObjectString = toJsonString();
+        byte[] jsonObjectBytes = jsonObjectString.getBytes(StandardCharsets.UTF_8);
+        return Base64Util.base64urlencode(jsonObjectBytes);
     }
 
     public String toJsonString() throws InvalidJwtException {
@@ -319,14 +325,14 @@ public abstract class JwtClaimSet {
     }
 
     public Map<String, List<String>> toMap() throws InvalidJwtException {
-        Map<String, List<String>> map = new HashMap<String, java.util.List<String>>();
+        Map<String, List<String>> map = new HashMap<>();
 
         try {
             for (Map.Entry<String, Object> claim : claims.entrySet()) {
                 String key = claim.getKey();
                 Object value = claim.getValue();
 
-                List<String> values = new ArrayList<String>();
+                List<String> values = new ArrayList<>();
                 if (value instanceof JSONArray) {
                     JSONArray jsonArray = (JSONArray) value;
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -358,12 +364,8 @@ public abstract class JwtClaimSet {
 
     public void load(String base64JsonObject) throws InvalidJwtException {
         try {
-            String jsonObjectString = new String(Base64Util.base64urldecode(base64JsonObject), Util.UTF8_STRING_ENCODING);
+            String jsonObjectString = new String(Base64Util.base64urldecode(base64JsonObject), StandardCharsets.UTF_8);
             load(new JSONObject(jsonObjectString));
-        } catch (UnsupportedEncodingException e) {
-            throw new InvalidJwtException(e);
-        } catch (JSONException e) {
-            throw new InvalidJwtException(e);
         } catch (Exception e) {
             throw new InvalidJwtException(e);
         }
