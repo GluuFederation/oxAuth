@@ -289,9 +289,16 @@ public class SessionIdService {
             currentStep = StringHelper.toInteger(sessionAttributes.get("auth_step"), currentStep);
         }
 
-        for (int i = resetToStep; i <= currentStep; i++) {
-            String key = String.format("auth_step_passed_%d", i);
-            sessionAttributes.remove(key);
+        if (resetToStep <= currentStep) {
+	        for (int i = resetToStep; i <= currentStep; i++) {
+	            String key = String.format("auth_step_passed_%d", i);
+	            sessionAttributes.remove(key);
+	        }
+        } else {
+        	// Scenario when we sckip steps. In this case we need to mark all previous steps as passed
+	        for (int i = currentStep + 1; i < resetToStep; i++) {
+	            sessionAttributes.put(String.format("auth_step_passed_%d", i), Boolean.TRUE.toString());
+	        }
         }
 
         sessionAttributes.put("auth_step", String.valueOf(resetToStep));
