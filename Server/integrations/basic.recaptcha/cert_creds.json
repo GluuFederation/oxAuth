@@ -1,7 +1,7 @@
 {
     "recaptcha":{
         "enabled":true,
-        "site_key":"6LdB4ccjAAAAAGDal1yt2xmGgpFsuRfUC_YofSae",
-        "secret_key":"6LdB4ccjAAAAAEumAIanadmvKcWUFg3INEpNqd4T"
+        "site_key":"",
+        "secret_key":""
     }
 }
