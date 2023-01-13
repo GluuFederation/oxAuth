@@ -8,7 +8,7 @@
 
    See demo [file](cert_creds.json)
 
-3. Add [this](login.xhtml) html file in inside the custom page directory.
+3. Add [this](../../src/main/webapp/auth/recaptcha/login.xhtml) html file inside the custom page directory.
 
    Example: `/opt/gluu/jetty/oxauth/custom/pages/auth/recaptcha/login.xhtml`
 
