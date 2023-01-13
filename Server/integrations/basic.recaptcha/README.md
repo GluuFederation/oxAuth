@@ -5,7 +5,7 @@
 2. Add `credentials_file` key - Patch to file with reCAPTCHA credentials.
 
    Example: `/etc/certs/cert_creds.json`
- 
+
    See demo [file](cert_creds.json)
 
 3. Add [this](login.xhtml) html file in inside the custom page directory.
