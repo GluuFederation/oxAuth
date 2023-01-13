@@ -71,7 +71,8 @@ class PersonAuthentication(PersonAuthenticationType):
             user_password = credentials.getPassword()
 
             logged_in = False
-            
+            #self.enabled_recaptcha = self.initRecaptcha(configurationAttributes)
+            #self.prepareForStep(configurationAttributes, requestParameters, step)
             if (StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password)):
                 if self.enabled_recaptcha:
                     print "Authentication for step 1. Validating recaptcha response."
@@ -92,6 +93,9 @@ class PersonAuthentication(PersonAuthenticationType):
                     logged_in = authenticationService.authenticate(user_name, user_password)
             
             if (not logged_in):
+                print "login failed for all step"
+                self.enabled_recaptcha = self.initRecaptcha(configurationAttributes)
+                self.prepareForStep(configurationAttributes, requestParameters, step) 
                 return False
 
             return True
@@ -105,7 +109,7 @@ class PersonAuthentication(PersonAuthenticationType):
             if self.enabled_recaptcha:
                 print "Identity parameter has been set..."
                 identity.setWorkingParameter("recaptcha_site_key", self.recaptcha_creds['site_key'])
-                print "Identity parameter has been set..."
+                print "Identity parameter has been set...%s"%self.recaptcha_creds['site_key']
             return True
         else:
             return False
@@ -213,4 +217,3 @@ class PersonAuthentication(PersonAuthenticationType):
     
     def logout(self, configurationAttributes, requestParameters):
         return True
-
