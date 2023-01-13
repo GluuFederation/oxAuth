@@ -81,8 +81,12 @@ class PersonAuthentication(PersonAuthenticationType):
                     if recaptcha_result:
                         logged_in = authenticationService.authenticate(user_name, user_password)
                     else:
+                        self.enabled_recaptcha = self.initRecaptcha(configurationAttributes)
                         print "Basic Recaptcha. Authentication for step 1. recaptcha_result: '%s'" % recaptcha_result
                         print "login failed..."
+                        print "captcha option: %s" % self.enabled_recaptcha
+                        self.prepareForStep(configurationAttributes, requestParameters, step)
+                        return False
                         
                 else:
                     logged_in = authenticationService.authenticate(user_name, user_password)
