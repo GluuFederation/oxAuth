@@ -12,6 +12,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import org.apache.commons.lang3.builder.DiffBuilder;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.gluu.oxauth.model.configuration.Configuration;
 
 /**
@@ -34,4 +38,13 @@ public class StaticConfiguration implements Configuration {
     public void setBaseDn(BaseDnConfiguration p_baseDn) {
         baseDn = p_baseDn;
     }
+
+	@Override
+	public DiffResult diff(Configuration newObj) {
+		StaticConfiguration obj = (StaticConfiguration) newObj;
+		 return new DiffBuilder(this, obj, ToStringStyle.SHORT_PREFIX_STYLE)
+				 .append("baseDn", this.baseDn, obj.baseDn)
+				 .build();
+				 
+	}
 }

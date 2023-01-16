@@ -1,5 +1,7 @@
 package org.gluu.oxauth.model.configuration;
 
+import org.apache.commons.lang3.builder.DiffResult;
+
 /**
  * base interface for all oxAuth configurations
  *
@@ -7,4 +9,6 @@ package org.gluu.oxauth.model.configuration;
  * @version 04/12/2017
  */
 public interface Configuration {
+	
+	DiffResult diff(Configuration newObj);
 }
