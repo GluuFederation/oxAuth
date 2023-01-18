@@ -1,0 +1,12 @@
+{
+  "login.pageTitle": "oxAuth - Connexion",
+  "login.login":"Login",
+  "login.register":"Cr\\u00e9er un compte",
+  "login.pleaseLoginHere":"Se connecter",
+  "login.username":"User Name",
+  "login.password":"Password",
+  "login.rememberMe":"Se souvenir de moi",
+  "login.errorMessage":"Email ou mot de passe incorrect.",
+  "login.failedToAuthenticate": "Erreur d'authentification.",
+  "login.forgotYourPassword": "Forgot your password?"
+}
