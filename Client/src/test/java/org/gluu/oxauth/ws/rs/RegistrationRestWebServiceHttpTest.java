@@ -120,7 +120,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse registerResponse = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(registerResponse.getStatus(), 200, "Unexpected response code: " + registerResponse.getEntity());
+        assertEquals(registerResponse.getStatus(), 201, "Unexpected response code: " + registerResponse.getEntity());
         assertNotNull(registerResponse.getClientId());
         assertNotNull(registerResponse.getClientSecret());
         assertNotNull(registerResponse.getRegistrationAccessToken());
@@ -212,7 +212,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -288,7 +288,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         registerClient.setRequest(registerRequest);
         RegisterResponse response = registerClient.exec();
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -318,7 +318,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
 
         // check whether info is really updated
@@ -340,7 +340,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -437,7 +437,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
 
         assertTrue(response.getClaims().containsKey(CLIENT_NAME.toString()));
@@ -476,7 +476,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         final RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -556,7 +556,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -582,7 +582,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -607,7 +607,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -632,7 +632,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());
@@ -679,7 +679,7 @@ public class RegistrationRestWebServiceHttpTest extends BaseTest {
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
-        assertEquals(response.getStatus(), 200, "Unexpected response code: " + response.getEntity());
+        assertEquals(response.getStatus(), 201, "Unexpected response code: " + response.getEntity());
         assertNotNull(response.getClientId());
         assertNotNull(response.getClientSecret());
         assertNotNull(response.getRegistrationAccessToken());

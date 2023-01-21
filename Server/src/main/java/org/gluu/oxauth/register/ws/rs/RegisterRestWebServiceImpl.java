@@ -143,7 +143,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     }
 
     private Response registerClientImpl(String requestParams, HttpServletRequest httpRequest, SecurityContext securityContext) {
-        Response.ResponseBuilder builder = Response.ok();
+        Response.ResponseBuilder builder = Response.status(Response.Status.CREATED);
         OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_REGISTRATION);
         try {
             final JSONObject requestObject = new JSONObject(requestParams);
