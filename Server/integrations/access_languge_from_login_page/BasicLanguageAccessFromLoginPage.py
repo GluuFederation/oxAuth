@@ -14,27 +14,28 @@ from java.util import Arrays
 
 import java
 import json
-
+from javax.faces.application import FacesMessage
+from org.gluu.jsf2.message import FacesMessages
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, customScript, configurationAttributes):
-        print("Initialization")
+    def init(self, customScript,  configurationAttributes):
+        print ("Initialization")
         self.language_file = None
         self.isLanguageFile = self.initiateLanguageFile(configurationAttributes)
         print("Initialized successfully")
-        return True
+        return True   
 
     def destroy(self, configurationAttributes):
         print("Destroy")
         print("Destroyed successfully")
         return True
-
+        
     def getAuthenticationMethodClaims(self, requestParameters):
         return None
-
+        
     def getApiVersion(self):
         return 11
 
@@ -46,6 +47,8 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def authenticate(self, configurationAttributes, requestParameters, step):
         authenticationService = CdiUtil.bean(AuthenticationService)
+        faces_messages = CdiUtil.bean(FacesMessages)
+        faces_messages.setKeepMessages()
 
         if (step == 1):
             print("Authenticate for step 1")
@@ -62,6 +65,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             if (not logged_in):
                 self.prepareForStep(configurationAttributes, requestParameters, step)
+                faces_messages.add(FacesMessage.SEVERITY_INFO, self.language_file["login.failedToAuthenticate"])
                 return False
 
             return True
@@ -74,9 +78,10 @@ class PersonAuthentication(PersonAuthenticationType):
             print("Prepare for Step 1")
             identity = CdiUtil.bean(Identity);
             if self.isLanguageFile:
-                identity.setWorkingParameter("language_file", self.language_file);
+                
+                identity.setWorkingParameter("language_file", self.language_file);                      
                 print("Working parameter set successfully for view rendering")
-
+            
             return True
         else:
             return False
@@ -88,7 +93,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return 1
 
     def getPageForStep(self, configurationAttributes, step):
-        return "/auth/customLanguage/login.xhtml"
+        return "/auth/login.xhtml"
 
     def getNextStep(self, configurationAttributes, requestParameters, step):
         return -1
@@ -99,7 +104,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def logout(self, configurationAttributes, requestParameters):
         return True
-
+    
     def initiateLanguageFile(self, configurationAttributes):
         print("Initialize of Language file")
         if not configurationAttributes.containsKey("language_file"):
@@ -117,7 +122,8 @@ class PersonAuthentication(PersonAuthenticationType):
         finally:
             f.close()
 
-        self.language_file = languageFileObject
+        
+        self.language_file = languageFileObject        
         print("Initialization language file configured correctly")
-
-        return True
+        
+        return True   
