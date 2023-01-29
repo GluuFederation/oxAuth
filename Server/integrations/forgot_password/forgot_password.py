@@ -100,7 +100,7 @@ class EmailSender():
                 'user' : smtpconfig.getUserName(),
                 'from' : smtpconfig.getFromEmailAddress(),
                 'pwd_decrypted' : encryptionService.decrypt(smtpconfig.getPassword()),
-                'req_ssl' : smtpconfig.isRequiresSsl(),
+                'req_ssl' : smtpconfig.getConnectProtection(),
                 'requires_authentication' : smtpconfig.isRequiresAuthentication(),
                 'server_trust' : smtpconfig.isServerTrust()
             }
@@ -116,17 +116,23 @@ class EmailSender():
 
         # server connection 
         smtpconfig = self.getSmtpConfig()
+        host = str(smtpconfig.get('host'))
+        port = smtpconfig.get('port')
+        user = str(smtpconfig.get('user'))
+        user_pass = str(smtpconfig.get('pwd_decrypted'))
+        sender = str(smtpconfig.get('from'))
+        receiver = str(useremail)
         
         try:
-            s = smtplib.SMTP(smtpconfig['host'], port=smtpconfig['port'])
+            s = smtplib.SMTP(host, port)
             
 
             if smtpconfig['requires_authentication']:
                 
-                if smtpconfig['req_ssl']:
+                if smtpconfig['req_ssl'] is not None:
                     s.starttls()
             
-                s.login(smtpconfig['user'], smtpconfig['pwd_decrypted'])
+                s.login(user, user_pass)
 
         
             #message setup
@@ -134,8 +140,8 @@ class EmailSender():
             
             message = "Here is your token: %s" % token
 
-            msg['From'] = smtpconfig['from'] #sender
-            msg['To'] = useremail #recipient
+            msg['From'] = sender
+            msg['To'] = receiver
             msg['Subject'] = "Password Reset Request" #subject
 
             #attach message body
@@ -145,17 +151,28 @@ class EmailSender():
             # send_message method is for python3 only s.send_message(msg)
 
             #send email (python2)
-            s.sendmail(msg['From'],msg['To'],msg.as_string())
+            s.sendmail(sender,receiver,msg.as_string())
             
             #after sent, delete
             del msg
 
+            #terminating session
+            s.quit()
+
         except smtplib.SMTPAuthenticationError as err:
-            print "Forgot Password - SMTPAuthenticationError - %s - %s" % (MY_ADDRESS,PASSWORD)
+            print "Forgot Password - SMTPAuthenticationError - %s - %s" % (user,user_pass)
             print err
 
-        except smtplib.smtplib.SMTPSenderRefused as err:
+        except smtplib.SMTPSenderRefused as err:
             print "Forgot Password - SMTPSenderRefused - " + err
+        except smtplib.SMTPRecipientsRefused as err:
+            print "Forgot Password - SMTPRecipientsRefused - " + err
+        except smtplib.SMTPDataError as err:
+            print "Forgot Password - SMTPDataError - " + err
+        except smtplib.SMTPHeloError as err:
+            print "Forgot Password - SMTPHeloError - " + err
+        except:
+            print "Forgot Password - Not Found - Failed to send  your message. Error not found"
 
 
 class PersonAuthentication(PersonAuthenticationType):
