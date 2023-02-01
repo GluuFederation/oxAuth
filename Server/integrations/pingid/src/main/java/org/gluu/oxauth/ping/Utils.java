@@ -18,7 +18,7 @@ import org.gluu.oxauth.model.util.Base64Util;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,8 @@ public class Utils {
                 .setDefaultRequestConfig(configBuilder.build())
                 .setConnectionManager(manager).build();
         
-        ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
-        rsClient = new ResteasyClientBuilder().httpEngine(engine).build();
+        ApacheHttpClient43Engine engine = new ApacheHttpClient43Engine(httpClient);
+        rsClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
     }
 
     public static String generateHS256Signature(String input, byte secret[]) 
