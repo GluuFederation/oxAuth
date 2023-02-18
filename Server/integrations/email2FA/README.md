@@ -50,6 +50,6 @@ If email_2fa should be the default authentication mechanism for all access, chan
 
 # Add 2FA login pages to oxauth 
 
-1. ` mkdir /opt/gluu/jetty/oxauth/custom/pages/auth/email_auth `
+1. ` mkdir -p /opt/gluu/jetty/oxauth/custom/pages/auth/email_auth `
 
 1. ` cp entertoken.xhtml /opt/gluu/jetty/oxauth/custom/pages/auth/email_auth `
