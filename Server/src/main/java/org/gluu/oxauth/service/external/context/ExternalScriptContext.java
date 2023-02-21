@@ -85,6 +85,10 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
         this.webApplicationException = webApplicationException;
     }
 
+    public WebApplicationException createWebApplicationException(Response response) {
+        return new WebApplicationException(response);
+    }
+
     public WebApplicationException createWebApplicationException(int status, String entity) {
         this.webApplicationException = new WebApplicationException(Response
                 .status(status)
