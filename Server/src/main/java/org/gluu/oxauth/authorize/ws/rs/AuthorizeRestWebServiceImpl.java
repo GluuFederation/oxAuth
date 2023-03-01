@@ -186,6 +186,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             String customRespHeaders, String claims, String authReqId,
             HttpServletRequest httpRequest, HttpServletResponse httpResponse, SecurityContext securityContext) {
         scope = ServerUtil.urlDecode(scope); // it may be encoded in uma case
+        requestUri = ServerUtil.urlDecode(requestUri); // requestUri usually contains encoded characters.
 
         String tokenBindingHeader = httpRequest.getHeader("Sec-Token-Binding");
 
@@ -287,6 +288,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     if (!jwtRequest.getPrompts().isEmpty()) {
                         prompts = Lists.newArrayList(jwtRequest.getPrompts());
                         isPromptFromJwt = true;
+                    }
+
+                    if (jwtRequest.getResponseMode() != null) {
+                        respMode = jwtRequest.getResponseMode().getValue();
+                        redirectUriResponse.getRedirectUri().setResponseMode(jwtRequest.getResponseMode());
                     }
 
                     final IdTokenMember idTokenMember = jwtRequest.getIdTokenMember();

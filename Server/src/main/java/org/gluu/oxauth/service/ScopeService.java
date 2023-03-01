@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.*;
 
@@ -289,6 +290,10 @@ public class ScopeService {
             attribute = user.getUpdatedAt();
         } else  if (ldapName.equals("createdAt")) {
             attribute = user.getCreatedAt();
+        } else  if (ldapName.equals("birthdate")) {
+            final Object value = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
+            Date bir = (Date) value;
+            attribute = new SimpleDateFormat("yyyy-MM-dd").format(bir);
         } else if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
             final Object value = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
             if (value instanceof String) {
