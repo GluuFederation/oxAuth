@@ -267,6 +267,8 @@ public class AppConfiguration implements Configuration {
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
 
+    private Boolean return200OnClientRegistration = true;
+
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
     }
@@ -2144,5 +2146,13 @@ public class AppConfiguration implements Configuration {
 
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
+    }
+
+    public Boolean getReturn200OnClientRegistration() {
+        return return200OnClientRegistration;
+    }
+
+    public void setReturn200OnClientRegistration(Boolean return200OnClientRegistration) {
+        this.return200OnClientRegistration = return200OnClientRegistration;
     }
 }
