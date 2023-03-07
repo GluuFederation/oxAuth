@@ -13,9 +13,7 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents the configuration JSON file.
@@ -268,6 +266,7 @@ public class AppConfiguration implements Configuration {
     private Boolean cibaEnabled;
 
     private Boolean return200OnClientRegistration = true;
+    private Map<String, String> dateFormatterPatterns = new HashMap<>();
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -2154,5 +2153,13 @@ public class AppConfiguration implements Configuration {
 
     public void setReturn200OnClientRegistration(Boolean return200OnClientRegistration) {
         this.return200OnClientRegistration = return200OnClientRegistration;
+    }
+
+    public Map<String, String> getDateFormatterPatterns() {
+        return dateFormatterPatterns;
+    }
+
+    public void setDateFormatterPatterns(Map<String, String> dateFormatterPatterns) {
+        this.dateFormatterPatterns = dateFormatterPatterns;
     }
 }

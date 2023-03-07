@@ -301,7 +301,7 @@ public class ScopeService {
             if (value instanceof Date) {
                 attribute = value;
             } else if (value != null) {
-                attribute = ldapEntryManager.decodeTime(user.getDn(), value.toString());
+                attribute = decodeTime(user.getDn(), value.toString());
             }
         } else {
             attribute = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
@@ -310,5 +310,18 @@ public class ScopeService {
         if (attribute != null) {
             claims.put(claimName, attribute instanceof JSONArray ? JsonApplier.getStringList((JSONArray) attribute) : attribute);
         }
+    }
+
+    private Date decodeTime(String userDn, String value) {
+        Date date = ldapEntryManager.decodeTime(userDn, value);
+        if (date == null) {
+            try {
+                return new Date(value);
+            } catch (Exception e) {
+                log.error("Error on parse date: {}, input: {}", e.getMessage(), value);
+                return null;
+            }
+        }
+        return date;
     }
 }
