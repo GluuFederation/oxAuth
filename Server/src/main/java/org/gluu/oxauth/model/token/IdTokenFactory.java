@@ -25,6 +25,7 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.AttributeService;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;
+import org.gluu.oxauth.service.date.DateFormatterService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.*;
 
 import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
@@ -76,6 +78,9 @@ public class IdTokenFactory {
 
     @Inject
     private SessionIdService sessionIdService;
+
+    @Inject
+    private DateFormatterService dateFormatterService;
 
     private void setAmrClaim(JsonWebResponse jwt, String acrValues) {
         List<String> amrList = Lists.newArrayList();
@@ -192,13 +197,15 @@ public class IdTokenFactory {
                     for (Map.Entry<String, Object> entry : claims.entrySet()) {
                         String key = entry.getKey();
                         Object value = entry.getValue();
+                        log.info("IdToken Factory called: {}", value);
 
                         if (value instanceof List) {
                             jwr.getClaims().setClaim(key, (List) value);
                         } else if (value instanceof Boolean) {
                             jwr.getClaims().setClaim(key, (Boolean) value);
                         } else if (value instanceof Date) {
-                            jwr.getClaims().setClaim(key, ((Date) value).getTime() / 1000);
+                            Serializable formattedValue = dateFormatterService.formatClaim((Date) value, key);
+                            jwr.getClaims().setClaimObject(key, formattedValue, true);
                         } else {
                             jwr.setClaim(key, (String) value);
                         }
