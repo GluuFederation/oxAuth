@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
@@ -90,6 +91,7 @@ public class JwtAuthorizationRequest {
     private String bindingMessage;
     private String userCode;
     private Integer requestedExpiry;
+    private ResponseMode responseMode;
 
     private String encodedJwt;
     private String payload;
@@ -292,6 +294,9 @@ public class JwtAuthorizationRequest {
                 requestedExpiry = Integer.parseInt(jsonPayload.getString("requested_expiry"));
             }
         }
+        if (jsonPayload.has("response_mode")) {
+            responseMode = ResponseMode.getByValue(jsonPayload.optString("response_mode"));
+        }
     }
 
     private boolean validateSignature(AbstractCryptoProvider cryptoProvider, SignatureAlgorithm signatureAlgorithm, Client client, String signingInput, String signature) throws Exception {
@@ -416,6 +421,10 @@ public class JwtAuthorizationRequest {
 
     public Integer getRequestedExpiry() {
         return requestedExpiry;
+    }
+
+    public ResponseMode getResponseMode() {
+        return responseMode;
     }
 
     @Nullable
