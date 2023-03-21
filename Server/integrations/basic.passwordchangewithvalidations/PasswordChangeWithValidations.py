@@ -115,7 +115,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             results = zxcvbn(new_password)
             if results['score'] <2:
-                print 'Its a weak Password, please increase the complexity."
+                print 'Its a weak Password, please increase the complexity.'
                 facesMessages.add(FacesMessage.SEVERITY_INFO, "Its weak password, please increase the complexity.")
                 return False
 
