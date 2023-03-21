@@ -25,14 +25,17 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.AttributeService;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;
+import org.gluu.oxauth.service.date.DateFormatterService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
+import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.*;
 
 import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
@@ -76,6 +79,9 @@ public class IdTokenFactory {
 
     @Inject
     private SessionIdService sessionIdService;
+
+    @Inject
+    private DateFormatterService dateFormatterService;
 
     private void setAmrClaim(JsonWebResponse jwt, String acrValues) {
         List<String> amrList = Lists.newArrayList();
@@ -192,13 +198,15 @@ public class IdTokenFactory {
                     for (Map.Entry<String, Object> entry : claims.entrySet()) {
                         String key = entry.getKey();
                         Object value = entry.getValue();
+                        log.info("IdToken Factory called: {}", value);
 
                         if (value instanceof List) {
                             jwr.getClaims().setClaim(key, (List) value);
                         } else if (value instanceof Boolean) {
                             jwr.getClaims().setClaim(key, (Boolean) value);
                         } else if (value instanceof Date) {
-                            jwr.getClaims().setClaim(key, ((Date) value).getTime() / 1000);
+                            Serializable formattedValue = dateFormatterService.formatClaim((Date) value, key);
+                            jwr.getClaims().setClaimObject(key, formattedValue, true);
                         } else {
                             jwr.setClaim(key, (String) value);
                         }
@@ -210,6 +218,7 @@ public class IdTokenFactory {
         }
 
         setClaimsFromJwtAuthorizationRequest(jwr, authorizationGrant, scopes);
+        setClaimsFromRequestedClaims(((AuthorizationGrant) authorizationGrant).getClaims(), jwr, user);
         jwrService.setSubjectIdentifier(jwr, authorizationGrant);
 
         if ((dynamicScopes.size() > 0) && externalDynamicScopeService.isEnabled()) {
@@ -222,6 +231,37 @@ public class IdTokenFactory {
 
         if (postProcessing != null) {
         	postProcessing.apply(jwr);
+        }
+    }
+
+    private void setClaimsFromRequestedClaims(String requestedClaims, JsonWebResponse jwr, User user)
+            throws InvalidClaimException {
+        if (requestedClaims != null) {
+            JSONObject claimsObj = new JSONObject(requestedClaims);
+            if (claimsObj.has("id_token")) {
+                JSONObject idTokenObj = claimsObj.getJSONObject("id_token");
+                for (Iterator<String> it = idTokenObj.keys(); it.hasNext(); ) {
+                    String claimName = it.next();
+                    GluuAttribute gluuAttribute = attributeService.getByClaimName(claimName);
+
+                    if (gluuAttribute != null) {
+                        String ldapClaimName = gluuAttribute.getName();
+
+                        Object attribute = user.getAttribute(ldapClaimName, false, gluuAttribute.getOxMultiValuedAttribute());
+
+                        if (attribute instanceof List) {
+                            jwr.getClaims().setClaim(claimName, (List) attribute);
+                        } else if (attribute instanceof Boolean) {
+                            jwr.getClaims().setClaim(claimName, (Boolean) attribute);
+                        } else if (attribute instanceof Date) {
+                            Serializable formattedValue = dateFormatterService.formatClaim((Date) attribute, claimName);
+                            jwr.getClaims().setClaimObject(claimName, formattedValue, true);
+                        } else {
+                            jwr.setClaim(claimName, (String) attribute);
+                        }
+                    }
+                }
+            }
         }
     }
 

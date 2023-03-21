@@ -35,9 +35,9 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.userinfo.UserInfoErrorResponseType;
 import org.gluu.oxauth.model.userinfo.UserInfoParamsValidator;
-import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.*;
+import org.gluu.oxauth.service.date.DateFormatterService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.gluu.oxauth.service.token.TokenService;
@@ -53,6 +53,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.*;
 
@@ -103,6 +104,9 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
     @Inject
     private TokenService tokenService;
+
+    @Inject
+    private DateFormatterService dateFormatterService;
 
     @Override
     public Response requestUserInfoGet(String accessToken, String authorization, HttpServletRequest request, SecurityContext securityContext) {
@@ -334,6 +338,7 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
 
                 jsonWebResponse.getClaims().setClaim(scope.getId(), groupClaim);
             } else {
+                log.info("User Info rest called: {}", claims.entrySet());
                 for (Map.Entry<String, Object> entry : claims.entrySet()) {
                     String key = entry.getKey();
                     Object value = entry.getValue();
@@ -343,7 +348,8 @@ public class UserInfoRestWebServiceImpl implements UserInfoRestWebService {
                     } else if (value instanceof Boolean) {
                         jsonWebResponse.getClaims().setClaim(key, (Boolean) value);
                     } else if (value instanceof Date) {
-                        jsonWebResponse.getClaims().setClaim(key, ((Date) value).getTime() / 1000);
+                        Serializable formattedValue = dateFormatterService.formatClaim((Date) value, key);
+                        jsonWebResponse.getClaims().setClaimObject(key, formattedValue, true);
                     } else {
                         jsonWebResponse.getClaims().setClaim(key, String.valueOf(value));
                     }

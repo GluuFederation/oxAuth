@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -195,6 +196,8 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
                 log.trace("Created plain access token: {}", accessToken.getCode());
 
             return accessToken;
+        } catch (WebApplicationException e) {
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
@@ -324,6 +327,8 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ID_TOKEN_COUNT);
 
             return idToken;
+        } catch (WebApplicationException e) {
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
