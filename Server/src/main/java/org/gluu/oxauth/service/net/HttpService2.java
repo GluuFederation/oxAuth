@@ -74,7 +74,7 @@ public class HttpService2 implements Serializable {
 	public void init() {
         connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200); // Increase max total connection to 200
-        connectionManager.setDefaultMaxPerRoute(20); // Increase default max connection per route to 20
+        connectionManager.setDefaultMaxPerRoute(50); // Increase default max connection per route to 50
 
         this.base64 = new Base64();
 	}
