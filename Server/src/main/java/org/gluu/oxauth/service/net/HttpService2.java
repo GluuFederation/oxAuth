@@ -80,7 +80,7 @@ public class HttpService2 implements Serializable {
 	}
 
 	public CloseableHttpClient getHttpsClientTrustAll() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-    	log.error("Connection manager stats: {}", connectionManager.getTotalStats());
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
     	TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
 	    SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
@@ -93,7 +93,7 @@ public class HttpService2 implements Serializable {
 	}
 
 	public CloseableHttpClient getHttpsClient() {
-    	log.error("Connection manager stats: {}", connectionManager.getTotalStats());
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
     	return HttpClients.custom()
 				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
@@ -101,7 +101,7 @@ public class HttpService2 implements Serializable {
 	}
 
 	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
-    	log.error("Connection manager stats: {}", connectionManager.getTotalStats());
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
     	SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new File(trustStorePath), trustStorePassword.toCharArray()).build();
 	    SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslContext);
@@ -113,7 +113,7 @@ public class HttpService2 implements Serializable {
 
 	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword,
 			String keyStoreType, String keyStorePath, String keyStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException {
-    	log.error("Connection manager stats: {}", connectionManager.getTotalStats());
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
     	SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new File(trustStorePath), trustStorePassword.toCharArray())
 				.loadKeyMaterial(new File(keyStorePath), keyStorePassword.toCharArray(), keyStorePassword.toCharArray()).build();
