@@ -122,6 +122,7 @@ public class AppConfiguration implements Configuration {
     private Boolean trustedClientEnabled;
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
+    private Boolean dynamicRegistrationDisableFallbackScopesAssigning;
     private Boolean dynamicRegistrationPasswordGrantTypeEnabled = false;
     private List<String> dynamicRegistrationAllowedPasswordGrantScopes;
     private String dynamicRegistrationCustomObjectClass;
@@ -1335,6 +1336,15 @@ public class AppConfiguration implements Configuration {
 
     public void setDynamicRegistrationScopesParamEnabled(Boolean dynamicRegistrationScopesParamEnabled) {
         this.dynamicRegistrationScopesParamEnabled = dynamicRegistrationScopesParamEnabled;
+    }
+
+    public Boolean getDynamicRegistrationDisableFallbackScopesAssigning() {
+        if (dynamicRegistrationDisableFallbackScopesAssigning == null) dynamicRegistrationDisableFallbackScopesAssigning = false;
+        return dynamicRegistrationDisableFallbackScopesAssigning;
+    }
+
+    public void setDynamicRegistrationDisableFallbackScopesAssigning(Boolean dynamicRegistrationDisableFallbackScopesAssigning) {
+        this.dynamicRegistrationDisableFallbackScopesAssigning = dynamicRegistrationDisableFallbackScopesAssigning;
     }
 
     public Boolean getPersistIdTokenInLdap() {

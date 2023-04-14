@@ -8,6 +8,7 @@ package org.gluu.oxauth.register.ws.rs;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
 import org.gluu.model.metric.MetricType;
@@ -650,7 +651,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 && appConfiguration.getDynamicRegistrationScopesParamEnabled()) {
             List<String> defaultScopes = scopeService.getDefaultScopesDn();
             List<String> requestedScopes = scopeService.getScopesDn(scopes);
-            Set<String> allowedScopes = new HashSet<String>();
+            Set<String> allowedScopes = new HashSet<>();
 
             for (String requestedScope : requestedScopes) {
                 if (defaultScopes.contains(requestedScope)) {
@@ -660,7 +661,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
             scopesDn = new ArrayList<>(allowedScopes);
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
-        } else {
+        } else if (BooleanUtils.isFalse(appConfiguration.getDynamicRegistrationDisableFallbackScopesAssigning())) {
             scopesDn = scopeService.getDefaultScopesDn();
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
         }
