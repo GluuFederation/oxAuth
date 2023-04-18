@@ -8,7 +8,6 @@ package org.gluu.oxauth.session.ws.rs;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.security.Identity;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
@@ -56,6 +55,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.apache.commons.lang.BooleanUtils.isTrue;
 
 /**
  * @author Javier Rojas Blum
@@ -262,7 +263,13 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         final Boolean allowPostLogoutRedirectWithoutValidation = appConfiguration.getAllowPostLogoutRedirectWithoutValidation();
         return allowPostLogoutRedirectWithoutValidation != null &&
                 allowPostLogoutRedirectWithoutValidation &&
-                new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(postLogoutRedirectUri);
+                isUrlWhiteListed(postLogoutRedirectUri);
+    }
+
+    public boolean isUrlWhiteListed(String url) {
+        final boolean result = new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(url);
+        log.trace("White listed result: {}, url: {}", result, url);
+        return result;
     }
 
     private SessionId validateSidRequestParameter(String sid, String postLogoutRedirectUri) {
@@ -280,7 +287,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     }
 
     public Jwt validateIdTokenHint(String idTokenHint, SessionId sidSession, String postLogoutRedirectUri) {
-        final boolean isIdTokenHintRequired = BooleanUtils.isTrue(appConfiguration.getForceIdTokenHintPrecense());
+        final boolean isIdTokenHintRequired = isTrue(appConfiguration.getForceIdTokenHintPrecense());
 
         if (isIdTokenHintRequired && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
@@ -336,7 +343,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "id_token signature verification failed."));
         }
 
-        if (BooleanUtils.isTrue(appConfiguration.getAllowEndSessionWithUnmatchedSid())) {
+        if (isTrue(appConfiguration.getAllowEndSessionWithUnmatchedSid())) {
             return;
         }
         final String sidClaim = jwt.getClaims().getClaimAsString("sid");
@@ -375,8 +382,8 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
             if (StringUtils.isBlank(postLogoutRedirectUri)) {
                 return "";
             }
-            if (appConfiguration.getAllowPostLogoutRedirectWithoutValidation()) {
-                log.trace("Skipped post_logout_redirect_uri validation (because allowPostLogoutRedirectWithoutValidation=true)");
+            if (isTrue(appConfiguration.getAllowPostLogoutRedirectWithoutValidation()) && isUrlWhiteListed(postLogoutRedirectUri)) {
+                log.trace("Skipped post_logout_redirect_uri validation (because allowPostLogoutRedirectWithoutValidation=true and white listed)");
                 return postLogoutRedirectUri;
             }
 
