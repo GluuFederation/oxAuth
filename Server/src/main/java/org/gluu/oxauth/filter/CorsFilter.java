@@ -111,7 +111,6 @@ public class CorsFilter extends AbstractCorsFilter {
             throws IOException, ServletException {
         if (this.filterEnabled) {
             try {
-                // Set temporary client allowed origins
                 Collection<String> clientAllowedOrigins = doFilterImpl(servletRequest);
                 setContextClientAllowedOrigins(servletRequest, clientAllowedOrigins);
 			} catch (Exception ex) {
