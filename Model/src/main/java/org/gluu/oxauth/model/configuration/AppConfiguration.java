@@ -240,7 +240,7 @@ public class AppConfiguration implements Configuration {
 
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
 
-    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
+    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.REMOTE;
 
     private Boolean keepAuthenticatorAttributesOnAcrChange = false;
     private Boolean disableAuthnForMaxAgeZero = false;

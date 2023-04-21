@@ -6,14 +6,14 @@
 
 package org.gluu.oxauth.model.error;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.HasParamName;
 import org.gluu.persist.annotation.AttributeEnum;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class define error handling methods
@@ -72,7 +72,7 @@ public enum ErrorHandlingMethod implements HasParamName, AttributeEnum {
     public static ErrorHandlingMethod fromString(String param) {
         if (param != null) {
             for (ErrorHandlingMethod hm : ErrorHandlingMethod.values()) {
-                if (param.equals(hm.value)) {
+                if (param.equalsIgnoreCase(hm.value)) {
                     return hm;
                 }
             }

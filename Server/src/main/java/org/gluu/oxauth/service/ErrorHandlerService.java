@@ -14,7 +14,6 @@ import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.error.IErrorType;
 import org.gluu.oxauth.util.RedirectUri;
 import org.gluu.util.StringHelper;
-import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -76,7 +75,7 @@ public class ErrorHandlerService {
         String redirectUri = cookieService.getRpOriginIdCookie();
         
         if (StringHelper.isEmpty(redirectUri)) {
-            Log.error("Failed to get redirect_uri from cookie");
+            log.error("Failed to get redirect_uri from cookie");
             handleLocalError(facesMessageId);
             return;
         }
@@ -87,7 +86,9 @@ public class ErrorHandlerService {
         if (StringHelper.isNotEmpty(hint)) {
             redirectUriResponse.addResponseParameter("hint", "Create authorization request to start new authentication session.");
         }
-        facesService.redirectToExternalURL(redirectUriResponse.toString());
+        final String redirectTo = redirectUriResponse.toString();
+        log.debug("Redirect to {}", redirectTo);
+        facesService.redirectToExternalURL(redirectTo);
 
     }
 
