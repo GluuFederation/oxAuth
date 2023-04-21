@@ -216,7 +216,16 @@ public class AuthorizeAction {
         }
     }
 
-    public void checkPermissionGranted() throws IOException {
+    public void checkPermissionGranted() {
+        try {
+            checkPermissionGrantedInternal();
+        } catch (Exception e) {
+            log.error("Failed to perform checkPermissionGranted()", e);
+            permissionDenied();
+        }
+    }
+
+    public void checkPermissionGrantedInternal() throws IOException {
         if ((clientId == null) || clientId.isEmpty()) {
             log.debug("Permission denied. client_id should be not empty.");
             permissionDenied();

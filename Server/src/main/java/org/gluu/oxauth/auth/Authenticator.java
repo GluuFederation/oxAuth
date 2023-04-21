@@ -126,6 +126,7 @@ public class Authenticator {
 		}
 
 		lastResult = authenticateImpl(servletRequest, true, false, false);
+        logger.debug("authenticate resultCode: {}", lastResult);
 
 		if (Constants.RESULT_SUCCESS.equals(lastResult)) {
 			return true;
