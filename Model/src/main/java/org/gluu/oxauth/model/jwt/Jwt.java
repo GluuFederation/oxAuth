@@ -7,6 +7,7 @@
 package org.gluu.oxauth.model.jwt;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 
@@ -22,6 +23,8 @@ import org.gluu.oxauth.model.token.JsonWebResponse;
  * @version May 3, 2017
  */
 public class Jwt extends JsonWebResponse {
+
+    private static final Logger log = Logger.getLogger(Jwt.class);
 
     private String encodedHeader;
     private String encodedClaims;
@@ -48,6 +51,15 @@ public class Jwt extends JsonWebResponse {
             return encodedHeader + "." + encodedClaims;
         } else {
             return header.toBase64JsonObject() + "." + claims.toBase64JsonObject();
+        }
+    }
+
+    public static Jwt parseSilently(String encodedJwt) {
+        try {
+            return parse(encodedJwt);
+        } catch (Exception e) {
+            log.trace(e.getMessage(), e);
+            return null;
         }
     }
 

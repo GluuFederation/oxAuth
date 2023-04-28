@@ -27,7 +27,10 @@ import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
+import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
+import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
+import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
@@ -77,6 +80,12 @@ public class IdTokenFactory {
     @Inject
     private SessionIdService sessionIdService;
 
+    @Inject
+    private DateFormatterService dateFormatterService;
+
+    @Inject
+    private ExternalUpdateTokenService externalUpdateTokenService;
+
     private void setAmrClaim(JsonWebResponse jwt, String acrValues) {
         List<String> amrList = Lists.newArrayList();
 
@@ -103,7 +112,9 @@ public class IdTokenFactory {
     private void fillClaims(JsonWebResponse jwr,
                             IAuthorizationGrant authorizationGrant, String nonce,
                             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
+                            String state, Set<String> scopes, boolean includeIdTokenClaims,
+                            Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing,
+                            ExecutionContext executionContext) throws Exception {
 
         final Client client = authorizationGrant.getClient();
         jwr.getClaims().setIssuer(appConfiguration.getIssuer());
@@ -112,7 +123,15 @@ public class IdTokenFactory {
         int lifeTime = appConfiguration.getIdTokenLifetime();
         if (client.getAttributes().getIdTokenLifetime() != null) {
             lifeTime = client.getAttributes().getIdTokenLifetime();
+            log.trace("Override id token lifetime with value from client: {}", client.getClientId());
         }
+
+        int lifetimeFromScript = externalUpdateTokenService.getIdTokenLifetimeInSeconds(ExternalUpdateTokenContext.of(executionContext));
+        if (lifetimeFromScript > 0) {
+            lifeTime = lifetimeFromScript;
+            log.trace("Override id token lifetime with value from script: {}", lifetimeFromScript);
+        }
+
         Calendar calendar = Calendar.getInstance();
         Date issuedAt = calendar.getTime();
         calendar.add(Calendar.SECOND, lifeTime);
@@ -264,12 +283,14 @@ public class IdTokenFactory {
     public JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims,
+            Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing,
+            ExecutionContext executionContext) throws Exception {
 
         final Client client = grant.getClient();
 
         JsonWebResponse jwr = jwrService.createJwr(client);
-        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing);
+        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing, executionContext);
 
         if (log.isTraceEnabled())
             log.trace("Created claims for id_token, claims: " + jwr.getClaims().toJsonString());

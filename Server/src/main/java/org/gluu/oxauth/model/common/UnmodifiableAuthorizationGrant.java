@@ -79,7 +79,7 @@ public class UnmodifiableAuthorizationGrant implements IAuthorizationGrant {
     }
 
     @Override
-    public RefreshToken createRefreshToken() {
+    public RefreshToken createRefreshToken(ExecutionContext executionContext) {
         throw new UnsupportedOperationException("Not allowed for UnmodifiableAuthorizationGrant.");
     }
 
@@ -87,7 +87,7 @@ public class UnmodifiableAuthorizationGrant implements IAuthorizationGrant {
     public IdToken createIdToken(
             String nonce, AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
             String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
-            Function<JsonWebResponse, Void> postProcessing) {
+            Function<JsonWebResponse, Void> postProcessing, ExecutionContext executionContext) {
         throw new UnsupportedOperationException("Not allowed for UnmodifiableAuthorizationGrant.");
     }
 
