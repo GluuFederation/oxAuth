@@ -30,7 +30,6 @@ import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
 import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
 import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
-import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
@@ -79,9 +78,6 @@ public class IdTokenFactory {
 
     @Inject
     private SessionIdService sessionIdService;
-
-    @Inject
-    private DateFormatterService dateFormatterService;
 
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
