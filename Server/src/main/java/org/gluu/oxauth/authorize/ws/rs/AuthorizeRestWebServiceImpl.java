@@ -536,6 +536,12 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 redirectUriResponse.getRedirectUri().addResponseParameter("code", authorizationCode.getCode());
             }
 
+            final ExecutionContext executionContext = new ExecutionContext(httpRequest, httpResponse);
+            executionContext.setGrant(authorizationGrant);
+            executionContext.setClient(client);
+            executionContext.setAppConfiguration(appConfiguration);
+            executionContext.setAttributeService(attributeService);
+
             AccessToken newAccessToken = null;
             if (responseTypes.contains(ResponseType.TOKEN)) {
                 if (authorizationGrant == null) {
@@ -551,7 +557,8 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     authorizationGrant.setSessionDn(sessionUser.getDn());
                     authorizationGrant.save(); // call save after object modification!!!
                 }
-                newAccessToken = authorizationGrant.createAccessToken(httpRequest.getHeader("X-ClientCert"), new ExecutionContext(httpRequest, httpResponse));
+
+                newAccessToken = authorizationGrant.createAccessToken(httpRequest.getHeader("X-ClientCert"), executionContext);
 
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.ACCESS_TOKEN, newAccessToken.getCode());
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.TOKEN_TYPE, newAccessToken.getTokenType().toString());
@@ -575,14 +582,14 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                     authorizationGrant.save(); // call save after object modification, call is asynchronous!!!
                 }
 
-                ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(httpRequest, authorizationGrant, client, appConfiguration, attributeService);
+                ExternalUpdateTokenContext context = ExternalUpdateTokenContext.of(executionContext);
                 Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
                 IdToken idToken = authorizationGrant.createIdToken(
                         nonce, authorizationCode, newAccessToken, null,
                         state, authorizationGrant, includeIdTokenClaims,
                         JwrService.wrapWithSidFunction(TokenBindingMessage.createIdTokenTokingBindingPreprocessing(tokenBindingHeader, client.getIdTokenTokenBindingCnf()), sessionUser.getOutsideSid()),
-                        postProcessor);
+                        postProcessor, executionContext);
 
                 redirectUriResponse.getRedirectUri().addResponseParameter(AuthorizeResponseParam.ID_TOKEN, idToken.getCode());
             }
@@ -624,7 +631,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
 
             if (StringUtils.isNotBlank(authReqId)) {
-                runCiba(authReqId, client, httpRequest, httpResponse);
+                runCiba(authReqId, executionContext);
             }
             if (StringUtils.isNotBlank(deviceAuthzUserCode)) {
                 processDeviceAuthorization(deviceAuthzUserCode, user);
@@ -672,7 +679,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
         return StringUtils.isNotBlank(acr) ? acr : acrValuesStr;
     }
 
-    private void runCiba(String authReqId, Client client, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    private void runCiba(String authReqId, ExecutionContext executionContext) {
         CibaRequestCacheControl cibaRequest = cibaRequestService.getCibaRequest(authReqId);
 
         if (cibaRequest == null || cibaRequest.getStatus() == CibaRequestStatus.EXPIRED) {
@@ -682,20 +689,21 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
         cibaRequestService.removeCibaRequest(authReqId);
         CIBAGrant cibaGrant = authorizationGrantList.createCIBAGrant(cibaRequest);
+        executionContext.setGrant(cibaGrant);
 
-        RefreshToken refreshToken = cibaGrant.createRefreshToken();
+        RefreshToken refreshToken = cibaGrant.createRefreshToken(executionContext);
         log.debug("Issuing refresh token: {}", refreshToken.getCode());
 
-        AccessToken accessToken = cibaGrant.createAccessToken(httpRequest.getHeader("X-ClientCert"), new ExecutionContext(httpRequest, httpResponse));
+        AccessToken accessToken = cibaGrant.createAccessToken(executionContext.getHttpRequest().getHeader("X-ClientCert"), executionContext);
         log.debug("Issuing access token: {}", accessToken.getCode());
 
-        ExternalUpdateTokenContext context = new ExternalUpdateTokenContext(httpRequest, cibaGrant, client, appConfiguration, attributeService);
+        ExternalUpdateTokenContext context = ExternalUpdateTokenContext.of(executionContext);
         Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
         boolean includeIdTokenClaims = Boolean.TRUE.equals(appConfiguration.getLegacyIdTokenClaims());
         IdToken idToken = cibaGrant.createIdToken(
                 null, null, accessToken, refreshToken,
-                null, cibaGrant, includeIdTokenClaims, null, postProcessor);
+                null, cibaGrant, includeIdTokenClaims, null, postProcessor, executionContext);
 
         cibaGrant.setTokensDelivered(true);
         cibaGrant.save();

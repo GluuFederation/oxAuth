@@ -12,6 +12,8 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.CertUtils;
+import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
+import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,9 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
 
     @Inject
     protected ScopeChecker scopeChecker;
+
+    @Inject
+    private ExternalUpdateTokenService externalUpdateTokenService;
 
     private User user;
     private AuthorizationGrantType authorizationGrantType;
@@ -286,6 +291,13 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
         if (client != null && client.getAccessTokenLifetime() != null && client.getAccessTokenLifetime() > 0) {
             lifetime = client.getAccessTokenLifetime();
         }
+
+        int lifetimeFromScript = externalUpdateTokenService.getAccessTokenLifetimeInSeconds(ExternalUpdateTokenContext.of(executionContext));
+        if (lifetimeFromScript > 0) {
+            lifetime = lifetimeFromScript;
+            log.trace("Override access token lifetime with value from script: {}", lifetimeFromScript);
+        }
+
         AccessToken accessToken = new AccessToken(lifetime);
 
         accessToken.setAuthMode(getAcrValues());
@@ -296,10 +308,17 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     }
 
     @Override
-    public RefreshToken createRefreshToken() {
+    public RefreshToken createRefreshToken(ExecutionContext executionContext) {
         int lifetime = appConfiguration.getRefreshTokenLifetime();
         if (client.getRefreshTokenLifetime() != null && client.getRefreshTokenLifetime() > 0) {
             lifetime = client.getRefreshTokenLifetime();
+            log.debug("Overwritten refresh_token lifetime from client, clientId: {} .", client.getClientId());
+        }
+
+        final int refreshTokenLifetimeFromScript = executionContext.getRefreshTokenLifetimeFromScript();
+        if (refreshTokenLifetimeFromScript > 0) {
+            lifetime = refreshTokenLifetimeFromScript;
+            log.debug("Overwritten refresh_token lifetime from script with {} value.", refreshTokenLifetimeFromScript);
         }
 
         RefreshToken refreshToken = new RefreshToken(lifetime);

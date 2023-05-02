@@ -43,11 +43,13 @@ public interface IAuthorizationGrant {
 
     AccessToken createAccessToken(String certAsPem, ExecutionContext executionContext);
 
-    RefreshToken createRefreshToken();
+    RefreshToken createRefreshToken(ExecutionContext executionContext);
 
     IdToken createIdToken(
             String nonce, AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing);
+            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims,
+            Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing,
+            ExecutionContext executionContext);
 
     RefreshToken getRefreshToken(String refreshTokenCode);
 
