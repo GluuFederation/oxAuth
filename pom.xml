@@ -14,6 +14,7 @@
 		<maven.min-version>3.3.9</maven.min-version>
 
 		<oxcore.version>4.4.2.sp1</oxcore.version>
+		<ormcore.version>4.4.2.Final</ormcore.version>
 		<oxeleven.version>4.4.2.Final</oxeleven.version>
 		<oxnotify.version>4.4.2.Final</oxnotify.version>
 		<oxlicense.version>4.4.2.Final</oxlicense.version>
@@ -174,32 +175,32 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-annotation</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-ldap</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-couchbase</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-hybrid</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-cdi</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-filter</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${ormcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
