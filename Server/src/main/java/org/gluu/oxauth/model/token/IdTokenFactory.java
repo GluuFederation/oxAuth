@@ -140,7 +140,7 @@ public class IdTokenFactory {
         if (preProcessing != null) {
             preProcessing.apply(jwr);
         }
-        final SessionId session = sessionIdService.getSessionByDn(authorizationGrant.getSessionDn());
+        final SessionId session = sessionIdService.getSessionByDn(authorizationGrant.getSessionDn(), true);
         if (session != null) {
             jwr.setClaim("sid", session.getOutsideSid());
         }
