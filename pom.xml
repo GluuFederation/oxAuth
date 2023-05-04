@@ -13,6 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
+		<oxorm.version>4.3.1.Final</oxorm.version>
 		<oxcore.version>4.3.1.sp1</oxcore.version>
 		<oxeleven.version>4.3.1.Final</oxeleven.version>
 		<oxnotify.version>4.3.1.Final</oxnotify.version>
@@ -169,32 +170,32 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-annotation</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-ldap</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-couchbase</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-hybrid</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-cdi</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-orm-filter</artifactId>
-				<version>${oxcore.version}</version>
+				<version>${oxorm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
