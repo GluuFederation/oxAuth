@@ -54,13 +54,7 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
         </dependency>
-        
-        <dependency>
-            <groupId>commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
-            <version>3.1</version>
-        </dependency>
-        
+
         <!-- RESTEASY -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
