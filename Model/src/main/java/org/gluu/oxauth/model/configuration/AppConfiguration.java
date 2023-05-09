@@ -268,6 +268,7 @@ public class AppConfiguration implements Configuration {
 
     private Boolean return200OnClientRegistration = true;
     private Map<String, String> dateFormatterPatterns = new HashMap<>();
+    private Boolean allowBlankValuesInDiscoveryResponse;
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -2171,5 +2172,14 @@ public class AppConfiguration implements Configuration {
 
     public void setDateFormatterPatterns(Map<String, String> dateFormatterPatterns) {
         this.dateFormatterPatterns = dateFormatterPatterns;
+    }
+
+    public Boolean isAllowBlankValuesInDiscoveryResponse() {
+        if (allowBlankValuesInDiscoveryResponse == null) allowBlankValuesInDiscoveryResponse = false;
+        return allowBlankValuesInDiscoveryResponse;
+    }
+
+    public void setAllowBlankValuesInDiscoveryResponse(Boolean allowBlankValuesInDiscoveryResponse) {
+        this.allowBlankValuesInDiscoveryResponse = allowBlankValuesInDiscoveryResponse;
     }
 }
