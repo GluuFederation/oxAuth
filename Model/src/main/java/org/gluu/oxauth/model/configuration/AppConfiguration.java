@@ -13,9 +13,7 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents the configuration JSON file.
@@ -266,6 +264,8 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
+
+    private Boolean allowBlankValuesInDiscoveryResponse;
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -2144,5 +2144,14 @@ public class AppConfiguration implements Configuration {
 
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
+    }
+
+    public Boolean isAllowBlankValuesInDiscoveryResponse() {
+        if (allowBlankValuesInDiscoveryResponse == null) allowBlankValuesInDiscoveryResponse = false;
+        return allowBlankValuesInDiscoveryResponse;
+    }
+
+    public void setAllowBlankValuesInDiscoveryResponse(Boolean allowBlankValuesInDiscoveryResponse) {
+        this.allowBlankValuesInDiscoveryResponse = allowBlankValuesInDiscoveryResponse;
     }
 }

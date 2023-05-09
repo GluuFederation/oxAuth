@@ -6,6 +6,7 @@
 
 package org.gluu.oxauth.servlet;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
 import org.gluu.oxauth.ciba.CIBAConfigurationService;
@@ -312,6 +313,8 @@ public class OpenIdConfiguration extends HttpServlet {
 			jsonObj.put(FRONT_CHANNEL_LOGOUT_SESSION_SUPPORTED,
 					appConfiguration.getFrontChannelLogoutSessionSupported());
 
+            filterOutKeys(jsonObj, appConfiguration);
+
 			// CIBA Configuration
 			cibaConfigurationService.processConfiguration(jsonObj);
             localResponseCache.putDiscoveryResponse(jsonObj);
@@ -321,6 +324,19 @@ public class OpenIdConfiguration extends HttpServlet {
 			log.error(e.getMessage(), e);
 		}
 	}
+
+    public static void filterOutKeys(JSONObject jsonObj, AppConfiguration appConfiguration) {
+        if (BooleanUtils.isTrue(appConfiguration.isAllowBlankValuesInDiscoveryResponse())) {
+            return;
+        }
+
+        // filter out keys with blank values
+        for (String key : new HashSet<>(jsonObj.keySet())) {
+            if (jsonObj.get(key) == null || StringUtils.isBlank(jsonObj.optString(key))) {
+                jsonObj.remove(key);
+            }
+        }
+    }
 
 	private String endpointUrl(String path) {
 		return StringUtils.replace(appConfiguration.getEndSessionEndpoint(), "/end_session", path);
