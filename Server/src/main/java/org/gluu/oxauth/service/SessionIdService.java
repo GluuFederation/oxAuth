@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.ResultCode;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.model.audit.Action;
@@ -802,7 +803,11 @@ public class SessionIdService {
             return sessionId;
         } catch (Exception e) {
             if (!silently) {
-                log.error("Failed to get session by dn: " + dn, e);
+                if (BooleanUtils.isTrue(appConfiguration.getLogNotFoundEntityAsError())) {
+                    log.error("Failed to get session by dn: " + dn, e);
+                } else {
+                    log.trace("Failed to get session by dn: " + dn, e);
+                }
             }
         }
         return null;

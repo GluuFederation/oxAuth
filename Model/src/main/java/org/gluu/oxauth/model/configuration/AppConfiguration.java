@@ -161,6 +161,7 @@ public class AppConfiguration implements Configuration {
     private Integer serverSessionIdLifetime = sessionIdLifetime; // by default same as sessionIdLifetime
     private int configurationUpdateInterval;
 
+    private Boolean logNotFoundEntityAsError;
     private Boolean enableClientGrantTypeUpdate;
     private Set<GrantType> dynamicGrantTypeDefault;
 
@@ -273,6 +274,15 @@ public class AppConfiguration implements Configuration {
 
     public void setSubjectIdentifierBasedOnWholeUriBackwardCompatibility(Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility) {
         this.subjectIdentifierBasedOnWholeUriBackwardCompatibility = subjectIdentifierBasedOnWholeUriBackwardCompatibility;
+    }
+
+    public Boolean getLogNotFoundEntityAsError() {
+        if (logNotFoundEntityAsError == null) logNotFoundEntityAsError = false;
+        return logNotFoundEntityAsError;
+    }
+
+    public void setLogNotFoundEntityAsError(Boolean logNotFoundEntityAsError) {
+        this.logNotFoundEntityAsError = logNotFoundEntityAsError;
     }
 
     public Boolean getUseNestedJwtDuringEncryption() {
