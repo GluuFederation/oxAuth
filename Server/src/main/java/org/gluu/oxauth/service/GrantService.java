@@ -228,7 +228,7 @@ public class GrantService {
             final String baseDn = clientService.buildClientDn(p_clientId);
             return ldapEntryManager.findEntries(baseDn, TokenLdap.class, Filter.createPresenceFilter("tknCde"));
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logException(e);
         }
         return Collections.emptyList();
     }
@@ -247,7 +247,7 @@ public class GrantService {
             final TokenLdap entry = ldapEntryManager.find(TokenLdap.class, p_tokenDn);
             return entry;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logException(e);
         }
         return null;
     }
@@ -256,7 +256,7 @@ public class GrantService {
         try {
             return ldapEntryManager.findEntries(tokenBaseDn(), TokenLdap.class, Filter.createEqualityFilter("grtId", p_grantId));
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logException(e);
         }
         return Collections.emptyList();
     }
@@ -265,7 +265,7 @@ public class GrantService {
         try {
             return ldapEntryManager.findEntries(tokenBaseDn(), TokenLdap.class, Filter.createEqualityFilter("authzCode", TokenHashUtil.hash(p_authorizationCode)));
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logException(e);
         }
         return Collections.emptyList();
     }
@@ -279,9 +279,17 @@ public class GrantService {
             }
             grants.addAll(getGrantsFromCacheBySessionDn(sessionDn));
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            logException(e);
         }
         return grants;
+    }
+
+    private void logException(Exception e) {
+        if (BooleanUtils.isTrue(appConfiguration.getLogNotFoundEntityAsError())) {
+            log.error(e.getMessage(), e);
+        } else {
+            log.trace(e.getMessage(), e);
+        }
     }
 
     public List<TokenLdap> getGrantsFromCacheBySessionDn(String sessionDn) {
