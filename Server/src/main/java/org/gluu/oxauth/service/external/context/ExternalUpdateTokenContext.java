@@ -14,6 +14,7 @@ import org.gluu.oxauth.model.common.ExecutionContext;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaims;
+import org.gluu.oxauth.model.jwt.JwtHeader;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.service.AttributeService;
@@ -73,6 +74,11 @@ public class ExternalUpdateTokenContext extends ExternalScriptContext {
     public JwtClaims getClaims() {
         Jwt jwt = getJwt();
         return jwt != null ? jwt.getClaims() : null;
+    }
+
+    public JwtHeader getHeaders() {
+        Jwt jwt = getJwt();
+        return jwt != null ? jwt.getHeader() : null;
     }
 
     public Jwt getJwt() {
