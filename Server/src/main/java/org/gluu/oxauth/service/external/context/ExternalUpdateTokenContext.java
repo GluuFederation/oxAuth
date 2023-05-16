@@ -76,7 +76,7 @@ public class ExternalUpdateTokenContext extends ExternalScriptContext {
         return jwt != null ? jwt.getClaims() : null;
     }
 
-    public JwtHeader getHeaders() {
+    public JwtHeader getHeader() {
         Jwt jwt = getJwt();
         return jwt != null ? jwt.getHeader() : null;
     }
