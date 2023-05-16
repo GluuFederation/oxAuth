@@ -199,7 +199,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
                 jwtSigner = createAccessTokenAsJwt(accessToken, context);
             }
 
-            boolean externalOk = externalUpdateTokenService.modifyAccessToken(accessToken, ExternalUpdateTokenContext.of(context));
+            boolean externalOk = externalUpdateTokenService.modifyAccessToken(accessToken, ExternalUpdateTokenContext.of(context, jwtSigner));
             if (!externalOk) {
                 log.trace("External script forbids access token creation.");
                 return null;
