@@ -40,6 +40,6 @@
         "region":""
     },
     "gluu":{
-        "server_uri":"https://cloud-dev.gluu.cloud/scan/push-api-server"
+        "server_uri":"https://cloud.gluu.org/scan/push-api-server"
     }
 }
