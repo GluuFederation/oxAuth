@@ -12,6 +12,7 @@
             "enabled":true,
             "access_key":"36WH2JiexBOoAIBP",
             "secret_access_key":"ueqsU2Dc7m3r4HmLz4M79DpzzCNqTfek"
+            "platform_id":"ce_gcm"
         }
     },
     "ios":{
@@ -30,6 +31,7 @@
             "enabled":true,
             "access_key":"auONAdePWoYFBX6V",
             "secret_access_key":"f050aW0nnihym0GwktWd7O15jGSQcoei"
+            "platform_id":"ce_apns"
         }
     },
     "sns":{
@@ -38,6 +40,6 @@
         "region":""
     },
     "gluu":{
-        "server_uri":"https://api.gluu.org"
+        "server_uri":"https://cloud-dev.gluu.cloud/scan/push-api-server"
     }
 }
