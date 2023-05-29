@@ -23,13 +23,13 @@ import java.util.Map.Entry;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -38,12 +38,14 @@ import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
@@ -98,6 +100,15 @@ public class HttpService2 implements Serializable {
     	return HttpClients.custom()
 				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
 				.setConnectionManager(connectionManager).build();
+	}
+
+	public CloseableHttpClient getHttpsClient(HttpRoutePlanner routerPlanner) {
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
+
+    	return HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).setRoutePlanner(routerPlanner).build();
+		
 	}
 
 	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
@@ -293,6 +304,13 @@ public class HttpService2 implements Serializable {
     	}
     	
     	return redirectUrl.toLowerCase();
+    }
+
+	public HttpRoutePlanner buildDefaultRoutePlanner(final String proxy) {
+		//Creating an HttpHost object for proxy
+		HttpHost proxyHost = new HttpHost(proxy); 
+    	
+    	return new DefaultProxyRoutePlanner(proxyHost);
     }
 
 }
