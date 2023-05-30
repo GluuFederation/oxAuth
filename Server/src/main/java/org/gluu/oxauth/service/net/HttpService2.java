@@ -319,11 +319,15 @@ public class HttpService2 implements Serializable {
     	return redirectUrl.toLowerCase();
     }
 
-	public HttpRoutePlanner buildDefaultRoutePlanner(final String proxy) {
+	public HttpRoutePlanner buildDefaultRoutePlanner(final String hostname, final int port, final String scheme) {
 		//Creating an HttpHost object for proxy
-		HttpHost proxyHost = new HttpHost(proxy); 
+		HttpHost proxyHost = new HttpHost(hostname, port, scheme); 
     	
     	return new DefaultProxyRoutePlanner(proxyHost);
+    }
+
+	public HttpRoutePlanner buildDefaultRoutePlanner(final String proxy) {
+		return buildDefaultRoutePlanner(proxy, -1, null);
     }
 
 }
