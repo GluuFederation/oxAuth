@@ -325,14 +325,5 @@ public class HttpService2 implements Serializable {
     	
     	return new DefaultProxyRoutePlanner(proxyHost);
     }
-	
-	public static void main(String[] args) throws ClientProtocolException, IOException {
-		HttpService2 srv = new HttpService2();
-		CloseableHttpClient client = srv.getHttpsClient();
-		client.getParams()
-		srv.executeGet(client, "https://mail.ru");
-		
-		
-	}
 
 }
