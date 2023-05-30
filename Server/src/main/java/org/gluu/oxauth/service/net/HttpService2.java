@@ -95,20 +95,29 @@ public class HttpService2 implements Serializable {
 	}
 
 	public CloseableHttpClient getHttpsClient() {
+    	return getHttpsClient(RequestConfig.custom().build());
+	}
+
+	public CloseableHttpClient getHttpsClient(RequestConfig requestConfig) {
     	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
     	return HttpClients.custom()
-				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setDefaultRequestConfig(RequestConfig.copy(requestConfig).setCookieSpec(CookieSpecs.STANDARD).build())
 				.setConnectionManager(connectionManager).build();
 	}
 
 	public CloseableHttpClient getHttpsClient(HttpRoutePlanner routerPlanner) {
     	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
+    	return getHttpsClient(RequestConfig.custom().build(), routerPlanner);
+	}
+
+	public CloseableHttpClient getHttpsClient(RequestConfig requestConfig, HttpRoutePlanner routerPlanner) {
+    	log.trace("Connection manager stats: {}", connectionManager.getTotalStats());
+
     	return HttpClients.custom()
-				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setDefaultRequestConfig(RequestConfig.copy(requestConfig).setCookieSpec(CookieSpecs.STANDARD).build())
 				.setConnectionManager(connectionManager).setRoutePlanner(routerPlanner).build();
-		
 	}
 
 	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
@@ -277,6 +286,10 @@ public class HttpService2 implements Serializable {
 		}
 		
 		return false;
+	}
+
+	public boolean isResponseStatusCodeOk(HttpResponse httpResponse) {
+		return isResponseStastusCodeOk(httpResponse); 
 	}
 
 	public boolean isContentTypeXml(HttpResponse httpResponse) {
