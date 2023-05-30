@@ -279,6 +279,10 @@ public class HttpService2 implements Serializable {
 		return false;
 	}
 
+	public boolean isResponseStatusCodeOk(HttpResponse httpResponse) {
+		return isResponseStastusCodeOk(httpResponse); 
+	}
+
 	public boolean isContentTypeXml(HttpResponse httpResponse) {
 		Header contentType = httpResponse.getEntity().getContentType();
 		if (contentType == null) {
