@@ -128,8 +128,14 @@ public class AuthenticationFilter implements Filter {
             boolean revokeSessionEndpoint = requestUrl.endsWith("/revoke_session");
             String authorizationHeader = httpRequest.getHeader("Authorization");
 
-            if (processMTLS(httpRequest, httpResponse, filterChain)) {
-                return;
+            try {
+	            if (processMTLS(httpRequest, httpResponse, filterChain)) {
+	                return;
+	            }
+            } catch (Throwable ex) {
+            	// Catch exceptions like org.eclipse.jetty.http.BadMessageException when form is invalid
+            	// https://github.com/GluuFederation/oxAuth/issues/1843
+                log.error(ex.getMessage(), ex);
             }
 
             if ((tokenRevocationEndpoint || deviceAuthorizationEndpoint) && clientService.isPublic(httpRequest.getParameter("client_id"))) {
