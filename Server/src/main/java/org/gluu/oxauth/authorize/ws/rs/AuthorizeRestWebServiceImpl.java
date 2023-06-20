@@ -454,23 +454,33 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                             idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
                             codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
                 }
-                if (client.getTrustedClient()) {
+
+                final boolean sessionHasAllScopes = sessionIdService.hasAllScopes(sessionUser, scopes);
+                if (client.getTrustedClient() || sessionHasAllScopes) {
+                    log.trace("Granting access to session {}, clientTrusted: {}, sessionHasAllScopes: {}", sessionUser.getId(), client.getTrustedClient(), sessionHasAllScopes);
                     sessionUser.addPermission(clientId, true);
                     sessionIdService.updateSessionId(sessionUser);
                 } else {
                     clientAuthorization = clientAuthorizationsService.find(user.getAttribute("inum"), client.getClientId());
+                    if (clientAuthorization == null || clientAuthorization.getScopes() == null || clientAuthorization.getScopes().length == 0) {
+                        log.trace("Redirect to authorization page, no appropriate clientAuthorization, clientId: {}", client.getClientId());
+                        return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
+                                redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
+                                idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
+                                codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
+                    }
+
                     clientAuthorizationFetched = true;
-                    if (clientAuthorization != null && clientAuthorization.getScopes() != null) {
-                        log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
-                        if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
-                            sessionUser.addPermission(clientId, true);
-                            sessionIdService.updateSessionId(sessionUser);
-                        } else {
-                            return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
-                                    redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
-                                    idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
-                                    codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
-                        }
+                    log.trace("ClientAuthorization - scope: " + scope + ", dn: " + clientAuthorization.getDn() + ", requestedScope: " + scopes);
+                    if (Arrays.asList(clientAuthorization.getScopes()).containsAll(scopes)) {
+                        log.trace("Granting access to session {}, clientAuthorization has all scopes {}", sessionUser.getId(), clientAuthorization.getScopes());
+                        sessionUser.addPermission(clientId, true);
+                        sessionIdService.updateSessionId(sessionUser);
+                    } else {
+                        return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
+                                redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
+                                idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
+                                codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
                     }
                 }
             }
