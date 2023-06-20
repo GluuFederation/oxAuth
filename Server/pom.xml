@@ -602,12 +602,13 @@
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-model</artifactId>
 			<type>test-jar</type>
+            <version>4.5.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
-			<version>4.5.2-SNAPSHOT</version>
+			<version>4.5.1-SNAPSHOT</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -1213,13 +1214,14 @@
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-model</artifactId>
+                    <version>4.5.1-SNAPSHOT</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-client</artifactId>
-					<version>4.5.2-SNAPSHOT</version>
+					<version>4.5.1-SNAPSHOT</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
