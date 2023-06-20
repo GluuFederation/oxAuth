@@ -15,8 +15,8 @@
 
 		<oxcore.version>4.5.2-SNAPSHOT</oxcore.version>
 		<oxeleven.version>4.5.2-SNAPSHOT</oxeleven.version>
-		<oxnotify.version>4.5.2-SNAPSHOT</oxnotify.version>
-		<oxlicense.version>4.5.2-SNAPSHOT</oxlicense.version>
+		<oxnotify.version>4.5.1-SNAPSHOT</oxnotify.version>
+		<oxlicense.version>4.5.1-SNAPSHOT</oxlicense.version>
 		<fido2.version>4.5.2-SNAPSHOT</fido2.version>
 
 		<json.version>20180813</json.version>
