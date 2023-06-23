@@ -46,6 +46,7 @@ public class StatExporter {
     }
 
     private static void requestStatInformation(OkHttpClient client, String issuer, String token) {
+        System.out.println("Downloading stat info ...");
         final String url = issuer + "/oxauth/restv1/internal/stat";
         final String months = Months.getLastMonthsAsString(12);
 
@@ -63,14 +64,14 @@ public class StatExporter {
         try (Response response = client.newCall(request).execute()) {
             final String asString = response.body().string();
             if (response.isSuccessful()) {
-
+                System.out.println("Downloaded stat info successfully.");
                 final JsonNode node = MAPPER.readTree(asString);
 
                 final StatExporterResponse result = prepareResponse(node);
                 final ObjectMapper objectMapper = new ObjectMapper();
                 final String printData = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
 
-                System.out.println("Result:");
+                System.out.println("Stat Result:");
                 System.out.println(printData);
             } else {
                 System.out.println("Failed with response code " + response.code() + ", body: " + asString);
@@ -163,6 +164,7 @@ public class StatExporter {
     }
 
     private static DiscoveryResponse downloadDiscovery(OkHttpClient client, String wellKnown) {
+        System.out.println("Downloading discovery " + wellKnown);
         Request request = new Request.Builder()
                 .url(wellKnown)
                 .build();
