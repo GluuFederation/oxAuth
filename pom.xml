@@ -92,6 +92,7 @@
 	</scm>
 
 	<modules>
+        <module>stat-exporter</module>
 		<module>Model</module>
 		<module>persistence-model</module>
 		<module>Client</module>
