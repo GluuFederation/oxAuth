@@ -3,6 +3,7 @@ package org.gluu.stat.exporter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import okhttp3.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -23,16 +24,18 @@ public class StatExporter {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static void main(String[] args) {
-        String pathToConfig = args[0];
-
-        final StatExporterConfig config = readConfig(pathToConfig);
-        if (config == null) {
-            return;
-        }
+        String wellKnownEndpoint = args[0];
+//        String pathToConfig = args[0];
+//
+//        final StatExporterConfig config = readConfig(pathToConfig);
+//        if (config == null) {
+//            return;
+//        }
+//      String wellKnownEndpoint = config.getWellKnownEndpoint();
 
         OkHttpClient client = getOkHttpClient();
 
-        final DiscoveryResponse discoveryResponse = downloadDiscovery(client, config.getWellKnownEndpoint());
+        final DiscoveryResponse discoveryResponse = downloadDiscovery(client, wellKnownEndpoint);
         if (discoveryResponse == null) {
             return;
         }
@@ -40,9 +43,49 @@ public class StatExporter {
         final String issuer = discoveryResponse.getIssuer();
         System.out.println("Issuer: " + issuer);
 
-        final String token = requestToken(client, discoveryResponse.getTokenEndpoint(), config.getClientId(), config.getClientSecret());
+        final RegisterResponse registerResponse = registerClient(client, discoveryResponse.getRegistrationEndpoint());
+        if (registerResponse == null) {
+            return;
+        }
+
+        final String token = requestToken(client, discoveryResponse.getTokenEndpoint(), registerResponse.getClientId(), registerResponse.getClientSecret());
 
         requestStatInformation(client, issuer, token);
+    }
+
+    private static RegisterResponse registerClient(OkHttpClient client, String registrationEndpoint) {
+        System.out.println("Registering client at " + registrationEndpoint);
+
+        RegisterRequest registerRequest = new RegisterRequest();
+        registerRequest.setScope("openid jans_stat");
+        registerRequest.setRedirectUris(Lists.newArrayList("https://stat_exporter"));
+        registerRequest.setGrantTypes(Lists.newArrayList("client_credentials"));
+
+        try {
+            String payload = MAPPER.writeValueAsString(registerRequest);
+            RequestBody body = RequestBody.create(payload, MediaType.parse("application/json"));
+
+            Request request = new Request.Builder()
+                    .url(registrationEndpoint)
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                final String asString = response.body().string();
+                if (response.isSuccessful() || response.code() == 201) {
+                    RegisterResponse registerResponse = MAPPER.readValue(asString, RegisterResponse.class);
+                    System.out.println("Registered client_id " + registerResponse.getClientId());
+                    return registerResponse;
+                } else {
+                    System.out.println("Failed with register client, status code " + response.code() + ", body: " + asString);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Failed to dynamically register client.");
+        return null;
     }
 
     private static void requestStatInformation(OkHttpClient client, String issuer, String token) {
