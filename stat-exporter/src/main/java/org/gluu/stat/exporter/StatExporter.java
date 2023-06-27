@@ -89,9 +89,9 @@ public class StatExporter {
     }
 
     private static void requestStatInformation(OkHttpClient client, String issuer, String token) {
-        System.out.println("Downloading stat info ...");
         final String url = issuer + "/oxauth/restv1/internal/stat";
         final String months = Months.getLastMonthsAsString(12);
+        System.out.println("Downloading info " + url + " ...");
 
         RequestBody formBody = new FormBody.Builder()
                 .add("month", months)
