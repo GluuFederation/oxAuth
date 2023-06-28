@@ -60,6 +60,7 @@ public class StatExporter {
         registerRequest.setScope("openid jans_stat");
         registerRequest.setRedirectUris(Lists.newArrayList("https://stat_exporter"));
         registerRequest.setGrantTypes(Lists.newArrayList("client_credentials"));
+        registerRequest.setClientName("stat exporter");
 
         try {
             String payload = MAPPER.writeValueAsString(registerRequest);
