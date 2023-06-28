@@ -20,6 +20,16 @@ public class RegisterRequest {
     private String scope;
     @JsonProperty(value = "grant_types")
     private List<String> grantTypes;
+    @JsonProperty(value = "client_name")
+    private String clientName;
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
 
     public List<String> getGrantTypes() {
         return grantTypes;
@@ -60,6 +70,7 @@ public class RegisterRequest {
                 ", redirectUris=" + redirectUris +
                 ", scope='" + scope + '\'' +
                 ", grantTypes='" + grantTypes + '\'' +
+                ", clientName='" + clientName + '\'' +
                 '}';
     }
 }
