@@ -65,6 +65,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.util.StringUtils.implode;
 
 /**
@@ -456,7 +457,8 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 }
 
                 final boolean sessionHasAllScopes = sessionIdService.hasAllScopes(sessionUser, scopes);
-                if (client.getTrustedClient() || sessionHasAllScopes) {
+                final boolean permissionGrantedForClient = isTrue(sessionUser.isPermissionGrantedForClient(clientId));
+                if (client.getTrustedClient() || (sessionHasAllScopes && permissionGrantedForClient)) {
                     log.trace("Granting access to session {}, clientTrusted: {}, sessionHasAllScopes: {}", sessionUser.getId(), client.getTrustedClient(), sessionHasAllScopes);
                     sessionUser.addPermission(clientId, true);
                     sessionIdService.updateSessionId(sessionUser);
