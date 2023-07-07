@@ -452,11 +452,11 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                             codeChallenge, codeChallengeMethod, sessionId, claims, authReqId, customParameters, oAuth2AuditLog, httpRequest);
                 }
 
-                final boolean sessionHasAllScopes = sessionIdService.hasAllScopes(sessionUser, scopes);
+                final boolean clientHasAllScopes = sessionIdService.hasClientAllScopes(sessionUser, clientId, scopes);
                 final boolean permissionGrantedForClient = isTrue(sessionUser.isPermissionGrantedForClient(clientId));
-                if (client.getTrustedClient() || (sessionHasAllScopes && permissionGrantedForClient)) {
-                    log.trace("Granting access to session {}, clientTrusted: {}, sessionHasAllScopes: {}", sessionUser.getId(), client.getTrustedClient(), sessionHasAllScopes);
-                    sessionUser.addPermission(clientId, true);
+                if (client.getTrustedClient() || (clientHasAllScopes && permissionGrantedForClient)) {
+                    log.trace("Granting access to session {}, clientTrusted: {}, clientHasAllScopes: {}, permissionGrantedForClient: {}", sessionUser.getId(), client.getTrustedClient(), clientHasAllScopes, permissionGrantedForClient);
+                    sessionUser.addPermission(clientId, true, scopes);
                     sessionIdService.updateSessionId(sessionUser);
                 } else {
                     clientAuthorization = clientAuthorizationsService.find(user.getAttribute("inum"), client.getClientId());
