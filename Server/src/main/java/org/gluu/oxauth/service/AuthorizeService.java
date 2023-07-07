@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gluu.oxauth.model.util.StringUtils.spaceSeparatedToList;
+
 /**
  * @author Yuriy Movchan
  * @author Javier Rojas Blum
@@ -142,14 +144,15 @@ public class AuthorizeService {
             final Client client = clientService.getClient(clientId);
 
             String scope = session.getSessionAttributes().get(AuthorizeRequestParam.SCOPE);
+            Set<String> scopeSet = Sets.newHashSet(spaceSeparatedToList(scope));
             String responseType = session.getSessionAttributes().get(AuthorizeRequestParam.RESPONSE_TYPE);
 
             boolean persistDuringImplicitFlow = ServerUtil.isFalse(appConfiguration.getUseCacheForAllImplicitFlowObjects()) || !ResponseType.isImplicitFlow(responseType);
             if (!client.getTrustedClient() && persistDuringImplicitFlow && client.getPersistClientAuthorizations()) {
-                final Set<String> scopes = Sets.newHashSet(org.gluu.oxauth.model.util.StringUtils.spaceSeparatedToList(scope));
-                clientAuthorizationsService.add(user.getAttribute("inum"), client.getClientId(), scopes);
+
+                clientAuthorizationsService.add(user.getAttribute("inum"), client.getClientId(), scopeSet);
             }
-            session.addPermission(clientId, true);
+            session.addPermission(clientId, true, scopeSet);
             sessionIdService.updateSessionId(session);
             identity.setSessionId(session);
 
