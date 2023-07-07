@@ -7,6 +7,7 @@
 package org.gluu.oxauth.model.common;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.persist.annotation.*;
 import org.gluu.persist.model.base.Deletable;
@@ -17,8 +18,12 @@ import javax.persistence.Transient;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
+import static org.apache.commons.lang.BooleanUtils.isTrue;
+import static org.gluu.oxauth.model.util.StringUtils.implode;
+import static org.gluu.oxauth.model.util.StringUtils.spaceSeparatedToList;
 import static org.gluu.oxauth.service.SessionIdService.OP_BROWSER_STATE;
 
 /**
@@ -213,10 +218,32 @@ public class SessionId implements Deletable, Serializable {
     }
 
     public void addPermission(String clientId, Boolean granted) {
+        addPermission(clientId, granted, null);
+    }
+
+    public void addPermission(String clientId, Boolean granted, Set<String> scopes) {
         if (permissionGrantedMap == null) {
             permissionGrantedMap = new SessionIdAccessMap();
         }
+        maintainClientScopes(isTrue(granted), clientId, scopes);
         permissionGrantedMap.put(clientId, granted);
+    }
+
+    private void maintainClientScopes(boolean granted, String clientId, Set<String> scopes) {
+        final String key = clientId + "_authz_scopes";
+        if (!granted) {
+            getSessionAttributes().remove(key);
+            return;
+        }
+
+        if (scopes != null && !scopes.isEmpty()) {
+            final String existingScopes = getSessionAttributes().get(key);
+
+            final Set<String> resultScopes = Sets.newHashSet(scopes);
+            resultScopes.addAll(spaceSeparatedToList(existingScopes));
+
+            getSessionAttributes().put(key, implode(resultScopes, " "));
+        }
     }
 
     @Nonnull
