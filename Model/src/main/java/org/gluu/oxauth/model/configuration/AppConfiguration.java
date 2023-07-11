@@ -256,6 +256,8 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
+    
+    private Boolean skipAuthenticationFilterOptionsMethod = false;
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -2073,4 +2075,14 @@ public class AppConfiguration implements Configuration {
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
     }
+
+	public Boolean isSkipAuthenticationFilterOptionsMethod() {
+        if (skipAuthenticationFilterOptionsMethod == null) skipAuthenticationFilterOptionsMethod = false;
+		return skipAuthenticationFilterOptionsMethod;
+	}
+
+	public void setSkipAuthenticationFilterOptionsMethod(Boolean skipAuthenticationFilterOptionsMethod) {
+		this.skipAuthenticationFilterOptionsMethod = skipAuthenticationFilterOptionsMethod;
+	}
+
 }
