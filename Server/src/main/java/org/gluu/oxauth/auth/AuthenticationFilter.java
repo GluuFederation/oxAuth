@@ -121,7 +121,7 @@ public class AuthenticationFilter implements Filter {
             log.trace("Get request to: '{}'", requestUrl);
             
             final String method = httpRequest.getMethod();
-            if ("OPTIONS".equals(method)) {
+            if (appConfiguration.isSkipAuthenticationFilterOptionsMethod() && "OPTIONS".equals(method)) {
                 log.trace("Ignoring '{}' request to to: '{}'", method, requestUrl);
                 filterChain.doFilter(httpRequest, httpResponse);
                 return;
