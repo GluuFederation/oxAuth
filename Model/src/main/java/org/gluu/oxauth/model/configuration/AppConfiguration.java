@@ -268,6 +268,8 @@ public class AppConfiguration implements Configuration {
 
     private Boolean allowBlankValuesInDiscoveryResponse;
 
+    private Boolean skipAuthenticationFilterOptionsMethod = false;
+
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
     }
@@ -2164,4 +2166,14 @@ public class AppConfiguration implements Configuration {
     public void setAllowBlankValuesInDiscoveryResponse(Boolean allowBlankValuesInDiscoveryResponse) {
         this.allowBlankValuesInDiscoveryResponse = allowBlankValuesInDiscoveryResponse;
     }
+
+	public Boolean isSkipAuthenticationFilterOptionsMethod() {
+        if (skipAuthenticationFilterOptionsMethod == null) skipAuthenticationFilterOptionsMethod = false;
+		return skipAuthenticationFilterOptionsMethod;
+	}
+
+	public void setSkipAuthenticationFilterOptionsMethod(Boolean skipAuthenticationFilterOptionsMethod) {
+		this.skipAuthenticationFilterOptionsMethod = skipAuthenticationFilterOptionsMethod;
+	}
+
 }
