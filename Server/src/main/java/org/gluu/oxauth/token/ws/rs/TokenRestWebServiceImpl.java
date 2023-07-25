@@ -283,6 +283,8 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
                 if (scope != null && !scope.isEmpty()) {
                     scope = authorizationGrant.checkScopesPolicy(scope);
+                } else {
+                    scope = authorizationGrant.getScopesAsString();
                 }
 
                 AccessToken accToken = authorizationGrant.createAccessToken(request.getHeader("X-ClientCert"), executionContext); // create token after scopes are checked
