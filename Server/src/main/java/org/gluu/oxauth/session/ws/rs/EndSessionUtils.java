@@ -1,21 +1,21 @@
 package org.gluu.oxauth.session.ws.rs;
 
-import static org.gluu.oxauth.util.ServerUtil.daemonThreadFactory;
-
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
-
+import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.service.ClientFactory;
 import org.gluu.oxauth.model.util.Util;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.Response;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.gluu.oxauth.util.ServerUtil.daemonThreadFactory;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -48,6 +48,22 @@ public class EndSessionUtils {
             return logoutUri + "&sid=" + sid + "&iss=" + issuer;
         } else {
             return logoutUri + "?sid=" + sid + "&iss=" + issuer;
+        }
+    }
+
+    public static String appendState(String uri, String state) {
+        if (StringUtils.isBlank(state)) {
+            return uri;
+        }
+
+        if (uri.contains("?")) {
+            if (uri.contains("state=")) {
+                return uri;
+            } else {
+                return uri + "&state=" + state;
+            }
+        } else {
+            return uri + "?state=" + state;
         }
     }
 
