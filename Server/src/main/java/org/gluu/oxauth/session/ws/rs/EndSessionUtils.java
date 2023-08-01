@@ -1,5 +1,6 @@
 package org.gluu.oxauth.session.ws.rs;
 
+import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.service.ClientFactory;
 import org.gluu.oxauth.model.util.Util;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -47,6 +48,22 @@ public class EndSessionUtils {
             return logoutUri + "&sid=" + sid + "&iss=" + issuer;
         } else {
             return logoutUri + "?sid=" + sid + "&iss=" + issuer;
+        }
+    }
+
+    public static String appendState(String uri, String state) {
+        if (StringUtils.isBlank(state)) {
+            return uri;
+        }
+
+        if (uri.contains("?")) {
+            if (uri.contains("state=")) {
+                return uri;
+            } else {
+                return uri + "&state=" + state;
+            }
+        } else {
+            return uri + "?state=" + state;
         }
     }
 

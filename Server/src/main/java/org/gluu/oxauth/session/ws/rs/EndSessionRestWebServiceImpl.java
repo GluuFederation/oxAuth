@@ -109,23 +109,23 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     public Response requestEndSession(String idTokenHint, String postLogoutRedirectUri, String state, String sessionId, String sid,
                                       HttpServletRequest httpRequest, HttpServletResponse httpResponse, SecurityContext sec) {
         try {
-            log.debug("Attempting to end session, idTokenHint: {}, postLogoutRedirectUri: {}, sessionId: {}, sid: {}, Is Secure = {}",
-                    idTokenHint, postLogoutRedirectUri, sessionId, sid, sec.isSecure());
+            log.debug("Attempting to end session, idTokenHint: {}, postLogoutRedirectUri: {}, sessionId: {}, sid: {}, Is Secure = {}, state = {}",
+                    idTokenHint, postLogoutRedirectUri, sessionId, sid, sec.isSecure(), state);
 
             if (StringUtils.isBlank(sid) && StringUtils.isNotBlank(sessionId))
                 sid = sessionId; // backward compatibility. WIll be removed in next major release.
 
-            Jwt idToken = validateIdTokenHint(idTokenHint, postLogoutRedirectUri);
-            validateSidRequestParameter(sid, postLogoutRedirectUri);
+            Jwt idToken = validateIdTokenHint(idTokenHint, postLogoutRedirectUri, state);
+            validateSidRequestParameter(sid, postLogoutRedirectUri, state);
 
             final Pair<SessionId, AuthorizationGrant> pair = getPair(idTokenHint, sid, httpRequest);
             if (pair.getFirst() == null) {
                 final String reason = "Failed to identify session by session_id query parameter or by session_id cookie.";
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason, state));
             }
 
-            postLogoutRedirectUri = validatePostLogoutRedirectUri(postLogoutRedirectUri, pair);
-            validateSid(postLogoutRedirectUri, idToken, pair.getFirst());
+            postLogoutRedirectUri = validatePostLogoutRedirectUri(postLogoutRedirectUri, pair, state);
+            validateSid(postLogoutRedirectUri, idToken, pair.getFirst(), state);
 
             endSession(pair, httpRequest, httpResponse);
             auditLogging(httpRequest, pair);
@@ -166,8 +166,9 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 log.trace("No frontchannel_redirect_uri's found in clients involved in SSO.");
 
                 try {
-                    log.trace("Redirect to postlogout_redirect_uri: " + postLogoutRedirectUri);
-                    return Response.status(Response.Status.FOUND).location(new URI(postLogoutRedirectUri)).build();
+                    final String redirectTo = EndSessionUtils.appendState(postLogoutRedirectUri, state);
+                    log.trace("Redirect to postlogout_redirect_uri: {}", redirectTo);
+                    return Response.status(Response.Status.FOUND).location(new URI(redirectTo)).build();
                 } catch (URISyntaxException e) {
                     final String message = "Failed to create URI for " + postLogoutRedirectUri + " postlogout_redirect_uri.";
                     log.error(message);
@@ -191,14 +192,14 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         }
     }
 
-    private void validateSid(String postLogoutRedirectUri, Jwt idToken, SessionId session) {
+    private void validateSid(String postLogoutRedirectUri, Jwt idToken, SessionId session, String state) {
         if (idToken == null) {
             return;
         }
         final String sid = idToken.getClaims().getClaimAsString("sid");
         if (StringUtils.isNotBlank(sid) && !sid.equals(session.getOutsideSid())) {
             log.error("sid in id_token_hint does not match sid of the session. id_token_hint sid: {}, session sid: {}", sid, session.getOutsideSid());
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, "sid in id_token_hint does not match sid of the session"));
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, "sid in id_token_hint does not match sid of the session", state));
         }
     }
 
@@ -228,7 +229,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         log.trace("Finished backchannel calls.");
     }
 
-    private Response createErrorResponse(String postLogoutRedirectUri, EndSessionErrorResponseType error, String reason) {
+    private Response createErrorResponse(String postLogoutRedirectUri, EndSessionErrorResponseType error, String reason, String state) {
         log.debug(reason);
         try {
             if (allowPostLogoutRedirect(postLogoutRedirectUri)) {
@@ -236,7 +237,9 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                     String separator = postLogoutRedirectUri.contains("?") ? "&" : "?";
                     postLogoutRedirectUri = postLogoutRedirectUri + separator + errorResponseFactory.getErrorAsQueryString(error, "", reason);
                 }
-                return Response.status(Response.Status.FOUND).location(new URI(postLogoutRedirectUri)).build();
+                final String redirectTo = EndSessionUtils.appendState(postLogoutRedirectUri, state);
+                log.trace("Redirect error to {}", redirectTo);
+                return Response.status(Response.Status.FOUND).location(new URI(redirectTo)).build();
             }
         } catch (URISyntaxException e) {
             log.error("Can't perform redirect", e);
@@ -259,43 +262,43 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(postLogoutRedirectUri);
     }
 
-    private void validateSidRequestParameter(String sid, String postLogoutRedirectUri) {
+    private void validateSidRequestParameter(String sid, String postLogoutRedirectUri, String state) {
         // sid is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(sid)) {
             SessionId sessionIdObject = sessionIdService.getSessionBySid(sid);
             if (sessionIdObject == null) {
                 final String reason = "sid parameter in request is not valid. Logout is rejected. sid parameter in request can be skipped or otherwise valid value must be provided.";
                 log.error(reason);
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason, state));
             }
         }
     }
 
-    private Jwt validateIdTokenHint(String idTokenHint, String postLogoutRedirectUri) {
+    private Jwt validateIdTokenHint(String idTokenHint, String postLogoutRedirectUri, String state) {
         if (appConfiguration.getForceIdTokenHintPrecense() && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
             log.trace(reason);
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason));
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason, state));
         }
 
         final AuthorizationGrant tokenHintGrant = getTokenHintGrant(idTokenHint);
         if (appConfiguration.getForceIdTokenHintPrecense() && tokenHintGrant == null) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
             log.trace(reason);
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason));
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason, state));
         }
 
         // id_token_hint is not required but if it is present then we must validate it #831
         if (StringUtils.isNotBlank(idTokenHint)) {
             if (tokenHintGrant == null) {
                 final String reason = "id_token_hint is not valid. Logout is rejected. id_token_hint can be skipped or otherwise valid value must be provided.";
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason, state));
             }
             try {
                 return Jwt.parse(idTokenHint);
             } catch (InvalidJwtException e) {
                 log.error("Unable to parse id_token_hint as JWT.", e);
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT."));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT.", state));
             }
         }
         return null;
@@ -319,7 +322,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     }
 
 
-    private String validatePostLogoutRedirectUri(String postLogoutRedirectUri, Pair<SessionId, AuthorizationGrant> pair) {
+    private String validatePostLogoutRedirectUri(String postLogoutRedirectUri, Pair<SessionId, AuthorizationGrant> pair, String state) {
         try {
             if (StringUtils.isBlank(postLogoutRedirectUri)) {
                 return "";
@@ -338,18 +341,18 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
 
             if (StringUtils.isBlank(result)) {
                 log.trace("Failed to validate post_logout_redirect_uri.");
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, ""));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, "", state));
             }
 
             if (StringUtils.isNotBlank(result)) {
                 return result;
             }
             log.trace("Unable to validate post_logout_redirect_uri.");
-            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, ""));
+            throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, "", state));
         } catch (WebApplicationException e) {
             if (pair.getFirst() != null) {
                 log.error(e.getMessage(), e);
-                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, ""));
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, "", state));
             } else {
                 throw e;
             }
