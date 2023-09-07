@@ -33,6 +33,7 @@ public interface EndSessionRestWebService {
             @QueryParam(EndSessionRequestParam.STATE) String state,
             @QueryParam("session_id") String sessionId,
             @QueryParam("sid") String sid,
+            @QueryParam("client_id") String clientId,
             @Context HttpServletRequest httpRequest,
             @Context HttpServletResponse httpResponse,
             @Context SecurityContext securityContext);
