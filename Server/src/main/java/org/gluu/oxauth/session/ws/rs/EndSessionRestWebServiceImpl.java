@@ -113,11 +113,11 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     private AbstractCryptoProvider cryptoProvider;
 
     @Override
-    public Response requestEndSession(String idTokenHint, String postLogoutRedirectUri, String state, String sessionId, String sid,
+    public Response requestEndSession(String idTokenHint, String postLogoutRedirectUri, String state, String sessionId, String sid, String clientId,
                                       HttpServletRequest httpRequest, HttpServletResponse httpResponse, SecurityContext sec) {
         try {
-            log.debug("Attempting to end session, idTokenHint: {}, postLogoutRedirectUri: {}, sessionId: {}, sid: {}, Is Secure = {}, state = {}",
-                    idTokenHint, postLogoutRedirectUri, sessionId, sid, sec.isSecure(), state);
+            log.debug("Attempting to end session, idTokenHint: {}, postLogoutRedirectUri: {}, sessionId: {}, sid: {}, Is Secure = {}, state = {}, client_id = {}",
+                    idTokenHint, postLogoutRedirectUri, sessionId, sid, sec.isSecure(), state, clientId);
 
             if (StringUtils.isBlank(sid) && StringUtils.isNotBlank(sessionId))
                 sid = sessionId; // backward compatibility. WIll be removed in next major release.
@@ -131,7 +131,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason, state));
             }
 
-            postLogoutRedirectUri = validatePostLogoutRedirectUri(postLogoutRedirectUri, pair, state);
+            postLogoutRedirectUri = validatePostLogoutRedirectUri(postLogoutRedirectUri, pair, state, clientId);
             validateSid(postLogoutRedirectUri, validatedIdToken, pair.getFirst(), state);
 
             endSession(pair, httpRequest, httpResponse);
@@ -289,7 +289,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         return null;
     }
 
-    private Jwt validateIdTokenHint(String idTokenHint, SessionId sidSession, String postLogoutRedirectUri, String state) {
+    protected Jwt validateIdTokenHint(String idTokenHint, SessionId sidSession, String postLogoutRedirectUri, String state) {
         final boolean isIdTokenHintRequired = isTrue(appConfiguration.getForceIdTokenHintPrecense());
         if (isIdTokenHintRequired && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
@@ -385,7 +385,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     }
 
 
-    private String validatePostLogoutRedirectUri(String postLogoutRedirectUri, Pair<SessionId, AuthorizationGrant> pair, String state) {
+    public String validatePostLogoutRedirectUri(String postLogoutRedirectUri, Pair<SessionId, AuthorizationGrant> pair, String state, String clientId) {
         try {
             if (StringUtils.isBlank(postLogoutRedirectUri)) {
                 return "";
@@ -395,11 +395,16 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
                 return postLogoutRedirectUri;
             }
 
-            final String result;
+            String result;
             if (pair.getSecond() == null) {
                 result = redirectionUriService.validatePostLogoutRedirectUri(pair.getFirst(), postLogoutRedirectUri);
             } else {
                 result = redirectionUriService.validatePostLogoutRedirectUri(pair.getSecond().getClient().getClientId(), postLogoutRedirectUri);
+            }
+
+            if (StringUtils.isBlank(result) && StringUtils.isNotBlank(clientId)) {
+                result = redirectionUriService.validatePostLogoutRedirectUri(clientId, postLogoutRedirectUri);
+                log.trace("Validated post_logout_redirect_uri: {} against client_id: {}, result: {}" , postLogoutRedirectUri, clientId, result);
             }
 
             if (StringUtils.isBlank(result)) {
