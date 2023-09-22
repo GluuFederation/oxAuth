@@ -109,14 +109,14 @@ public class EndSessionRestWebServiceImplTest {
 
     @Test
     public void validateIdTokenHint_whenIdTokenHintIsBlank_shouldGetNoError() {
-        assertNull(endSessionRestWebService.validateIdTokenHint("", null, "http://postlogout.com", ""));
+        assertNull(endSessionRestWebService.validateIdTokenHint("", null, "http://postlogout.com", "", ""));
     }
 
     @Test(expectedExceptions = WebApplicationException.class)
     public void validateIdTokenHint_whenIdTokenHintIsBlankButRequired_shouldGetError() {
         when(appConfiguration.getForceIdTokenHintPrecense()).thenReturn(true);
 
-        endSessionRestWebService.validateIdTokenHint("", null, "http://postlogout.com", "");
+        endSessionRestWebService.validateIdTokenHint("", null, "http://postlogout.com", "", "");
     }
 
     @Test(expectedExceptions = WebApplicationException.class)
@@ -124,7 +124,7 @@ public class EndSessionRestWebServiceImplTest {
         when(appConfiguration.getRejectEndSessionIfIdTokenExpired()).thenReturn(true);
         when(endSessionRestWebService.getTokenHintGrant("test")).thenReturn(null);
 
-        endSessionRestWebService.validateIdTokenHint("testToken", null, "http://postlogout.com", "");
+        endSessionRestWebService.validateIdTokenHint("testToken", null, "http://postlogout.com", "", "");
     }
 
     @Test(expectedExceptions = WebApplicationException.class)
@@ -132,7 +132,7 @@ public class EndSessionRestWebServiceImplTest {
         when(appConfiguration.getEndSessionWithAccessToken()).thenReturn(true);
         when(endSessionRestWebService.getTokenHintGrant("notValidJwt")).thenReturn(GRANT);
 
-        endSessionRestWebService.validateIdTokenHint("notValidJwt", null, "http://postlogout.com", "");
+        endSessionRestWebService.validateIdTokenHint("notValidJwt", null, "http://postlogout.com", "", "");
     }
 
     @Test
@@ -140,7 +140,7 @@ public class EndSessionRestWebServiceImplTest {
         when(appConfiguration.getEndSessionWithAccessToken()).thenReturn(true);
         when(endSessionRestWebService.getTokenHintGrant(DUMMY_JWT)).thenReturn(GRANT);
 
-        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", "");
+        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", "", "");
         assertNotNull(jwt);
     }
 
@@ -151,7 +151,7 @@ public class EndSessionRestWebServiceImplTest {
         when(endSessionRestWebService.getTokenHintGrant(DUMMY_JWT)).thenReturn(null);
         when(cryptoProvider.verifySignature(anyString(), anyString(), anyString(), isNull(), isNull(), any())).thenReturn(false);
 
-        assertNull(endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", ""));
+        assertNull(endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", "", ""));
     }
 
     @Test
@@ -161,7 +161,7 @@ public class EndSessionRestWebServiceImplTest {
         when(endSessionRestWebService.getTokenHintGrant(DUMMY_JWT)).thenReturn(null);
         when(cryptoProvider.verifySignature(anyString(), anyString(), isNull(), isNull(), isNull(), any())).thenReturn(true);
 
-        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", "");
+        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, null, "http://postlogout.com", "", "");
         assertNotNull(jwt);
     }
 
@@ -175,7 +175,7 @@ public class EndSessionRestWebServiceImplTest {
         SessionId sidSession = new SessionId();
         sidSession.setOutsideSid("1234"); // sid encoded into DUMMY_JWT
 
-        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, sidSession, "http://postlogout.com", "");
+        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, sidSession, "http://postlogout.com", "", "");
         assertNotNull(jwt);
     }
 
@@ -189,7 +189,7 @@ public class EndSessionRestWebServiceImplTest {
         SessionId sidSession = new SessionId();
         sidSession.setOutsideSid("12345"); // sid encoded into DUMMY_JWT
 
-        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, sidSession, "http://postlogout.com", "");
+        final Jwt jwt = endSessionRestWebService.validateIdTokenHint(DUMMY_JWT, sidSession, "http://postlogout.com", "", "");
         assertNotNull(jwt);
     }
 }
