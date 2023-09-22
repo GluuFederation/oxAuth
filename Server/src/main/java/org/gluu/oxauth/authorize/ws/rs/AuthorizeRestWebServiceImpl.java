@@ -37,8 +37,10 @@ import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.service.external.ExternalPostAuthnService;
+import org.gluu.oxauth.service.external.ExternalResourceOwnerPasswordCredentialsService;
 import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.ExternalPostAuthnContext;
+import org.gluu.oxauth.service.external.context.ExternalResourceOwnerPasswordCredentialsContext;
 import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.oxauth.service.external.session.SessionEventType;
@@ -148,6 +150,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
 
+    @Inject
+    private ExternalResourceOwnerPasswordCredentialsService externalResourceOwnerPasswordCredentialsService;
+
     @Context
     private HttpServletRequest servletRequest;
 
@@ -218,6 +223,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
         Map<String, String> customParameters = requestParameterService.getCustomParameters(
                 QueryStringDecoder.decode(httpRequest.getQueryString(),true));
+        if (HttpMethod.POST.endsWith(method)) {
+            requestParameterService.addCustomParameters(httpRequest, customParameters);
+        }
 
         SessionId sessionUser = identity.getSessionId();
         User user = sessionIdService.getUser(sessionUser);
@@ -360,6 +368,23 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             }
 
             AuthorizationGrant authorizationGrant = null;
+
+            User ropcUser = executeRopcIfRequired(user, httpRequest, httpResponse);
+            if (ropcUser != null) {
+                user = ropcUser;
+                if (sessionUser == null) {
+                    log.trace("Generating authenticated session.");
+                    Map<String, String> genericRequestMap = getGenericRequestMap(httpRequest);
+
+                    Map<String, String> parameterMap = Maps.newHashMap(genericRequestMap);
+                    Map<String, String> requestParameterMap = requestParameterService.getAllowedParameters(parameterMap);
+                    sessionUser = sessionIdService.generateAuthenticatedSessionId(httpRequest, user.getDn(), prompt);
+                    sessionUser.setSessionAttributes(requestParameterMap);
+
+                    cookieService.createSessionIdCookie(sessionUser, httpRequest, httpResponse, false);
+                    sessionIdService.updateSessionId(sessionUser);
+                }
+            }
 
             if (user == null) {
                 identity.logout();
@@ -672,6 +697,36 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
 
         applicationAuditLogger.sendMessage(oAuth2AuditLog);
         return builder.build();
+    }
+
+    private User executeRopcIfRequired(User user, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        if (!appConfiguration.getForceRopcInAuthorizationEndpoint()) {
+            return null;
+        }
+
+        log.trace("Triggering ROPC at Authorization Endpoint (forced by 'forceRopcInAuthorizationEndpoint' configuration property)");
+
+        if (!externalResourceOwnerPasswordCredentialsService.isEnabled()) {
+            log.trace("Skip ROPC because no ROPC script found.");
+            return null;
+        }
+
+        final ExternalResourceOwnerPasswordCredentialsContext context = new ExternalResourceOwnerPasswordCredentialsContext(httpRequest, httpResponse, appConfiguration, attributeService, userService);
+        context.setUser(user);
+
+        if (externalResourceOwnerPasswordCredentialsService.executeExternalAuthenticate(context)) {
+            user = context.getUser();
+            if (user != null) {
+                log.trace("ROPC - User {} is authenticated successfully by external script.", user.getUserId());
+                return user;
+            } else {
+                log.trace("ROPC returned True but user is not set (set valid user in context.setUser(<user>))");
+            }
+        } else {
+            log.trace("ROPC script returned False.");
+        }
+
+        return null;
     }
 
     private void updateSessionRpRedirect(SessionId sessionUser) {

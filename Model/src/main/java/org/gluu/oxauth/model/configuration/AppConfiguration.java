@@ -51,6 +51,7 @@ public class AppConfiguration implements Configuration {
     private int sectorIdentifierCacheLifetimeInMinutes = 1440;
 
     private Boolean sessionAsJwt = false;
+    private Boolean forceRopcInAuthorizationEndpoint = false;
 
     private String umaConfigurationEndpoint;
     private Boolean umaRptAsJwt = false;
@@ -589,6 +590,15 @@ public class AppConfiguration implements Configuration {
 
     public void setUmaRptAsJwt(Boolean umaRptAsJwt) {
         this.umaRptAsJwt = umaRptAsJwt;
+    }
+
+    public Boolean getForceRopcInAuthorizationEndpoint() {
+        if (forceRopcInAuthorizationEndpoint == null) forceRopcInAuthorizationEndpoint = false;
+        return forceRopcInAuthorizationEndpoint;
+    }
+
+    public void setForceRopcInAuthorizationEndpoint(Boolean forceRopcInAuthorizationEndpoint) {
+        this.forceRopcInAuthorizationEndpoint = forceRopcInAuthorizationEndpoint;
     }
 
     public Boolean getSessionAsJwt() {

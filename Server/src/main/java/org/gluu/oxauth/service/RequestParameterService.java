@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.model.security.Identity;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.authorize.JwtAuthorizationRequest;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.util.Pair;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import javax.annotation.Nonnull;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
@@ -223,4 +225,57 @@ public class RequestParameterService {
         }
     }
 
+    public Map<String, String> getCustomParameters(HttpServletRequest request) {
+        Map<String, String> customParameters = new HashMap<>();
+        addCustomParameters(request, customParameters);
+        return customParameters;
+    }
+
+    public void addCustomParameters(HttpServletRequest request, Map<String, String> customParameters) {
+        Set<String> authorizationRequestCustomAllowedParameters = appConfiguration
+                .getAuthorizationRequestCustomAllowedParameters();
+
+        if (authorizationRequestCustomAllowedParameters == null) {
+            log.trace("Skipped custom parameters because 'authorizationRequestCustomAllowedParameters' AS configuration is not set.");
+            return;
+        }
+
+        final Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            final String parameterName = parameterNames.nextElement();
+            if (!authorizationRequestCustomAllowedParameters.contains(parameterName)) {
+                log.trace("Skipped '{}' as custom parameter (not defined in 'authorizationRequestCustomAllowedParameters')", parameterName);
+                continue;
+            }
+
+            final String parameterValue = request.getParameter(parameterName);
+            if (StringUtils.isNotBlank(parameterValue)) {
+                customParameters.put(parameterName, parameterValue);
+            }
+        }
+
+        log.trace("Custom parameters: {}", customParameters);
+    }
+
+    public void putCustomParametersIntoSession(SessionId sessionId, HttpServletRequest httpRequest) {
+        putCustomParametersIntoSession(sessionId, getCustomParameters(httpRequest));
+    }
+
+    public void putCustomParametersIntoSession(SessionId sessionId, Map<String, String> customParameters) {
+        if (sessionId == null || customParameters == null) {
+            return;
+        }
+
+        putCustomParametersIntoSession(sessionId.getSessionAttributes(), customParameters);
+    }
+
+    public void putCustomParametersIntoSession(Map<String, String> sessionAttributes, Map<String, String> customParameters) {
+        if (sessionAttributes == null || customParameters == null) {
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : customParameters.entrySet()) {
+            sessionAttributes.put("custom_" + entry.getKey(), entry.getValue());
+        }
+    }
 }
