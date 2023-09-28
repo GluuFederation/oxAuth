@@ -6,16 +6,9 @@
 
 package org.gluu.oxauth.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.QueryStringDecoder;
 import org.gluu.oxauth.model.common.SessionId;
@@ -23,15 +16,21 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
+import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.slf4j.Logger;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Javier Rojas Blum
@@ -193,8 +192,15 @@ public class RedirectionUriService {
         throw errorResponseFactory.createWebApplicationException(Response.Status.BAD_REQUEST, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, "Unable to validate `post_logout_redirect_uri`");
     }
 
+    public boolean isUrlWhiteListed(String url) {
+        final boolean result = new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(url);
+        log.trace("White listed result: {}, url: {}", result, url);
+        return result;
+    }
+
     public String validatePostLogoutRedirectUri(String postLogoutRedirectUri, String[] allowedPostLogoutRedirectUris) {
-        if (appConfiguration.getAllowPostLogoutRedirectWithoutValidation()) {
+        if (appConfiguration.getAllowPostLogoutRedirectWithoutValidation() && isUrlWhiteListed(postLogoutRedirectUri)) {
+            log.trace("PostLogoutRedirectUri {} is whitelisted by 'clientWhiteList' configuration property.", postLogoutRedirectUri);
             return postLogoutRedirectUri;
         }
 
