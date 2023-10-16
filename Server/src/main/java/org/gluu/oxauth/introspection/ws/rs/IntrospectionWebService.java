@@ -55,6 +55,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version June 30, 2018
@@ -278,13 +280,13 @@ public class IntrospectionWebService {
                 String password = URLDecoder.decode(token.substring(delim + 1), Util.UTF8_STRING_ENCODING);
                 if (clientService.authenticate(clientId, password)) {
                     grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-                    if (grant != null && !grant.getClientId().equals(clientId)) {
+                    if (isTrue(appConfiguration.getIntrospectionRestrictBasicAuthnToOwnTokens()) && grant != null && !grant.getClientId().equals(clientId)) {
                         log.trace("Failed to match grant object clientId and client id provided during authentication.");
                         return EMPTY;
                     }
                     return new Pair<>(grant, true);
                 } else {
-                    log.trace("Failed to perform basic authentication for client: " + clientId);
+                    log.trace("Failed to perform basic authentication for client: {}", clientId);
                 }
             }
         }
