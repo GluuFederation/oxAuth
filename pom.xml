@@ -14,10 +14,10 @@
 		<maven.min-version>3.3.9</maven.min-version>
 
 		<oxcore.version>4.5.3-SNAPSHOT</oxcore.version>
-		<oxeleven.version>4.5.2.Final</oxeleven.version>
-		<oxnotify.version>4.5.2.Final</oxnotify.version>
-		<oxlicense.version>4.5.2.Final</oxlicense.version>
-		<fido2.version>4.5.2.Final</fido2.version>
+		<oxeleven.version>4.5.3-SNAPSHOT</oxeleven.version>
+		<oxnotify.version>4.5.3-SNAPSHOT</oxnotify.version>
+		<oxlicense.version>4.5.3-SNAPSHOT</oxlicense.version>
+		<fido2.version>4.5.3-SNAPSHOT</fido2.version>
 
 		<json.version>20180813</json.version>
 		<jackson.version>2.10.1</jackson.version>
