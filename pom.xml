@@ -24,7 +24,7 @@
 		<jackson.databind.version>2.10.1</jackson.databind.version>
 		<jettison.version>1.5.4</jettison.version>
 
-		<activemq.version>5.15.14</activemq.version>
+		<activemq.version>5.15.16</activemq.version>
 
 		<httpcore.version>4.4.6</httpcore.version>
 
