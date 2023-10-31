@@ -97,16 +97,16 @@ class PersonAuthentication(PersonAuthenticationType):
             identity = CdiUtil.bean(Identity)
             
             state = ServerUtil.getFirstValue(requestParameters, "state")
- 			# Get state to verify consistency and originality
+ 	    # Get state to verify consistency and originality
             if  identity.getWorkingParameter('state_duo') == state :
         	
             	# Get authorization token to trade for 2FA
             	duoCode = ServerUtil.getFirstValue(requestParameters, "duo_code")
-	        	try:
+	        try:
 	               token = self.duo_client.exchangeAuthorizationCodeFor2FAResult(duoCode, identity.getWorkingParameter('username'))
-                   print "token status %s " % token.getAuth_result().getStatus()
-	        	except:
-	                # Handle authentication failure.
+                       print "token status %s " % token.getAuth_result().getStatus()
+	        except:
+	               # Handle authentication failure.
 	               print "authentication failure", sys.exc_info()[1]
 	               return False
 	        
@@ -128,17 +128,20 @@ class PersonAuthentication(PersonAuthenticationType):
             return True
         elif (step == 2):
         	identity = CdiUtil.bean(Identity)
-            user_name = identity.getWorkingParameter('username')
+                user_name = identity.getWorkingParameter('username')
         	facesContext = CdiUtil.bean(FacesContext)
         	request = facesContext.getExternalContext().getRequest()
         	httpService = CdiUtil.bean(HttpService)
         	url = httpService.constructServerUrl(request) + "/postlogin.htm"
         	
         	try:
+                        print "before health check"
 	        	self.duo_client = Client(self.client_id,self.client_secret,self.api_hostname,url)
 	        	self.duo_client.healthCheck()
+                        print "after health check"
 	    	except:
-                print "Duo-Universal. Duo config error. Verify the values in Duo-Universal.conf are correct ", sys.exc_info()[1]
+                        print "Duo-Universal. Duo config error. Verify the values in Duo-Universal.conf are correct ", sys.exc_info()[1]
+                        return False
                             
                 state = self.duo_client.generateState()
                 identity.setWorkingParameter("state_duo",state)
