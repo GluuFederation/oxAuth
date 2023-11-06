@@ -10,12 +10,8 @@ info:
   license:
     name: License
     url: https://github.com/GluuFederation/oxAuth/blob/master/LICENSE
-  version: "4.3.1"
+  version: "master"
 servers:
-
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/yuriyz1/oxauth/4.3.1
   - url: https://gluu.org/
 tags:
   - name: developers
@@ -2448,7 +2444,7 @@ paths:
                     example: https://sample.com
                   authorization_endpoint:
                     type: string
-                    description: "URL of the authorization server's authorization endpoint.
+                    description: "URL of the authorization server's authorization endpoint."
                     example: https://sample.com/oxauth/restv1/authorize
                   token_endpoint:
                     type: string
