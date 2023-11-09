@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Works againt AS "4.3.1" and later.
+ *
  * 'echo -n 43 | sha256sum'
  *
  * @author Yuriy Z
