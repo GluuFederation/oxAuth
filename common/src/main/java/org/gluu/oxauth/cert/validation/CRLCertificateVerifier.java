@@ -32,7 +32,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.DistributionPoint;
@@ -267,7 +267,7 @@ public class CRLCertificateVerifier implements CertificateVerifier {
 					continue;
 				}
 
-				DERIA5String derStr = DERIA5String.getInstance((ASN1TaggedObject) name.toASN1Primitive(), false);
+				DERIA5String derStr = (DERIA5String) DERIA5String.getInstance((DERTaggedObject) name.toASN1Primitive(), false);
 				return derStr.getString();
 			}
 		}

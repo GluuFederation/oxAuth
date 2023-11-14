@@ -16,9 +16,9 @@
 			<unpack>true</unpack>
 			<scope>runtime</scope>
 			<excludes>
-			  <exclude>org.bouncycastle:bcpkix-jdk15on</exclude>
-			  <exclude>org.bouncycastle:bcprov-jdk15on</exclude>
-			  <exclude>org.bouncycastle:bcutil-jdk15on</exclude>
+			  <exclude>org.bouncycastle:bcpkix-jdk18on</exclude>
+			  <exclude>org.bouncycastle:bcprov-jdk18on</exclude>
+			  <exclude>org.bouncycastle:bcutil-jdk18on</exclude>
 			</excludes>
 		</dependencySet>
 	</dependencySets>
