@@ -292,6 +292,12 @@
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-common</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- persistence model -->
 		<dependency>
