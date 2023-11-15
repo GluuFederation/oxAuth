@@ -40,8 +40,8 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.util.StringHelper;
 import org.oxauth.persistence.model.Scope;
-import org.python.google.common.base.Function;
-import org.python.google.common.collect.Iterables;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
