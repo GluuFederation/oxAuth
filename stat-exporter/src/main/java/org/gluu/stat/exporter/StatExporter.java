@@ -92,7 +92,17 @@ public class StatExporter {
     }
 
     private static void requestStatInformation(OkHttpClient client, String issuer, String token) {
+        // request for oxauth
         final String url = issuer + "/oxauth/restv1/internal/stat";
+        int responseCode = requestStatInformationByUrl(client, url, token);
+
+        // if not found 404 -> try for jans
+        if (responseCode == 404) {
+            requestStatInformationByUrl(client, issuer + "/jans-auth/restv1/internal/stat", token);
+        }
+    }
+
+    private static int requestStatInformationByUrl(OkHttpClient client, String url, String token) {
         final String months = Months.getLastMonthsAsString(12);
         System.out.println("Downloading info " + url + " ...");
 
@@ -119,13 +129,21 @@ public class StatExporter {
 
                 System.out.println("Stat Result:");
                 System.out.println(printData);
+                return response.code();
             } else {
+                if (response.code() == 404) {
+                    System.out.println("Endpoint " + url + " is not found (404)");
+                    return 404;
+                }
+
                 System.out.println("Failed with response code " + response.code() + ", body: " + asString);
+                return response.code();
             }
         } catch (Exception e) {
             System.out.println("Failed to process stat data");
             e.printStackTrace();
         }
+        return -1;
     }
 
     private static StatExporterResponse prepareResponse(JsonNode node) {
