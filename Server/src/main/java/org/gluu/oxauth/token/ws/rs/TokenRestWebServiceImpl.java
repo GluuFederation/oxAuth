@@ -52,6 +52,8 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
+
 /**
  * Provides interface for token REST web services
  *
@@ -124,7 +126,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         log.debug(
                 "Attempting to request access token: grantType = {}, code = {}, redirectUri = {}, username = {}, refreshToken = {}, " +
                         "clientId = {}, ExtraParams = {}, isSecure = {}, codeVerifier = {}, ticket = {}",
-                grantType, code, redirectUri, username, refreshToken, clientId, request.getParameterMap(),
+                grantType, code, redirectUri, username, refreshToken, clientId, prepareForLogs(request.getParameterMap()),
                 sec.isSecure(), codeVerifier, ticket);
 
         boolean isUma = StringUtils.isNotBlank(ticket);

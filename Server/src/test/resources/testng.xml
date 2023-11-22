@@ -13,6 +13,7 @@
             <class name="org.gluu.oxauth.model.CIBAGrantTest" />
             <class name="org.gluu.oxauth.authorize.ws.rs.AuthorizeRestWebServiceValidatorTest" />
             <class name="org.gluu.oxauth.session.ws.rs.EndSessionRestWebServiceImplTest" />
+            <class name="org.gluu.oxauth.util.ServerUtilTest" />
         </classes>
     </test>
 
