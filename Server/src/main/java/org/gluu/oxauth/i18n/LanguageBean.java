@@ -26,7 +26,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.service.cdi.event.ConfigurationUpdate;
 import org.gluu.util.StringHelper;
-import org.gluu.util.ilocale.LocaleUtil;
+import org.gluu.util.locale.LocaleUtil;
 import org.slf4j.Logger;
 
 /**
