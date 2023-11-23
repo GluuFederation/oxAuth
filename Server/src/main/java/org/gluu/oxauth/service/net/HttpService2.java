@@ -9,6 +9,7 @@ package org.gluu.oxauth.service.net;
 import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -28,6 +29,11 @@ public class HttpService2 extends org.gluu.net.HttpServiceUtility implements Ser
 	@PostConstruct
 	public void init() {
 		super.init();
+	}
+
+	@PreDestroy
+	public void destroy() {
+		super.destroy();
 	}
 
 	@Override
