@@ -54,6 +54,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.commons.lang.BooleanUtils.isTrue;
+
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
@@ -230,7 +232,7 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     }
 
     private Response createErrorResponse(String postLogoutRedirectUri, EndSessionErrorResponseType error, String reason, String state) {
-        log.debug(reason);
+        log.debug("Creating error response, reason: {}", reason);
         try {
             if (allowPostLogoutRedirect(postLogoutRedirectUri)) {
                 if (ErrorHandlingMethod.REMOTE == appConfiguration.getErrorHandlingMethod()) {
@@ -244,6 +246,8 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
         } catch (URISyntaxException e) {
             log.error("Can't perform redirect", e);
         }
+
+        log.trace("Return 400 - error {}, reason {}", error, reason);
         return Response.status(Response.Status.BAD_REQUEST).entity(errorResponseFactory.errorAsJson(error, reason)).build();
     }
 
@@ -253,13 +257,21 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
      */
     private boolean allowPostLogoutRedirect(String postLogoutRedirectUri) {
         if (StringUtils.isBlank(postLogoutRedirectUri)) {
+            log.trace("Post logout redirect is blank.");
             return false;
         }
 
         final Boolean allowPostLogoutRedirectWithoutValidation = appConfiguration.getAllowPostLogoutRedirectWithoutValidation();
-        return allowPostLogoutRedirectWithoutValidation != null &&
+        boolean isOk = allowPostLogoutRedirectWithoutValidation != null &&
                 allowPostLogoutRedirectWithoutValidation &&
                 new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(postLogoutRedirectUri);
+        if (isOk) {
+            log.trace("Post logout redirect allowed by 'clientWhiteList' {}", appConfiguration.getClientWhiteList());
+            return true;
+        }
+
+        log.trace("Post logout redirect is denied. Url: {}", postLogoutRedirectUri);
+        return false;
     }
 
     private void validateSidRequestParameter(String sid, String postLogoutRedirectUri, String state) {
@@ -275,30 +287,47 @@ public class EndSessionRestWebServiceImpl implements EndSessionRestWebService {
     }
 
     private Jwt validateIdTokenHint(String idTokenHint, String postLogoutRedirectUri, String state) {
-        if (appConfiguration.getForceIdTokenHintPrecense() && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
+        final boolean isIdTokenHintRequired = isTrue(appConfiguration.getForceIdTokenHintPrecense());
+        if (isIdTokenHintRequired && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
             log.trace(reason);
             throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason, state));
         }
 
-        final AuthorizationGrant tokenHintGrant = getTokenHintGrant(idTokenHint);
-        if (appConfiguration.getForceIdTokenHintPrecense() && tokenHintGrant == null) { // must be present for logout tests #1279
+        if (isIdTokenHintRequired && StringUtils.isBlank(idTokenHint)) { // must be present for logout tests #1279
             final String reason = "id_token_hint is not set";
             log.trace(reason);
             throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_REQUEST, reason, state));
+        }
+
+        if (StringUtils.isBlank(idTokenHint) && !isIdTokenHintRequired) {
+            return null;
         }
 
         // id_token_hint is not required but if it is present then we must validate it #831
-        if (StringUtils.isNotBlank(idTokenHint)) {
+        if (StringUtils.isNotBlank(idTokenHint) || isIdTokenHintRequired) {
+            final AuthorizationGrant tokenHintGrant = getTokenHintGrant(idTokenHint);
             if (tokenHintGrant == null) {
                 final String reason = "id_token_hint is not valid. Logout is rejected. id_token_hint can be skipped or otherwise valid value must be provided.";
+                log.trace(reason);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, reason, state));
             }
             try {
-                return Jwt.parse(idTokenHint);
+                final Jwt jwt = Jwt.parse(idTokenHint);
+                if (jwt == null) {
+                    log.error("Unable to parse id_token_hint as JWT: {}", idTokenHint);
+                    throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT.", state));
+                }
+                return jwt;
             } catch (InvalidJwtException e) {
                 log.error("Unable to parse id_token_hint as JWT.", e);
                 throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to parse id_token_hint as JWT.", state));
+            } catch (WebApplicationException e) {
+                log.trace(e.getMessage(), e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unable to validate id_token_hint as JWT.", e);
+                throw new WebApplicationException(createErrorResponse(postLogoutRedirectUri, EndSessionErrorResponseType.INVALID_GRANT_AND_SESSION, "Unable to validate id_token_hint as JWT.", state));
             }
         }
         return null;
