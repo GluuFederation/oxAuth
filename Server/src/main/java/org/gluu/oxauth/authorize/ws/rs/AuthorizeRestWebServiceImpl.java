@@ -386,6 +386,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 }
             }
 
+            log.trace("User: {}, prompts: {}", user, prompts);
             if (user == null) {
                 identity.logout();
                 if (prompts.contains(Prompt.NONE)) {
@@ -518,7 +519,7 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
                 sessionId = null;
                 prompts.remove(Prompt.LOGIN);
 
-                if (sessionUnauthenticated) {
+                if (sessionUnauthenticated || identity.getSessionId().getState() == SessionIdState.UNAUTHENTICATED) {
                     return redirectToAuthorizationPage(redirectUriResponse.getRedirectUri(), responseTypes, scope, clientId,
                             redirectUri, state, responseMode, nonce, display, prompts, maxAge, uiLocales,
                             idTokenHint, loginHint, acrValues, amrValues, request, requestUri, originHeaders,
