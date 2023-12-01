@@ -141,12 +141,15 @@ class PersonAuthentication(PersonAuthenticationType):
         if StringHelper.isEmptyString(self.AS_CLIENT_ID):
             clientRegistrationResponse = self.registerScanClient(self.AS_ENDPOINT, self.AS_ENDPOINT, self.AS_SSA, customScript)
             if clientRegistrationResponse == None:
-                return False
+                print "Super-Gluu. Failed to register Scan client!!!"
+            else:
+                self.AS_CLIENT_ID = clientRegistrationResponse['client_id']
+                self.AS_CLIENT_SECRET = clientRegistrationResponse['client_secret']
 
-            self.AS_CLIENT_ID = clientRegistrationResponse['client_id']
-            self.AS_CLIENT_SECRET = clientRegistrationResponse['client_secret']
-
-        self.enabledPushNotifications = self.initPushNotificationService(configurationAttributes)
+        if StringHelper.isNotEmptyString(self.AS_CLIENT_ID) and StringHelper.isNotEmptyString(self.AS_CLIENT_SECRET):
+            self.enabledPushNotifications = self.initPushNotificationService(configurationAttributes)
+        else:
+            self.enabledPushNotifications = False
 
         print "Super-Gluu. Initialized successfully. oneStep: '%s', twoStep: '%s', pushNotifications: '%s', customLabel: '%s'" % (self.oneStep, self.twoStep, self.enabledPushNotifications, self.customLabel)
 
@@ -1066,7 +1069,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return authorizationHeader
 
     def getAccessTokenJansServer(self, asBaseUrl, asClientId, asClientSecret):
-        endpointUrl = asBaseUrl + "/jans-auth/restv1/token"
+        endpointUrl = asBaseUrl + "/oxauth/restv1/token"
 
         body = "grant_type=client_credentials&scope=https://api.gluu.org/auth/scopes/scan.supergluu"
 
@@ -1110,7 +1113,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     'software_statement': asSSA}
         body = json.dumps(data_org)
 
-        endpointUrl = asBaseUrl + "/jans-auth/restv1/register"
+        endpointUrl = asBaseUrl + "/oxauth/restv1/register"
         headers = {"Accept" : "application/json"}
 
         try:

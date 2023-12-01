@@ -14,7 +14,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def init(self, customScript, configurationAttributes):
         print "ACR Router. Initialization"
         if not configurationAttributes.containsKey("new_acr_value"):
-            print "ACR Router. Initialization. Property acr_router_value is mandatory"
+            print "ACR Router. Initialization. Property new_acr_value is mandatory"
             return False
         print "ACR Router. Initialized successfully"
         return True   
