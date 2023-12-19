@@ -1107,6 +1107,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         redirect_str = "[\"%s\"]" % asRedirectUri
         data_org = {'redirect_uris': json.loads(redirect_str),
+                    'lifetime': 7884000,
                     'software_statement': asSSA}
         body = json.dumps(data_org)
 
