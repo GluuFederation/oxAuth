@@ -271,6 +271,7 @@ public class AppConfiguration implements Configuration {
 
     private Boolean return200OnClientRegistration = true;
     private Map<String, String> dateFormatterPatterns = new HashMap<>();
+
     private Boolean allowBlankValuesInDiscoveryResponse;
 
     private Boolean skipAuthenticationFilterOptionsMethod = false;

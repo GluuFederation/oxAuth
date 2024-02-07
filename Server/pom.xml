@@ -292,6 +292,12 @@
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-common</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- persistence model -->
 		<dependency>
@@ -395,6 +401,12 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
         <dependency>
             <groupId>net.bootsfaces</groupId>
             <artifactId>bootsfaces</artifactId>
@@ -405,17 +417,17 @@
 		<!-- Bouncycastle -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
+			<artifactId>bcprov-jdk18on</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
+			<artifactId>bcpkix-jdk18on</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-jdk15on</artifactId>
+			<artifactId>bcmail-jdk18on</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -597,14 +609,13 @@
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-model</artifactId>
-			<version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
-			<version>${project.version}</version>
+			<version>4.5.3.Final</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -1010,15 +1021,15 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk15on</artifactId>
+					<artifactId>bcprov-jdk18on</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk15on</artifactId>
+					<artifactId>bcpkix-jdk18on</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcmail-jdk15on</artifactId>
+					<artifactId>bcmail-jdk18on</artifactId>
 				</dependency>                
 			</dependencies>
 		</profile>
@@ -1210,14 +1221,13 @@
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-model</artifactId>
-					<version>${project.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-client</artifactId>
-					<version>${project.version}</version>
+					<version>4.5.3.Final</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>

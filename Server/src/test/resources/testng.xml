@@ -9,8 +9,8 @@
     <test name="Unit Tests" enabled="true">
         <classes>
             <class name="org.gluu.oxauth.service.ScopeServiceTest" />
-            <class name="org.gluu.oxauth.service.RedirectionUriServiceTest" />
             <class name="org.gluu.oxauth.servlet.OpenIdConfigurationTest" />
+            <class name="org.gluu.oxauth.service.RedirectionUriServiceTest" />
             <class name="org.gluu.oxauth.model.CIBAGrantTest" />
             <class name="org.gluu.oxauth.authorize.ws.rs.AuthorizeRestWebServiceValidatorTest" />
             <class name="org.gluu.oxauth.session.ws.rs.EndSessionRestWebServiceImplTest" />

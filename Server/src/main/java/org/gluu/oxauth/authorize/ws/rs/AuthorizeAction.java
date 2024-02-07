@@ -41,7 +41,7 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.service.net.NetworkService;
 import org.gluu.util.StringHelper;
-import org.gluu.util.ilocale.LocaleUtil;
+import org.gluu.util.locale.LocaleUtil;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.RequestScoped;

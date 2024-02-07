@@ -141,12 +141,15 @@ class PersonAuthentication(PersonAuthenticationType):
         if StringHelper.isEmptyString(self.AS_CLIENT_ID):
             clientRegistrationResponse = self.registerScanClient(self.AS_ENDPOINT, self.AS_ENDPOINT, self.AS_SSA, customScript)
             if clientRegistrationResponse == None:
-                return False
+                print "Super-Gluu. Failed to register Scan client!!!"
+            else:
+                self.AS_CLIENT_ID = clientRegistrationResponse['client_id']
+                self.AS_CLIENT_SECRET = clientRegistrationResponse['client_secret']
 
-            self.AS_CLIENT_ID = clientRegistrationResponse['client_id']
-            self.AS_CLIENT_SECRET = clientRegistrationResponse['client_secret']
-
-        self.enabledPushNotifications = self.initPushNotificationService(configurationAttributes)
+        if StringHelper.isNotEmptyString(self.AS_CLIENT_ID) and StringHelper.isNotEmptyString(self.AS_CLIENT_SECRET):
+            self.enabledPushNotifications = self.initPushNotificationService(configurationAttributes)
+        else:
+            self.enabledPushNotifications = False
 
         print "Super-Gluu. Initialized successfully. oneStep: '%s', twoStep: '%s', pushNotifications: '%s', customLabel: '%s'" % (self.oneStep, self.twoStep, self.enabledPushNotifications, self.customLabel)
 
@@ -310,10 +313,10 @@ class PersonAuthentication(PersonAuthenticationType):
                     return False
 
                 user_inum = userService.getUserInum(authenticated_user)
-                
+
                 attach_result = deviceRegistrationService.attachUserDeviceRegistration(user_inum, u2f_device_id)
 
-                print "Super-Gluu. Authenticate for step 2. Result after attaching u2f_device '%s' to user '%s': '%s'" % (u2f_device_id, user_name, attach_result) 
+                print "Super-Gluu. Authenticate for step 2. Result after attaching u2f_device '%s' to user '%s': '%s'" % (u2f_device_id, user_name, attach_result)
 
                 return attach_result
             elif self.twoStep:
@@ -405,7 +408,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 return False
 
             print "Super-Gluu. Prepare for step 2. auth_method: '%s'" % auth_method
-            
+
             issuer = CdiUtil.bean(ConfigurationFactory).getAppConfiguration().getIssuer()
             super_gluu_request_dictionary = {'username': user.getUserId(),
                                'app': client_redirect_uri,
@@ -1062,11 +1065,11 @@ class PersonAuthentication(PersonAuthenticationType):
     def buildNotifyAuthorizationHeader(self):
         token = self.getAccessTokenJansServer(self.AS_ENDPOINT, self.AS_CLIENT_ID, self.AS_CLIENT_SECRET)
         authorizationHeader =  "Bearer %s" % token
-        
+
         return authorizationHeader
 
     def getAccessTokenJansServer(self, asBaseUrl, asClientId, asClientSecret):
-        endpointUrl = asBaseUrl + "/jans-auth/restv1/token"
+        endpointUrl = asBaseUrl + "/oxauth/restv1/token"
 
         body = "grant_type=client_credentials&scope=https://api.gluu.org/auth/scopes/scan.supergluu"
 
@@ -1107,11 +1110,10 @@ class PersonAuthentication(PersonAuthenticationType):
 
         redirect_str = "[\"%s\"]" % asRedirectUri
         data_org = {'redirect_uris': json.loads(redirect_str),
-                    'lifetime': 7884000,
                     'software_statement': asSSA}
         body = json.dumps(data_org)
 
-        endpointUrl = asBaseUrl + "/jans-auth/restv1/register"
+        endpointUrl = asBaseUrl + "/oxauth/restv1/register"
         headers = {"Accept" : "application/json"}
 
         try:
@@ -1149,10 +1151,10 @@ class PersonAuthentication(PersonAuthenticationType):
                     conf.setValue2(client_id)
                 elif (StringHelper.equalsIgnoreCase(conf.getValue1(), "AS_CLIENT_SECRET")):
                     conf.setValue2(client_secret)
-            custScriptService.update(customScript)    
+            custScriptService.update(customScript)
 
             print "Super-Gluu. Scan. Stored client credentials in script parameters"
-        except: 
+        except:
             print "Super-Gluu. Scan. Failed to store client credentials.", sys.exc_info()[1]
             return None
 
