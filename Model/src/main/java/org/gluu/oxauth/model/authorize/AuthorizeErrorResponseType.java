@@ -113,6 +113,18 @@ public enum AuthorizeErrorResponseType implements IErrorType {
     USER_MISMATCHED("user_mismatched"),
 
     /**
+     * "request" parameter is supported by AS. But if it's switched off in configuration by setting
+     * requestParameterSupported=false then this error is returned from authorization endpoint.
+     */
+    REQUEST_NOT_SUPPORTED("request_not_supported"),
+
+    /**
+     * "request_uri" parameter is supported by AS. But if it's switched off in configuration by setting
+     * requestUriParameterSupported=false then this error is returned from authorization endpoint.
+     */
+    REQUEST_URI_NOT_SUPPORTED("request_uri_not_supported"),
+
+    /**
      * The request_uri in the Authorization Request returns an error or invalid data.
      */
     INVALID_REQUEST_URI("invalid_request_uri"),
