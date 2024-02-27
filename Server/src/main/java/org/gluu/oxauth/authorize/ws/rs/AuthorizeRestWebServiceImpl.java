@@ -247,6 +247,9 @@ public class AuthorizeRestWebServiceImpl implements AuthorizeRestWebService {
             Set<String> scopes = scopeChecker.checkScopesPolicy(client, scope);
             boolean isPromptFromJwt = false;
 
+            authorizeRestWebServiceValidator.validateRequestParameterSupported(request, state);
+            authorizeRestWebServiceValidator.validateRequestUriParameterSupported(requestUri, state);
+
             JwtAuthorizationRequest jwtRequest = null;
             if (StringUtils.isNotBlank(request) || StringUtils.isNotBlank(requestUri)) {
                 try {
