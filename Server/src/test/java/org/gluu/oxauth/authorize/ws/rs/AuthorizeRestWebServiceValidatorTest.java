@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.WebApplicationException;
+
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -52,6 +54,48 @@ public class AuthorizeRestWebServiceValidatorTest {
 
     @Mock
     private Identity identity;
+
+    @Test
+    public void validateRequestParameterSupported_whenRequestIsEmpty_shouldPass() {
+        authorizeRestWebServiceValidator.validateRequestParameterSupported(null, "state");
+        authorizeRestWebServiceValidator.validateRequestParameterSupported("", "state");
+    }
+
+    @Test
+    public void validateRequestParameterSupported_whenRequestSupportIsSwitchedOn_shouldPass() {
+        when(appConfiguration.getRequestParameterSupported()).thenReturn(true);
+
+        authorizeRestWebServiceValidator.validateRequestParameterSupported("{\"redirect_uri\":\"https://rp.example.com\"}", "state");
+        authorizeRestWebServiceValidator.validateRequestParameterSupported(null, "state");
+        authorizeRestWebServiceValidator.validateRequestParameterSupported("", "state");
+    }
+
+    @Test(expectedExceptions = WebApplicationException.class)
+    public void validateRequestParameterSupported_whenRequestSupportIsSwitchedOff_shouldThrowException() {
+        when(appConfiguration.getRequestParameterSupported()).thenReturn(false);
+
+        authorizeRestWebServiceValidator.validateRequestParameterSupported("{\"redirect_uri\":\"https://rp.example.com\"}", "state");
+    }
+
+    @Test
+    public void validateRequestUriParameterSupported_whenRequestUriIsEmpty_shouldPass() {
+        authorizeRestWebServiceValidator.validateRequestUriParameterSupported(null, "state");
+        authorizeRestWebServiceValidator.validateRequestUriParameterSupported("", "state");
+    }
+
+    @Test
+    public void validateRequestUriParameterSupported_whenRequestUriSupportIsSwitchedOn_shouldPass() {
+        when(appConfiguration.getRequestUriParameterSupported()).thenReturn(true);
+
+        authorizeRestWebServiceValidator.validateRequestUriParameterSupported("https://rp.example.com", "state");
+    }
+
+    @Test(expectedExceptions = WebApplicationException.class)
+    public void validateRequestUriParameterSupported_whenRequestSupportIsSwitchedOff_shouldThrowException() {
+        when(appConfiguration.getRequestUriParameterSupported()).thenReturn(false);
+
+        authorizeRestWebServiceValidator.validateRequestUriParameterSupported("https://rp.example.com", "state");
+    }
 
     @Test
     public void isAuthnMaxAgeValid_whenMaxAgeIsZero_shouldReturnTrue() {

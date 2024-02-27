@@ -29,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_REQUEST;
 
 /**
@@ -275,6 +276,39 @@ public class AuthorizeRestWebServiceValidator {
         throw new WebApplicationException(Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_REDIRECT_URI, state, ""))
+                .build());
+    }
+
+    public void validateRequestParameterSupported(String request, String state) {
+        if (StringUtils.isBlank(request)) {
+            return;
+        }
+
+        if (isTrue(appConfiguration.getRequestParameterSupported())) {
+            return;
+        }
+
+        log.debug("'request' support is switched off by requestParameterSupported=false configuration property.");
+        throw new WebApplicationException(Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.REQUEST_NOT_SUPPORTED, state, "request processing is denied by AS."))
+                .build());
+
+    }
+
+    public void validateRequestUriParameterSupported(String requestUri, String state) {
+        if (StringUtils.isBlank(requestUri)) {
+            return;
+        }
+
+        if (isTrue(appConfiguration.getRequestUriParameterSupported())) {
+            return;
+        }
+
+        log.debug("'request_uri' support is switched off by requestUriParameterSupported=false configuration property.");
+        throw new WebApplicationException(Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.REQUEST_URI_NOT_SUPPORTED, state, "request_uri processing is denied by AS"))
                 .build());
     }
 }
