@@ -38,14 +38,15 @@ public class HealthCheckController {
 	public String healthCheckController() {
     	boolean isConnected = persistenceEntryManager.getOperationService().isConnected();
     	String dbStatus = isConnected ? "online" : "offline";
-        return "{\"status\": \"running\", \"db_status\":\"" + dbStatus + "\"}";
+    	String appStatus = getAppStatus();
+        return "{\"status\": \"" + appStatus + "\", \"db_status\":\"" + dbStatus + "\"}";
 	}
 
     public String getAppStatus() {
         if (externalAuthenticationService.isLoaded() && externalDynamicScopeService.isLoaded()) {
-            return "running";
+        	return "running";
         } else {
-        	retunr "starting";
+        	return "starting";
         }
     }
 }
