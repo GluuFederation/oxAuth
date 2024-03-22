@@ -220,7 +220,7 @@ public class AuthenticationService extends RequestService {
         
 		DeviceNotificationConf deviceNotificationConf = null;
 		try {
-            deviceNotificationConf = ServerUtil.jsonMapperWithUnwrapRoot().readValue(deviceNotificationConfString, DeviceNotificationConf.class);
+            deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(deviceNotificationConfString, DeviceNotificationConf.class);
         } catch (Exception ex) {
             log.error("Failed to parse device notification configuration '{}'", deviceNotificationConfString);
         }
