@@ -48,6 +48,9 @@ import org.gluu.util.StringHelper;
 import org.gluu.util.io.ByteDataInputStream;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
 /**
@@ -219,7 +222,7 @@ public class AuthenticationService extends RequestService {
 		try {
             deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(deviceNotificationConfString, DeviceNotificationConf.class);
         } catch (Exception ex) {
-            log.error("Failed to parse device notifacation configuration '{}'", deviceNotificationConfString);
+            log.error("Failed to parse device notification configuration '{}'", deviceNotificationConfString);
         }
 
 		if (deviceNotificationConf == null) {
@@ -240,6 +243,12 @@ public class AuthenticationService extends RequestService {
 		}
 		
 		snsEndpointArnHistory.add(snsEndpointArn);
+		
+		try {
+			deviceRegistration.setDeviceNotificationConf(ServerUtil.jsonMapperWithWrapRoot().writeValueAsString(deviceNotificationConf));
+		} catch (Exception ex) {
+            log.error("Failed to update device notification configuration '{}'", deviceNotificationConf);
+		}
 	}
 
 	public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
