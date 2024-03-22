@@ -35,8 +35,11 @@ import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequest;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequestMessage;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateResponse;
 import org.gluu.oxauth.model.fido.u2f.protocol.ClientData;
+import org.gluu.oxauth.model.fido.u2f.protocol.DeviceData;
+import org.gluu.oxauth.model.fido.u2f.protocol.DeviceNotificationConf;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.service.common.UserService;
+import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.reflect.property.Setter;
 import org.gluu.persist.reflect.util.ReflectHelper;
@@ -175,6 +178,22 @@ public class AuthenticationService extends RequestService {
         log.debug("Counter in finish authentication request'{}', counter in database '{}'", rawAuthenticateResponse.getCounter(), usedDeviceRegistration.getCounter());
         usedDeviceRegistration.checkAndUpdateCounter(rawAuthenticateResponse.getCounter());
 
+        String responseDeviceData = response.getDeviceData();
+        if (StringHelper.isNotEmpty(responseDeviceData)) {
+            try {
+                String responseDeviceDataDecoded = new String(Base64Util.base64urldecode(responseDeviceData));
+                DeviceData deviceData = ServerUtil.jsonMapperWithWrapRoot().readValue(responseDeviceDataDecoded, DeviceData.class);
+	            
+                boolean pushTokenUpdated = !StringHelper.equals(usedDeviceRegistration.getDeviceData().getPushToken(), deviceData.getPushToken());
+	            if (pushTokenUpdated) {
+	            	prepareForPushTokenChange(usedDeviceRegistration);
+	            }
+
+            } catch (Exception ex) {
+                throw new BadInputException(String.format("Device data is invalid: %s", responseDeviceData), ex);
+            }
+        }
+
         usedDeviceRegistration.setLastAccessTime(new Date());
 
         deviceRegistrationService.updateDeviceRegistration(userInum, usedDeviceRegistration);
@@ -190,7 +209,41 @@ public class AuthenticationService extends RequestService {
         return new DeviceRegistrationResult(usedDeviceRegistration, status);
     }
 
-    public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
+    private void prepareForPushTokenChange(DeviceRegistration deviceRegistration) {
+		String deviceNotificationConfString = deviceRegistration.getDeviceNotificationConf();
+		if (deviceNotificationConfString == null) {
+			return;
+		}
+        
+		DeviceNotificationConf deviceNotificationConf = null;
+		try {
+            String responseDeviceDataDecoded = new String(Base64Util.base64urldecode(deviceNotificationConfString));
+            deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(responseDeviceDataDecoded, DeviceNotificationConf.class);
+        } catch (Exception ex) {
+            log.error("Failed to parse device notifacation configuration '{}'", deviceNotificationConfString);
+        }
+
+		if (deviceNotificationConf == null) {
+			return;
+		}
+        
+		String snsEndpointArn = deviceNotificationConf.getSnsEndpointArn();
+		if (StringHelper.isEmpty(snsEndpointArn)) {
+			return;
+		}
+		
+		deviceNotificationConf.setSnsEndpointArn(null);
+		deviceNotificationConf.setSnsEndpointArnRemove(snsEndpointArn);
+		List<String> snsEndpointArnHistory = deviceNotificationConf.getSnsEndpointArnHistory();
+		if (snsEndpointArnHistory == null) {
+			snsEndpointArnHistory = new ArrayList<>();
+			deviceNotificationConf.setSnsEndpointArnHistory(snsEndpointArnHistory);
+		}
+		
+		snsEndpointArnHistory.add(snsEndpointArn);
+	}
+
+	public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
         if (!StringHelper.equals(requestMessage.getRequestId(), response.getRequestId())) {
             throw new BadInputException("Wrong request for response data");
         }
