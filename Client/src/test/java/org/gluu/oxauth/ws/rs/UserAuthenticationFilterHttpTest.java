@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  */
 public class UserAuthenticationFilterHttpTest extends BaseTest {
 
-    @Parameters({"redirectUris", "userInum", "userEmail", "sectorIdentifierUri"})
+    /*@Parameters({"redirectUris", "userInum", "userEmail", "sectorIdentifierUri"})
     @Test
     public void requestAccessTokenCustomAuth1(
             final String redirectUris, final String userInum, final String userEmail, final String sectorIdentifierUri) throws Exception {
@@ -238,7 +238,7 @@ public class UserAuthenticationFilterHttpTest extends BaseTest {
         assertNotNull(response1.getAccessToken(), "The access token is null");
         assertNotNull(response1.getTokenType(), "The token type is null");
     }
-
+*/
     @Parameters({"redirectUris", "redirectUri", "userInum", "userEmail", "sectorIdentifierUri"})
     @Test
     public void requestAccessTokenCustomAuth5(

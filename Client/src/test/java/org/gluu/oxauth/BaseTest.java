@@ -621,7 +621,7 @@ public abstract class BaseTest {
         waitForPageSwitch(previousURL);
 
         authorizationResponseStr = driver.getCurrentUrl();
-
+        System.out.println("authorizationRequestAndGrantAccess: driver.getPageSource():" + driver.getPageSource());
         if (!authorizationResponseStr.startsWith(authorizationRequest.getRedirectUri())) {
             navigateToAuhorizationUrl(driver, authorizationResponseStr);
             authorizationResponseStr = waitForPageSwitch(authorizationResponseStr);
