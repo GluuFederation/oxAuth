@@ -613,6 +613,7 @@ public abstract class BaseTest {
 
         String authorizationResponseStr = driver.getCurrentUrl();
         System.out.println("authorizationRequestAndGrantAccess: driver.getCurrentUrl():" + driver.getCurrentUrl());
+        System.out.println("authorizationRequestAndGrantAccess: driver.getPageSource():" + driver.getPageSource());
         WebElement allowButton = driver.findElement(By.id(authorizeFormAllowButton));
 
         final String previousURL = driver.getCurrentUrl();
