@@ -612,14 +612,15 @@ public abstract class BaseTest {
         navigateToAuhorizationUrl(driver, authorizationRequestUrl);
 
         String authorizationResponseStr = driver.getCurrentUrl();
-
+        System.out.println("authorizationRequestAndGrantAccess: driver.getCurrentUrl():" + driver.getCurrentUrl());
         WebElement allowButton = driver.findElement(By.id(authorizeFormAllowButton));
 
         final String previousURL = driver.getCurrentUrl();
+        System.out.println("authorizationRequestAndGrantAccess: previousURL:" + previousURL);
         allowButton.click();
 
         waitForPageSwitch(previousURL);
-
+        System.out.println("After wait:");
         authorizationResponseStr = driver.getCurrentUrl();
         System.out.println("authorizationRequestAndGrantAccess: driver.getPageSource():" + driver.getPageSource());
         if (!authorizationResponseStr.startsWith(authorizationRequest.getRedirectUri())) {
@@ -1035,7 +1036,9 @@ public abstract class BaseTest {
 
 	protected void navigateToAuhorizationUrl(WebDriver driver, String authorizationRequestUrl) {
 		try {
+		    System.out.println("Inside navigateToAuhorizationUrl: Before navigation");
 			driver.navigate().to(URLDecoder.decode(authorizationRequestUrl, Util.UTF8_STRING_ENCODING));
+            System.out.println("Inside navigateToAuhorizationUrl: After navigation");
 		} catch (UnsupportedEncodingException ex) {
             fail("Failed to decode the authorization URL.");
 		}
