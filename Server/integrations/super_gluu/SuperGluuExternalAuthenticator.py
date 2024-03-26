@@ -907,10 +907,9 @@ class PersonAuthentication(PersonAuthenticationType):
         notificationConfJson = {}
         if StringHelper.isNotEmpty(notificationConf):
             notificationConfJson = json.loads(notificationConf)
-            targetEndpointArn = notificationConfJson['sns_endpoint_arn']
-            if StringHelper.isNotEmpty(targetEndpointArn):
+            if 'sns_endpoint_arn' in notificationConfJson:
                 print "Super-Gluu. Get target endpoint ARN. There is already created target endpoint ARN"
-                return targetEndpointArn
+                return notificationConfJson['sns_endpoint_arn']
 
         # Create endpoint ARN        
         pushClient = None
