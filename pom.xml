@@ -107,7 +107,7 @@
             <dependency>
                 <groupId>org.gluu</groupId>
                 <artifactId>gluu-core-bom</artifactId>
-                <version>4.5.3.sp1</version>
+                <version>4.5.3.Final</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
