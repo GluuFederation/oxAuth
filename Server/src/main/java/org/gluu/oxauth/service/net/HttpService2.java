@@ -21,7 +21,7 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan Date: 04/10/2023
  */
 @ApplicationScoped
-public class HttpService2 extends org.gluu.net.HttpServiceUtility implements Serializable {
+public class HttpService2 implements Serializable {
 
 	private static final long serialVersionUID = -2398422090669045605L;
 
