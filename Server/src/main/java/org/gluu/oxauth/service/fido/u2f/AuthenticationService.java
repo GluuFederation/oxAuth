@@ -48,6 +48,9 @@ import org.gluu.util.StringHelper;
 import org.gluu.util.io.ByteDataInputStream;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
 /**
@@ -188,7 +191,7 @@ public class AuthenticationService extends RequestService {
 	            if (pushTokenUpdated) {
 	            	prepareForPushTokenChange(usedDeviceRegistration);
 	            }
-
+            	usedDeviceRegistration.setDeviceData(deviceData);
             } catch (Exception ex) {
                 throw new BadInputException(String.format("Device data is invalid: %s", responseDeviceData), ex);
             }
@@ -217,10 +220,9 @@ public class AuthenticationService extends RequestService {
         
 		DeviceNotificationConf deviceNotificationConf = null;
 		try {
-            String responseDeviceDataDecoded = new String(Base64Util.base64urldecode(deviceNotificationConfString));
-            deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(responseDeviceDataDecoded, DeviceNotificationConf.class);
+            deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(deviceNotificationConfString, DeviceNotificationConf.class);
         } catch (Exception ex) {
-            log.error("Failed to parse device notifacation configuration '{}'", deviceNotificationConfString);
+            log.error("Failed to parse device notification configuration '{}'", deviceNotificationConfString);
         }
 
 		if (deviceNotificationConf == null) {
@@ -241,6 +243,12 @@ public class AuthenticationService extends RequestService {
 		}
 		
 		snsEndpointArnHistory.add(snsEndpointArn);
+		
+		try {
+			deviceRegistration.setDeviceNotificationConf(ServerUtil.jsonMapperWithUnwrapRoot().writeValueAsString(deviceNotificationConf));
+		} catch (Exception ex) {
+            log.error("Failed to update device notification configuration '{}'", deviceNotificationConf);
+		}
 	}
 
 	public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
