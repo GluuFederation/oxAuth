@@ -6,8 +6,6 @@ package org.gluu.oxauth.service.net;
  * Copyright (c) 2014, Gluu
  */
 
-package org.gluu.oxauth.service.net;
-
 import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
