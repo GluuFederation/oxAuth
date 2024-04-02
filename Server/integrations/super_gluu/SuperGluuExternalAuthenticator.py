@@ -904,12 +904,12 @@ class PersonAuthentication(PersonAuthenticationType):
                              
         # Return endpoint ARN if it created already
         notificationConf = u2fDevice.getDeviceNotificationConf()
+        notificationConfJson = {}
         if StringHelper.isNotEmpty(notificationConf):
             notificationConfJson = json.loads(notificationConf)
-            targetEndpointArn = notificationConfJson['sns_endpoint_arn']
-            if StringHelper.isNotEmpty(targetEndpointArn):
+            if 'sns_endpoint_arn' in notificationConfJson:
                 print "Super-Gluu. Get target endpoint ARN. There is already created target endpoint ARN"
-                return targetEndpointArn
+                return notificationConfJson['sns_endpoint_arn']
 
         # Create endpoint ARN        
         pushClient = None
@@ -950,9 +950,10 @@ class PersonAuthentication(PersonAuthenticationType):
         print "Super-Gluu. Get target endpoint ARN. Create target endpoint ARN '%s' for user: '%s'" % (targetEndpointArn, user.getUserId())
         
         # Store created endpoint ARN in device entry
+        notificationConfJson['sns_endpoint_arn'] = targetEndpointArn
         userInum = user.getAttribute("inum")
         u2fDeviceUpdate = deviceRegistrationService.findUserDeviceRegistration(userInum, u2fDevice.getId())
-        u2fDeviceUpdate.setDeviceNotificationConf('{"sns_endpoint_arn" : "%s"}' % targetEndpointArn)
+        u2fDeviceUpdate.setDeviceNotificationConf(json.dumps(notificationConfJson))
         deviceRegistrationService.updateDeviceRegistration(userInum, u2fDeviceUpdate)
 
         return targetEndpointArn

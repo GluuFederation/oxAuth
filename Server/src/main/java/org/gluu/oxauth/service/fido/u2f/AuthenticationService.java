@@ -191,7 +191,7 @@ public class AuthenticationService extends RequestService {
 	            if (pushTokenUpdated) {
 	            	prepareForPushTokenChange(usedDeviceRegistration);
 	            }
-
+            	usedDeviceRegistration.setDeviceData(deviceData);
             } catch (Exception ex) {
                 throw new BadInputException(String.format("Device data is invalid: %s", responseDeviceData), ex);
             }
