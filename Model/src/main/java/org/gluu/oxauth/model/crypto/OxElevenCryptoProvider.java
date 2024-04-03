@@ -11,9 +11,17 @@ import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwk.Algorithm;
 import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxeleven.client.*;
+import org.gluu.oxeleven.model.JwksRequestParam;
+import org.gluu.oxeleven.model.KeyRequestParam;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.util.ArrayList;
+
+import static org.gluu.oxauth.model.jwk.JWKParameter.*;
 
 /**
  * @author Javier Rojas Blum
@@ -104,8 +112,36 @@ public class OxElevenCryptoProvider extends AbstractCryptoProvider {
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response.isVerified();
         } else {
-            throw new Exception(response.getEntity());
+            throw new SignatureException(response.getEntity());
         }
+    }
+
+    private static JwksRequestParam getJwksRequestParam(JSONObject jwksJsonObject) throws JSONException {
+        JwksRequestParam jwks = new JwksRequestParam();
+        jwks.setKeyRequestParams(new ArrayList<>());
+
+        JSONArray keys = jwksJsonObject.getJSONArray(JSON_WEB_KEY_SET);
+        for (int i = 0; i < keys.length(); i++) {
+            jwks.getKeyRequestParams().add(mapToKeyRequestParam(keys.getJSONObject(i)));
+        }
+
+        return jwks;
+    }
+
+    private static KeyRequestParam mapToKeyRequestParam(JSONObject jwk) {
+        KeyRequestParam key = new KeyRequestParam();
+        key.setAlg(jwk.getString(ALGORITHM));
+        key.setKid(jwk.getString(KEY_ID));
+        key.setUse(jwk.getString(KEY_USE));
+        key.setKty(jwk.getString(KEY_TYPE));
+
+        key.setN(jwk.optString(MODULUS));
+        key.setE(jwk.optString(EXPONENT));
+
+        key.setCrv(jwk.optString(CURVE));
+        key.setX(jwk.optString(X));
+        key.setY(jwk.optString(Y));
+        return key;
     }
 
     @Override
