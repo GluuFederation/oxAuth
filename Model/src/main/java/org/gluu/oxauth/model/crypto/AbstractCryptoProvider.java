@@ -16,10 +16,7 @@ import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxeleven.model.JwksRequestParam;
-import org.gluu.oxeleven.model.KeyRequestParam;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
@@ -76,28 +73,6 @@ public abstract class AbstractCryptoProvider {
         }
 
         return null;
-    }
-
-    public JwksRequestParam getJwksRequestParam(JSONObject jwkJsonObject) throws JSONException {
-        JwksRequestParam jwks = new JwksRequestParam();
-        jwks.setKeyRequestParams(new ArrayList<>());
-
-        KeyRequestParam key = new KeyRequestParam();
-        key.setAlg(jwkJsonObject.getString(ALGORITHM));
-        key.setKid(jwkJsonObject.getString(KEY_ID));
-        key.setUse(jwkJsonObject.getString(KEY_USE));
-        key.setKty(jwkJsonObject.getString(KEY_TYPE));
-
-        key.setN(jwkJsonObject.optString(MODULUS));
-        key.setE(jwkJsonObject.optString(EXPONENT));
-
-        key.setCrv(jwkJsonObject.optString(CURVE));
-        key.setX(jwkJsonObject.optString(X));
-        key.setY(jwkJsonObject.optString(Y));
-
-        jwks.getKeyRequestParams().add(key);
-
-        return jwks;
     }
 
     public static JSONObject generateJwks(AbstractCryptoProvider cryptoProvider, AppConfiguration configuration) {
