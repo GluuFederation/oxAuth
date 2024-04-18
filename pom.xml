@@ -342,12 +342,6 @@
 				<version>${activemq.version}</version>
 			</dependency>
 
-			<!-- AWS SNS -->
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-sns</artifactId>
-			</dependency>
-
 			<!-- Other -->
 			<dependency>
 				<groupId>net.sf.ehcache</groupId>
