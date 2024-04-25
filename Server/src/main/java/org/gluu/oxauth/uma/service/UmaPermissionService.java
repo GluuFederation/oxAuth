@@ -147,10 +147,13 @@ public class UmaPermissionService {
     }
 
     public void addBranch(String clientDn) {
-        final SimpleBranch branch = new SimpleBranch();
-        branch.setOrganizationalUnitName(ORGUNIT_OF_RESOURCE_PERMISSION);
-        branch.setDn(getBranchDn(clientDn));
-        ldapEntryManager.persist(branch);
+    	String branchDn = getBranchDn(clientDn);
+        if (!containsBranch(branchDn)) {
+        	final SimpleBranch branch = new SimpleBranch();
+	        branch.setOrganizationalUnitName(ORGUNIT_OF_RESOURCE_PERMISSION);
+	        branch.setDn(branchDn);
+	        ldapEntryManager.persist(branch);
+        }
     }
 
     public void addBranchIfNeeded(String clientDn) {
