@@ -12,7 +12,13 @@ package org.gluu.oxauth.model.jwt;
  */
 public enum JwtType {
 
-    JWT;
+    JWT("JWT");
+
+    private final String paramName;
+
+    JwtType(String paramName) {
+        this.paramName = paramName;
+    }
 
     /**
      * Returns the corresponding {@link JwtType} for a parameter.
@@ -29,5 +35,14 @@ public enum JwtType {
             }
         }
         return null;
+    }
+
+    public String getParamName() {
+        return paramName;
+    }
+
+    @Override
+    public String toString() {
+        return paramName;
     }
 }
