@@ -5,7 +5,6 @@
 #
 
 from com.google.android.gcm.server import Sender, Message
-from com.notnoop.apns import APNS
 from java.util import Arrays
 from org.apache.http.params import CoreConnectionPNames
 from org.apache.http.entity import ContentType
