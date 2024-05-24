@@ -12,6 +12,9 @@ This script integrate basic_multi_auth ( https://github.com/GluuFederation/oxAut
      - `JAVA_OPTIONS="-server -Xms128m -Xmx846m -XX:+DisableExplicitGC -Dgluu.base=/etc/gluu -Dserver.base=/opt/gluu/jetty/casa -Dlog.base=/opt/gluu/jetty/casa -Dadmin.lock=/opt/gluu/jetty/casa/.administrable"`
    - Restart oxauth, identity and casa service
  - Use attached script in Person Authentication Script. 
+   - in "Custom Property" use this value: 
+      - `auth_configuration_file` == `/etc/certs/multi_auth_conf.json`
+   
 
 ## If SuperGluu....
 
