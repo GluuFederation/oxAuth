@@ -5,7 +5,7 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxauth</artifactId>
 	<packaging>pom</packaging>
-	<version>4.4.0.Final</version>
+	<version>4.4.0.sp1</version>
 	<name>oxAuth</name>
 	<url>https://www.gluu.org</url>
 
@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>4.4.0.Final</oxcore.version>
+		<oxcore.version>4.4.0.sp1</oxcore.version>
 		<oxeleven.version>4.4.0.Final</oxeleven.version>
 		<oxnotify.version>4.4.0.Final</oxnotify.version>
 		<oxlicense.version>4.4.0.Final</oxlicense.version>
@@ -209,6 +209,11 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>oxcore-server</artifactId>
+				<version>${oxcore.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.gluu</groupId>
+				<artifactId>oxcore-script</artifactId>
 				<version>${oxcore.version}</version>
 			</dependency>
 			<dependency>
