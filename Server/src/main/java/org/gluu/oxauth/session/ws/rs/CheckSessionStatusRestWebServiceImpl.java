@@ -7,7 +7,8 @@
 package org.gluu.oxauth.session.ws.rs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gluu.oxauth.model.common.SessionId;
+
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.CookieService;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.util.ServerUtil;

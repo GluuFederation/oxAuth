@@ -17,8 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.gluu.oxauth.model.common.CacheGrant;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.common.User;
 
 import com.google.common.collect.Lists;

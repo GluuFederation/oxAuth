@@ -1,4 +1,4 @@
-package org.gluu.oxauth.model.common;
+package org.gluu.oxauth.model.session;
 
 import java.util.HashMap;
 import java.util.Map;

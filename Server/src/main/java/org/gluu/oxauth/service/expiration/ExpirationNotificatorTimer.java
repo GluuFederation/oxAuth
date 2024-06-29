@@ -3,9 +3,10 @@ package org.gluu.oxauth.service.expiration;
 import net.jodah.expiringmap.ExpirationListener;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
-import org.gluu.oxauth.model.common.SessionId;
+
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.cdi.event.ExpirationEvent;
 import org.gluu.oxauth.service.external.ExternalApplicationSessionService;
 import org.gluu.oxauth.service.external.session.SessionEvent;

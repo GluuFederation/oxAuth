@@ -20,6 +20,7 @@ import org.gluu.oxauth.model.crypto.binding.TokenBindingMessage;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionClient;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.token.JwrService;
 import org.gluu.oxauth.model.token.TokenErrorResponseType;

@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.jsf2.service.FacesService;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.User;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.CookieService;
 import org.gluu.oxauth.service.RequestParameterService;

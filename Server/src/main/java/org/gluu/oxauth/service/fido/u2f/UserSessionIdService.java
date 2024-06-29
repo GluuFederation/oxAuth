@@ -11,9 +11,9 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.gluu.oxauth.model.common.SessionId;
-import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistrationResult;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.ws.rs.fido.u2f.U2fAuthenticationWS;
 import org.gluu.util.StringHelper;

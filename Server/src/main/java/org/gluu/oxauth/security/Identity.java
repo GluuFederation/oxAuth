@@ -12,8 +12,8 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 import javax.interceptor.Interceptor;
 
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.session.SessionClient;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.common.User;
 
 /**

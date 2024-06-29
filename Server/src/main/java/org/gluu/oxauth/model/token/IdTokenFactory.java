@@ -22,6 +22,7 @@ import org.gluu.oxauth.model.exception.InvalidClaimException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.jwt.JwtSubClaimObject;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.AttributeService;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;

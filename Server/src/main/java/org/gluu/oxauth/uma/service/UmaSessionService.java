@@ -7,9 +7,9 @@
 package org.gluu.oxauth.uma.service;
 
 import org.apache.commons.lang.StringUtils;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;

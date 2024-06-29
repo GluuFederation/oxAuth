@@ -8,9 +8,9 @@ package org.gluu.oxauth.uma.ws.rs;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.uma.UmaConstants;
 import org.gluu.oxauth.model.uma.UmaErrorResponseType;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;

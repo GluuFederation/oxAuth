@@ -12,13 +12,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
-import org.gluu.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistrationStatus;
 import org.gluu.persist.model.base.CustomEntry;
 import org.gluu.persist.model.base.SimpleBranch;
+import org.gluu.persist.model.fido2.Fido2RegistrationEntry;
 import org.gluu.search.filter.Filter;
 import org.gluu.service.net.NetworkService;
 import org.gluu.util.StringHelper;

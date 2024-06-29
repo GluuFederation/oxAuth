@@ -4,11 +4,12 @@
  * Copyright (c) 2014, Gluu
  */
 
-package org.gluu.oxauth.model.common;
+package org.gluu.oxauth.model.session;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.common.User;
 import org.gluu.persist.annotation.*;
 import org.gluu.persist.model.base.Deletable;
 
@@ -24,7 +25,6 @@ import java.util.UUID;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.util.StringUtils.implode;
 import static org.gluu.oxauth.model.util.StringUtils.spaceSeparatedToList;
-import static org.gluu.oxauth.service.SessionIdService.OP_BROWSER_STATE;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -37,6 +37,7 @@ import static org.gluu.oxauth.service.SessionIdService.OP_BROWSER_STATE;
 public class SessionId implements Deletable, Serializable {
 
     public static final String OLD_SESSION_ID_ATTR_KEY = "old_session_id";
+    public static final String OP_BROWSER_STATE = "opbs";
 
     private static final long serialVersionUID = -237476411915686378L;
 

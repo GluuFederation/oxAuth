@@ -2,10 +2,10 @@ package org.gluu.oxauth.service;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gluu.oxauth.model.common.SessionId;
-import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.config.ConfigurationFactory;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.service.cdi.util.CdiUtil;
 import org.json.JSONArray;
