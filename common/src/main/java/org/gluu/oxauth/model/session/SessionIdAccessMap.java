@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package org.gluu.oxauth.model.common;
+package org.gluu.oxauth.model.session;
 
 import com.google.common.collect.Sets;
 

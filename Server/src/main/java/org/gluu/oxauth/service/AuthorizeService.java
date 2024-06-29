@@ -20,6 +20,7 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.util.RedirectUri;

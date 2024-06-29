@@ -1,13 +1,13 @@
 package org.gluu.oxauth.revoke;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.gluu.oxauth.model.common.SessionId;
-import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
 import org.gluu.oxauth.model.session.SessionClient;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;

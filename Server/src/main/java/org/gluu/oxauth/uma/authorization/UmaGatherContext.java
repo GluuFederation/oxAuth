@@ -15,11 +15,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.SimpleCustomProperty;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.jwt.JwtClaims;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.service.external.context.ExternalScriptContext;

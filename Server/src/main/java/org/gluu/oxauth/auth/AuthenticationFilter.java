@@ -19,6 +19,8 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.ClientAssertion;
 import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.token.HttpAuthTokenType;

@@ -7,8 +7,8 @@
 package org.gluu.oxauth.comp;
 
 import org.gluu.oxauth.BaseComponentTest;
-import org.gluu.oxauth.model.common.SessionId;
-import org.gluu.oxauth.model.common.SessionIdState;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.service.common.UserService;
 import org.testng.Assert;

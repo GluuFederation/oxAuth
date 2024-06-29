@@ -8,6 +8,7 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalApplicationSessionService;
 import org.gluu.oxauth.service.external.ExternalEndSessionService;

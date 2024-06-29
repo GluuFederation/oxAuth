@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.gluu.model.error.ErrorMessage;
+
 
 /**
  * Represents an error message list in a configuration XML file.

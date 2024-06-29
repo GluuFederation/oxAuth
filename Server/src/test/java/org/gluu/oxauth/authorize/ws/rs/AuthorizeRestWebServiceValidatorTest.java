@@ -1,9 +1,9 @@
 package org.gluu.oxauth.authorize.ws.rs;
 
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.DeviceAuthorizationService;

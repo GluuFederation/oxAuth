@@ -10,7 +10,7 @@ import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.model.custom.script.type.session.ApplicationSessionType;
-import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.service.custom.script.ExternalScriptService;
 

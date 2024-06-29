@@ -6,6 +6,7 @@
 
 package org.gluu.oxauth.model.error;
 
+import org.gluu.model.error.ErrorMessage;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType;
 import org.gluu.oxauth.model.clientinfo.ClientInfoErrorResponseType;

@@ -6,12 +6,12 @@
 
 package org.gluu.oxauth.dev;
 
-import org.gluu.oxauth.model.error.ErrorMessage;
 import org.gluu.oxauth.model.error.ErrorMessages;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.util.ServerUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.gluu.model.error.ErrorMessage;
 import org.gluu.oxauth.model.config.BaseDnConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 

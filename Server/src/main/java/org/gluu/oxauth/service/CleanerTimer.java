@@ -21,7 +21,6 @@ import javax.inject.Named;
 
 import org.gluu.model.ApplicationType;
 import org.gluu.model.metric.ldap.MetricEntry;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistration;
@@ -29,6 +28,7 @@ import org.gluu.oxauth.model.fido.u2f.RegisterRequestMessageLdap;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.uma.persistence.UmaResource;
 import org.gluu.oxauth.service.fido.u2f.RequestService;
 import org.gluu.oxauth.uma.authorization.UmaPCT;

@@ -30,6 +30,8 @@ import org.gluu.oxauth.model.exception.InvalidSessionStateException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
+import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.gluu.oxauth.model.token.JwrService;
 import org.gluu.oxauth.model.util.Util;

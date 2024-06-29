@@ -1,8 +1,8 @@
 package org.gluu.oxauth.service.external.context;
 
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
-import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.session.SessionId;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
