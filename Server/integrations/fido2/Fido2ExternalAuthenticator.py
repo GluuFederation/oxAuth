@@ -16,13 +16,13 @@ from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.util import StringHelper
 from java.util import Arrays
 from java.util.concurrent.locks import ReentrantLock
+from javax.ws.rs import ClientErrorException
+from javax.ws.rs.core import Response
+from javax.faces.context import FacesContext
 
 import java
 import sys
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
@@ -43,9 +43,9 @@ class PersonAuthentication(PersonAuthenticationType):
 
         self.metaDataLoaderLock = ReentrantLock()
         self.metaDataConfiguration = None
-        
+
         print "Fido2. Initialized successfully"
-        return True   
+        return True
 
     def destroy(self, configurationAttributes):
         print "Fido2. Destroy"
@@ -54,10 +54,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getApiVersion(self):
         return 11
-        
-    def getAuthenticationMethodClaims(self, requestParameters):
-        return None
-        
+
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
 
@@ -74,9 +71,8 @@ class PersonAuthentication(PersonAuthenticationType):
 
         if step == 1:
             print "Fido2. Authenticate for step 1"
-
             identity.setWorkingParameter("platformAuthenticatorAvailable",ServerUtil.getFirstValue(requestParameters, "loginForm:platformAuthenticator"))
-            
+
             user_password = credentials.getPassword()
             logged_in = False
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
@@ -89,7 +85,7 @@ class PersonAuthentication(PersonAuthenticationType):
             return True
         elif step == 2:
             print "Fido2. Authenticate for step 2"
-            
+
             token_response = ServerUtil.getFirstValue(requestParameters, "tokenResponse")
             if token_response == None:
                 print "Fido2. Authenticate for step 2. tokenResponse is empty"
@@ -132,7 +128,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 return False
 
             return False
-        else:
+        else: 
             return False
 
     def prepareForStep(self, configurationAttributes, requestParameters, step):
@@ -157,14 +153,18 @@ class PersonAuthentication(PersonAuthenticationType):
             userName = user.getUserId()
 
             metaDataConfiguration = self.getMetaDataConfiguration()
-            
+
             assertionResponse = None
             attestationResponse = None
 
+            facesContext = CdiUtil.bean(FacesContext)
+            domain = facesContext.getExternalContext().getRequest().getServerName()
+            
+            
             # Check if user have registered devices
-            userService = CdiUtil.bean(UserService)
-            countFido2Devices = userService.countFidoAndFido2Devices(userName, self.fido2_domain)
-            if countFido2Devices > 0:
+            count = CdiUtil.bean(UserService).countFido2RegisteredDevices(userName, domain)
+
+            if count > 0:
                 print "Fido2. Prepare for step 2. Call Fido2 endpoint in order to start assertion flow"
 
                 try:
@@ -176,6 +176,7 @@ class PersonAuthentication(PersonAuthenticationType):
                         identity.setWorkingParameter("platformAuthenticatorAvailable", "true")
                     else:
                         identity.setWorkingParameter("platformAuthenticatorAvailable", "false")
+
                 except ClientErrorException, ex:
                     print "Fido2. Prepare for step 2. Failed to start assertion flow. Exception:", sys.exc_info()[1]
                     return False
@@ -184,18 +185,17 @@ class PersonAuthentication(PersonAuthenticationType):
 
                 try:
                     attestationService = Fido2ClientFactory.instance().createAttestationService(metaDataConfiguration)
-                    
                     platformAuthenticatorAvailable = identity.getWorkingParameter("platformAuthenticatorAvailable") == "true"
                     basic_json = {'username': userName, 'displayName': userName, 'attestation' : 'direct'}
                     print "% s" % identity.getWorkingParameter("platformAuthenticatorAvailable")
                     if platformAuthenticatorAvailable is True:
-                       # the reason behind userVerification = discouraged  --> https://chromium.googlesource.com/chromium/src/+/master/content/browser/webauth/uv_preferred.md 
+                       # the reason behind userVerification = discouraged  --> https://chromium.googlesource.com/chromium/src/+/master/content/browser/webauth/uv_preferred.md
                        platform_json = {"authenticatorSelection":{"authenticatorAttachment":"platform","requireResidentKey" : "false", "userVerification" : "discouraged" } }
                        basic_json.update(platform_json)
-                       
+
                        # also need to add this --> excludeCredentials : [//registered ids]
                     print " basic_json %s" % basic_json
-                    
+
                     attestationRequest = json.dumps(basic_json)
                     #, separators=(',', ':'))
 
@@ -241,28 +241,26 @@ class PersonAuthentication(PersonAuthenticationType):
 
     def getAuthenticationMethodClaims(self, requestParameters):
         return None
-        
+
     def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
         print "Get external logout URL call"
-        return None    
-        
-        
+        return None
+
     def getMetaDataConfiguration(self):
         if self.metaDataConfiguration != None:
             return self.metaDataConfiguration
-        
+
         self.metaDataLoaderLock.lock()
-        # Make sure that another thread not loaded configuration already          
+        # Make sure that another thread not loaded configuration already
         if self.metaDataConfiguration != None:
             return self.metaDataConfiguration
 
         try:
             print "Fido2. Initialization. Downloading Fido2 metadata"
             self.fido2_server_metadata_uri = self.fido2_server_uri + "/.well-known/fido2-configuration"
-            #self.fido2_server_metadata_uri = self.fido2_server_uri + "/fido2/restv1/fido2/configuration"
 
             metaDataConfigurationService = Fido2ClientFactory.instance().createMetaDataConfigurationService(self.fido2_server_metadata_uri)
-    
+
             max_attempts = 10
             for attempt in range(1, max_attempts + 1):
                 try:
@@ -272,9 +270,8 @@ class PersonAuthentication(PersonAuthenticationType):
                     # Detect if last try or we still get Service Unavailable HTTP error
                     if (attempt == max_attempts) or (ex.getResponse().getResponseStatus() != Response.Status.SERVICE_UNAVAILABLE):
                         raise ex
-    
+
                     java.lang.Thread.sleep(3000)
                     print "Attempting to load metadata: %d" % attempt
         finally:
             self.metaDataLoaderLock.unlock()
-            

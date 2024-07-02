@@ -53,7 +53,8 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
 		return staticConfiguration.getBaseDn().getPeople();
 	}
 
-    public long countFido2RegisteredDevices(String username) {
+
+    public long countFido2RegisteredDevices(String username, String domain) {
         String userInum = getUserInum(username);
         if (userInum == null) {
             return 0;
@@ -61,52 +62,18 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
 
         String baseDn = getBaseDnForFido2RegistrationEntries(userInum);
         if (persistenceEntryManager.hasBranchesSupport(baseDn)) {
-        	if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
+            if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
                 return 0;
-        	}
+            }
         }
 
         Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
         Filter registeredFilter = Filter.createEqualityFilter("oxStatus", "registered");
-        Filter filter = Filter.createANDFilter(userInumFilter, registeredFilter);
+        Filter domainFilter = Filter.createEqualityFilter("oxApplication", domain);
+        Filter filter = Filter.createANDFilter(userInumFilter, registeredFilter, domainFilter);
 
-        long countEntries = persistenceEntryManager.countEntries(baseDn, Fido2RegistrationEntry.class, filter);
-
-        return countEntries;
+        return persistenceEntryManager.countEntries(baseDn, Fido2RegistrationEntry.class, filter);
     }
-
-	public long countFidoRegisteredDevices(String username, String domain) {
-        String userInum = getUserInum(username);
-        if (userInum == null) {
-            return 0;
-        }
-
-        String baseDn = getBaseDnForFidoDevices(userInum);
-        if (persistenceEntryManager.hasBranchesSupport(baseDn)) {
-        	if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
-                return 0;
-        	}
-        }
-
-    	Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
-        Filter activeFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
-        Filter filter = Filter.createANDFilter(userInumFilter, activeFilter);
-
-		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, filter);
-		if (StringUtils.isEmpty(domain)) {
-			return fidoRegistrations.size();
-		}
-
-		long deviceCount = fidoRegistrations.parallelStream()
-                .filter(f -> StringHelper.equals(domain, networkService.getHost(f.getApplication()))).count();
-
-		return deviceCount;
-	}
-	
-	public long countFidoAndFido2Devices(String username, String domain) {
-		return countFidoRegisteredDevices(username, domain) + countFido2RegisteredDevices(username);
-	}
-
 
     public String getBaseDnForFido2RegistrationEntries(String userInum) {
         final String userBaseDn = getDnForUser(userInum); // "ou=fido2_register,inum=1234,ou=people,o=gluu"
