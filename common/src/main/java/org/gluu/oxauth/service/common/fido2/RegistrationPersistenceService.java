@@ -176,7 +176,7 @@ public abstract class RegistrationPersistenceService {
         if (StringHelper.isEmpty(jsId)) {
             return baseDn;
         }
-        return String.format("jansId=%s,%s", jsId, baseDn);
+        return String.format("oxId=%s,%s", jsId, baseDn);
     }
 
     public String getBaseDnForFido2RegistrationEntries(String userInum) {
