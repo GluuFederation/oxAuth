@@ -117,7 +117,7 @@ public abstract class RegistrationPersistenceService {
         Filter registeredFilter = Filter.createEqualityFilter("jansStatus", Fido2RegistrationStatus.registered.getValue());
         Filter filter = null;
         if (StringHelper.isNotEmpty(rpId)) {
-        	Filter appIdFilter = Filter.createEqualityFilter("jansApp", rpId);
+        	Filter appIdFilter = Filter.createEqualityFilter("oxApplication", rpId);
         	filter = Filter.createANDFilter(userInumFilter, registeredFilter, appIdFilter);
         }
         else
