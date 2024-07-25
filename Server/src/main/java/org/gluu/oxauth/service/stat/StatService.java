@@ -76,11 +76,11 @@ public class StatService {
 
             final Date now = new Date();
             prepareMonthlyBranch(now);
-            log.trace("Monthly branch created: " + monthlyDn);
+            log.info("Monthly branch created: {}", monthlyDn);
 
             setupCurrentEntry(now);
-            log.info("Initialized Stat Service");
             initialized = true;
+            log.info("Initialized Stat Service");
             return true;
         } catch (Exception e) {
             log.error("Failed to initialize Stat Service.", e);
@@ -89,6 +89,8 @@ public class StatService {
     }
 
     public void updateStat() {
+        log.trace("updateStat ...  (initialized: {})", initialized);
+
         if (!initialized) {
             return;
         }
@@ -107,6 +109,8 @@ public class StatService {
         synchronized (hll) {
             currentEntry.setUserHllData(Base64.getEncoder().encodeToString(hll.toBytes()));
         }
+
+        log.trace("Updating entry dn {}", currentEntry.getDn());
         entryManager.merge(currentEntry);
 
         log.trace("Finished updateStat.");
@@ -119,6 +123,7 @@ public class StatService {
     private void setupCurrentEntry(Date now) {
         final String month = PERIOD_DATE_FORMAT.format(now);
         String dn = String.format("jansId=%s,%s", nodeId, monthlyDn); // jansId=<id>,ou=yyyyMM,ou=stat,o=gluu
+        log.trace("Stat entry dn: {}", dn);
 
         if (currentEntry != null && month.equals(currentEntry.getStat().getMonth())) {
             return;
@@ -130,12 +135,16 @@ public class StatService {
                 hll = HLL.fromBytes(Base64.getDecoder().decode(entryFromPersistence.getUserHllData()));
                 tokenCounters = new ConcurrentHashMap<>(entryFromPersistence.getStat().getTokenCountPerGrantType());
                 currentEntry = entryFromPersistence;
-                log.trace("Stat entry loaded.");
+                log.trace("Stat entry {} loaded.", dn);
                 return;
+            } else {
+                log.trace("Month does not match. Current month {}, entry month {}, entry dn: {}", month, entryFromPersistence != null ? entryFromPersistence.getStat().getMonth() : "", dn);
             }
         } catch (EntryPersistenceException e) {
-            log.trace("Stat entry is not found in persistence.");
+            log.trace("Stat entry is not found in persistence. dn: " + dn, e);
         }
+
+        log.trace("Current entry before nullity check, dn {}", currentEntry != null ? currentEntry.getDn() : "null");
 
         if (currentEntry == null) {
             log.trace("Creating stat entry ...");
@@ -150,6 +159,8 @@ public class StatService {
             entryManager.persist(currentEntry);
             log.trace("Created stat entry. nodeId:" + nodeId);
         }
+
+        log.trace("Current entry dn {}", currentEntry != null ? currentEntry.getDn() : "null");
     }
 
     public HLL newHll() {
@@ -162,7 +173,7 @@ public class StatService {
         }
 
         try {
-            nodeId = InetAddressUtility.getMACAddressOrNull();
+            nodeId = InetAddressUtility.getMACAddressOrNull() + "_" + monthString();
             if (StringUtils.isNotBlank(nodeId)) {
                 log.trace("NodeId created: " + nodeId);
                 return;
@@ -173,7 +184,12 @@ public class StatService {
         } catch (Exception e) {
             log.error("Failed to identify nodeId.", e);
             nodeId = UUID.randomUUID().toString();
+            log.trace("NodeId created: " + nodeId);
         }
+    }
+
+    public String monthString() {
+        return PERIOD_DATE_FORMAT.format(new Date()); // yyyyMM
     }
 
     public String getNodeId() {
