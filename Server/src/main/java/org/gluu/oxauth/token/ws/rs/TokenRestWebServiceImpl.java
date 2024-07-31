@@ -8,6 +8,7 @@ package org.gluu.oxauth.token.ws.rs;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.model.audit.Action;
@@ -18,6 +19,7 @@ import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.binding.TokenBindingMessage;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
+import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionClient;
 import org.gluu.oxauth.model.session.SessionId;
@@ -52,6 +54,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
 
@@ -112,9 +115,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     @Inject
     private DeviceAuthorizationService deviceAuthorizationService;
-    
+
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
+
+    private final ConcurrentMap<String, String> refreshTokenLocalLock = Maps.newConcurrentMap();
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -234,7 +239,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         }
                         return null;
                     };
-                    
+
                     ExternalUpdateTokenContext context = ExternalUpdateTokenContext.of(executionContext);
                     Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
@@ -305,8 +310,10 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor, executionContext);
                 }
 
-                if (reToken != null && refreshToken != null) {
-                    grantService.removeByCode(refreshToken); // remove refresh token after access token and id_token is created.
+                TokenLdap lockedRefreshToken = lockRefreshToken(refreshToken);
+                if (lockedRefreshToken == null) {
+                    log.trace("Failed to lock refresh token {}", refreshToken);
+                    return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Failed to lock refresh token."), oAuth2AuditLog);
                 }
 
                 builder.entity(getJSonResponse(accToken,
@@ -551,6 +558,29 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         }
 
         return response(builder, oAuth2AuditLog);
+    }
+
+    private TokenLdap lockRefreshToken(String refreshTokenCode) {
+        try {
+            synchronized (refreshTokenLocalLock) {
+                if (refreshTokenLocalLock.containsKey(refreshTokenCode)) {
+                    log.trace("Refresh token is already used by another request. Refresh token  code: {}", refreshTokenCode);
+                    return null;
+                }
+
+                refreshTokenLocalLock.put(refreshTokenCode, refreshTokenCode);
+
+                final TokenLdap token = grantService.getGrantByCode(refreshTokenCode);
+                grantService.remove(token);
+                return token;
+            }
+        } catch (Exception e) {
+            // ignore
+            log.trace(e.getMessage(), e);
+        } finally {
+            refreshTokenLocalLock.remove(refreshTokenCode);
+        }
+        return null;
     }
 
     private void checkUser(AuthorizationGrant authorizationGrant, OAuth2AuditLog oAuth2AuditLog) {
