@@ -278,12 +278,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
                 }
 
-                TokenLdap lockedRefreshToken = lockRefreshToken(refreshToken);
-                if (lockedRefreshToken == null) {
-                    log.trace("Failed to lock refresh token {}", refreshToken);
-                    return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Failed to lock refresh token."), oAuth2AuditLog);
-                }
-
                 checkUser(authorizationGrant, oAuth2AuditLog);
                 executionContext.setGrant(authorizationGrant);
 
@@ -319,8 +313,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor, executionContext);
                 }
 
-                if (reToken != null && refreshToken != null) {
-                    grantService.removeByCode(refreshToken); // remove refresh token after access token and id_token is created.
+
+                TokenLdap lockedRefreshToken = lockRefreshToken(refreshToken);
+                if (lockedRefreshToken == null) {
+                    log.trace("Failed to lock refresh token {}", refreshToken);
+                    return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Failed to lock refresh token."), oAuth2AuditLog);
                 }
 
                 builder.entity(getJSonResponse(accToken,
@@ -569,52 +566,17 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     private TokenLdap lockRefreshToken(String refreshTokenCode) {
         try {
-            String requestId = UUID.randomUUID().toString();
-
             synchronized (refreshTokenLocalLock) {
                 if (refreshTokenLocalLock.containsKey(refreshTokenCode)) {
                     log.trace("Refresh token is already used by another request. Refresh token  code: {}", refreshTokenCode);
                     return null;
                 }
 
-                refreshTokenLocalLock.put(refreshTokenCode, requestId);
-            }
+                refreshTokenLocalLock.put(refreshTokenCode, refreshTokenCode);
 
-            for (int attempt = 1; attempt <= 3; attempt++) {
-                try {
-                    final TokenLdap token = grantService.getGrantByCode(refreshTokenCode);
-                    if (token == null) {
-                        log.trace("Refresh token is not found by code {}", refreshTokenCode);
-                        return null;
-                    }
-
-                    if (token.getAttributes().getAttributes().containsKey("lockKey")) {
-                        log.trace("Refresh token is already locked. Refresh Token {}, lockKey {}", refreshTokenCode, NODE_ID);
-                        return null;
-                    }
-
-                    synchronized (refreshTokenLocalLock) {
-                        if (!requestId.equals(refreshTokenLocalLock.get(refreshTokenCode))) {
-                            log.trace("Request id does not match in lock map for refresh token {}", refreshTokenCode);
-                            return null;
-                        }
-
-                        log.trace("Trying to lock refresh token ... refresh token {}, lockKey {}", refreshTokenCode, NODE_ID);
-                        token.getAttributes().getAttributes().put("lockKey", NODE_ID);
-                        grantService.mergeSilently(token);
-                        final TokenLdap tokenFromDb = grantService.getGrantByCode(refreshTokenCode);
-                        if (NODE_ID.equals(tokenFromDb.getAttributes().getAttributes().get("lockKey"))) {
-                            log.trace("Successfully locked refresh token {}, attempt {}, lockKey {}", refreshTokenCode, attempt, NODE_ID);
-                            return token;
-                        }
-                    }
-
-                    log.trace("Failed to lock refresh token {}, attempt {}", refreshTokenCode, attempt);
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    // ignore and make next attempt
-                    log.trace(e.getMessage(), e);
-                }
+                final TokenLdap token = grantService.getGrantByCode(refreshTokenCode);
+                grantService.remove(token);
+                return token;
             }
         } catch (Exception e) {
             // ignore
