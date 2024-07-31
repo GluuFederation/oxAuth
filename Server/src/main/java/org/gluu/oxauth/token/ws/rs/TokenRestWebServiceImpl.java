@@ -8,6 +8,7 @@ package org.gluu.oxauth.token.ws.rs;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.model.audit.Action;
@@ -54,7 +55,6 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
@@ -118,11 +118,11 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     @Inject
     private DeviceAuthorizationService deviceAuthorizationService;
-    
+
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
 
-    private final ConcurrentMap<String, TokenLdap> refreshTokenLocalLock = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String> refreshTokenLocalLock = Maps.newConcurrentMap();
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -242,7 +242,7 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         }
                         return null;
                     };
-                    
+
                     ExternalUpdateTokenContext context = ExternalUpdateTokenContext.of(executionContext);
                     Function<JsonWebResponse, Void> postProcessor = externalUpdateTokenService.buildModifyIdTokenProcessor(context);
 
@@ -569,9 +569,15 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     private TokenLdap lockRefreshToken(String refreshTokenCode) {
         try {
-            if (refreshTokenLocalLock.containsKey(refreshTokenCode)) {
-                log.trace("Refresh token is already used by another request. Refresh token  code: {}", refreshTokenCode);
-                return null;
+            String requestId = UUID.randomUUID().toString();
+
+            synchronized (refreshTokenLocalLock) {
+                if (refreshTokenLocalLock.containsKey(refreshTokenCode)) {
+                    log.trace("Refresh token is already used by another request. Refresh token  code: {}", refreshTokenCode);
+                    return null;
+                }
+
+                refreshTokenLocalLock.put(refreshTokenCode, requestId);
             }
 
             for (int attempt = 1; attempt <= 3; attempt++) {
@@ -582,21 +588,25 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         return null;
                     }
 
-                    final String lockKey = token.getAttributes().getAttributes().get("lockKey");
-                    if (StringUtils.isNotBlank(lockKey) && !NODE_ID.equals(lockKey)) {
+                    if (token.getAttributes().getAttributes().containsKey("lockKey")) {
                         log.trace("Refresh token is already locked. Refresh Token {}, lockKey {}", refreshTokenCode, NODE_ID);
                         return null;
                     }
 
-                    refreshTokenLocalLock.put(refreshTokenCode, token);
+                    synchronized (refreshTokenLocalLock) {
+                        if (!requestId.equals(refreshTokenLocalLock.get(refreshTokenCode))) {
+                            log.trace("Request id does not match in lock map for refresh token {}", refreshTokenCode);
+                            return null;
+                        }
 
-                    log.trace("Trying to lock refresh token ... refresh token {}, lockKey {}", refreshTokenCode, NODE_ID);
-                    token.getAttributes().getAttributes().put("lockKey", NODE_ID);
-                    grantService.mergeSilently(token);
-                    final TokenLdap tokenFromDb = grantService.getGrantByCode(refreshTokenCode);
-                    if (NODE_ID.equals(tokenFromDb.getAttributes().getAttributes().get("lockKey"))) {
-                        log.trace("Successfully locked refresh token {}, attempt {}, lockKey {}", refreshTokenCode, attempt, NODE_ID);
-                        return token;
+                        log.trace("Trying to lock refresh token ... refresh token {}, lockKey {}", refreshTokenCode, NODE_ID);
+                        token.getAttributes().getAttributes().put("lockKey", NODE_ID);
+                        grantService.mergeSilently(token);
+                        final TokenLdap tokenFromDb = grantService.getGrantByCode(refreshTokenCode);
+                        if (NODE_ID.equals(tokenFromDb.getAttributes().getAttributes().get("lockKey"))) {
+                            log.trace("Successfully locked refresh token {}, attempt {}, lockKey {}", refreshTokenCode, attempt, NODE_ID);
+                            return token;
+                        }
                     }
 
                     log.trace("Failed to lock refresh token {}, attempt {}", refreshTokenCode, attempt);
@@ -606,6 +616,9 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                     log.trace(e.getMessage(), e);
                 }
             }
+        } catch (Exception e) {
+            // ignore
+            log.trace(e.getMessage(), e);
         } finally {
             refreshTokenLocalLock.remove(refreshTokenCode);
         }
@@ -626,12 +639,13 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     /**
      * Processes token request for device code grant type.
-     * @param grantType Grant type used, should be device code.
-     * @param client Client in process.
-     * @param deviceCode Device code generated in device authn request.
-     * @param scope Scope registered in device authn request.
+     *
+     * @param grantType        Grant type used, should be device code.
+     * @param client           Client in process.
+     * @param deviceCode       Device code generated in device authn request.
+     * @param scope            Scope registered in device authn request.
      * @param executionContext ExecutionContext
-     * @param oAuth2AuditLog OAuth2AuditLog
+     * @param oAuth2AuditLog   OAuth2AuditLog
      */
     private Response processDeviceCodeGrantType(final GrantType grantType, final Client client, final String deviceCode,
                                                 String scope, final ExecutionContext executionContext, final OAuth2AuditLog oAuth2AuditLog) {
