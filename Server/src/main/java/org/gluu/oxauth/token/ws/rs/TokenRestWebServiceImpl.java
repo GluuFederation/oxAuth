@@ -582,13 +582,20 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                         return null;
                     }
 
+                    final String lockKey = token.getAttributes().getAttributes().get("lockKey");
+                    if (StringUtils.isNotBlank(lockKey) && !NODE_ID.equals(lockKey)) {
+                        log.trace("Refresh token is already locked. Refresh Token {}, lockKey {}", refreshTokenCode, NODE_ID);
+                        return null;
+                    }
+
                     refreshTokenLocalLock.put(refreshTokenCode, token);
 
+                    log.trace("Trying to lock refresh token ... refresh token {}, lockKey {}", refreshTokenCode, NODE_ID);
                     token.getAttributes().getAttributes().put("lockKey", NODE_ID);
                     grantService.mergeSilently(token);
                     final TokenLdap tokenFromDb = grantService.getGrantByCode(refreshTokenCode);
                     if (NODE_ID.equals(tokenFromDb.getAttributes().getAttributes().get("lockKey"))) {
-                        log.trace("Successfully locked refresh token {}, attempt {}", refreshTokenCode, attempt);
+                        log.trace("Successfully locked refresh token {}, attempt {}, lockKey {}", refreshTokenCode, attempt, NODE_ID);
                         return token;
                     }
 
