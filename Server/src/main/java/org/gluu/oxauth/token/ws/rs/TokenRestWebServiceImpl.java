@@ -18,6 +18,7 @@ import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.binding.TokenBindingMessage;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
+import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionClient;
 import org.gluu.oxauth.model.session.SessionId;
@@ -52,6 +53,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
 
@@ -64,6 +68,8 @@ import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
  */
 @Path("/")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
+
+    private static final String NODE_ID = UUID.randomUUID().toString();
 
     @Inject
     private Logger log;
@@ -115,6 +121,8 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
     
     @Inject
     private ExternalUpdateTokenService externalUpdateTokenService;
+
+    private final ConcurrentMap<String, TokenLdap> refreshTokenLocalLock = new ConcurrentHashMap<>();
 
     @Override
     public Response requestAccessToken(String grantType, String code,
@@ -268,6 +276,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                 if (refreshTokenObject == null || !refreshTokenObject.isValid()) {
                     log.trace("Invalid refresh token.");
                     return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Unable to find refresh token or otherwise token type or client does not match."), oAuth2AuditLog);
+                }
+
+                TokenLdap lockedRefreshToken = lockRefreshToken(refreshToken);
+                if (lockedRefreshToken == null) {
+                    log.trace("Failed to lock refresh token {}", refreshToken);
+                    return response(error(400, TokenErrorResponseType.INVALID_GRANT, "Failed to lock refresh token."), oAuth2AuditLog);
                 }
 
                 checkUser(authorizationGrant, oAuth2AuditLog);
@@ -551,6 +565,44 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
         }
 
         return response(builder, oAuth2AuditLog);
+    }
+
+    private TokenLdap lockRefreshToken(String refreshTokenCode) {
+        try {
+            if (refreshTokenLocalLock.containsKey(refreshTokenCode)) {
+                log.trace("Refresh token is already used by another request. Refresh token  code: {}", refreshTokenCode);
+                return null;
+            }
+
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    final TokenLdap token = grantService.getGrantByCode(refreshTokenCode);
+                    if (token == null) {
+                        log.trace("Refresh token is not found by code {}", refreshTokenCode);
+                        return null;
+                    }
+
+                    refreshTokenLocalLock.put(refreshTokenCode, token);
+
+                    token.getAttributes().getAttributes().put("lockKey", NODE_ID);
+                    grantService.mergeSilently(token);
+                    final TokenLdap tokenFromDb = grantService.getGrantByCode(refreshTokenCode);
+                    if (NODE_ID.equals(tokenFromDb.getAttributes().getAttributes().get("lockKey"))) {
+                        log.trace("Successfully locked refresh token {}, attempt {}", refreshTokenCode, attempt);
+                        return token;
+                    }
+
+                    log.trace("Failed to lock refresh token {}, attempt {}", refreshTokenCode, attempt);
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    // ignore and make next attempt
+                    log.trace(e.getMessage(), e);
+                }
+            }
+        } finally {
+            refreshTokenLocalLock.remove(refreshTokenCode);
+        }
+        return null;
     }
 
     private void checkUser(AuthorizationGrant authorizationGrant, OAuth2AuditLog oAuth2AuditLog) {
