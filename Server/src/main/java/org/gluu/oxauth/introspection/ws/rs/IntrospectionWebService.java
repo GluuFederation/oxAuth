@@ -43,6 +43,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
 /**
  * @author Yuriy Zabrovarnyy
  * @version June 30, 2018
