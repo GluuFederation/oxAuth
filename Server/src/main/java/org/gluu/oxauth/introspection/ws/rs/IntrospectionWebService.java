@@ -113,10 +113,16 @@ public class IntrospectionWebService {
         if (authorizationGrant == null) {
             log.debug("Authorization grant is null.");
             if (isTrue(pair.getSecond())) {
-                final IntrospectionResponse response = new IntrospectionResponse(false);
-                throw new WebApplicationException(Response.status(Response.Status.OK).entity(ServerUtil.asJson(response)).type(MediaType.APPLICATION_JSON_TYPE).build());
+                log.debug("Returned {\"active\":false.");
+                throw new WebApplicationException(Response.status(Response.Status.OK)
+                        .entity("{\"active\":false")
+                        .type(MediaType.APPLICATION_JSON_TYPE)
+                        .build());
             }
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null.")).build());
+            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null."))
+                    .build());
         }
 
         final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getToken(p_authorization));
