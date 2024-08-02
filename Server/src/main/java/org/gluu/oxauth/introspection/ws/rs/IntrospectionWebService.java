@@ -11,12 +11,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.claims.Audience;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
-import org.gluu.oxauth.model.common.AbstractToken;
-import org.gluu.oxauth.model.common.AccessToken;
-import org.gluu.oxauth.model.common.AuthorizationGrant;
-import org.gluu.oxauth.model.common.AuthorizationGrantList;
-import org.gluu.oxauth.model.common.IntrospectionResponse;
-import org.gluu.oxauth.model.common.TokenType;
+import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
@@ -38,14 +33,7 @@ import org.slf4j.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -106,7 +94,7 @@ public class IntrospectionWebService {
         return introspect(p_authorization, p_token, tokenTypeHint, responseAsJwt, httpRequest, httpResponse);
     }
 
-    private AuthorizationGrant validateAuthorization(String p_authorization, String p_token) throws UnsupportedEncodingException {
+    private AuthorizationGrant validateAuthorization(String p_authorization, String p_token) throws IOException {
         final boolean skipAuthorization = ServerUtil.isTrue(appConfiguration.getIntrospectionSkipAuthorization());
         log.trace("skipAuthorization: {}", skipAuthorization);
         if (skipAuthorization) {
@@ -121,8 +109,18 @@ public class IntrospectionWebService {
         final Pair<AuthorizationGrant, Boolean> pair = getAuthorizationGrant(p_authorization, p_token);
         final AuthorizationGrant authorizationGrant = pair.getFirst();
         if (authorizationGrant == null) {
-            log.error("Authorization grant is null.");
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null.")).build());
+            log.debug("Authorization grant is null.");
+            if (isTrue(pair.getSecond())) {
+                log.debug("Returned {\"active\":false.");
+                throw new WebApplicationException(Response.status(Response.Status.OK)
+                        .entity("{\"active\":false")
+                        .type(MediaType.APPLICATION_JSON_TYPE)
+                        .build());
+            }
+            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null."))
+                    .build());
         }
 
         final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getToken(p_authorization));
