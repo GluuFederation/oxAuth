@@ -231,6 +231,10 @@ public class IntrospectionWebService {
             }
         }
 
+        if (log.isTraceEnabled()) {
+            log.trace("Response before signing: {}", jwt.getClaims().toJsonString());
+        }
+
         return jwtSigner.sign().toString();
     }
 
@@ -288,7 +292,7 @@ public class IntrospectionWebService {
                 String password = URLDecoder.decode(token.substring(delim + 1), Util.UTF8_STRING_ENCODING);
                 if (clientService.authenticate(clientId, password)) {
                     grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-                    if (grant != null && !grant.getClientId().equals(clientId)) {
+                    if (isTrue(appConfiguration.getIntrospectionRestrictBasicAuthnToOwnTokens()) && grant != null && !grant.getClientId().equals(clientId)) {
                         log.trace("Failed to match grant object clientId and client id provided during authentication.");
                         return EMPTY;
                     }

@@ -195,6 +195,7 @@ public class AppConfiguration implements Configuration {
 
     private Boolean introspectionAccessTokenMustHaveUmaProtectionScope = false;
     private Boolean introspectionSkipAuthorization;
+    private Boolean introspectionRestrictBasicAuthnToOwnTokens = false;
 
     private Boolean endSessionWithAccessToken;
     private String cookieDomain;
@@ -582,6 +583,15 @@ public class AppConfiguration implements Configuration {
 
     public void setIntrospectionSkipAuthorization(Boolean introspectionSkipAuthorization) {
         this.introspectionSkipAuthorization = introspectionSkipAuthorization;
+    }
+
+    public Boolean getIntrospectionRestrictBasicAuthnToOwnTokens() {
+        if (introspectionRestrictBasicAuthnToOwnTokens == null) introspectionRestrictBasicAuthnToOwnTokens = false;
+        return introspectionRestrictBasicAuthnToOwnTokens;
+    }
+
+    public void setIntrospectionRestrictBasicAuthnToOwnTokens(Boolean introspectionRestrictBasicAuthnToOwnTokens) {
+        this.introspectionRestrictBasicAuthnToOwnTokens = introspectionRestrictBasicAuthnToOwnTokens;
     }
 
     public Boolean getUmaRptAsJwt() {
