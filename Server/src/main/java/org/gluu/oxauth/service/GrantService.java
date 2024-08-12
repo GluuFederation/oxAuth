@@ -30,7 +30,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 
-import static org.gluu.oxauth.util.ServerUtil.calculateTtl;
 import static org.gluu.oxauth.util.ServerUtil.isTrue;
 
 /**
@@ -74,18 +73,13 @@ public class GrantService {
         return staticConfiguration.getBaseDn().getTokens();  // ou=tokens,o=gluu
     }
 
-    public void merge(TokenLdap token) {
-        if (shouldPutInCache(token.getTokenTypeEnum(), token.isImplicitFlow())) {
-            final int expiration = calculateTtl(new Date(), token.getExpirationDate());
-            cacheService.put(expiration, token.getTokenCode(), token);
-        } else {
-            ldapEntryManager.merge(token);
-        }
+    public void merge(TokenLdap p_token) {
+        ldapEntryManager.merge(p_token);
     }
 
-    public void mergeSilently(TokenLdap token) {
+    public void mergeSilently(TokenLdap p_token) {
         try {
-            merge(token);
+            ldapEntryManager.merge(p_token);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

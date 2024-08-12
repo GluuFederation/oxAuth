@@ -54,7 +54,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
@@ -68,8 +67,6 @@ import static org.gluu.oxauth.util.ServerUtil.prepareForLogs;
  */
 @Path("/")
 public class TokenRestWebServiceImpl implements TokenRestWebService {
-
-    private static final String NODE_ID = UUID.randomUUID().toString();
 
     @Inject
     private Logger log;
@@ -312,7 +309,6 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
                             null, null, accToken, null,
                             null, authorizationGrant, includeIdTokenClaims, idTokenPreProcessing, postProcessor, executionContext);
                 }
-
 
                 TokenLdap lockedRefreshToken = lockRefreshToken(refreshToken);
                 if (lockedRefreshToken == null) {
@@ -601,13 +597,12 @@ public class TokenRestWebServiceImpl implements TokenRestWebService {
 
     /**
      * Processes token request for device code grant type.
-     *
-     * @param grantType        Grant type used, should be device code.
-     * @param client           Client in process.
-     * @param deviceCode       Device code generated in device authn request.
-     * @param scope            Scope registered in device authn request.
+     * @param grantType Grant type used, should be device code.
+     * @param client Client in process.
+     * @param deviceCode Device code generated in device authn request.
+     * @param scope Scope registered in device authn request.
      * @param executionContext ExecutionContext
-     * @param oAuth2AuditLog   OAuth2AuditLog
+     * @param oAuth2AuditLog OAuth2AuditLog
      */
     private Response processDeviceCodeGrantType(final GrantType grantType, final Client client, final String deviceCode,
                                                 String scope, final ExecutionContext executionContext, final OAuth2AuditLog oAuth2AuditLog) {
