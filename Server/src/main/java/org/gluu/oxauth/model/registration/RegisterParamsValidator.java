@@ -349,7 +349,7 @@ public class RegisterParamsValidator {
     private boolean checkWhiteListRedirectUris(List<String> redirectUris) {
         boolean valid = true;
         List<String> whiteList = appConfiguration.getClientWhiteList();
-        boolean wildcardSupported = appConfiguration.getAllowWildcardRedirectUri();
+        boolean wildcardSupported = isTrue(appConfiguration.getAllowWildcardRedirectUri());
         URLPatternList urlPatternList = new URLPatternList(whiteList, wildcardSupported);
 
         for (String redirectUri : redirectUris) {
@@ -365,7 +365,7 @@ public class RegisterParamsValidator {
     private boolean checkBlackListRedirectUris(List<String> redirectUris) {
         boolean valid = true;
         List<String> blackList = appConfiguration.getClientBlackList();
-        boolean wildcardSupported = appConfiguration.getAllowWildcardRedirectUri();
+        boolean wildcardSupported = isTrue(appConfiguration.getAllowWildcardRedirectUri());
         URLPatternList urlPatternList = new URLPatternList(blackList, wildcardSupported);
 
         for (String redirectUri : redirectUris) {
