@@ -38,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.apache.commons.lang.BooleanUtils.isTrue;
+
 /**
  * Validates the parameters received for the register web service.
  *
@@ -310,7 +312,7 @@ public class RegisterParamsValidator {
         }
 
         // Validate Redirect Uris checking the white list and black list
-        if (valid) {
+        if (valid || isTrue(appConfiguration.getAllowWildcardRedirectUri())) {
             valid = checkWhiteListRedirectUris(redirectUris) && checkBlackListRedirectUris(redirectUris);
         }
 
@@ -339,7 +341,8 @@ public class RegisterParamsValidator {
     private boolean checkWhiteListRedirectUris(List<String> redirectUris) {
         boolean valid = true;
         List<String> whiteList = appConfiguration.getClientWhiteList();
-        URLPatternList urlPatternList = new URLPatternList(whiteList);
+        boolean wildcardSupported = appConfiguration.getAllowWildcardRedirectUri();
+        URLPatternList urlPatternList = new URLPatternList(whiteList, wildcardSupported);
 
         for (String redirectUri : redirectUris) {
             valid &= urlPatternList.isUrlListed(redirectUri);
@@ -354,7 +357,8 @@ public class RegisterParamsValidator {
     private boolean checkBlackListRedirectUris(List<String> redirectUris) {
         boolean valid = true;
         List<String> blackList = appConfiguration.getClientBlackList();
-        URLPatternList urlPatternList = new URLPatternList(blackList);
+        boolean wildcardSupported = appConfiguration.getAllowWildcardRedirectUri();
+        URLPatternList urlPatternList = new URLPatternList(blackList, wildcardSupported);
 
         for (String redirectUri : redirectUris) {
             valid &= !urlPatternList.isUrlListed(redirectUri);
