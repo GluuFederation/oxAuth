@@ -1,5 +1,6 @@
 package org.gluu.oxauth.model.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.net.MalformedURLException;
@@ -18,13 +19,19 @@ public class URLPatternList {
     private static final Logger LOG = Logger.getLogger(URLPatternList.class);
 
     private List<URLPattern> urlPatternList;
+    private boolean wildcardEnabled = false;
 
     public URLPatternList() {
-        this.urlPatternList = new ArrayList<URLPattern>();
+        this(new ArrayList<String>());
     }
 
     public URLPatternList(List<String> urlPatternList) {
-        this();
+        this(urlPatternList, false);
+    }
+
+    public URLPatternList(List<String> urlPatternList, boolean wildcardEnabled) {
+        this.urlPatternList = new ArrayList<>();
+        this.wildcardEnabled = wildcardEnabled;
 
         if (urlPatternList != null) {
             for (String urlPattern : urlPatternList) {
@@ -36,6 +43,10 @@ public class URLPatternList {
     public boolean isUrlListed(String uri) {
         if (urlPatternList == null) {
             return true;
+        }
+
+        if (wildcardEnabled) {
+            uri = StringUtils.replace(uri, "*", "a");
         }
 
         URI parsedUri = URI.create(uri);
@@ -50,33 +61,44 @@ public class URLPatternList {
     }
 
     public void addListEntry(String urlPattern) {
-        if (urlPatternList != null) {
-            try {
-                if (urlPattern.compareTo("*") == 0) {
-                    LOG.debug("Unlimited access to network resources");
-                    urlPatternList = null;
-                } else { // specific access
-                    Pattern parts = Pattern.compile("^((\\*|[A-Za-z-]+):(//)?)?(\\*|((\\*\\.)?[^*/:]+))?(:(\\d+))?(/.*)?");
-                    Matcher m = parts.matcher(urlPattern);
-                    if (m.matches()) {
-                        String scheme = m.group(2);
-                        String host = m.group(4);
-                        // Special case for two urls which are allowed to have empty hosts
-                        if (("file".equals(scheme) || "content".equals(scheme)) && host == null) host = "*";
-                        String port = m.group(8);
-                        String path = m.group(9);
-                        if (scheme == null) {
-                            urlPatternList.add(new URLPattern("http", host, port, path));
-                            urlPatternList.add(new URLPattern("https", host, port, path));
-                        } else {
-                            urlPatternList.add(new URLPattern(scheme, host, port, path));
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                LOG.debug("Failed to add origin " + urlPattern);
-            }
+        if (urlPatternList == null) {
+            return;
         }
+
+        if (urlPattern.compareTo("*") == 0) {
+            LOG.debug("Unlimited access to network resources");
+            urlPatternList = null;
+            return;
+        }
+
+        try {
+            Pattern parts = Pattern.compile("^((\\*|[A-Za-z-]+):(//)?)?(\\*|((\\*\\.)?[^*/:]+))?(:(\\d+))?(/.*)?");
+            Matcher m = parts.matcher(urlPattern);
+            if (m.matches()) {
+                String scheme = m.group(2);
+                String host = m.group(4);
+                // Special case for two urls which are allowed to have empty hosts
+                if (("file".equals(scheme) || "content".equals(scheme)) && host == null) host = "*";
+                String port = m.group(8);
+                String path = m.group(9);
+                if (scheme == null) {
+                    urlPatternList.add(new URLPattern("http", host, port, path));
+                    urlPatternList.add(new URLPattern("https", host, port, path));
+                } else {
+                    urlPatternList.add(new URLPattern(scheme, host, port, path));
+                }
+            }
+        } catch (Exception e) {
+            LOG.debug("Failed to add origin " + urlPattern);
+        }
+    }
+
+    public boolean isWildcardEnabled() {
+        return wildcardEnabled;
+    }
+
+    public void setWildcardEnabled(boolean wildcardEnabled) {
+        this.wildcardEnabled = wildcardEnabled;
     }
 
     private static class URLPattern {
@@ -116,10 +138,11 @@ public class URLPatternList {
 
         public boolean matches(URI uri) {
             try {
-                return ((scheme == null || scheme.matcher(uri.getScheme()).matches()) &&
-                        (host == null || host.matcher(uri.getHost()).matches()) &&
-                        (port == null || port.equals(uri.getPort())) &&
-                        (path == null || path.matcher(uri.getPath()).matches()));
+                final boolean schemaMatches = scheme == null || scheme.matcher(uri.getScheme()).matches();
+                final boolean hostMatches = host == null || host.matcher(uri.getHost()).matches();
+                final boolean portMatches = port == null || port.equals(uri.getPort());
+                final boolean pathMatches = path == null || path.matcher(uri.getPath()).matches();
+                return schemaMatches && hostMatches && portMatches && pathMatches;
             } catch (Exception e) {
                 LOG.debug(e.toString());
                 return false;
