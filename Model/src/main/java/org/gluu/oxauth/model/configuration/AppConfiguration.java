@@ -204,6 +204,7 @@ public class AppConfiguration implements Configuration {
     private Set<String> jmsBrokerURISet;
     private String jmsUserName;
     private String jmsPassword;
+    private Boolean allowWildcardRedirectUri;
     private List<String> clientWhiteList;
     private List<String> clientBlackList;
     private Boolean legacyIdTokenClaims;
@@ -1723,6 +1724,14 @@ public class AppConfiguration implements Configuration {
 
     public void setJmsPassword(String jmsPassword) {
         this.jmsPassword = jmsPassword;
+    }
+
+    public Boolean getAllowWildcardRedirectUri() {
+        return allowWildcardRedirectUri;
+    }
+
+    public void setAllowWildcardRedirectUri(Boolean allowWildcardRedirectUri) {
+        this.allowWildcardRedirectUri = allowWildcardRedirectUri;
     }
 
     public List<String> getClientWhiteList() {

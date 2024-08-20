@@ -6,6 +6,7 @@
 
 package org.gluu.oxauth.service;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -27,10 +28,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static org.apache.commons.lang.BooleanUtils.isTrue;
 
 /**
  * @author Javier Rojas Blum
@@ -116,6 +116,15 @@ public class RedirectionUriService {
                 // Accept Request Without redirect_uri when One Registered
                 if (redirectUris != null && redirectUris.length == 1) {
                     return redirectUris[0];
+                }
+            }
+
+            if (isTrue(appConfiguration.getAllowWildcardRedirectUri()) && redirectUris != null && redirectUris.length > 0) {
+                URLPatternList urlPatternList = new URLPatternList(Arrays.asList(redirectUris), true);
+                boolean valid = urlPatternList.isUrlListed(redirectionUri);
+                if (valid) {
+                    log.trace("Allowed by wildcard redirect_uris: {}", Joiner.on(",").join(redirectUris));
+                    return redirectionUri;
                 }
             }
         } catch (Exception e) {
