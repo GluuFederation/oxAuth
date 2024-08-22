@@ -114,7 +114,7 @@ public abstract class RegistrationPersistenceService {
         }
 
         Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
-        Filter registeredFilter = Filter.createEqualityFilter("jansStatus", Fido2RegistrationStatus.registered.getValue());
+        Filter registeredFilter = Filter.createEqualityFilter("oxStatus", Fido2RegistrationStatus.registered.getValue());
         Filter filter = null;
         if (StringHelper.isNotEmpty(rpId)) {
         	Filter appIdFilter = Filter.createEqualityFilter("oxApplication", rpId);
