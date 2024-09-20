@@ -930,9 +930,9 @@ public class SessionIdService {
         } catch (JSONException ex) {
             acrs = Util.splittedStringAsList(acrValues, " ");
         }
-        
-        
-        HashSet<String> resultAcrs = new HashSet<String>();
+
+
+        LinkedHashSet<String> resultAcrs = new LinkedHashSet<String>();
         for (String acr : acrs) {
         	resultAcrs.add(externalAuthenticationService.scriptName(acr));
         }
