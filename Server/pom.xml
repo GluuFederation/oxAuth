@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>4.5.1.Final</version>
+		<version>4.5.1.sp1</version>
 	</parent>
 
 	<prerequisites>
@@ -607,7 +607,7 @@
 		<dependency>
 			<groupId>org.gluu</groupId>
 			<artifactId>oxauth-client</artifactId>
-			<version>4.5.1.Final</version>
+			<version>4.5.1.sp1</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -1219,7 +1219,7 @@
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-client</artifactId>
-					<version>4.5.1.Final</version>
+					<version>4.5.1.sp1</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
