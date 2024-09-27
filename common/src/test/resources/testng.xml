@@ -6,4 +6,9 @@
             <class name="org.gluu.oxauth.claims.AudienceTest"/>
         </classes>
     </test>
+    <test name="RedirectUri Tests" enabled="true">
+        <classes>
+            <class name="org.gluu.oxauth.util.RedirectUriTest"/>
+        </classes>
+    </test>
 </suite>
