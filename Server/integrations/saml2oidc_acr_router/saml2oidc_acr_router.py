@@ -56,7 +56,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return False
 
     def getAlternativeAuthenticationMethod(self, usageType, configurationAttributes):
-        print "DEBUG OUTPUT: SAML 2 OIDC ACR router script. Processing url query arguments..."
+        #print "DEBUG OUTPUT: SAML 2 OIDC ACR router script. Processing url query arguments..."
         # !!!Note: oxAuth stores in session only known parameters
         # We need to add to authorizationRequestCustomAllowedParameters oxAuth property issuerId and entityId
 
@@ -69,7 +69,7 @@ class PersonAuthentication(PersonAuthenticationType):
             issuerId = session_attributes.get("issuerId")
             entityId = session_attributes.get("entityId")
             redirect_uri = session_attributes.get("redirect_uri")
-            print "DEBUG OUTPUT: SAML 2 OIDC ACR router script. issuerId: %s, entityId: %s, redirect_uri: %s: " % (issuerId, entityId, redirect_uri)
+            #print "DEBUG OUTPUT: SAML 2 OIDC ACR router script. issuerId: %s, entityId: %s, redirect_uri: %s: " % (issuerId, entityId, redirect_uri)
 	    if entityId in self.entityidOidcAcrMap:
 		target_oidc_acr = self.entityidOidcAcrMap[entityId]
 		print "SAML 2 OIDC ACR router script. Next target OIDC ACR is chosen based on SP entityId %s: %s" % (entityId, target_oidc_acr)
@@ -77,9 +77,6 @@ class PersonAuthentication(PersonAuthenticationType):
 	    else:
 		print "SAML 2 OIDC ACR router script. No mapping for entityId %s is found, redirecting to the default method" % (entityId)
 		return self.default_acr
-            #if StringHelper.equalsIgnoreCase(issuerId, "https://samltest.id/saml/sp"):
-            #    print "ACR SAML Router. Redirect to super_gluu"
-            #    return "super_gluu"
 	else:
 	    print "SAML 2 OIDC ACR router script. entityId url query parameter must be present in case of valid Shibboleth IDP authentication flow, but it's not found. Aborting the flow..."
 	    return False
