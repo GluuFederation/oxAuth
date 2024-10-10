@@ -6,24 +6,6 @@
 
 package org.gluu.oxauth.client;
 
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.ACCESS_TOKEN;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.CODE;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.EXPIRES_IN;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.ID_TOKEN;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SCOPE;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.STATE;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.TOKEN_TYPE;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.common.ResponseMode;
@@ -31,6 +13,15 @@ import org.gluu.oxauth.model.common.TokenType;
 import org.gluu.oxauth.model.util.Util;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.*;
 
 /**
  * Represents an authorization response received from the authorization server.
@@ -52,6 +43,7 @@ public class AuthorizationResponse extends BaseResponse {
     private Map<String, String> customParams;
     private ResponseMode responseMode;
 
+    private String errorTypeString;
     private AuthorizeErrorResponseType errorType;
     private String errorDescription;
     private String errorUri;
@@ -67,7 +59,8 @@ public class AuthorizationResponse extends BaseResponse {
             try {
                 JSONObject jsonObj = new JSONObject(entity);
                 if (jsonObj.has("error")) {
-                    errorType = AuthorizeErrorResponseType.fromString(jsonObj.getString("error"));
+                    errorTypeString = jsonObj.getString("error");
+                    errorType = AuthorizeErrorResponseType.fromString(errorTypeString);
                 }
                 if (jsonObj.has("error_description")) {
                     errorDescription = jsonObj.getString("error_description");
@@ -80,6 +73,9 @@ public class AuthorizationResponse extends BaseResponse {
                 }
                 if (jsonObj.has("redirect")) {
                     location = jsonObj.getString("redirect");
+                }
+                if (jsonObj.has("authorization_code")) {
+                    code = jsonObj.getString("authorization_code");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -171,6 +167,14 @@ public class AuthorizationResponse extends BaseResponse {
             }
         } catch (UnsupportedEncodingException e) {
         }
+    }
+
+    public String getErrorTypeString() {
+        return errorTypeString;
+    }
+
+    public void setErrorTypeString(String errorTypeString) {
+        this.errorTypeString = errorTypeString;
     }
 
     /**
