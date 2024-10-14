@@ -1,3 +1,4 @@
+# Moved to [Gluu4 monorepo](https://github.com/GluuFederation/gluu4/tree/main/oxAuth)
 ## oxAuth
 
 oxAuth is an open source OpenID Connect Provider (OP) and UMA Authorization Server (AS). The project also includes OpenID Connect Client code which can be used by websites to validate tokens. 
