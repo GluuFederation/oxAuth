@@ -48,8 +48,8 @@ Additionally, there are some features worth noting:
 
 |	Property	|	Description		|	Example	|
 |-----------------------|-------------------------------|---------------|
-|DEDUCE_ENDPOINT		|API endpoint provided by Deduce. |`https://api.deducesecurity.com/insights`|
-|DEDUCE_API_KEY 		|API Key provided by Deduce. |`87d55ba11acd1a23ee6c054f3460154e`|
+|DEDUCE_ENDPOINT		|API endpoint provided by Deduce. |`endpoint`|
+|DEDUCE_API_KEY 		|API Key provided by Deduce. |`API key`|
 |DEDUCE_SITE		|site provided by Deduce. |`site name`|
 
 5. If `super_gluu` was listed in the previous step, click on `Add new property`. On the left type `supergluu_app_id`, on the right use `https://<your-gluu-host-name>/casa`. This is the URL (aka application ID) that Super Gluu enrollments are already (or will be) associated to.
